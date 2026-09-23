@@ -1,4 +1,4 @@
-# Breakbeat Pattern Maker
+# Breakbeat Pattern Maker[Vibe Coded]
 
 A standalone single-shot beat generator and tracker. The chopper is hidden, with its code preserved for future use. Renoise integration is retired.
 
