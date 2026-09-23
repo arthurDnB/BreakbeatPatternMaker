@@ -1,0 +1,322 @@
+[
+  {
+    "id": "acoustic-kick",
+    "role": "kick",
+    "name": "Acoustic bass drum",
+    "path": "/public/samples/acoustic-kick.wav",
+    "license": "CC0-1.0",
+    "author": "Versilian Studios / VCSL contributors",
+    "source": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Membranophones/Struck%20Membranophones/Bass%20Drum%201/BDrumNew_hit_v3_rr1_Sum.wav",
+    "sha256": "a2d8829e8b2b59e8afb12fa396b01758827059339c2a84ad066d17b36c82d1ff"
+  },
+  {
+    "id": "acoustic-snare",
+    "role": "snare",
+    "name": "Acoustic snare — firm",
+    "path": "/public/samples/acoustic-snare.wav",
+    "license": "CC0-1.0",
+    "author": "Versilian Studios / VCSL contributors",
+    "source": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Membranophones/Struck%20Membranophones/Legacy%20Snares/OldSnare/snare_f1.wav",
+    "sha256": "c332f9548c64202a6740d6ee327b17f87e1fd13fee034a9ad58fc8b4c07a80f2"
+  },
+  {
+    "id": "acoustic-snare-soft",
+    "role": "snare",
+    "name": "Acoustic snare — soft",
+    "path": "/public/samples/acoustic-snare-soft.wav",
+    "license": "CC0-1.0",
+    "author": "Versilian Studios / VCSL contributors",
+    "source": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Membranophones/Struck%20Membranophones/Legacy%20Snares/OldSnare/snare_mf1.wav",
+    "sha256": "ca6a8efed42a35f624d0c91291165a1514f3018db6b1115c572c3deb6e733218"
+  },
+  {
+    "id": "acoustic-hat",
+    "role": "hat",
+    "name": "Acoustic closed hat",
+    "path": "/public/samples/acoustic-hat.wav",
+    "license": "CC0-1.0",
+    "author": "Versilian Studios / VCSL contributors",
+    "source": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Idiophones/Struck%20Idiophones/Hi-Hat%20Cymbal/HiHat_HitC_v3_rr1_Mid.wav",
+    "sha256": "b65ca06ea4f8b5209fc8d98912094be1212911f21e01bd949cc9960db049d37c"
+  },
+  {
+    "id": "bongo",
+    "role": "percussion",
+    "name": "Acoustic high bongo",
+    "path": "/public/samples/bongo.wav",
+    "license": "CC0-1.0",
+    "author": "Versilian Studios / VCSL contributors",
+    "source": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Membranophones/Struck%20Membranophones/Bongos/BongoH_Hit1_v2_rr1_Mid.wav",
+    "sha256": "dd9b6239a151702966a995937f74ac022c9bb950c967277fbd16beaced0c9e1a"
+  },
+  {
+    "id": "tambourine",
+    "role": "percussion",
+    "name": "Tambourine hit",
+    "path": "/public/samples/tambourine.wav",
+    "license": "CC0-1.0",
+    "author": "Versilian Studios / VCSL contributors",
+    "source": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Idiophones/Struck%20Idiophones/Tambourine%201/Tamb1_Hit_v2_rr1_Mid.wav",
+    "sha256": "885ebf1d70f8e888f576682e4e4112b92b69649162f392c83b3379c91a09cf41"
+  },
+  {
+    "id": "808-kick",
+    "role": "kick",
+    "name": "808 kick — round",
+    "path": "/public/samples/808-kick.wav",
+    "license": "CC0-1.0",
+    "author": "Michael Fischer",
+    "source": "https://raw.githubusercontent.com/tidalcycles/sounds-tr808-fischer/85fbecf1bec32553395625ea659e2a56dfd7c0e1/bd8/BD5050.WAV",
+    "sha256": "2ca93cd7a3b19f6ec7fe26fefe51b89de69b7be7a87047ffc8ecd396064a8504"
+  },
+  {
+    "id": "808-kick-long",
+    "role": "kick",
+    "name": "808 kick — long",
+    "path": "/public/samples/808-kick-long.wav",
+    "license": "CC0-1.0",
+    "author": "Michael Fischer",
+    "source": "https://raw.githubusercontent.com/tidalcycles/sounds-tr808-fischer/85fbecf1bec32553395625ea659e2a56dfd7c0e1/bd8/BD0010.WAV",
+    "sha256": "2929f825db405543f8f1e1ef09e368d83421f030e249cb6a17e5a5ff34a882d6"
+  },
+  {
+    "id": "808-snare",
+    "role": "snare",
+    "name": "808 snare",
+    "path": "/public/samples/808-snare.wav",
+    "license": "CC0-1.0",
+    "author": "Michael Fischer",
+    "source": "https://raw.githubusercontent.com/tidalcycles/sounds-tr808-fischer/85fbecf1bec32553395625ea659e2a56dfd7c0e1/sd8/SD5050.WAV",
+    "sha256": "6dcbf8acd5cee6d6b7955d26c6b57d8ca413f1ae1c7caafaaec780d83f08d712"
+  },
+  {
+    "id": "808-hat",
+    "role": "hat",
+    "name": "808 closed hat",
+    "path": "/public/samples/808-hat.wav",
+    "license": "CC0-1.0",
+    "author": "Michael Fischer",
+    "source": "https://raw.githubusercontent.com/tidalcycles/sounds-tr808-fischer/85fbecf1bec32553395625ea659e2a56dfd7c0e1/ch8/CH.WAV",
+    "sha256": "c9f30ff2b4d73b03f41960e504e03c54e9a59697af666fe4d155bab9cd1ccae6"
+  },
+  {
+    "id": "808-openhat",
+    "role": "hat",
+    "name": "808 open hat",
+    "path": "/public/samples/808-openhat.wav",
+    "license": "CC0-1.0",
+    "author": "Michael Fischer",
+    "source": "https://raw.githubusercontent.com/tidalcycles/sounds-tr808-fischer/85fbecf1bec32553395625ea659e2a56dfd7c0e1/oh8/OH50.WAV",
+    "sha256": "84ae3220fab2396380fb6ba6032bcec7c55a6d3f621d30a13c11fdeaa099aff7"
+  },
+  {
+    "id": "808-clap",
+    "role": "percussion",
+    "name": "808 clap",
+    "path": "/public/samples/808-clap.wav",
+    "license": "CC0-1.0",
+    "author": "Michael Fischer",
+    "source": "https://raw.githubusercontent.com/tidalcycles/sounds-tr808-fischer/85fbecf1bec32553395625ea659e2a56dfd7c0e1/cp8/CP.WAV",
+    "sha256": "376429bb81cb48d1f392a11cd066c32ffb7883d445b2488704ea52e46bb08286"
+  },
+  {
+    "id": "acoustic-kick-2",
+    "role": "kick",
+    "name": "Acoustic bass drum — hard strike",
+    "path": "/public/samples/acoustic-kick-2.wav",
+    "license": "CC0-1.0",
+    "author": "Versilian Studios / VCSL contributors",
+    "source": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Membranophones/Struck%20Membranophones/Bass%20Drum%201/BDrumNew_hit_v7_rr1_Sum.wav",
+    "sha256": "7024054e68261d2cca0ee58fdf9d6f23b54370792d04aa2c1ccf41acc090bd2b"
+  },
+  {
+    "id": "acoustic-kick-muted",
+    "role": "kick",
+    "name": "Acoustic bass drum — muted",
+    "path": "/public/samples/acoustic-kick-muted.wav",
+    "license": "CC0-1.0",
+    "author": "Versilian Studios / VCSL contributors",
+    "source": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Membranophones/Struck%20Membranophones/Bass%20Drum%203%20-%20Legacy/bdrum_muted_ff_rr1.wav",
+    "sha256": "e480c320e2a256870372e64babfb5a07b28920370013717b8061701e0ee9b216"
+  },
+  {
+    "id": "808-kick-00",
+    "role": "kick",
+    "name": "808 kick — tone 0 / decay 0",
+    "path": "/public/samples/808-kick-00.wav",
+    "license": "CC0-1.0",
+    "author": "Michael Fischer",
+    "source": "https://raw.githubusercontent.com/tidalcycles/sounds-tr808-fischer/85fbecf1bec32553395625ea659e2a56dfd7c0e1/bd8/BD0000.WAV",
+    "sha256": "7bdb70b44c216ffd4b4188d49a868532f462c180fab1f087b0e75b5a9f40fa07"
+  },
+  {
+    "id": "808-kick-75",
+    "role": "kick",
+    "name": "808 kick — tone 75 / decay 75",
+    "path": "/public/samples/808-kick-75.wav",
+    "license": "CC0-1.0",
+    "author": "Michael Fischer",
+    "source": "https://raw.githubusercontent.com/tidalcycles/sounds-tr808-fischer/85fbecf1bec32553395625ea659e2a56dfd7c0e1/bd8/BD7575.WAV",
+    "sha256": "f682067cb3e717374d27e2c8cdabaa3ea16eb8afe36776f163b46ebed64de5c9"
+  },
+  {
+    "id": "acoustic-rimshot",
+    "role": "snare",
+    "name": "Acoustic snare — rimshot",
+    "path": "/public/samples/acoustic-rimshot.wav",
+    "license": "CC0-1.0",
+    "author": "Versilian Studios / VCSL contributors",
+    "source": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Membranophones/Struck%20Membranophones/Legacy%20Snares/drum1/snare1_rimshot_fff_rr1.wav",
+    "sha256": "e39a10f2c1690213f6c12f6c43410bf99a0ce85be305689b7cba57d34800ffee"
+  },
+  {
+    "id": "marching-snare",
+    "role": "snare",
+    "name": "Marching snare",
+    "path": "/public/samples/marching-snare.wav",
+    "license": "CC0-1.0",
+    "author": "Versilian Studios / VCSL contributors",
+    "source": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Membranophones/Struck%20Membranophones/Legacy%20Snares/drum3_marching/snare3_f_rr1.wav",
+    "sha256": "d27fb463d827937e93e029d9a131a6695259790b3c883d01e5fdba6da5d52b75"
+  },
+  {
+    "id": "808-snare-00",
+    "role": "snare",
+    "name": "808 snare — tone 0 / snappy 0",
+    "path": "/public/samples/808-snare-00.wav",
+    "license": "CC0-1.0",
+    "author": "Michael Fischer",
+    "source": "https://raw.githubusercontent.com/tidalcycles/sounds-tr808-fischer/85fbecf1bec32553395625ea659e2a56dfd7c0e1/sd8/SD0000.WAV",
+    "sha256": "06a671f38ccfa6825fb80597e3423c96d873ec8ee8dc96232f8f53d83fd4650f"
+  },
+  {
+    "id": "808-snare-75",
+    "role": "snare",
+    "name": "808 snare — tone 75 / snappy 75",
+    "path": "/public/samples/808-snare-75.wav",
+    "license": "CC0-1.0",
+    "author": "Michael Fischer",
+    "source": "https://raw.githubusercontent.com/tidalcycles/sounds-tr808-fischer/85fbecf1bec32553395625ea659e2a56dfd7c0e1/sd8/SD7575.WAV",
+    "sha256": "d7fa75dff476baaef99de0b251d86c39aa0e0f36a06043db9a97417350fe4439"
+  },
+  {
+    "id": "acoustic-openhat",
+    "role": "hat",
+    "name": "Acoustic open hat",
+    "path": "/public/samples/acoustic-openhat.wav",
+    "license": "CC0-1.0",
+    "author": "Versilian Studios / VCSL contributors",
+    "source": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Idiophones/Struck%20Idiophones/Hi-Hat%20Cymbal/HiHat_HitO_rr1_Mid.wav",
+    "sha256": "fa492ec14cc6924b43ad5fcf9e9a0f406d926998835bde2eb5847cd15ad25be7"
+  },
+  {
+    "id": "acoustic-loosehat",
+    "role": "hat",
+    "name": "Acoustic loose hat",
+    "path": "/public/samples/acoustic-loosehat.wav",
+    "license": "CC0-1.0",
+    "author": "Versilian Studios / VCSL contributors",
+    "source": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Idiophones/Struck%20Idiophones/Hi-Hat%20Cymbal/HiHat_HitLoose_rr1_Mid.wav",
+    "sha256": "1cc4aca0edbac1fb1027cff990f5fd1c52870daf4a2b0aee9e501af1c1a4d26d"
+  },
+  {
+    "id": "acoustic-pedalhat",
+    "role": "hat",
+    "name": "Acoustic pedal hat",
+    "path": "/public/samples/acoustic-pedalhat.wav",
+    "license": "CC0-1.0",
+    "author": "Versilian Studios / VCSL contributors",
+    "source": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Idiophones/Struck%20Idiophones/Hi-Hat%20Cymbal/HiHat_Close_rr1_Mid.wav",
+    "sha256": "4e4dbb4ddbeea653f95c2c229685fd5966ed9492fb8489d89d19dbd864f1a6b4"
+  },
+  {
+    "id": "808-openhat-short",
+    "role": "hat",
+    "name": "808 open hat — decay 0",
+    "path": "/public/samples/808-openhat-short.wav",
+    "license": "CC0-1.0",
+    "author": "Michael Fischer",
+    "source": "https://raw.githubusercontent.com/tidalcycles/sounds-tr808-fischer/85fbecf1bec32553395625ea659e2a56dfd7c0e1/oh8/OH00.WAV",
+    "sha256": "d8ca0f2176aae52143c9f239237a680aab997e566196466a3db64199c8fbe9c2"
+  },
+  {
+    "id": "808-cowbell",
+    "role": "percussion",
+    "name": "808 cowbell",
+    "path": "/public/samples/808-cowbell.wav",
+    "license": "CC0-1.0",
+    "author": "Michael Fischer",
+    "source": "https://raw.githubusercontent.com/tidalcycles/sounds-tr808-fischer/85fbecf1bec32553395625ea659e2a56dfd7c0e1/cb8/CB.WAV",
+    "sha256": "1468cbd6c75a1f23b50a15968796c256c74893a35aa3824c6663db82c271f28d"
+  },
+  {
+    "id": "808-rim",
+    "role": "percussion",
+    "name": "808 rim shot",
+    "path": "/public/samples/808-rim.wav",
+    "license": "CC0-1.0",
+    "author": "Michael Fischer",
+    "source": "https://raw.githubusercontent.com/tidalcycles/sounds-tr808-fischer/85fbecf1bec32553395625ea659e2a56dfd7c0e1/rs8/RS.WAV",
+    "sha256": "20d5cd385c0f8c3a24bbfe78c2e2747776841ede6185bc0fe93f97f0b455b89c"
+  },
+  {
+    "id": "808-maracas",
+    "role": "percussion",
+    "name": "808 maracas",
+    "path": "/public/samples/808-maracas.wav",
+    "license": "CC0-1.0",
+    "author": "Michael Fischer",
+    "source": "https://raw.githubusercontent.com/tidalcycles/sounds-tr808-fischer/85fbecf1bec32553395625ea659e2a56dfd7c0e1/ma8/MA.WAV",
+    "sha256": "7b17cc2973fe55233c6ece7b341adb4d04a44b12527582102591c8981a586451"
+  },
+  {
+    "id": "808-lowtom",
+    "role": "percussion",
+    "name": "808 low tom",
+    "path": "/public/samples/808-lowtom.wav",
+    "license": "CC0-1.0",
+    "author": "Michael Fischer",
+    "source": "https://raw.githubusercontent.com/tidalcycles/sounds-tr808-fischer/85fbecf1bec32553395625ea659e2a56dfd7c0e1/lt8/LT50.WAV",
+    "sha256": "d3720682985a9621c4a67749dfd5336fa4f25564ef7ea2e633ac8ff5fdd64eda"
+  },
+  {
+    "id": "808-hightom",
+    "role": "percussion",
+    "name": "808 high tom",
+    "path": "/public/samples/808-hightom.wav",
+    "license": "CC0-1.0",
+    "author": "Michael Fischer",
+    "source": "https://raw.githubusercontent.com/tidalcycles/sounds-tr808-fischer/85fbecf1bec32553395625ea659e2a56dfd7c0e1/ht8/HT50.WAV",
+    "sha256": "7e0b9eddd95379298aacbf1520929f586191788d9e0841ad752d84bdde910d88"
+  },
+  {
+    "id": "808-conga",
+    "role": "percussion",
+    "name": "808 low conga",
+    "path": "/public/samples/808-conga.wav",
+    "license": "CC0-1.0",
+    "author": "Michael Fischer",
+    "source": "https://raw.githubusercontent.com/tidalcycles/sounds-tr808-fischer/85fbecf1bec32553395625ea659e2a56dfd7c0e1/lc8/LC50.WAV",
+    "sha256": "6591f57bbbdb891819a0ce6ce5b3bfd12d24da9f7f413243ef37b2593d1a7393"
+  },
+  {
+    "id": "acoustic-claves",
+    "role": "percussion",
+    "name": "Acoustic claves",
+    "path": "/public/samples/acoustic-claves.wav",
+    "license": "CC0-1.0",
+    "author": "Versilian Studios / VCSL contributors",
+    "source": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Idiophones/Struck%20Idiophones/Claves/Claves1_Hit_v3_rr1_Mid.wav",
+    "sha256": "12285f65ed125f4140d1e8a86b2d6a08bf3283b7bf30c10d68290b8e8230a927"
+  },
+  {
+    "id": "acoustic-shaker",
+    "role": "percussion",
+    "name": "Acoustic shaker",
+    "path": "/public/samples/acoustic-shaker.wav",
+    "license": "CC0-1.0",
+    "author": "Versilian Studios / VCSL contributors",
+    "source": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Idiophones/Struck%20Idiophones/Shaker%2C%20Large/LShaker_Shake1U_rr1_Mid.wav",
+    "sha256": "f6bbd4b897a18af5d567cf7925d402a8b854a8f31c1cf3c706f91bf96815b7c7"
+  }
+]

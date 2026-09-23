@@ -1,0 +1,34 @@
+[
+  {
+    "id": "kit.kick",
+    "role": "kick",
+    "kind": "oneShot",
+    "label": "BPM kick",
+    "note": 48,
+    "instrument": 0
+  },
+  {
+    "id": "kit.snare",
+    "role": "snare",
+    "kind": "oneShot",
+    "label": "BPM snare",
+    "note": 48,
+    "instrument": 1
+  },
+  {
+    "id": "kit.hat",
+    "role": "hat",
+    "kind": "oneShot",
+    "label": "BPM hat",
+    "note": 48,
+    "instrument": 2
+  },
+  {
+    "id": "kit.percussion",
+    "role": "percussion",
+    "kind": "oneShot",
+    "label": "BPM percussion",
+    "note": 48,
+    "instrument": 3
+  }
+]

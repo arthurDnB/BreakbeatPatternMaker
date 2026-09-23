@@ -1,0 +1,33 @@
+{
+  "name": "breakbeat-pattern-maker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Standalone breakbeat generator, sampler and developing tracker",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "npm run build && node scripts/serve.mjs",
+    "generate": "npm run build && node dist/cli.js",
+    "test": "npm run build && node --test tests/*.test.mjs",
+    "package:tool": "node scripts/package-tool.mjs",
+    "fixtures": "npm run build && node scripts/fixtures.mjs",
+    "check": "npm test",
+    "test:browser": "node scripts/browser-smoke.mjs && node scripts/editor-browser-smoke.mjs && node scripts/workspace-browser-smoke.mjs && node scripts/effects-browser-smoke.mjs && node scripts/bank-browser-smoke.mjs && node scripts/articulation-browser-smoke.mjs && node scripts/layout-browser-smoke.mjs && node scripts/drafts-browser-smoke.mjs && node scripts/sounds-browser-smoke.mjs",
+    "test:browser:legacy": "node scripts/sample-browser-smoke.mjs && node scripts/tracker-browser-smoke.mjs && node scripts/drum-kit-browser-smoke.mjs",
+    "build:site": "npm run build && node scripts/build-site.mjs",
+    "test:site": "npm run build:site && node scripts/site-browser-smoke.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "ajv": "^8.20.0",
+    "fengari": "^0.1.5",
+    "fengari-node-cli": "^0.1.0",
+    "fflate": "^0.8.3",
+    "luaparse": "^0.3.1",
+    "playwright": "^1.63.0",
+    "typescript": "^7.0.2"
+  }
+}

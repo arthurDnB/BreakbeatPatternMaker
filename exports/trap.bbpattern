@@ -1,0 +1,342 @@
+{
+  "format": "breakbeat-pattern",
+  "version": 1,
+  "engineVersion": "0.1.0",
+  "name": "trap break-042",
+  "genre": "trap",
+  "seed": "break-042",
+  "timing": {
+    "bpm": 140,
+    "lpb": 4,
+    "tpl": 12,
+    "bars": 2,
+    "beatsPerBar": 4,
+    "lines": 32
+  },
+  "sources": [
+    {
+      "id": "kit.kick",
+      "role": "kick",
+      "kind": "oneShot",
+      "label": "BPM kick",
+      "note": 48,
+      "instrument": 0
+    },
+    {
+      "id": "kit.snare",
+      "role": "snare",
+      "kind": "oneShot",
+      "label": "BPM snare",
+      "note": 48,
+      "instrument": 1
+    },
+    {
+      "id": "kit.hat",
+      "role": "hat",
+      "kind": "oneShot",
+      "label": "BPM hat",
+      "note": 48,
+      "instrument": 2
+    }
+  ],
+  "lanes": [
+    {
+      "id": "kick",
+      "name": "Kick",
+      "columns": 1
+    },
+    {
+      "id": "snare",
+      "name": "Snare",
+      "columns": 1
+    },
+    {
+      "id": "hat",
+      "name": "Hat",
+      "columns": 1
+    }
+  ],
+  "notes": [
+    {
+      "id": "kick-0",
+      "lane": "kick",
+      "source": "kit.kick",
+      "row": 0,
+      "column": 0,
+      "volume": 115,
+      "pan": 64,
+      "delay": 0
+    },
+    {
+      "id": "hat-0",
+      "lane": "hat",
+      "source": "kit.hat",
+      "row": 0,
+      "column": 0,
+      "volume": 59,
+      "pan": 64,
+      "delay": 0
+    },
+    {
+      "id": "hat-480",
+      "lane": "hat",
+      "source": "kit.hat",
+      "row": 2,
+      "column": 0,
+      "volume": 41,
+      "pan": 64,
+      "delay": 0
+    },
+    {
+      "id": "hat-960",
+      "lane": "hat",
+      "source": "kit.hat",
+      "row": 4,
+      "column": 0,
+      "volume": 59,
+      "pan": 64,
+      "delay": 0
+    },
+    {
+      "id": "kick-1440",
+      "lane": "kick",
+      "source": "kit.kick",
+      "row": 6,
+      "column": 0,
+      "volume": 97,
+      "pan": 64,
+      "delay": 0
+    },
+    {
+      "id": "hat-1440",
+      "lane": "hat",
+      "source": "kit.hat",
+      "row": 6,
+      "column": 0,
+      "volume": 41,
+      "pan": 64,
+      "delay": 0
+    },
+    {
+      "id": "snare-1920",
+      "lane": "snare",
+      "source": "kit.snare",
+      "row": 8,
+      "column": 0,
+      "volume": 115,
+      "pan": 64,
+      "delay": 0
+    },
+    {
+      "id": "hat-1920",
+      "lane": "hat",
+      "source": "kit.hat",
+      "row": 8,
+      "column": 0,
+      "volume": 59,
+      "pan": 64,
+      "delay": 0
+    },
+    {
+      "id": "hat-2400",
+      "lane": "hat",
+      "source": "kit.hat",
+      "row": 10,
+      "column": 0,
+      "volume": 41,
+      "pan": 64,
+      "delay": 0
+    },
+    {
+      "id": "kick-2640",
+      "lane": "kick",
+      "source": "kit.kick",
+      "row": 11,
+      "column": 0,
+      "volume": 97,
+      "pan": 64,
+      "delay": 0
+    },
+    {
+      "id": "hat-2880",
+      "lane": "hat",
+      "source": "kit.hat",
+      "row": 12,
+      "column": 0,
+      "volume": 59,
+      "pan": 64,
+      "delay": 0
+    },
+    {
+      "id": "hat-3360",
+      "lane": "hat",
+      "source": "kit.hat",
+      "row": 14,
+      "column": 0,
+      "volume": 41,
+      "pan": 64,
+      "delay": 0
+    },
+    {
+      "id": "kick-3840",
+      "lane": "kick",
+      "source": "kit.kick",
+      "row": 16,
+      "column": 0,
+      "volume": 115,
+      "pan": 64,
+      "delay": 0
+    },
+    {
+      "id": "hat-3840",
+      "lane": "hat",
+      "source": "kit.hat",
+      "row": 16,
+      "column": 0,
+      "volume": 59,
+      "pan": 64,
+      "delay": 0
+    },
+    {
+      "id": "hat-4320",
+      "lane": "hat",
+      "source": "kit.hat",
+      "row": 18,
+      "column": 0,
+      "volume": 41,
+      "pan": 64,
+      "delay": 0
+    },
+    {
+      "id": "hat-4800",
+      "lane": "hat",
+      "source": "kit.hat",
+      "row": 20,
+      "column": 0,
+      "volume": 59,
+      "pan": 64,
+      "delay": 0
+    },
+    {
+      "id": "kick-5280",
+      "lane": "kick",
+      "source": "kit.kick",
+      "row": 22,
+      "column": 0,
+      "volume": 97,
+      "pan": 64,
+      "delay": 0
+    },
+    {
+      "id": "hat-5280",
+      "lane": "hat",
+      "source": "kit.hat",
+      "row": 22,
+      "column": 0,
+      "volume": 41,
+      "pan": 64,
+      "delay": 0
+    },
+    {
+      "id": "snare-5520",
+      "lane": "snare",
+      "source": "kit.snare",
+      "row": 23,
+      "column": 0,
+      "volume": 28,
+      "pan": 64,
+      "delay": 0
+    },
+    {
+      "id": "snare-5760",
+      "lane": "snare",
+      "source": "kit.snare",
+      "row": 24,
+      "column": 0,
+      "volume": 115,
+      "pan": 64,
+      "delay": 0
+    },
+    {
+      "id": "hat-5760",
+      "lane": "hat",
+      "source": "kit.hat",
+      "row": 24,
+      "column": 0,
+      "volume": 59,
+      "pan": 64,
+      "delay": 0
+    },
+    {
+      "id": "hat-6240",
+      "lane": "hat",
+      "source": "kit.hat",
+      "row": 26,
+      "column": 0,
+      "volume": 41,
+      "pan": 64,
+      "delay": 0
+    },
+    {
+      "id": "kick-6480",
+      "lane": "kick",
+      "source": "kit.kick",
+      "row": 27,
+      "column": 0,
+      "volume": 97,
+      "pan": 64,
+      "delay": 0
+    },
+    {
+      "id": "hat-6720",
+      "lane": "hat",
+      "source": "kit.hat",
+      "row": 28,
+      "column": 0,
+      "volume": 59,
+      "pan": 64,
+      "delay": 0
+    },
+    {
+      "id": "snare-7200",
+      "lane": "snare",
+      "source": "kit.snare",
+      "row": 30,
+      "column": 0,
+      "volume": 38,
+      "pan": 64,
+      "delay": 0
+    },
+    {
+      "id": "hat-7200",
+      "lane": "hat",
+      "source": "kit.hat",
+      "row": 30,
+      "column": 0,
+      "volume": 41,
+      "pan": 64,
+      "delay": 0
+    },
+    {
+      "id": "snare-7440",
+      "lane": "snare",
+      "source": "kit.snare",
+      "row": 31,
+      "column": 0,
+      "volume": 54,
+      "pan": 64,
+      "delay": 0
+    },
+    {
+      "id": "hat-7440",
+      "lane": "hat",
+      "source": "kit.hat",
+      "row": 31,
+      "column": 0,
+      "volume": 31,
+      "pan": 64,
+      "delay": 0
+    }
+  ],
+  "warnings": []
+}

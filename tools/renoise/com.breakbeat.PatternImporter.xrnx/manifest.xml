@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RenoiseScriptingTool doc_version="0">
+  <ApiVersion>6</ApiVersion>
+  <Id>com.breakbeat.PatternImporter</Id>
+  <Version>0.4</Version>
+  <Name>Breakbeat Pattern Importer</Name>
+  <Author>Breakbeat Pattern Maker</Author>
+  <Category>Pattern</Category>
+  <Description>Import validated .bbpattern files into a new pattern with dedicated tracks. Native clipboard data is not supported.</Description>
+</RenoiseScriptingTool>

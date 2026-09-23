@@ -1,0 +1,1383 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Breakbeat Pattern Maker — Project specification</title>
+<style>
+:root { color-scheme:light; --ink:#17212c; --muted:#566270; --rule:#d9dfe5; --blue:#245b80; }
+* {box-sizing:border-box} html {scroll-behavior:smooth;scroll-padding-top:30px}
+body {margin:0;background:#f1f3f5;color:var(--ink);font:16px/1.65 'Segoe UI',Arial,sans-serif}
+a {color:#1c597e;text-underline-offset:3px} a:hover {color:#102f46}
+.skip {position:absolute;left:-9999px}.skip:focus {left:16px;top:10px;background:white;padding:10px;z-index:9}
+aside {position:fixed;inset:0 auto 0 0;width:278px;overflow:auto;background:#e9edf0;padding:28px 20px 36px;border-right:1px solid var(--rule)}
+.brand {font-size:12px;font-weight:700;letter-spacing:1.5px;color:#405466;margin-bottom:18px}
+nav a {display:block;font-size:12px;line-height:1.4;text-decoration:none;padding:6px 10px;border-radius:4px;margin-bottom:1px;color:#384755}
+nav a:hover,nav a.active {background:#d8e3eb;color:#111;font-weight:600}
+.print {margin:20px 10px 0;border:1px solid #b4c1cb;background:white;padding:8px 14px;border-radius:5px;font:inherit;font-size:13px;cursor:pointer}
+main {max-width:1110px;margin:28px 28px 56px 306px;background:white;padding:50px 56px 64px;border:1px solid var(--rule)}
+h1,h2,h3 {color:#000;line-height:1.2;letter-spacing:-.02em}
+h1 {font-size:42px;font-weight:700;margin:0 0 12px;max-width:720px}
+h2 {font-size:27px;margin:56px 0 20px;scroll-margin-top:30px}
+h2:first-of-type {font-size:21px;font-weight:500;margin:0 0 24px;letter-spacing:0}
+h3 {font-size:19px;margin:32px 0 12px}
+p {margin:0 0 17px} main>p:first-of-type {font-size:13px;color:var(--muted);margin-bottom:30px}
+li {margin:7px 0} ul,ol {padding-left:25px;margin:14px 0 23px}
+strong {font-weight:650}
+.table-wrap {overflow-x:auto;margin:22px 0 26px}
+table {width:100%;border-collapse:collapse;font-size:13px;line-height:1.5}
+th,td {border:1px solid #d9d9d9;padding:11px 12px;vertical-align:top;text-align:left}
+th {background:#253e52;color:white;font-weight:600}
+tbody tr:nth-child(even) {background:#f3f6f8}
+td:first-child {font-weight:600}
+pre {background:#f3f5f7;border:1px solid #d9dfe5;padding:20px;overflow-x:auto;font:12px/1.65 Consolas,'Courier New',monospace;margin:22px 0 26px;tab-size:2}
+code {font-family:Consolas,'Courier New',monospace;font-size:.9em} :not(pre)>code {background:#eef2f5;padding:2px 4px;border-radius:3px}
+.swatch {display:inline-block;width:12px;height:12px;vertical-align:baseline;border:1px solid #66758455;margin-right:5px;border-radius:2px}
+.tracker td:nth-child(3) {background:#fff0f1;color:#69262c}.tracker td:nth-child(4) {background:#edf5ff;color:#184b7c}.tracker td:nth-child(5) {background:#fff9dd;color:#584900}.tracker td:nth-child(6) {background:#f4effb;color:#5a397c}
+.tracker td:nth-child(-n+7) {font-family:Consolas,monospace;font-size:12px;white-space:nowrap}
+.tracker td.role-kick {background:#fff0f1;color:#69262c}.tracker td.role-snare {background:#edf5ff;color:#184b7c}.tracker td.role-hat {background:#fff9dd;color:#584900}.tracker td.role-percussion {background:#e8f6ee;color:#21543e}.tracker td.role-ghost {background:#e0f2ff;color:#255577;border-bottom-style:dashed}
+.tracker td {padding:9px 8px}.tracker th {padding:10px 8px}.tracker td.empty {color:#8a939b;background:#fafbfc}
+footer {margin-top:45px;color:#52606d;font-size:12px}
+@media (min-width:1600px) {main {margin-left:calc(278px + (100vw - 1450px)/2)}}
+@media (max-width:1050px) {aside {position:relative;width:auto;max-height:280px} nav {columns:2}main {margin:20px;padding:32px} .brand {margin-bottom:8px}}
+@media (max-width:600px) {nav {columns:1}main {padding:24px 18px;margin:12px}h1 {font-size:32px}h2 {font-size:24px}body {font-size:15px}}
+@media print {
+@page {size:letter;margin:18mm 16mm}
+body {background:white;font-size:10.5pt;line-height:1.45}
+aside,.skip,footer {display:none} main {margin:0!important;padding:0;border:0;max-width:none}
+h1 {font-size:29pt}h2 {font-size:18pt;margin-top:26pt;break-after:avoid}h3 {font-size:13pt;break-after:avoid}
+p {orphans:3;widows:3}table {font-size:8.5pt}th,td {padding:6px 7px}thead {display:table-header-group}tr {break-inside:avoid}
+.table-wrap {overflow:visible}pre {font-size:8pt;white-space:pre-wrap;overflow-wrap:anywhere;break-inside:auto}
+a {color:#183e58;text-decoration:none}.tracker td:nth-child(-n+7) {font-size:8pt}.tracker td {padding:5px 4px}
+* {-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style></head><body><p style="padding:20px;background:#ffe4a8;color:#222">Historical design: Renoise integration is retired. The active scope is a standalone sample tracker with WAV import/export and planned MP3 export. See README.md and PROJECT-SCOPE.md.</p><a class="skip" href="#document">Skip to document</a>
+<aside aria-label="Document navigation"><div class="brand">BREAKBEAT PATTERN MAKER</div><nav><a href="#product-and-implementation-specification">Product and implementation specification</a>
+<a href="#1-product-overview">1 Product overview</a>
+<a href="#2-problem-being-solved">2 Problem being solved</a>
+<a href="#3-target-users">3 Target users</a>
+<a href="#4-primary-user-journey">4 Primary user journey</a>
+<a href="#5-core-features">5 Core features</a>
+<a href="#6-pattern-generator-design">6 Pattern generator design</a>
+<a href="#7-genre-generation-system">7 Genre generation system</a>
+<a href="#8-break-slicing-system">8 Break slicing system</a>
+<a href="#9-visual-and-color-system">9 Visual and color system</a>
+<a href="#10-renoise-integration-strategy">10 Renoise integration strategy</a>
+<a href="#11-educational-features">11 Educational features</a>
+<a href="#12-user-interface-structure">12 User interface structure</a>
+<a href="#13-technical-architecture">13 Technical architecture</a>
+<a href="#14-proposed-internal-data-model">14 Proposed internal data model</a>
+<a href="#15-mvp-scope">15 MVP scope</a>
+<a href="#16-version-2-scope">16 Version 2 scope</a>
+<a href="#17-future-ideas">17 Future ideas</a>
+<a href="#18-risks-and-technical-challenges">18 Risks and technical challenges</a>
+<a href="#19-recommended-development-stack">19 Recommended development stack</a>
+<a href="#20-development-roadmap">20 Development roadmap</a>
+<a href="#21-testing-strategy">21 Testing strategy</a>
+<a href="#22-example-generated-pattern">22 Example generated pattern</a>
+<a href="#23-example-user-workflow">23 Example user workflow</a>
+<a href="#recommended-order-for-building-the-mvp">Recommended order for building the MVP</a></nav><button class="print" onclick="window.print()">Print document</button></aside>
+<main id="document"><h1>Breakbeat Pattern Maker</h1>
+<h2 id="product-and-implementation-specification">Product and implementation specification</h2>
+<p>Prepared for the product owner and implementation team • 22 September 2026</p>
+<p>Build a local-first browser application with a deterministic TypeScript rhythm engine and a small Renoise Lua import tool. First prove that a generated pattern arrives correctly in Renoise; then build the editing and learning experience around that contract. No generative AI is required for the MVP.</p>
+<p>The intended product combines a breakbeat generator, a tracker sequencer, a learning tool, and a Renoise companion. Its central promise is <strong>a usable groove that the producer can understand, vary, and transfer reliably</strong>.</p>
+<p>The target interaction is Generate → Copy → Paste into Renoise. For the first release, “Paste” means pasting the application&#39;s structured transfer text into its companion tool, followed by Apply. Ordinary Ctrl+V into Renoise&#39;s Pattern Editor is a research item, not an established capability. A file importer is the release-critical fallback.</p>
+<p>This is an implementation specification, not a claim that the application or importer has already been built. Technical facts are linked to primary documentation. Genre parameters and numerical thresholds are proposed product defaults to refine through listening tests, not universal definitions of musical genres.</p>
+<h2 id="1-product-overview">1 Product overview</h2>
+<p>The application generates a short rhythmic phrase, exposes its musical structure, and compiles it into a concrete Renoise pattern. A producer chooses genre, tempo, bars, complexity, and break style; listens; locks the parts they like; mutates the rest; then transfers the result.</p>
+<p>The engine should make musical decisions in stages: establish the rhythmic anchors, create a recognizable motif, add genre-specific detail, shape a phrase ending, then apply groove. Randomness chooses among musically weighted alternatives. It does not independently roll a dice for every cell.</p>
+<p>Three representations share one editable pattern: Beginner, Renoise, and Hybrid. Switching views must preserve selection, timing, locks, history, and playback position. Hybrid is the default for first-time Renoise users.</p>
+<p><strong>Recommended launch promise:</strong> generate and edit Jungle, DnB Roller, and Hip-Hop Swing patterns, including one documented sliced-break workflow. These three exercise distinct generation behavior without requiring ten equally mature engines on launch day.</p>
+<p><strong>Success targets:</strong> after one-time sample mapping, a producer transfers a 2-bar pattern with no manual note repair; a novice can identify its main backbeat and one ghost note; mutation preserves locked material exactly. Target a median of under 30 seconds from Generate to an audible Renoise import after setup. Measure this in usability sessions rather than advertising it before validation.</p>
+<h2 id="2-problem-being-solved">2 Problem being solved</h2>
+<p>Programming convincing breaks requires several kinds of knowledge at once: rhythmic phrasing, slice choice, tracker notation, instrument mapping, and timing. A random sequencer often produces density without intent. A sample pack can sound good but offers little explanation or editability. A text generator can describe a groove while leaving the producer to reconstruct it manually.</p>
+<p>The product closes this gap by keeping musical intent and export data together. A quiet snare is explicitly tagged as a ghost note; a slice repeat retains its source reference; a displaced kick carries its original anchor and timing offset. The same information powers the display, explanations, mutation constraints, and Renoise compiler.</p>
+<p>Do not attempt to replace Renoise&#39;s mixer, arrangement, instrument editor, or final sound design. The companion should get a strong editable phrase into those existing tools quickly.</p>
+<h2 id="3-target-users">3 Target users</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>User</th>
+<th>Primary need</th>
+<th>Product response</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>New tracker producer</td>
+<td>Connect beat names to tracker rows</td>
+<td>Hybrid view, beat ruler, audition, explicit instrument mapping</td>
+</tr>
+<tr>
+<td>Jungle or DnB producer</td>
+<td>Fast variations that retain groove</td>
+<td>Motif mutation, anchor locks, slice repeats, phrase fills</td>
+</tr>
+<tr>
+<td>Hip-Hop, Trap or Drill producer</td>
+<td>Space, hat phrasing and timing</td>
+<td>Separate drum budgets, half-time feel, swing and velocity control</td>
+</tr>
+<tr>
+<td>Breakcore or IDM producer</td>
+<td>Controlled disruption</td>
+<td>Local edits, high-resolution bursts, exceptions to anchor rules</td>
+</tr>
+<tr>
+<td>Experienced Renoise user</td>
+<td>Correct data with minimal friction</td>
+<td>Hex fields, shortcuts, import at cursor, validated mapping profiles</td>
+</tr>
+<tr>
+<td>Rhythm learner</td>
+<td>Hear why an edit changes a groove</td>
+<td>Hit explanations and before/after audition</td>
+</tr>
+</tbody></table></div>
+<p>The first usability cohort should include both experienced Renoise users and producers who understand beats but have never used a tracker. Their failure modes are different.</p>
+<h2 id="4-primary-user-journey">4 Primary user journey</h2>
+<ol>
+<li>Choose a genre and a compatible kit or slice map. A supplied original demo kit makes the first session playable without setup.</li>
+<li>Select a suggested BPM or type any supported value. Choose bars, complexity, and a style such as Rolling, Sparse, Chopped, or Fill-heavy.</li>
+<li>Generate and listen. The first screen shows the backbeat, a beat ruler, and labeled drum lanes.</li>
+<li>Select an interesting hit to audition and explain it. Lock the main snare beats, then mutate a selected beat or the entire phrase.</li>
+<li>Open Transfer. Resolve missing samples, instrument slots, timing settings, and destination before applying.</li>
+<li>Copy transfer text into the Renoise companion or save a transfer file and import it. Listen in Renoise and undo the import if needed.</li>
+<li>Save the pattern and a variation in the local library with the seed and slice-map reference.</li>
+</ol>
+<p>Avoid forcing a tutorial or account creation before the first beat. Provide an optional three-step introduction: listen, select a ghost note, lock and mutate.</p>
+<h2 id="5-core-features">5 Core features</h2>
+<p><strong>Generate and refine.</strong> Generate Pattern uses the current controls and seed. Regenerate allocates a new seed, preserves constraints and locks, and records a history entry. Rebuilding with the same seed, engine version, map, and settings produces the same pattern.</p>
+<p><strong>Mutation actions.</strong> Mutate Pattern changes a bounded subset of eligible events. Mutate Selected Rows limits the same operation to the selection. Generate Fill targets a selected phrase ending. Simplify removes low-priority ornamentation first; Increase Complexity adds ornamentation before altering anchors. Humanize applies bounded velocity and timing variation. Randomize is an explicit high-variation operation but still honors locks and validity checks. Undo/Redo restores both events and relevant settings as one action.</p>
+<p><strong>Locks.</strong> Support whole-row, beat-range, slice-reference, and drum-element locks. In the MVP a lock freezes all matching event fields and protects empty cells in that region from insertion. A slice lock preserves occurrences of that slice; it does not secretly prevent other slices from being added elsewhere. Show the scope in a tooltip. If every eligible location is locked, return “No editable positions” rather than silently changing material.</p>
+<p><strong>Library.</strong> Save patterns, named variations, favorites, genre settings, slicing maps, and BPM presets. Use tags rather than separate incompatible object types for Classic Jungle, Amen Variations, DnB Rollers, Breakcore Chaos, Hip-Hop Swing, Trap Hats, Drum Fills, and Transitions. Search by genre, tempo, length, density, map, and favorite status. A missing sample produces a relink state, not a broken pattern record.</p>
+<p><strong>History.</strong> Keep an undo stack for the current session and named persistent snapshots for meaningful variations. Autosave the working draft. Save complete snapshots initially; compressed patches can wait until storage measurements justify them.</p>
+<h2 id="6-pattern-generator-design">6 Pattern generator design</h2>
+<h3>Musical time and tracker time</h3>
+<p>Store musical time independently of the visible grid using integer ticks at <strong>960 ticks per quarter note</strong>. Here “tick” is the application&#39;s musical unit, not a Renoise effect tick. Use the term PPQ tick in code and UI documentation to distinguish them.</p>
+<p>A bar contains numerator × 4 / denominator quarter notes. A 4/4 bar at LPB 4 has 16 rows; at LPB 8 it has 32 rows. Two bars at LPB 4 also have 32 rows. Always show bars, rows, LPB, and the subdivision together so a 32-row phrase is unambiguous.</p>
+<p>For straight note grids 1/8, 1/16, 1/32, and 1/64, a convenient export LPB is 2, 4, 8, and 16 respectively. Grid resolution is an editing snap, not the storage precision. A 1/16 grid may still contain a microtimed event. Future triplet grids should use exact rational subdivisions supported by PPQ, with explicit export rounding.</p>
+<p>Compile each realized event time t as q = t × LPB / 960, then quantize q × 256 to the nearest integer. Row is floor of that integer / 256; delay is its remainder modulo 256. Carry delay overflow into the following row. Convert zero-based application rows to one-based Lua line indices at the adapter boundary. The Renoise delay column divides a row into 256 positions, separately from effect ticks. <a href="https://tutorials.renoise.com/wiki/Effect_Commands">Renoise effect reference</a></p>
+<p>Early notes move into the preceding row with a positive delay. An event before the start of a pattern is clamped with a visible diagnostic in the MVP; do not wrap it to the final row, which changes first-play behavior. Default groove protects the initial downbeat. Future pre-roll can support true anticipations.</p>
+<h3>Generation pipeline</h3>
+<ol>
+<li><strong>Validate the request.</strong> Resolve genre version, seed, meter, event budgets, source map, available roles, and locks.</li>
+<li><strong>Choose a skeleton.</strong> Select a weighted 1- or 2-bar template with kick and backbeat anchors. Template identifiers are part of provenance.</li>
+<li><strong>Develop a motif.</strong> Repeat a recognizable cell, then choose an allowed alteration for the response bar. Establish a rest budget as well as a hit budget.</li>
+<li><strong>Fill role budgets.</strong> Add hats, ghost snares, and percussion according to metrical weights and minimum spacing. Sample without replacement from eligible positions.</li>
+<li><strong>Realize slices.</strong> Map each intended role to a compatible sample or break slice. Avoid layering a separate snare over a slice that already contains a strong snare unless layering is deliberate.</li>
+<li><strong>Shape the ending.</strong> Add a fill in the last beat or half-bar when requested; preserve a clear loop return.</li>
+<li><strong>Apply groove.</strong> Apply swing first, then a role-specific timing offset, then seeded humanization. Keep velocity accents correlated across a motif.</li>
+<li><strong>Validate and repair.</strong> Resolve collisions, missing mappings, tail overlaps, illegal values, excess density, and lock conflicts. Repair only unlocked material.</li>
+<li><strong>Explain and compile.</strong> Generate explanations from final events, then create preview and Renoise outputs from the same realized pattern.</li>
+</ol>
+<p>Use independent pseudo-random streams for skeleton, hats, fills, slice choices, and humanization. A change to hat density should not unexpectedly reroll the kick. Pin the PRNG algorithm and engine version, not just the seed string.</p>
+<h3>Controls and exact meanings</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Proposed behavior</th>
+<th>MVP exposure</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Genre</td>
+<td>Selects skeletons, role budgets, accents and allowed operations</td>
+<td>Main panel</td>
+</tr>
+<tr>
+<td>BPM</td>
+<td>Numeric quarter-note BPM plus genre buttons; keep manual override</td>
+<td>Main panel</td>
+</tr>
+<tr>
+<td>Pattern length</td>
+<td>1, 2 or 4 bars; derived row count shown</td>
+<td>Main panel</td>
+</tr>
+<tr>
+<td>Time signature</td>
+<td>MVP 4/4; later numerator and denominator</td>
+<td>Display then advanced</td>
+</tr>
+<tr>
+<td>Resolution</td>
+<td>1/8 through 1/64 snap; controls grid and preferred LPB</td>
+<td>Main panel</td>
+</tr>
+<tr>
+<td>Complexity</td>
+<td>Macro for optional-hit budget and operation variety</td>
+<td>Main panel</td>
+</tr>
+<tr>
+<td>Syncopation</td>
+<td>Weight weak positions and anticipations relative to anchors</td>
+<td>Advanced</td>
+</tr>
+<tr>
+<td>Swing</td>
+<td>Delay alternate units of a chosen 1/8 or 1/16 pair</td>
+<td>Advanced</td>
+</tr>
+<tr>
+<td>Humanization</td>
+<td>Correlated velocity variation plus bounded timing jitter</td>
+<td>Advanced</td>
+</tr>
+<tr>
+<td>Ghost amount</td>
+<td>Quiet snare budget near backbeats and transitions</td>
+<td>Advanced</td>
+</tr>
+<tr>
+<td>Fill amount</td>
+<td>Probability and event budget of phrase-ending fills</td>
+<td>Advanced</td>
+</tr>
+<tr>
+<td>Chop intensity</td>
+<td>Allowed changes to source order and slice duration</td>
+<td>Advanced</td>
+</tr>
+<tr>
+<td>Randomness</td>
+<td>Flatten weights within the permitted grammar</td>
+<td>Advanced</td>
+</tr>
+<tr>
+<td>Microtiming</td>
+<td>Maximum deviation in milliseconds; role offsets editable later</td>
+<td>Advanced</td>
+</tr>
+<tr>
+<td>Repeat probability</td>
+<td>Chance of reusing a slice or motif at the next eligible position</td>
+<td>Version 2 separate control</td>
+</tr>
+<tr>
+<td>Reverse probability</td>
+<td>Chance of a supported slice reversal in eligible regions</td>
+<td>Version 2</td>
+</tr>
+<tr>
+<td>Stutter probability</td>
+<td>Chance of a short repeated-onset burst</td>
+<td>Version 2</td>
+</tr>
+<tr>
+<td>Slice density</td>
+<td>Maximum slice onsets per beat, separate from hat density</td>
+<td>Version 2 separate control</td>
+</tr>
+</tbody></table></div>
+<p>Basic complexity sets defaults until the user adjusts an advanced parameter; show that parameter as overridden. Reset to genre defaults is explicit. Describe whether a value is a probability, intensity, or timing amount; do not present everything as an unexplained percentage.</p>
+<p>For swing, 50% means even pairs and 60% places the second onset 60% through the pair. Clamp the MVP range to 50–67%; advanced negative or extreme swing can follow later. Humanization defaults to restrained timing, for example ±3 ms on hats and ±1 ms on main backbeats, with ±5% gain variation. Microtiming is the cap, not a second randomizer. Reapplying Humanize starts from stored base timing, so offsets do not accumulate accidentally.</p>
+<h3>Mutation identity</h3>
+<p>Use a default mutation budget of 20% of unlocked events, rounded up when anything is editable. Operators include move to a nearby permitted subdivision, substitute the same role, lower velocity into a ghost, repeat a motif fragment, and replace an ending. Main anchors are protected by genre policy unless the user explicitly enables structural mutation.</p>
+<p>Measure similarity with weighted anchor preservation and event overlap within a small timing tolerance. For ordinary mutation, target at least 75% weighted similarity; this is a proposed acceptance threshold to tune by ear. Do not reject an explicitly requested fill merely because its selected region changes substantially. If a mutation is infeasible, explain why and leave the original intact.</p>
+<h2 id="7-genre-generation-system">7 Genre generation system</h2>
+<p>These are curated starting profiles, intended to cover recognizable production approaches without claiming that each genre has one correct rhythm. BPM ranges are indicative production envelopes; half-time notation can double the displayed number. All genre presets permit manual tempo overrides within the validated host range. A genre change updates suggestions but preserves a user-pinned tempo.</p>
+<h3>Tempo and phrase defaults</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Profile</th>
+<th>Indicative BPM</th>
+<th>Preset buttons</th>
+<th>Default phrase and density</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Jungle</td>
+<td>150–180</td>
+<td>160, 165, 170</td>
+<td>2 bars; 20–36 total onsets</td>
+</tr>
+<tr>
+<td>Drum &amp; Bass</td>
+<td>165–180</td>
+<td>170, 174, 176</td>
+<td>2 bars; 22–38 onsets</td>
+</tr>
+<tr>
+<td>Breakcore</td>
+<td>170–240+</td>
+<td>180, 200, 220</td>
+<td>2 bars; 30–64 onsets with rests</td>
+</tr>
+<tr>
+<td>Trap</td>
+<td>120–160 or 60–80 half-time</td>
+<td>130, 140, 150</td>
+<td>2 bars; 18–36 onsets</td>
+</tr>
+<tr>
+<td>Hip-Hop</td>
+<td>75–105</td>
+<td>80, 90, 95</td>
+<td>2 bars; 16–28 onsets</td>
+</tr>
+<tr>
+<td>Rap</td>
+<td>70–110 for the proposed spacious preset</td>
+<td>75, 85, 100</td>
+<td>2 bars; 12–24 onsets</td>
+</tr>
+<tr>
+<td>Drill</td>
+<td>130–150</td>
+<td>138, 142, 146</td>
+<td>2 bars; 16–32 onsets</td>
+</tr>
+<tr>
+<td>IDM</td>
+<td>80–170</td>
+<td>100, 130, 160</td>
+<td>2 bars; 16–44 onsets</td>
+</tr>
+<tr>
+<td>Hardcore</td>
+<td>160–200</td>
+<td>165, 180, 195</td>
+<td>2 bars; 24–40 onsets</td>
+</tr>
+<tr>
+<td>Experimental breakbeat</td>
+<td>60–220+</td>
+<td>90, 140, 190</td>
+<td>2 bars; 8–56 onsets</td>
+</tr>
+</tbody></table></div>
+<p>Onset budgets count simultaneous drum voices separately. They are proposed ranges at medium complexity in 4/4, not measurements of an entire genre. A long break slice can contain multiple audible transients, so also estimate audible density from the slice metadata.</p>
+<h3>Jungle</h3>
+<p><strong>Kick and snare:</strong> begin with a kick on beat 1; allow anticipations before 3 and late-bar pickups. Keep recognizable snares around 2 and 4, then allow a response-bar displacement or an extra snare. <strong>Hats:</strong> favor the break&#39;s internal ride/hat texture, adding an external hat only where space remains. <strong>Groove:</strong> medium-to-high syncopation; source-loop feel or slight swing rather than mandatory heavy shuffle. <strong>Chops:</strong> reuse short kick/snare fragments and occasional longer connective slices. <strong>Fills:</strong> 1/32 snare/slice bursts in the final beat. <strong>Density/subdivision/randomness:</strong> medium-high, primarily 1/16 with short 1/32 runs; moderate variation constrained by motif and backbeat.</p>
+<h3>Drum and Bass</h3>
+<p><strong>Kick and snare:</strong> the first Roller profile uses a two-step skeleton, often a downbeat kick plus a pickup later in the bar, with stable 2 and 4 snares. <strong>Hats:</strong> steady eighths or sixteenths with alternating accents. <strong>Groove:</strong> medium syncopation, restrained swing; strong low-end spacing. <strong>Chops:</strong> subtle fills and small variations under a repeated two-bar identity. <strong>Fills:</strong> brief changes at phrase boundaries. <strong>Density/subdivision/randomness:</strong> medium-high but regular, 1/16 base and occasional 1/32 detail; low randomness. Later add separate halftime, liquid, and jungle-influenced DnB profiles instead of averaging them into one rule set.</p>
+<h3>Breakcore</h3>
+<p><strong>Kick and snare:</strong> retain an identifiable opening or recurring anchor, then allow local displacement, doubled snares, and interruptions. <strong>Hats:</strong> irregular rapid bursts interspersed with silence. <strong>Groove:</strong> high syncopation; straight, shuffled, or intentionally interrupted cells. <strong>Chops:</strong> short slices, bounded reversals, pitch shifts, and abrupt source-order changes. <strong>Fills:</strong> more frequent and longer than Jungle, but followed by a recognizable return. <strong>Density/subdivision/randomness:</strong> high with explicit rest windows, 1/16 through 1/64; high local randomness and lower phrase-level randomness. A maximum burst duration and a quiet-space budget prevent constant undifferentiated noise.</p>
+<h3>Trap</h3>
+<p><strong>Kick and snare:</strong> sparse kick phrases leave space for bass; a default half-time clap/snare on beat 3 when counted at 140 BPM. <strong>Hats:</strong> sixteenth or eighth foundations with localized rolls, triplets in Version 2, and velocity/pitch shaping. <strong>Groove:</strong> syncopated kick and hats against a stable clap; straight or mild swing. <strong>Chops:</strong> usually optional one-shots or short textures, not mandatory Amen slicing. <strong>Fills:</strong> hat rolls and pickups near endings. <strong>Density/subdivision/randomness:</strong> sparse core with dense hat bursts, 1/16 and 1/32 plus later triplets; moderate hat variation, low clap randomness.</p>
+<h3>Hip Hop</h3>
+<p><strong>Kick and snare:</strong> kick on 1 plus a small number of conversational pickups; snare near 2 and 4. <strong>Hats:</strong> restrained eighths or sixteenths with alternating strength. <strong>Groove:</strong> medium syncopation, configurable swing, and slightly late snares. <strong>Chops:</strong> retain longer source fragments and their room sound. <strong>Fills:</strong> understated final-beat variations rather than continual rolls. <strong>Density/subdivision/randomness:</strong> low-medium, eighths and sixteenths; low randomness with intentional repetition.</p>
+<h3>Rap</h3>
+<p>Rap is a vocal practice spanning many beat styles, not a mutually exclusive drum grammar. Present this as <strong>Rap Space</strong>, a vocal-friendly preset derived from the Hip-Hop engine, with Trap and Drill selectable underneath when appropriate. <strong>Kick/snare:</strong> fewer kick pickups, stable 2 and 4 backbeats in the initial preset. <strong>Hats:</strong> sparse eighths with occasional gaps. <strong>Groove:</strong> low-medium syncopation and optional swing. <strong>Chops/fills:</strong> longer fragments, limited fills, predictable phrase transitions. <strong>Density/subdivision/randomness:</strong> low, 1/8–1/16, very low randomness. The change is a concrete space budget and reduced ornamentation, not a new genre claim.</p>
+<h3>Drill</h3>
+<p>Start with a clearly named <strong>UK-inspired Drill</strong> preset; other regional approaches should be separate profiles. <strong>Kick and snare:</strong> syncopated sparse kicks, a half-time snare anchor, and a response-bar snare variation chosen from curated templates. <strong>Hats:</strong> asymmetric short phrases and selective rolls rather than uninterrupted sixteenths. <strong>Groove:</strong> high local syncopation, mild adjustable swing. <strong>Chops:</strong> short percussion accents and selective breaks; protect bass space. <strong>Fills:</strong> small hat/snare pickups. <strong>Density/subdivision/randomness:</strong> medium, 1/16 and 1/32 plus later triplets; moderate hats, low anchor randomness. Optional bass triggers are separate from drum generation and do not imply automatic 808 pitch slides.</p>
+<h3>IDM</h3>
+<p><strong>Kick/snare:</strong> maintain a recurring cell, with weighted omissions and controlled displacement. <strong>Hats:</strong> evolving accent patterns and independent phrase lengths. <strong>Groove:</strong> high syncopation; straight or custom groove templates. <strong>Chops:</strong> short and long slices combined, selective timbral substitutions. <strong>Fills:</strong> transformations of the motif rather than generic snare rolls. <strong>Density/subdivision/randomness:</strong> medium-variable, 1/16–1/64; moderate randomness with repeatable structural rules. Polymeter and polyrhythm arrive later, since export must make their finite loop length explicit.</p>
+<h3>Hardcore</h3>
+<p>Use a <strong>four-on-the-floor Hardcore with break fills</strong> profile initially. <strong>Kick/snare:</strong> kick every quarter note; optional snare/clap layers on 2 and 4. <strong>Hats:</strong> offbeat open hats or driving sixteenths. <strong>Groove:</strong> low syncopation in the kick, more in break overlays, usually limited swing. <strong>Chops:</strong> energetic fills around a stable kick spine. <strong>Fills:</strong> final-beat stutters and snare bursts. <strong>Density/subdivision/randomness:</strong> high, 1/16 with 1/32 fills; low structural randomness. Breakbeat-hardcore should be a separate future subprofile with a broken kick skeleton.</p>
+<h3>Experimental breakbeat</h3>
+<p><strong>Kick/snare:</strong> user-selected anchor requirements, including deliberate absence. <strong>Hats:</strong> sparse textures through dense bursts. <strong>Groove:</strong> broad syncopation and swing ranges with explicit controls. <strong>Chops:</strong> source-order permutations, silence, offset, and timbral changes. <strong>Fills:</strong> user-defined transformation windows. <strong>Density/subdivision/randomness:</strong> wide range, 1/8–1/64; high optional randomness bounded by voice count, duration, and lock invariants. Even this profile respects data validity and offers a recurring motif by default.</p>
+<p>Each profile implements the same contract: skeleton templates, position weights per role, anchor policies, velocity accents, density curves, permitted transformations, fill grammar, and groove defaults. Store profile data separately from executable operators so users can eventually author presets without writing code.</p>
+<h2 id="8-break-slicing-system">8 Break slicing system</h2>
+<h3>Representation and preparation</h3>
+<p>A slice is a time range in an identified audio asset, with an editable role tag, transient position, original order, and optional confidence. It may contain several drums. “Break slice” is a source type; “snare” is a musical role. Preserve both rather than forcing a choice between them.</p>
+<p>For the MVP, use a user-owned break already sliced in Renoise, or an original supplied break with a published slice map. The companion exports a small mapping manifest listing available slices and their trigger notes. The user assigns role tags where necessary. This avoids making automatic drum classification a prerequisite for good generation.</p>
+<p>In Version 2, drag a WAV into the browser, decode it, display the waveform, and propose transient markers. Use short-window energy change and spectral flux, adaptive thresholding, and a minimum spacing constraint. The user merges, splits, moves, auditions, and labels slices. Zero-crossing adjustment should be small enough to preserve the attack; short edge fades reduce clicks. Store boundaries in integer frames with the source sample rate and file hash. If decoding resamples audio, convert times back to original frames and verify the count before exporting markers.</p>
+<p>Renoise supports non-destructive slice markers and maps slices to trigger notes. Its stop-at-next-slice behavior matters: a slice can act as an isolated hit or continue through the source. Preserve this choice in the mapping contract. <a href="https://tutorials.renoise.com/wiki/Waveform">Renoise waveform and slicing manual</a></p>
+<h3>Example source rearrangement</h3>
+<p>A hypothetical original break is tagged A kick, B hat texture, C snare, D kick pickup, E ghost snare, F snare with cymbal tail. A conservative variation might use A–B–C–B / D–E–F–B. A more chopped response might use A–rest–C–E / D–C–C–B. These are role sequences, not a claim about the exact contents or ownership of the historical Amen recording.</p>
+<p>Preserve some neighboring source slices to retain room tone and momentum. Allow same-role substitutions before arbitrary substitutions. Protect strong snares from accidental replacement by quiet texture. Account for the internal onset offset: a slice whose transient occurs 8 ms after its boundary sounds late unless the engine compensates or intentionally preserves it.</p>
+<h3>Operations and compiler policy</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Musical implementation</th>
+<th>Export policy</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Normal playback</td>
+<td>Trigger source slice and allow chosen tail</td>
+<td>Mapped note, known instrument</td>
+</tr>
+<tr>
+<td>Slice repeat</td>
+<td>Reuse the same slice at later grid positions</td>
+<td>Explicit notes preferred</td>
+</tr>
+<tr>
+<td>Reverse</td>
+<td>Reverse one slice or a chosen portion</td>
+<td>Version 2: dedicated reversed sample preferred for preview parity</td>
+</tr>
+<tr>
+<td>Stutter</td>
+<td>Repeat a short onset over a bounded window</td>
+<td>Explicit sub-grid events and tail control</td>
+</tr>
+<tr>
+<td>Retrigger</td>
+<td>Restart a playing source at tick intervals</td>
+<td>Optional native effect only with validated TPL</td>
+</tr>
+<tr>
+<td>Skip</td>
+<td>Omit an onset</td>
+<td>Empty trigger position; not automatically silence</td>
+</tr>
+<tr>
+<td>Offset</td>
+<td>Start within a slice or source</td>
+<td>Distinguish sliced source from unsliced offset mode</td>
+</tr>
+<tr>
+<td>Pitch change</td>
+<td>Change playback rate or pitch intentionally</td>
+<td>Never transpose a keymapped slice note blindly; it may select another slice</td>
+</tr>
+<tr>
+<td>Half-time</td>
+<td>Stretch rhythmic spacing within a defined phrase</td>
+<td>Rebuild events, with explicit phrase-length policy</td>
+</tr>
+<tr>
+<td>Double-time</td>
+<td>Compress spacing or develop twice as many cells</td>
+<td>Rebuild events and validate density</td>
+</tr>
+<tr>
+<td>Ghost hits</td>
+<td>Lower gain of a snare or snare slice</td>
+<td>Explicit volume per onset</td>
+</tr>
+<tr>
+<td>Snare fills</td>
+<td>Insert bounded repeated or varied snare events</td>
+<td>Dedicated lane when effects conflict</td>
+</tr>
+<tr>
+<td>Kick substitutions</td>
+<td>Replace a kick-role slice with a compatible kick</td>
+<td>Resolve sample mapping before export</td>
+</tr>
+<tr>
+<td>Microtiming</td>
+<td>Shift realized onset without changing role</td>
+<td>Compile to row plus delay</td>
+</tr>
+</tbody></table></div>
+<p>An empty row means no new trigger, not a guaranteed silent audio interval. True silence needs sample-tail control, a suitable cut operation, or a pre-rendered gated sample. Define choke groups for closed/open hats and monophonic break playback; do not assume every note automatically chokes every other note.</p>
+<p>For native effects, S selects a slice or an unsliced offset, B selects playback direction, and R retrigger timing depends on Renoise ticks per line. The retrigger in a volume/pan column is not identical to the effect-column form. Keep a tested capability table per compiler target. <a href="https://tutorials.renoise.com/wiki/Effect_Commands">Renoise effect semantics</a></p>
+<p>Avoid time stretching in the first release. Play one-shots and short slices at their intended rate, allowing gaps or controlled overlap. A full-break tempo change with independent pitch preservation is a separate DSP feature with audible tradeoffs.</p>
+<h2 id="9-visual-and-color-system">9 Visual and color system</h2>
+<p>Use drum-role color consistently across cells, waveform markers, labels, legends, and explanations. Use a separate outline or small S badge for sliced audio, a G badge for ghost notes, and a padlock icon for locked events. Color is never the only identifier.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Element</th>
+<th>Color token</th>
+<th>Secondary identification</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Kick</td>
+<td>Coral red <span class="swatch" style="background:#F07178" aria-hidden="true"></span>#F07178</td>
+<td>K label, filled square</td>
+</tr>
+<tr>
+<td>Snare or clap</td>
+<td>Blue <span class="swatch" style="background:#5DA9F6" aria-hidden="true"></span>#5DA9F6</td>
+<td>SN label, diamond</td>
+</tr>
+<tr>
+<td>Hi-hat</td>
+<td>Gold <span class="swatch" style="background:#E5C453" aria-hidden="true"></span>#E5C453</td>
+<td>HH label, short tick</td>
+</tr>
+<tr>
+<td>Ride</td>
+<td>Amber <span class="swatch" style="background:#DFA36D" aria-hidden="true"></span>#DFA36D</td>
+<td>RD label, ring</td>
+</tr>
+<tr>
+<td>Cymbal or crash</td>
+<td>Violet <span class="swatch" style="background:#B995E8" aria-hidden="true"></span>#B995E8</td>
+<td>CY label, burst icon</td>
+</tr>
+<tr>
+<td>Ghost snare</td>
+<td>Light blue <span class="swatch" style="background:#A8D5F5" aria-hidden="true"></span>#A8D5F5</td>
+<td>G label, outlined diamond</td>
+</tr>
+<tr>
+<td>Percussion</td>
+<td>Teal green <span class="swatch" style="background:#64C4A0" aria-hidden="true"></span>#64C4A0</td>
+<td>P label, triangle</td>
+</tr>
+<tr>
+<td>Unclassified break slice</td>
+<td>Lavender <span class="swatch" style="background:#B5A1E8" aria-hidden="true"></span>#B5A1E8</td>
+<td>S label and slice number</td>
+</tr>
+<tr>
+<td>Rest or no trigger</td>
+<td>Gray <span class="swatch" style="background:#82909F" aria-hidden="true"></span>#82909F</td>
+<td>Dot; distinguish an explicit cut</td>
+</tr>
+<tr>
+<td>Optional bass hit</td>
+<td>Rose <span class="swatch" style="background:#E394BC" aria-hidden="true"></span>#E394BC</td>
+<td>B label, long rectangle</td>
+</tr>
+</tbody></table></div>
+<p>Suggested dark canvas: <span class="swatch" style="background:#111820" aria-hidden="true"></span>#111820 with primary text <span class="swatch" style="background:#EDF2F7" aria-hidden="true"></span>#EDF2F7. Colored fills use dark text and must be contrast-tested; colored text on arbitrary backgrounds is not automatically accessible. Provide a high-contrast theme and a monochrome label mode. Ghost notes remain readable rather than becoming nearly transparent.</p>
+<p>Beat boundaries have stronger horizontal rules, bar starts have a distinct ruler marker, and subdivisions use faint guides. Row numbers can switch between decimal and hexadecimal, but the selected mode is explicit. Selection uses an outline; playback uses a row marker; neither replaces role color. Volume is represented by a small level bar in Beginner view and a numeric field in Renoise view.</p>
+<h2 id="10-renoise-integration-strategy">10 Renoise integration strategy</h2>
+<h3>Verified foundation and research boundary</h3>
+<p>The official downloads page currently lists Renoise 3.5.4. Use that as the initial Windows test target, record the installed build and API version, and claim additional operating-system/version support only after testing. <a href="https://www.renoise.com/download">Renoise downloads</a></p>
+<p>The Lua API exposes editable pattern and note-column objects. This is the reliable architectural foundation for importing structured events. The public Application API lists a clipboard-slot selector, but that alone does not document an operating-system clipboard payload or a text clipboard reader. Do not invent <code>get_clipboard_text</code>, a native MIME type, or an XML clipboard schema. <a href="https://renoise.github.io/xrnx/API/renoise/renoise.Application.html">Application API</a>, <a href="https://renoise.github.io/xrnx/API/renoise/renoise.Pattern.html">Pattern API</a>, <a href="https://renoise.github.io/xrnx/API/renoise/renoise.NoteColumn.html">NoteColumn API</a></p>
+<h3>Transfer options</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Route</th>
+<th>What it can preserve</th>
+<th>Reality and release decision</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Plain tracker text → Pattern Editor</td>
+<td>Human-readable notes and fields</td>
+<td>Not verified as native paste input; never label as compatible export</td>
+</tr>
+<tr>
+<td>Native clipboard adapter</td>
+<td>Potentially native pattern cells</td>
+<td>Research only; requires real payload capture and cross-version tests</td>
+</tr>
+<tr>
+<td>App JSON text → Lua tool dialog</td>
+<td>Events, mapping references, timing and metadata</td>
+<td>Proposed copy/paste route; prototype long-text paste and UI limits first</td>
+</tr>
+<tr>
+<td>.bbpattern file → Lua tool</td>
+<td>Same structured payload as text route</td>
+<td>Required MVP fallback using a normal file-open dialog</td>
+</tr>
+<tr>
+<td>.mid export</td>
+<td>Notes, timing, velocities, tempo metadata</td>
+<td>Version 2 interoperability route; loses sample identities and tracker effects</td>
+</tr>
+<tr>
+<td>Generated .xrns song</td>
+<td>Potential full song and sample context</td>
+<td>Later; use verified fixtures and schemas, avoid hand-invented archives</td>
+</tr>
+<tr>
+<td>.xrni instrument</td>
+<td>Sample and mapping companion</td>
+<td>Useful for a licensed demo kit; not the pattern itself</td>
+</tr>
+<tr>
+<td>File drag and drop</td>
+<td>Depends on file type and target</td>
+<td>Custom files need tool import hooks and tested drop locations</td>
+</tr>
+<tr>
+<td>Desktop bridge</td>
+<td>Native file access and possible clipboard support</td>
+<td>Later, if browser handoff friction justifies packaging</td>
+</tr>
+</tbody></table></div>
+<p>Renoise documents MIDI as a song import format; this is not equivalent to pasting a drum clip into the current selection. Test its load options and timing behavior before offering it as an alternative. <a href="https://tutorials.renoise.com/wiki/Disk_Browser">Renoise Disk Browser</a></p>
+<h3>MVP companion tool</h3>
+<p>Distribute a normal <code>.xrnx</code> Lua tool, not a VST. Package <code>manifest.xml</code>, <code>main.lua</code>, a JSON parser, validation, import planning, and mapping modules. The official tool system supports menu entries, keybindings, and file-import hooks. <a href="https://renoise.github.io/xrnx/start/tool.html">Tool packaging</a>, <a href="https://renoise.github.io/xrnx/API/renoise/renoise.ScriptingTool.html">ScriptingTool API</a></p>
+<p>The default command is <strong>Import Breakbeat Pattern</strong>. It opens a transfer dialog with Paste Text and Open File routes. After pasting, the user chooses Apply. Do not imply that Lua can read the clipboard automatically. If text-widget paste, payload size, or platform behavior is unreliable, keep Open File as the primary route and label copy/paste experimental until it passes.</p>
+<p>Use a versioned application format, proposed as <code>.bbpattern</code>, containing UTF-8 JSON. This is explicitly our format, not a Renoise file type. Downloading it from a browser and opening it in the tool is sufficient for the MVP. A future import hook can add drag and drop; a generated browser object is not automatically an operating-system draggable file.</p>
+<p>The importer resolves abstract IDs such as <code>kit.kick</code> and <code>break.snareA</code> to actual song instrument slots and trigger notes. An instrument number is not a sample number. The same note may select different samples in different mappings. Cache mappings per song/profile, verify that referenced samples still exist, and show a concise mismatch report.</p>
+<h3>Preflight and application</h3>
+<ol>
+<li>Parse with a non-executing JSON decoder. Enforce schema version, byte size, nesting, event count, numeric ranges, and known operation types. Never evaluate Lua or JavaScript from a payload.</li>
+<li>Build an import plan without editing the song. Resolve the destination pattern, start row, sequencer tracks, note columns, effect columns, and instrument mapping.</li>
+<li>Default to a new pattern with dedicated destination tracks. Import-at-cursor is an explicit option. Warn about nonempty cells; do not overwrite unrelated tracks or shared pattern aliases silently.</li>
+<li>Check BPM, LPB, TPL, and existing song groove. BPM and LPB changes affect the song, not only this pattern. Offer Keep song timing with recompilation or Apply pattern timing with a clear impact summary. Never apply both baked swing and host groove unintentionally.</li>
+<li>Allocate columns for simultaneous hits. MVP uses separate kick, snare, hat, percussion, and break lanes. Detect collisions after delay quantization, not only before it. Query host limits rather than assuming unlimited tracks or columns.</li>
+<li>Validate the entire plan, snapshot affected cells and settings, apply synchronously in one import action where feasible, and verify read-back. Use Renoise&#39;s undo description support and test the actual undo grouping. Retain a restore snapshot if a write fails partway through. <a href="https://renoise.github.io/xrnx/API/renoise/renoise.Song.html">Song API</a></li>
+<li>Report imported bars, destination, and any rounding or unsupported operation. A failed preflight makes no edits. Unsupported effects are rejected or replaced through an explicit previewed fallback, never discarded silently.</li>
+</ol>
+<p>At the API boundary, <code>song.instruments[1]</code> refers to the first instrument, while its pattern instrument field is <code>00</code>. Use explicit <code>note_string</code>, <code>instrument_value</code>, <code>volume_string</code>, <code>panning_string</code>, and <code>delay_value</code> assignments in the adapter. Keep note off and empty cells distinct. The API exposes both numeric and tracker-style representations. <a href="https://renoise.github.io/xrnx/API/renoise/renoise.NoteColumn.html">NoteColumn API</a></p>
+<h3>Clipboard abstraction</h3>
+<p>Define <code>TransferAdapter.inspect(pattern, target)</code>, <code>compile(pattern, mapping, timing)</code>, and <code>deliver(compiled)</code>. Return diagnostics and a capability descriptor including textPaste, fileImport, nativeClipboard, effects, and sampleAssets. Implement <code>JsonFileAdapter</code> first, <code>ToolTextAdapter</code> second, and reserve <code>NativeRenoiseClipboardAdapter</code> behind a disabled capability flag.</p>
+<p>Phase 1 native-clipboard research must copy known selections from Renoise and inspect actual available formats on each target OS. Test multi-track data, empty rows, delay fields, effect columns, and round trips. Browser text clipboard access does not guarantee the ability to write an application-specific native clipboard format. Browser copy should use an explicit user gesture and a selectable-text/download fallback. <a href="https://developer.mozilla.org/en-US/docs/Web/API/Clipboard">Clipboard API</a></p>
+<h2 id="11-educational-features">11 Educational features</h2>
+<p>Generate explanations from the final event graph and musical context. Keep rule IDs and transformation provenance, but re-analyze after manual edits so the explanation describes what is currently audible. Use deterministic templates in the MVP; an LLM adds cost and uncertainty without solving a necessary problem.</p>
+<p>The hit inspector shows role, beat position, loudness, source slice, timing offset, and reason for inclusion. A “Hear without this hit” action compares the loop with that event muted. Explain only effects that actually exist in the compiled pattern.</p>
+<p>Example explanations:</p>
+<ul>
+<li>“This kick falls on the final sixteenth before beat 3, creating an anticipation of the next strong beat.”</li>
+<li>“This ghost snare is quieter than the main backbeat. It connects the surrounding hits without replacing the accent on beat 4.”</li>
+<li>“This snare slice repeats at 1/32-note spacing across the final half-beat, making a short, rapid fill.”</li>
+<li>“This hi-hat is delayed by 4 ms. Its position is slightly behind the grid, while the main snare stays on time.”</li>
+</ul>
+<p>Correct a common teaching error: an offbeat sixteenth can be exactly on the grid. Syncopation concerns metrical emphasis and expectation; microtiming concerns deviation from the nominal grid. Neither should be described as the other.</p>
+<p><strong>Explain this beat</strong> highlights anchors first, then weak-position accents, ghost notes, fills, and source-slice reuse. Provide a short paragraph and clickable examples. Show “likely syncopation” for ambiguous patterns rather than treating every weak-position hat as syncopation. A later tutorial can ask the learner to remove ghosts, move a kick, or straighten swing and compare the result.</p>
+<h2 id="12-user-interface-structure">12 User interface structure</h2>
+<p>The desktop layout has a compact transport and preset strip above a large tracker grid. A left panel holds generation controls; a right inspector explains the selection. A collapsible bottom panel holds waveform/slice mapping and library/history tabs. On smaller displays, the inspector becomes a drawer; keep the grid usable before squeezing every panel onto screen.</p>
+<pre><code class="language-text">Genre  Style  BPM [160][165][170][numeric]  Bars  Play  Generate
+Controls        Beginner | Hybrid | Renoise        Transfer
+Complexity      Row  Beat   Kick   Snare   Hat   Break   Inspector
+Groove          00   1.1    K      .       HH    .       Role
+Ghosts          01   1.e    .      .       .     .       Position
+Fills           02   1.&amp;    .      .       HH    S       Why it works
+Advanced        ...                                      Audition
+                Lock  Mutate selection  Fill  Undo  Redo
+Library | Variations | History | Slice map               Seed
+</code></pre>
+<p><strong>Beginner:</strong> cells show Kick, Snare, HH, and slice labels, with gain bars and audible beat counting. Hide hex commands until the user opens an explanation. <strong>Renoise:</strong> vertical row progression, fixed-width notes, instrument, volume, pan, delay, and effects; provide decimal/hex row switching. <strong>Hybrid:</strong> tracker fields remain visible and compact labels explain each hit.</p>
+<p>Every event can expose row number, bar/beat/subdivision, sample or slice name, role, note, instrument slot, sample reference, volume, pan, delay, and effects. Sample reference is explanatory metadata; it must not masquerade as an extra native Renoise pattern column. Simultaneous hits occupy separate columns/lanes, not a text string jammed into one cell.</p>
+<p>Keyboard operation: arrows navigate, Shift+arrows select, Space plays/stops when outside a text field, L toggles a lock, Delete removes selected unlocked events, and standard Undo/Redo works. Expose Generate and Mutate through discoverable shortcuts that do not override text editing. Native numeric fields commit on Enter and cancel on Escape. Audition never steals selection.</p>
+<p><strong>Key UI states:</strong> no map loaded; generated and valid; dirty manual edits; generating; incompatible source map; unsupported export operation; successful import payload; clipboard failure with fallback. Control changes do not silently destroy manual edits: show “Settings changed” and require Generate or Mutate to apply them.</p>
+<h2 id="13-technical-architecture">13 Technical architecture</h2>
+<h3>Application options</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Advantages</th>
+<th>Costs and limitations</th>
+<th>Recommendation</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Browser app</td>
+<td>Fast distribution, rich visual teaching, local processing</td>
+<td>Clipboard permissions, file handoff, background audio limits</td>
+<td>MVP UI and engine</td>
+</tr>
+<tr>
+<td>Tauri desktop app</td>
+<td>Reuses web UI, native file access, potential bridge</td>
+<td>Packaging, permissions, OS webview differences, signing</td>
+<td>Version 2 if handoff needs it</td>
+</tr>
+<tr>
+<td>Electron desktop app</td>
+<td>Consistent Chromium, broad Node ecosystem</td>
+<td>Larger distribution and ongoing security updates</td>
+<td>Alternative if consistent audio/browser behavior outweighs size</td>
+</tr>
+<tr>
+<td>Renoise-only Lua tool</td>
+<td>Direct song access and host audio</td>
+<td>More constrained UI and harder standalone learning experience</td>
+<td>Thin importer first; optional compact generator later</td>
+</tr>
+</tbody></table></div>
+<p>Use a browser plus a Lua tool, with no server, account system, or cloud sample upload. A pure Lua MVP would shorten native import work, but would sacrifice much of the intended visual learning experience. The two components should share a data contract, not duplicated musical engines.</p>
+<h3>Module boundaries</h3>
+<pre><code class="language-text">React UI → command/history layer → canonical Pattern
+                              ↗ generation core + genre profiles
+Pattern → groove realization → validation → analysis/education
+                                      ↘ audio preview scheduler
+                                      ↘ Renoise compiler → JSON transfer
+JSON transfer → Lua validation → import plan → Renoise song API
+Pattern + assets + presets ↔ local IndexedDB repository
+</code></pre>
+<p>Keep <code>core</code> as pure TypeScript with no DOM, Web Audio, React, or Renoise dependencies. Expose <code>generate(request)</code>, <code>mutate(pattern, request)</code>, <code>analyze(pattern)</code>, and <code>validate(pattern)</code>. The compiler turns semantic operations into supported host fields; the generator never emits raw tracker text.</p>
+<p>Suggested workspace layout: <code>apps/web</code>, <code>packages/core</code>, <code>packages/genre-profiles</code>, <code>packages/schema</code>, <code>packages/audio</code>, <code>packages/renoise-export</code>, <code>tools/renoise-importer</code>, and <code>fixtures</code>. Use JSON Schema as the cross-language contract with TypeScript types generated from it. The Lua validator supports the same restricted schema and shares accepted/rejected fixtures.</p>
+<p>Use a Web Worker for generation or analysis once profiling shows perceptible blocking. A generation request has an ID; stale worker results are discarded. Small deterministic patterns can initially run synchronously if measured response time is acceptable.</p>
+<h3>Audio and storage</h3>
+<p>Use Web Audio <code>AudioBufferSourceNode</code> scheduling against <code>AudioContext.currentTime</code>, with a short lookahead scheduler, per-event gain, panning, and explicit choke behavior. Start audio only after a user gesture. UI animation follows the audio clock; it does not drive note timing. Web Audio provides decoded sample buffers and scheduled sources. <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API">Web Audio API</a></p>
+<p>Proposed starting scheduler settings are a 25 ms wake interval and 100 ms lookahead, to be tuned under load. Stop cancels queued sources and resets voices. Recompiling a playing phrase takes effect at the next loop boundary. Handle suspended contexts and background tabs explicitly. Do not promise that browser playback emulates every Renoise effect or sampler envelope.</p>
+<p>Store pattern snapshots, presets, mapping profiles, and favorite seeds in IndexedDB through Dexie. Store optional audio blobs separately, keyed by asset hash; patterns reference them. Include schema migrations, storage-quota handling, and a downloadable backup. Browser storage can be cleared or evicted, so local persistence alone is not a backup. <a href="https://dexie.org/">Dexie documentation</a></p>
+<p>For Version 2 waveform editing, use wavesurfer.js Regions for interaction, backed by the application&#39;s frame-accurate slice model. Its waveform display is not the authoritative multi-voice sequencer clock. Keep clip sizes bounded because browser decoding consumes memory. <a href="https://wavesurfer.xyz/">wavesurfer.js</a></p>
+<h2 id="14-proposed-internal-data-model">14 Proposed internal data model</h2>
+<p>Store semantic intent, realized timing, provenance, and mapping separately. Empty grid cells are implicit; explicit rests/cuts require their own event type. The following valid JSON is a deliberately small two-event pattern, not the complete example in section 22.</p>
+<pre><code class="language-json">{
+  &quot;schemaVersion&quot;: 1,
+  &quot;id&quot;: &quot;pattern-jungle-001&quot;,
+  &quot;name&quot;: &quot;Jungle starting phrase&quot;,
+  &quot;engine&quot;: { &quot;version&quot;: &quot;0.1.0&quot;, &quot;seed&quot;: &quot;amen-study-042&quot; },
+  &quot;genre&quot;: { &quot;id&quot;: &quot;jungle&quot;, &quot;version&quot;: 1 },
+  &quot;tempo&quot;: { &quot;bpm&quot;: 165, &quot;beatUnit&quot;: &quot;quarter&quot; },
+  &quot;meter&quot;: { &quot;numerator&quot;: 4, &quot;denominator&quot;: 4 },
+  &quot;lengthBars&quot;: 2,
+  &quot;ppq&quot;: 960,
+  &quot;grid&quot;: { &quot;division&quot;: 16 },
+  &quot;generation&quot;: {
+    &quot;complexity&quot;: 0.45, &quot;syncopation&quot;: 0.4,
+    &quot;ghostAmount&quot;: 0.3, &quot;fillAmount&quot;: 0.25,
+    &quot;chopIntensity&quot;: 0.3, &quot;randomness&quot;: 0.2
+  },
+  &quot;groove&quot;: { &quot;swingRatio&quot;: 0.5, &quot;swingUnit&quot;: 16,
+              &quot;humanizeMs&quot;: 0, &quot;microtimingLimitMs&quot;: 6 },
+  &quot;lanes&quot;: [
+    { &quot;id&quot;: &quot;kick&quot;, &quot;role&quot;: &quot;kick&quot;, &quot;chokeGroup&quot;: &quot;kick&quot; },
+    { &quot;id&quot;: &quot;break&quot;, &quot;role&quot;: &quot;mixed&quot;, &quot;chokeGroup&quot;: &quot;break&quot; }
+  ],
+  &quot;assets&quot;: [
+    { &quot;id&quot;: &quot;demo-break&quot;, &quot;sampleRate&quot;: 48000,
+      &quot;frameCount&quot;: 144000, &quot;contentHash&quot;: null }
+  ],
+  &quot;sliceMaps&quot;: [
+    { &quot;id&quot;: &quot;demo-map-v1&quot;, &quot;assetId&quot;: &quot;demo-break&quot;, &quot;slices&quot;: [
+      { &quot;id&quot;: &quot;snare-a&quot;, &quot;startFrame&quot;: 36000, &quot;endFrame&quot;: 48000,
+        &quot;transientFrame&quot;: 36000, &quot;roles&quot;: [&quot;snare&quot;],
+        &quot;stopAtEnd&quot;: true }
+    ] }
+  ],
+  &quot;events&quot;: [
+    { &quot;id&quot;: &quot;e1&quot;, &quot;type&quot;: &quot;hit&quot;, &quot;laneId&quot;: &quot;kick&quot;,
+      &quot;role&quot;: &quot;kick&quot;, &quot;source&quot;: { &quot;kind&quot;: &quot;oneShot&quot;, &quot;id&quot;: &quot;kit.kick&quot; },
+      &quot;baseTick&quot;: 0, &quot;offsetTick&quot;: 0, &quot;durationTick&quot;: 120,
+      &quot;gain&quot;: 0.875, &quot;pan&quot;: 0, &quot;probability&quot;: 1,
+      &quot;operations&quot;: [], &quot;tags&quot;: [&quot;anchor&quot;],
+      &quot;provenance&quot;: { &quot;rule&quot;: &quot;jungle.downbeat&quot;, &quot;parentEventId&quot;: null } },
+    { &quot;id&quot;: &quot;e2&quot;, &quot;type&quot;: &quot;hit&quot;, &quot;laneId&quot;: &quot;break&quot;,
+      &quot;role&quot;: &quot;snare&quot;, &quot;source&quot;: { &quot;kind&quot;: &quot;slice&quot;,
+        &quot;mapId&quot;: &quot;demo-map-v1&quot;, &quot;sliceId&quot;: &quot;snare-a&quot; },
+      &quot;baseTick&quot;: 1680, &quot;offsetTick&quot;: 0, &quot;durationTick&quot;: 120,
+      &quot;gain&quot;: 0.25, &quot;pan&quot;: 0, &quot;probability&quot;: 1,
+      &quot;operations&quot;: [], &quot;tags&quot;: [&quot;ghost&quot;],
+      &quot;provenance&quot;: { &quot;rule&quot;: &quot;jungle.snarePickup&quot;, &quot;parentEventId&quot;: null } }
+  ],
+  &quot;locks&quot;: [ { &quot;kind&quot;: &quot;event&quot;, &quot;eventId&quot;: &quot;e1&quot;, &quot;fields&quot;: [&quot;*&quot;] } ],
+  &quot;exportIntent&quot;: { &quot;target&quot;: &quot;renoise&quot;, &quot;lpb&quot;: 4,
+    &quot;tpl&quot;: 12, &quot;mappingProfileId&quot;: &quot;user-map-1&quot;,
+    &quot;timingPolicy&quot;: &quot;preflight&quot;, &quot;probabilityPolicy&quot;: &quot;bake&quot; }
+}
+</code></pre>
+<p>Here baseTick 1680 is row 7 at LPB 4. A ghost is an articulation tag on a snare, not a separate incompatible instrument type. Gain is normalized 0–1; pan is −1 to +1. <code>durationTick</code> is the desired gate window; the compiler must report when an existing instrument cannot honor it. Source audio and envelope behavior determine the actual tail.</p>
+<p>A mapping profile might bind <code>kit.kick</code> to instrument field <code>00</code>, note <code>C-4</code>, and <code>demo-map-v1/snare-a</code> to instrument <code>03</code>, note <code>D-4</code>. Those values belong to the profile, not the genre rule. The export compiler emits numeric row/column locations and validated tracker fields into a derived transfer payload.</p>
+<p>Production assets require a non-null hash and verified frame count; null in the example marks an unresolved asset. Do not export unresolved source identities without a deliberate “use my mapped instrument” binding. Separate musical pitch from slice trigger note so a transpose operation cannot accidentally change the source slice.</p>
+<p>Future probabilistic playback needs an explicit choice: bake one seeded realization for consistent preview/import, or preserve host probability with a warning that repeats may differ. MVP always bakes events. Save parent pattern IDs, mutation seed, and engine version with library variations.</p>
+<h2 id="15-mvp-scope">15 MVP scope</h2>
+<p>Ship a browser app and Windows-tested Lua importer with these bounded capabilities:</p>
+<ul>
+<li>Jungle, DnB Roller, and Hip-Hop Swing profiles; an original demo kit and one curated break map.</li>
+<li>Deterministic generation in 4/4, 1–4 bars, 1/8–1/64 straight editing grids, explicit BPM presets and numeric override.</li>
+<li>Beginner, Hybrid, and Renoise views, shared selection, role colors, editable hits, volume and timing.</li>
+<li>Complexity plus advanced syncopation, swing, ghosts, fills, chopping, randomness, and bounded humanization.</li>
+<li>Generate, Regenerate, scoped mutation, Generate Fill, Simplify, Increase Complexity, Humanize, constrained Randomize, locks, and Undo/Redo implemented through a common command layer.</li>
+<li>Slice selection and explicit repeats using pre-existing maps; supported tails/chokes documented per kit.</li>
+<li>Local pattern/variation/preset library, favorite seeds, draft autosave, and JSON backup.</li>
+<li>Per-hit explanations and a concise whole-pattern analysis.</li>
+<li>Basic sample preview with mute/solo and looping.</li>
+<li>Validated <code>.bbpattern</code> import; tool text paste enabled only after its prototype passes. Preflight, mapping, read-back, and undo are mandatory.</li>
+</ul>
+<p>Exclude automatic transient detection, advanced native effects, separate per-operation probability controls, cloud accounts, browser-to-Renoise live sync, AI generation, time stretching, MIDI export, and a full sample editor. The grid should not become a second DAW.</p>
+<p><strong>Release gate:</strong> a user can generate, hear, mutate, transfer, and undo a supported pattern without repairing rows by hand. Every advertised operation must have a verified mapping and preview policy. A file-based first release is acceptable if tool paste is unreliable; falsely labeling text as native Renoise clipboard data is not.</p>
+<h2 id="16-version-2-scope">16 Version 2 scope</h2>
+<p>Add Trap, Rap Space, UK-inspired Drill, Breakcore, IDM, Hardcore, and Experimental profiles in listening-tested batches. Expand existing genres with named substyles. Introduce editable time signatures and triplet grids with compiler fixtures.</p>
+<p>Add WAV import, waveform slicing, transient proposals with manual correction, source-map export/import, and sample audition. Add separate repeat, reverse, stutter, and slice-density controls, per-lane variation amounts, supported pitch operations, and a tested native effect subset.</p>
+<p>Add A/B comparison with matched playback start, groove and swing templates, richer library filtering, favorite BPM sets, downloadable MIDI plus a mapping report, and interactive lessons. A share code can include a compact pattern, profile versions, and seed without redistributing the user&#39;s samples.</p>
+<p>Evaluate a Tauri wrapper only after measuring real transfer friction. Native file/clipboard access can help, but does not remove the need to validate Renoise compatibility. Tauri supports web frontends within a native application architecture. <a href="https://v2.tauri.app/start/">Tauri architecture introduction</a></p>
+<h2 id="17-future-ideas">17 Future ideas</h2>
+<p>Consider MIDI input for tapping rhythm, Euclidean rhythm overlays, per-lane polymeter, finite polyrhythm export, user-created genre profiles, difficulty levels, multi-pattern song phrases, and probability scenes. These should use the existing event model and validation layer.</p>
+<p>Explore audio-to-groove extraction, automatic role classification with confidence, source-aware transient alignment, time stretching, and live host synchronization. Each needs separate audio and UX evaluation. A future AI assistant could explain an edit or propose a profile, but generated claims must be grounded in actual events and the deterministic engine remains authoritative.</p>
+<p>Shared URLs should store a versioned compact pattern or a seed plus all required versions and settings. A seed alone is insufficient when the engine or source map changes. Share audio only when the user supplies redistributable material. Collaboration and cloud libraries should follow proven demand, not precede reliable export.</p>
+<h2 id="18-risks-and-technical-challenges">18 Risks and technical challenges</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Risk</th>
+<th>Impact</th>
+<th>Mitigation and evidence required</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Native clipboard assumptions</td>
+<td>Core promise fails</td>
+<td>Treat native adapter as research; retain validated file import</td>
+</tr>
+<tr>
+<td>Wrong instrument or slice mapping</td>
+<td>Correct rhythm plays wrong sounds</td>
+<td>Stable IDs, map fingerprints, audition and preflight</td>
+</tr>
+<tr>
+<td>Host LPB or groove mismatch</td>
+<td>Timing changes after import</td>
+<td>Compile for actual LPB; inspect groove; explicit timing policy</td>
+</tr>
+<tr>
+<td>Simultaneous events exceed columns</td>
+<td>Lost notes or wrong effects</td>
+<td>Allocation planner and hard failure before editing</td>
+</tr>
+<tr>
+<td>Sample tails and choking differ</td>
+<td>Preview sounds unlike Renoise</td>
+<td>Supported-kit envelope contract and audible parity fixtures</td>
+</tr>
+<tr>
+<td>Slice-note pitch confusion</td>
+<td>Transposition triggers wrong slice</td>
+<td>Separate musical pitch from trigger note</td>
+</tr>
+<tr>
+<td>Over-randomized genre rules</td>
+<td>Unconvincing results</td>
+<td>Anchors, motifs, density/rest budgets and blind listening tests</td>
+</tr>
+<tr>
+<td>Existing song edits are damaged</td>
+<td>Loss of user work</td>
+<td>New destination default, collision report, undo and restore snapshot</td>
+</tr>
+<tr>
+<td>Sample redistribution</td>
+<td>Shipping unauthorized recordings</td>
+<td>Original or licensed demo audio; user assets stay local</td>
+</tr>
+<tr>
+<td>Browser timing and memory</td>
+<td>Stutters, UI pauses or decode failures</td>
+<td>Audio-clock scheduling, bounded clips, stress tests</td>
+</tr>
+<tr>
+<td>Source-map changes</td>
+<td>Saved patterns refer to different audio</td>
+<td>Versioned maps, content hashes and explicit relinking</td>
+</tr>
+<tr>
+<td>Storage eviction</td>
+<td>Lost presets or patterns</td>
+<td>Downloadable backups and quota/error handling</td>
+</tr>
+<tr>
+<td>Technical controls overwhelm beginners</td>
+<td>Poor learnability</td>
+<td>Five primary choices, progressive advanced controls</td>
+</tr>
+</tbody></table></div>
+<p>The most important uncertainty is the transfer experience on an actual installed Renoise build. Documentation establishes the API route; it does not prove an end-to-end implementation. Phase 1 must turn this uncertainty into a tested fixture before substantial UI investment.</p>
+<h2 id="19-recommended-development-stack">19 Recommended development stack</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Concern</th>
+<th>Choice</th>
+<th>Reason</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Frontend</td>
+<td>React, TypeScript, Vite</td>
+<td>Shared types and a fast static-app development loop</td>
+</tr>
+<tr>
+<td>UI state</td>
+<td>Reducer/command store plus immutable snapshots</td>
+<td>Predictable undo, regeneration and selection behavior</td>
+</tr>
+<tr>
+<td>Grid</td>
+<td>Semantic DOM/CSS grid with row virtualization if measured necessary</td>
+<td>Keyboard accessibility and inspectable cells</td>
+</tr>
+<tr>
+<td>Core engine</td>
+<td>Pure TypeScript modules and a pinned seeded PRNG</td>
+<td>Determinism, portability and straightforward testing</td>
+</tr>
+<tr>
+<td>Validation</td>
+<td>JSON Schema with Ajv in browser/build; matching Lua checks</td>
+<td>Cross-language transfer contract</td>
+</tr>
+<tr>
+<td>Preview</td>
+<td>Direct Web Audio scheduler</td>
+<td>Explicit timing, gain, pan and choke control</td>
+</tr>
+<tr>
+<td>Waveform</td>
+<td>wavesurfer.js Regions in Version 2</td>
+<td>Established waveform interactions; custom slice model remains authoritative</td>
+</tr>
+<tr>
+<td>Slicing</td>
+<td>Worker-based transient analysis plus manual markers</td>
+<td>Responsive UI and editable results</td>
+</tr>
+<tr>
+<td>Persistence</td>
+<td>Dexie/IndexedDB with JSON backup</td>
+<td>Local-first patterns and optional audio blobs</td>
+</tr>
+<tr>
+<td>Transfer</td>
+<td>JSON text/download; Lua <code>.xrnx</code> importer</td>
+<td>Avoids undocumented native clipboard dependencies</td>
+</tr>
+<tr>
+<td>Testing</td>
+<td>Vitest, property tests, Playwright, Lua fixture harness</td>
+<td>Covers engine, UI, compiler and real host behavior</td>
+</tr>
+<tr>
+<td>Packaging</td>
+<td>Static web build; optional Tauri later</td>
+<td>Minimum initial operational burden</td>
+</tr>
+<tr>
+<td>Server</td>
+<td>None for MVP</td>
+<td>No account, upload or infrastructure dependency</td>
+</tr>
+</tbody></table></div>
+<p>Vite supplies a React/TypeScript starting point; pin the supported Node runtime and dependency versions at project setup rather than copying stale version numbers into the plan. Commit the lockfile and test dependency updates against export fixtures. <a href="https://vite.dev/guide/">Vite guide</a></p>
+<p>Use <a href="https://ajv.js.org/">Ajv</a> for schema validation, <a href="https://vitest.dev/">Vitest</a> for core tests, and <a href="https://playwright.dev/">Playwright</a> for browser flows. If choosing Electron later, budget for its documented security and update responsibilities. <a href="https://www.electronjs.org/docs/latest/tutorial/security">Electron security guidance</a></p>
+<h2 id="20-development-roadmap">20 Development roadmap</h2>
+<p>Use gated outputs rather than calendar promises. Each phase ends with an inspectable artifact and a clear exit criterion. The sequence below matches the product&#39;s component structure; the final implementation order brings the transfer prototype and minimal audio forward.</p>
+<h3>Phase 1 Research Renoise pattern and export requirements</h3>
+<p><strong>Goal:</strong> prove a reliable transfer path before committing to UI assumptions.</p>
+<p><strong>Tasks:</strong> record host/API versions; make a fixture with simultaneous kick/hat, a ghost, a delayed hit, and a mapped slice; write/read it through Lua; test long-text paste in a tool dialog, file import, undo, and destination collisions. Inspect native clipboard formats as a separate bounded spike. Audit BPM/LPB/TPL and note/column limits.</p>
+<p><strong>Expected output:</strong> compatibility matrix, minimal importer proof, mapping manifest, round-trip fixture, and a go/no-go decision for tool paste. <strong>Dependencies:</strong> installed target Renoise, original test samples, API documentation. <strong>Main risks:</strong> clipboard assumptions, version differences, unclear effect scope. <strong>Exit:</strong> file import reproduces fixture fields and sound; unsupported routes are labeled.</p>
+<h3>Phase 2 Define pattern data model</h3>
+<p><strong>Goal:</strong> establish one contract for UI, preview and export.</p>
+<p><strong>Tasks:</strong> formalize musical ticks, meter, source IDs, gain/pan, operations, provenance, locks, realized events, mapping profiles, and transfer payload; define migrations and size limits.</p>
+<p><strong>Expected output:</strong> JSON Schema, TypeScript types, Lua validation fixtures, and sample files. <strong>Dependencies:</strong> Phase 1 findings. <strong>Main risks:</strong> mixed index bases, timing drift, confusing a slice key with musical pitch. <strong>Exit:</strong> valid fixtures round-trip without semantic change and malformed ones fail cleanly.</p>
+<h3>Phase 3 Build deterministic drum pattern generator</h3>
+<p><strong>Goal:</strong> generate a musically useful phrase without a UI.</p>
+<p><strong>Tasks:</strong> implement PRNG streams, skeleton selection, role budgets, accents, rests, validation and text diagnostics; start with kick/snare/hat and one fixed mapping.</p>
+<p><strong>Expected output:</strong> core package and a development command that writes a fixture payload. <strong>Dependencies:</strong> Phase 2. <strong>Main risks:</strong> random streams coupling and weak musical phrasing. <strong>Exit:</strong> repeated seed/config produces identical events and the phrase imports through the Phase 1 tool.</p>
+<h3>Phase 4 Add genre rules</h3>
+<p><strong>Goal:</strong> make genre affect rhythm and development.</p>
+<p><strong>Tasks:</strong> implement Jungle, DnB Roller and Hip-Hop Swing profiles; add weighted templates, phrase responses and role-specific groove defaults; conduct first listening review.</p>
+<p><strong>Expected output:</strong> versioned profile files and a small accepted seed library. <strong>Dependencies:</strong> Phase 3. <strong>Main risks:</strong> stereotyped rules, genres differing only in tempo. <strong>Exit:</strong> patterns remain distinguishable at matched BPM in listener comparisons.</p>
+<h3>Phase 5 Create tracker and grid interface</h3>
+<p><strong>Goal:</strong> make the pattern editable and intelligible.</p>
+<p><strong>Tasks:</strong> build row/beat ruler, lanes, Beginner/Hybrid/Renoise projections, selection, field editing, labels, colors, focus navigation, and the command/history foundation.</p>
+<p><strong>Expected output:</strong> accessible editor using fixed fixtures and generated patterns. <strong>Dependencies:</strong> Phase 2; Phase 3 for real generation. <strong>Main risks:</strong> selection inconsistencies, dense unreadable fields, poor keyboard access. <strong>Exit:</strong> editing the same event in any view updates the others with no data loss.</p>
+<h3>Phase 6 Add BPM and generation controls</h3>
+<p><strong>Goal:</strong> provide predictable control over generation.</p>
+<p><strong>Tasks:</strong> add genre buttons and numeric BPM, bars, resolution, complexity, progressive advanced controls, overrides, seed entry, and dirty-settings state.</p>
+<p><strong>Expected output:</strong> complete main generation flow. <strong>Dependencies:</strong> Phases 4 and 5. <strong>Main risks:</strong> misleading control meanings, automatic overwrite of manual edits. <strong>Exit:</strong> each control has a documented, testable effect and manual tempo survives genre changes.</p>
+<h3>Phase 7 Add break slice engine</h3>
+<p><strong>Goal:</strong> produce mapped, convincing slice phrases.</p>
+<p><strong>Tasks:</strong> load a slice manifest, assign roles, resolve slice selection, implement source-neighbor continuity, repeats, and tail/choke policy. Keep waveform auto-slicing outside MVP.</p>
+<p><strong>Expected output:</strong> one original demo break and one user-mapped break working end to end. <strong>Dependencies:</strong> Phases 1–4; basic audio for listening. <strong>Main risks:</strong> wrong sample mapping, late transients and doubled drums. <strong>Exit:</strong> slices import accurately and preserve a recognizable rhythmic motif.</p>
+<h3>Phase 8 Add pattern mutation</h3>
+<p><strong>Goal:</strong> create variations while preserving identity.</p>
+<p><strong>Tasks:</strong> implement mutation budgets, selection scopes, all lock types, simplify/complexify, fills, humanization and constrained randomize through the command layer.</p>
+<p><strong>Expected output:</strong> reversible mutations and regression fixtures. <strong>Dependencies:</strong> Phases 5 and 7. <strong>Main risks:</strong> locks leaking, undo missing settings, excessive changes. <strong>Exit:</strong> locks are invariant across repeated actions; ordinary mutations pass identity and listening checks.</p>
+<h3>Phase 9 Implement Renoise export and copy workflow</h3>
+<p><strong>Goal:</strong> turn the early import proof into a dependable user workflow.</p>
+<p><strong>Tasks:</strong> finalize compiler, mapping UI, preflight, target selection, collision handling, timing policy, file export, optional tool-text paste, read-back diagnostics and undo recovery.</p>
+<p><strong>Expected output:</strong> installable <code>.xrnx</code>, versioned transfer contract and compatibility guide. <strong>Dependencies:</strong> Phase 1 proof, Phase 2 schema, Phase 7 mappings. <strong>Main risks:</strong> host-state changes, partial writes, unsupported effects. <strong>Exit:</strong> representative supported patterns import without manual note repair; failures preserve the song.</p>
+<h3>Phase 10 Add educational mode</h3>
+<p><strong>Goal:</strong> teach from the pattern actually on screen.</p>
+<p><strong>Tasks:</strong> implement metrical analysis, ghost/fill tagging, slice-reuse summaries, contextual wording, and compare-without-hit audition.</p>
+<p><strong>Expected output:</strong> hit inspector and Explain this beat. <strong>Dependencies:</strong> Phases 5 and 8 plus preview. <strong>Main risks:</strong> stale provenance or misleading syncopation language. <strong>Exit:</strong> explanations remain accurate after manual edits and mutation.</p>
+<h3>Phase 11 Add audio preview</h3>
+<p><strong>Goal:</strong> make generation and learning immediately audible.</p>
+<p><strong>Tasks:</strong> finish audio-clock scheduling, loop boundaries, mute/solo, sample audition, stop/cancel behavior, gain staging, source-rate handling and playback-state UI. Build a minimal audition harness much earlier for Phases 3 and 4.</p>
+<p><strong>Expected output:</strong> stable browser preview and documented host parity limits. <strong>Dependencies:</strong> Phase 2 timing and Phase 7 sources. <strong>Main risks:</strong> jitter, clipping, suspended audio, different sampler tails. <strong>Exit:</strong> long-loop and CPU-load checks pass and supported-kit timing agrees with Renoise fixtures.</p>
+<h3>Phase 12 Testing and refinement</h3>
+<p><strong>Goal:</strong> release the smallest trustworthy product.</p>
+<p><strong>Tasks:</strong> run property, fixture, integration, accessibility, persistence and audio tests; observe first-session users; refine profiles; package samples, docs and importer; record support boundaries.</p>
+<p><strong>Expected output:</strong> release candidate, regression library, onboarding and known limitations. <strong>Dependencies:</strong> all MVP paths. <strong>Main risks:</strong> broad scope, undocumented import edge cases, musical quality judged only by the implementer. <strong>Exit:</strong> section 21 acceptance criteria pass and unsupported features remain out of the advertised scope.</p>
+<h2 id="21-testing-strategy">21 Testing strategy</h2>
+<h3>Engine and timing</h3>
+<p>Run property tests across many seeds and settings: events remain in bounds; locked events and protected empty positions remain unchanged; generation is deterministic; budgets and source references are valid; normalization never loses simultaneous notes. Test each operator&#39;s invariant rather than snapshotting every possible output.</p>
+<p>Verify conversion at row boundaries, delay FF, early notes, end-of-pattern carry, multiple LPBs, and compound meters when introduced. At 165 BPM and LPB 4, one row is about 90.909 ms; one delay unit is about 0.355 ms. A nearest-unit conversion should differ by at most half a unit away from explicitly clamped boundaries. Test mathematical timing separately from audible device latency.</p>
+<h3>Renoise integration</h3>
+<p>Keep accepted fixture songs and source samples. Import and read back every written field, including note, instrument, volume, pan, delay and effects. Test first and last rows, offsets into existing patterns, missing instruments, wrong slice maps, column exhaustion, aliasing, pre-existing groove, and a destination that changes while the transfer dialog is open. Revalidate immediately before Apply.</p>
+<p>Test malformed, oversized and newer-schema payloads. Simulate a mid-import failure and verify restore behavior. A single Undo should restore the documented affected state; if the host cannot guarantee grouping, provide and test a tool Restore Last Import action before release. No manual clipboard inspection result substitutes for testing the advertised transfer workflow.</p>
+<h3>Audio and musical quality</h3>
+<p>Use fixed fixtures and the same original samples to compare browser onsets with Renoise playback. A licensed host build is needed for automated render-based comparisons where demo rendering is restricted. <a href="https://www.renoise.com/download">Renoise demo restrictions</a></p>
+<p>Evaluate perceived groove, genre fit, fill resolution, repetition, and mutation identity in blinded listening sessions with producers. Compare profiles at matched BPM to expose cosmetic genre changes. Include low, medium and high complexity plus sparse patterns; density alone must not drive perceived quality.</p>
+<p>Suggested release targets: 100% locked-event preservation; no silent event loss in compiler fixtures; zero song modifications on failed preflight; generation p95 below 100 ms for the MVP&#39;s largest supported phrase on the agreed test machine; no missing or duplicated scheduled hits over 100 loop cycles under the documented load. These are product acceptance targets, not measured results.</p>
+<h3>UX and durability</h3>
+<p>Run keyboard-only and screen-reader checks on navigation, selection and explanations. Test role recognition without color, zoom to 200%, and narrow windows. Watch users map a sample, distinguish row count from bars, and complete a transfer without assistance. Check Undo after every mutation type and confirm redo branches are cleared after a new edit.</p>
+<p>Test autosave, reload, schema migration, missing audio, storage quota, backup/restore and stale worker responses. An exported backup must restore names, events, locks, seed, mapping references and settings. Test clipboard denial as a normal supported case with a visible file fallback.</p>
+<h2 id="22-example-generated-pattern">22 Example generated pattern</h2>
+<h3>Two bar Jungle study</h3>
+<p>Illustrative target: <strong>165 BPM, 4/4, LPB 4, TPL 12, 32 rows, 1/16 row spacing</strong>. This is a designed fixture for the proposed generator, not a claim of an executed generator run. Row numbers below are decimal; instrument, volume, pan and delay fields are hexadecimal.</p>
+<p>Mapping contract: instrument <code>00</code> has kick at <code>C-4</code>; <code>01</code> has snare at <code>C-4</code>; <code>02</code> has closed hat at <code>C-4</code>. Instrument <code>03</code> is an explicitly prepared break kit with slice A kick at <code>C-4</code>, B hat texture at <code>C#4</code>, C snare at <code>D-4</code>, and D percussion at <code>D#4</code>. These mappings are examples to create and verify, not assumptions about Renoise&#39;s automatic slice-note layout.</p>
+<p>One-shot lanes use a fixed note and instrument. In the table K, S and H cells show volume only; <code>--</code> means no new note. The break lane shows note and volume. All triggered notes use pan <code>40</code>; delay is <code>00</code> except where listed. The compiler expands these compact columns into full native note columns. The table itself is explanatory and is not a native clipboard payload.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Row</th>
+<th>Bar and beat</th>
+<th>K 00</th>
+<th>S 01</th>
+<th>H 02</th>
+<th>Break 03</th>
+<th>Delay or FX</th>
+<th>Annotation</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>00</td>
+<td>1 · 1</td>
+<td>70</td>
+<td>--</td>
+<td>40</td>
+<td>--</td>
+<td>--</td>
+<td>Kick anchor and hat</td>
+</tr>
+<tr>
+<td>01</td>
+<td>1 · 1 e</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>No new trigger</td>
+</tr>
+<tr>
+<td>02</td>
+<td>1 · 1 &amp;</td>
+<td>--</td>
+<td>--</td>
+<td>30</td>
+<td>--</td>
+<td>--</td>
+<td>Quieter hat</td>
+</tr>
+<tr>
+<td>03</td>
+<td>1 · 1 a</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>D#4 28</td>
+<td>--</td>
+<td>Percussion slice pickup</td>
+</tr>
+<tr>
+<td>04</td>
+<td>1 · 2</td>
+<td>--</td>
+<td>70</td>
+<td>40</td>
+<td>--</td>
+<td>--</td>
+<td>Main backbeat</td>
+</tr>
+<tr>
+<td>05</td>
+<td>1 · 2 e</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>No new trigger</td>
+</tr>
+<tr>
+<td>06</td>
+<td>1 · 2 &amp;</td>
+<td>--</td>
+<td>--</td>
+<td>30</td>
+<td>--</td>
+<td>H delay 10</td>
+<td>Hat about 5.68 ms late</td>
+</tr>
+<tr>
+<td>07</td>
+<td>1 · 2 a</td>
+<td>--</td>
+<td>20</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>Quiet ghost snare</td>
+</tr>
+<tr>
+<td>08</td>
+<td>1 · 3</td>
+<td>64</td>
+<td>--</td>
+<td>40</td>
+<td>--</td>
+<td>--</td>
+<td>Kick reasserts pulse</td>
+</tr>
+<tr>
+<td>09</td>
+<td>1 · 3 e</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>Space for tails</td>
+</tr>
+<tr>
+<td>10</td>
+<td>1 · 3 &amp;</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>C#4 38</td>
+<td>--</td>
+<td>Hat texture slice</td>
+</tr>
+<tr>
+<td>11</td>
+<td>1 · 3 a</td>
+<td>48</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>Kick anticipates beat 4</td>
+</tr>
+<tr>
+<td>12</td>
+<td>1 · 4</td>
+<td>--</td>
+<td>70</td>
+<td>40</td>
+<td>--</td>
+<td>--</td>
+<td>Main backbeat</td>
+</tr>
+<tr>
+<td>13</td>
+<td>1 · 4 e</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>No new trigger</td>
+</tr>
+<tr>
+<td>14</td>
+<td>1 · 4 &amp;</td>
+<td>--</td>
+<td>--</td>
+<td>30</td>
+<td>--</td>
+<td>--</td>
+<td>Hat maintains motion</td>
+</tr>
+<tr>
+<td>15</td>
+<td>1 · 4 a</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>D-4 20</td>
+<td>--</td>
+<td>Ghost snare slice</td>
+</tr>
+<tr>
+<td>16</td>
+<td>2 · 1</td>
+<td>--</td>
+<td>--</td>
+<td>40</td>
+<td>C-4 70</td>
+<td>--</td>
+<td>Kick slice substitutes kick</td>
+</tr>
+<tr>
+<td>17</td>
+<td>2 · 1 e</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>No new trigger</td>
+</tr>
+<tr>
+<td>18</td>
+<td>2 · 1 &amp;</td>
+<td>--</td>
+<td>--</td>
+<td>30</td>
+<td>--</td>
+<td>--</td>
+<td>Hat</td>
+</tr>
+<tr>
+<td>19</td>
+<td>2 · 1 a</td>
+<td>50</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>Kick pickup into backbeat</td>
+</tr>
+<tr>
+<td>20</td>
+<td>2 · 2</td>
+<td>--</td>
+<td>70</td>
+<td>40</td>
+<td>--</td>
+<td>--</td>
+<td>Stable snare anchor</td>
+</tr>
+<tr>
+<td>21</td>
+<td>2 · 2 e</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>Space</td>
+</tr>
+<tr>
+<td>22</td>
+<td>2 · 2 &amp;</td>
+<td>--</td>
+<td>--</td>
+<td>30</td>
+<td>--</td>
+<td>H delay 10</td>
+<td>Repeated late-hat feel</td>
+</tr>
+<tr>
+<td>23</td>
+<td>2 · 2 a</td>
+<td>--</td>
+<td>24</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>Ghost snare response</td>
+</tr>
+<tr>
+<td>24</td>
+<td>2 · 3</td>
+<td>64</td>
+<td>--</td>
+<td>40</td>
+<td>--</td>
+<td>--</td>
+<td>Kick anchor</td>
+</tr>
+<tr>
+<td>25</td>
+<td>2 · 3 e</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>Space</td>
+</tr>
+<tr>
+<td>26</td>
+<td>2 · 3 &amp;</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>C#4 38</td>
+<td>--</td>
+<td>Reuse texture motif</td>
+</tr>
+<tr>
+<td>27</td>
+<td>2 · 3 a</td>
+<td>48</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>Kick anticipation</td>
+</tr>
+<tr>
+<td>28</td>
+<td>2 · 4</td>
+<td>--</td>
+<td>--</td>
+<td>40</td>
+<td>D-4 70</td>
+<td>--</td>
+<td>Snare slice replaces snare</td>
+</tr>
+<tr>
+<td>29</td>
+<td>2 · 4 e</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>Gap before fill</td>
+</tr>
+<tr>
+<td>30</td>
+<td>2 · 4 &amp;</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>D-4 38</td>
+<td>0R06 optional</td>
+<td>Snare fill onset</td>
+</tr>
+<tr>
+<td>31</td>
+<td>2 · 4 a</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>D-4 48</td>
+<td>0R06 optional</td>
+<td>Fill resolves into loop</td>
+</tr>
+</tbody></table></div>
+<h3>Expanded representative rows</h3>
+<pre><code class="language-text">Field order: NOTE INS VOL PAN DLY | TRACK FX
+Row 00 Kick    C-4 00 70 40 00   | ....
+Row 00 Hat     C-4 02 40 40 00   | ....
+Row 06 Hat     C-4 02 30 40 10   | ....
+Row 07 Snare   C-4 01 20 40 00   | ....
+Row 16 Break   C-4 03 70 40 00   | ....
+Row 28 Break   D-4 03 70 40 00   | ....
+Row 30 Break   D-4 03 38 40 00   | 0R06
+Row 31 Break   D-4 03 48 40 00   | 0R06
+</code></pre>
+<p>The optional native variant uses <code>0R06</code> at TPL 12 to request retriggering every six ticks, corresponding to half a row here. Its isolated break track and slice restart behavior must be verified with the target kit. <a href="https://tutorials.renoise.com/wiki/Effect_Commands">Renoise retrigger reference</a></p>
+<p>For the MVP, compile the fill as explicit onsets at rows 30 and 31 with delay <code>00</code>, plus an additional mapped snare onset on each row with delay <code>80</code> in another note column. Configure and verify the demo kit&#39;s shared choke behavior so repeats restart cleanly. These four evenly spaced attacks form the 1/32 burst without depending on tick-based retrigger semantics. Do not export both variants at once.</p>
+<p>This phrase works by repeating a stable snare framework and an identifiable hat pattern, then changing source slices in bar 2. Rows 11 and 27 anticipate the backbeat. Rows 7, 15 and 23 add quieter connective material. Row 28 replaces the main snare with a snare slice rather than doubling it. The final burst is localized, leaving the rest of the phrase readable. Moving row 11 to row 10 makes the kick less anticipatory; raising row 7 to the main-snare volume creates an additional accent and changes the groove.</p>
+<h2 id="23-example-user-workflow">23 Example user workflow</h2>
+<p>Maya opens the app, chooses Jungle, and selects the supplied original break map. She presses the 165 BPM button, chooses two bars, and leaves complexity at 45%. Generate creates a phrase; Play auditions it immediately.</p>
+<p>In Hybrid view she selects row 7. The inspector identifies a ghost snare and offers a comparison without it. She locks the main snare beats and the opening kick, selects the last four rows, and chooses Generate Fill. She tries one mutation, uses Undo, then saves the preferred result as “Jungle study B”.</p>
+<p>For first-time Renoise setup, she installs the companion tool and loads the demo kit. The tool&#39;s mapping profile associates logical drum and slice IDs with the actual instrument slots. She verifies a kick and a snare through audition. Later transfers reuse this mapping unless the song changes.</p>
+<p>She presses Copy for Renoise Tool, switches to Renoise, opens Import Breakbeat Pattern, pastes into its text field, and chooses Apply. The preflight shows 2 bars, 32 rows, LPB 4, four destination lanes, and the mapped instruments. She chooses a new pattern and confirms the timing policy. The tool writes the pattern and reports success after read-back. If text paste is unavailable on her supported configuration, she uses Export .bbpattern and Open File in the same tool.</p>
+<p>She listens in Renoise, edits the sound, and continues arranging. No tracker text needs retyping. If she dislikes the import, the documented Undo or Restore action returns the affected song state.</p>
+<h2 id="recommended-order-for-building-the-mvp">Recommended order for building the MVP</h2>
+<ol>
+<li><strong>Prove one transfer.</strong> Build the Phase 1 Lua file importer and a hand-authored 16-row fixture with one simultaneous hit and one delayed hit. Do not begin with a large frontend.</li>
+<li><strong>Freeze the smallest data contract.</strong> Implement the schema, mapping profile and timing compiler; verify read-back in Renoise.</li>
+<li><strong>Build one deterministic generator.</strong> Start with a two-bar Jungle skeleton and original one-shot kit. Add a minimal audio audition harness now so musical decisions can be heard.</li>
+<li><strong>Add two contrasting profiles.</strong> DnB Roller and Hip-Hop Swing validate that the engine supports different structures rather than tempo labels.</li>
+<li><strong>Build the shared editor.</strong> Implement Hybrid first, then derive Beginner and Renoise views from the same events; include the command/history foundation.</li>
+<li><strong>Add the controls.</strong> BPM, bars, resolution, complexity and progressive advanced settings should drive tested engine parameters.</li>
+<li><strong>Add mapped break slices and constrained mutation.</strong> Prove source identity, choking, locks and phrase continuity before adding dramatic effects.</li>
+<li><strong>Complete the handoff.</strong> Add preflight, mapping persistence, collision handling, undo recovery and tool text paste if it passes. Keep file import always available.</li>
+<li><strong>Finish preview, explanations and persistence.</strong> Use the same realized events for sound, teaching, saving and export; add the local library and backup.</li>
+<li><strong>Validate with producers and release.</strong> Fix transfer errors and musical weaknesses before expanding genres or adding AI. The first finished component should be the reliable Renoise import path, and every later component should keep that path working.</li>
+</ol>
+<footer>Breakbeat Pattern Maker · Product and implementation specification · September 2026</footer></main>
+<script>
+for(const table of document.querySelectorAll('table')){
+ if(table.querySelector('th')?.textContent==='Row') {
+  table.classList.add('tracker');
+  for(const td of table.querySelectorAll('td')) if(td.textContent.trim()==='--')td.classList.add('empty');
+  for(const row of table.querySelectorAll('tbody tr')){
+   const cells=row.cells, note=cells[5].textContent.trim();
+   if(note.startsWith('C-4'))cells[5].classList.add('role-kick');
+   if(note.startsWith('C#4'))cells[5].classList.add('role-hat');
+   if(note.startsWith('D#4'))cells[5].classList.add('role-percussion');
+   if(note.startsWith('D-4'))cells[5].classList.add('role-snare');
+   if(cells[7].textContent.toLowerCase().includes('ghost')){
+    (note==='--'?cells[3]:cells[5]).classList.add('role-ghost');
+   }
+  }
+ }
+}
+const links=[...document.querySelectorAll('nav a')];
+const observer=new IntersectionObserver(entries=>{for(const entry of entries){if(entry.isIntersecting){for(const a of links)a.classList.toggle('active',a.hash==='#'+entry.target.id)}}},{rootMargin:'0px 0px -70% 0px'});
+document.querySelectorAll('h2').forEach(h=>observer.observe(h));
+</script></body></html>

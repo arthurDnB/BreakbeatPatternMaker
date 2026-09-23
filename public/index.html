@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Breakbeat Pattern Maker</title><link rel="stylesheet" href="./public/style.css"><link rel="stylesheet" href="./public/workspace.css"></head>
+<body><main>
+<header class="app-header"><div><p class="eyebrow">BREAKBEAT LAB</p><h1>Pattern Maker</h1></div><section class="project-bar"><button id="project-save">Save project + samples</button><label class="open-project">Open project<input id="project-open" type="file" accept=".bbproject,application/json"></label><button id="project-new">New project</button><span id="save-status" role="status">Local autosave ready</span></section><a href="./README.md" target="_blank">Help ↗</a></header>
+<div class="transport" aria-label="Playback and export"><div class="toolbar-group"><button id="play" disabled>Play pattern</button><span id="transport-state" role="status">Stopped</span></div><div class="toolbar-group"><button id="undo" disabled>Undo</button><button id="redo" disabled>Redo</button><button id="show-sounds">Sounds</button><button id="show-arrangement">Arrangement</button></div><div class="toolbar-group output-group"><button id="export-wav" class="export">Export WAV ↓</button><details id="more-actions"><summary>More ⋯</summary><div class="more-menu"><button id="copy" disabled>Copy pattern JSON</button><button id="export" disabled>Download pattern JSON</button></div></details></div></div>
+
+<!-- Chopper retained for future use; hidden from the single-shot workflow. -->
+<section hidden id="sample-drop" class="sample-panel" aria-label="Sample import and audition">
+<div class="grid-heading"><h2>Break sample</h2><label>Import WAV<input id="sample-file" type="file" accept=".wav,audio/wav"></label></div>
+<p id="sample-meta">No sample loaded</p>
+<p>Drop a WAV here, or choose a file. Up to 50 MB / 2 minutes. Autochop proposes editable slices. Double-click the waveform to add a marker; drag a marker to move it.</p>
+<canvas id="waveform" role="img" aria-label="Imported sample waveform"></canvas>
+<label>Sample position<input id="sample-seek" type="range" min="0" max="1" step=".01" value="0" disabled></label><output id="sample-time">0.00 / 0.00 s</output>
+<div class="actions"><button id="sample-play" disabled>Play sample</button><button id="sample-stop" disabled>Stop sample</button><label class="loop-label"><input id="sample-loop" type="checkbox">Loop</label><span class="spacer"></span><button id="original-groove">Original groove → tracker</button><button id="sample-export" disabled>Export sample WAV</button><button id="sample-remove" disabled>Remove sample</button></div>
+<fieldset id="chop-controls" disabled><legend>Slice editor</legend>
+<div class="chop-options"><label>Mode<select id="chop-mode"><option value="transient">Transient detection</option><option value="grid">Equal grid</option></select></label><label>Sensitivity<input id="chop-sensitivity" type="range" min="0" max="1" step=".05" value="0.5"></label><label>Minimum gap (ms)<input id="chop-gap" type="number" min="10" max="1000" value="80"></label><label>Grid slices<select id="chop-count"><option>4</option><option>8</option><option selected>16</option><option>32</option><option>64</option></select></label></div>
+<div class="actions"><button id="autochop" class="accent">Autochop</button><button id="marker-add">Add marker at playhead</button><button id="marker-delete">Delete selected start marker</button><button id="chop-undo">Undo slices</button><button id="chop-redo">Redo slices</button></div>
+<div id="slice-list" aria-label="Slices"></div>
+<div class="chop-options"><label>Selected slice start (seconds)<input id="marker-time" type="number" min="0" step=".001"></label><button id="marker-apply">Move marker</button><button id="slice-play">Audition slice</button><label>Audition fade (ms)<input id="slice-fade" type="number" min="0" max="10" step=".1" value="1"></label></div>
+<p id="slice-info" aria-live="polite">Import audio to edit slices.</p><small>Boundaries are non-destructive. Click a slice to select it, then Audition slice. First/last boundaries stay fixed. Markers are session-only. Use Original groove to reconstruct this audio in the tracker.</small>
+</fieldset>
+<p id="sample-status" role="status">Import a mono or stereo WAV. Audio stays on this device. Samples are session-only; refreshing clears them.</p>
+</section>
+
+
+<section id="controls" aria-label="Generation controls">
+<div class="primary">
+<label>Genre<select id="genre"></select><small id="genre-description"></small></label>
+<div class="tempo-control"><label for="bpm-slider">BPM</label><input id="bpm-slider" aria-label="BPM slider" type="range" min="32" max="300" step=".1" value="165"><input aria-label="Exact BPM" id="bpm" type="number" min="32" max="999" step=".1" value="165"><span id="presets" class="presets"></span></div>
+<label>Complexity <output id="complexity-value" for="complexity">45%</output><input id="complexity" type="range" min="0" max="1" step=".01" value=".45"><small>Simple to detailed</small></label>
+
+<label>Bars<select id="bars"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label>
+
+
+</div>
+<details id="advanced-generation"><summary>Advanced generation</summary><div class="advanced"><label>Break<select id="breakStyle"><option value="genre">Genre default</option></select><small id="break-description">Use the selected genre’s rhythm.</small><small>Rhythm presets · synthesized kit, not original recordings</small></label><label>Resolution<select id="resolution"><option value="8">1/8</option><option value="16" selected>1/16</option><option value="32">1/32</option><option value="64">1/64</option></select></label><label>Seed<input id="seed" value="break-042" maxlength="80"></label>
+
+<label>Syncopation<input id="syncopation" type="number" min="0" max="1" step=".05" value=".4"></label>
+<label>Swing ratio<input id="swing" type="number" min=".5" max=".67" step=".01" value=".50"><small>.50 = straight; .60 = swung 16ths</small></label>
+<label>Humanize (ms)<input id="humanizeMs" type="number" min="0" max="10" step=".5" value="0"></label>
+<label>Ghost amount<input id="ghostAmount" type="number" min="0" max="1" step=".05" value=".35"></label>
+<label>Fill amount<input id="fillAmount" type="number" min="0" max="1" step=".05" value=".4"></label>
+</div></details>
+<div class="generation-toolbar"><button id="generate" class="accent">Generate</button><button id="regenerate">Variation</button><button id="restore-defaults" title="Reset all generation controls to the selected genre’s defaults">Restore defaults</button><p id="generation-summary" class="generation-summary"></p></div>
+</section>
+
+<p id="status" role="status" aria-live="polite"></p>
+<div class="studio-layout"><div class="pattern-column"><section class="pattern-bank" aria-label="Pattern bank and arrangement">
+<div class="grid-heading"><h2>Pattern bank</h2><span id="bank-status" role="status"></span></div>
+
+<div id="bank-slots" class="bank-slots"></div>
+</section><section class="workspace"><div class="grid-heading"><h2 id="summary">Pattern</h2><label>View <select id="view"><option value="hybrid">Hybrid</option><option value="beginner">Beginner</option><option value="renoise">Tracker</option></select></label></div>
+<p class="legend"><span class="kick">■ Kick</span><span class="snare">◆ Snare</span><span class="hat">│ Hat</span><span class="ghost">◇ Ghost</span><span class="percussion">▲ Percussion</span></p>
+<div class="editor-tools" aria-label="Pattern editing">
+<details id="row-selection"><summary>Select rows…</summary><div class="selection-tools"><label>From row<input id="row-start" type="number" min="0" value="0"></label><label>To row<input id="row-end" type="number" min="0" value="31"></label><button id="select-range">Select rows</button></div></details>
+<div class="lane-locks" aria-label="Drum lane locks"><span>Lock lanes</span><label><input id="lock-kick" type="checkbox">Kick</label><label><input id="lock-snare" type="checkbox">Snare</label><label><input id="lock-hat" type="checkbox">Hat</label><label><input id="lock-percussion" type="checkbox">Percussion</label></div>
+<div class="edit-actions"><button id="select-ending">Select last beat</button><button id="clear-selection">Clear selection</button><button id="lock-selected" disabled>Lock selected hits</button><button id="mutate">Mutate pattern</button><button id="fill" disabled>Generate Fill</button><span class="spacer"></span></div>
+<p id="selection-status" aria-live="polite"></p><p class="selection-help">Click a hit to select it. Ctrl/Cmd-click adds hits. Click a row number, then Shift-click another to select a range. Main anchors stay in place.</p>
+</div>
+
+<div id="grid" tabindex="0" aria-label="Pattern rows, scrollable"></div></section><details id="arranger"><summary>Song arrangement</summary>
+<p>Patterns play in order at the active pattern's BPM. Repeats use whole patterns; tails continue across boundaries. Maximum 170 seconds.</p>
+<div id="sequence"></div><div class="actions"><select id="append-slot" aria-label="Pattern to append"></select><button id="append-step">Add pattern</button><button id="play-arrangement">Play arrangement</button><button id="export-arrangement">Export arrangement WAV</button></div><p id="arrangement-info"></p>
+</details></div><aside class="context-panel" aria-label="Context inspector"><div class="inspector-heading"><h2>Inspector</h2><button id="back-to-pattern">Back to pattern</button><span id="inspector-context">Select a hit</span></div><details id="hit-editor"><summary>Hit editor</summary><fieldset class="tracker-edit"><legend>Selected hit / note entry</legend>
+<p>Click a hit to edit it, or an empty cell to enter a note. The selected lane instrument supplies its sound.</p>
+<div class="chop-options"><label>Row<input id="edit-row" type="number" min="0" value="0"></label><label>Lane<select id="edit-lane"><option value="kick">Kick</option><option value="snare">Snare</option><option value="hat">Hat</option><option value="percussion">Percussion</option></select></label><label>Sound<select id="edit-sound"><option value="keep">Keep selected hit sound</option><option value="demo">Lane instrument (uploaded hit or synth)</option></select></label><label>Hit pitch <output id="edit-pitch-value" for="edit-pitch-slider">0 st</output><input id="edit-pitch-slider" aria-label="Selected hit pitch" type="range" min="-48" max="48" step="1" value="0"><input id="edit-pitch" aria-label="Exact hit pitch in semitones" type="number" min="-48" max="48" step="1" value="0"><small>Drag to edit · release to save · Esc cancels</small></label></div>
+<div class="chop-options"><label>Volume (0–128)<input id="edit-volume" type="number" min="0" max="128" value="100"></label><label>Pan (0–128)<input id="edit-pan" type="number" min="0" max="128" value="64"></label><label>Delay (0–255)<input id="edit-delay" type="number" min="0" max="255" value="0"></label><label>Entry step (rows)<input id="edit-step" type="number" min="0" max="16" value="1"></label></div>
+<details id="hit-articulation"><summary>Hit articulation · ratchets &amp; gate</summary>
+<div class="chop-options"><label>Ratchets per row<select id="edit-ratchets"><option value="1">1 · Single hit</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></label><label>Gate length<select id="edit-gate"><option value="0">Full sample</option><option value="1">100% of repeat interval</option><option value="0.75">75%</option><option value="0.5">50%</option><option value="0.25">25%</option><option value="0.1">10%</option><option value="0.05">5%</option></select></label></div>
+<p>Ratchets divide one tracker row into equal repeats. Gate shortens each attack; 50% leaves half its interval silent. Ratchets retrigger the sample and stop each attack at the next repeat. Effects can ring beyond the gate.</p></details>
+<label id="hit-drafts-label" hidden>Pending edits in this session<select id="hit-drafts"><option value="">Go to a pending hit…</option></select></label><p id="hit-draft-status" role="status"></p><div class="actions"><button id="hit-revert" disabled>Revert changes</button><button id="hit-unlock" hidden>Unlock hit</button><button id="hit-preview" disabled>Preview selected hit</button><button id="hit-insert">Insert hit</button><button id="hit-apply">Apply to selected hit</button><button id="hit-delete">Delete selected hits</button><label class="loop-label"><input id="edit-reverse" type="checkbox">Reverse hit</label><label class="loop-label"><input id="keyboard-entry" type="checkbox">Keyboard entry</label></div>
+<p id="edit-target">Choose a grid cell or hit.</p><small>Focus the grid. Arrow keys move the cursor. Z S X D C V G B H N J M enter C–B, at the pitch offset above. Delete removes selected hits. Space plays/stops. Keyboard entry must be enabled to write notes. Explicit edits can change anchors; locks are always respected.</small>
+</fieldset></details><p id="inspector-hint">Select a hit to edit it, or an empty cell to insert one. Typed edits use Apply. Preview includes pending values. Pitch slider gestures save on release.</p><details id="sounds-panel"><summary>Instruments &amp; effects <small>Shared across patterns</small></summary><section class="sample-panel" aria-label="Single-hit drum kit"><p>One shared kit for every pattern. Generate notes affects your next generation; Mute audio silences existing notes in playback and export. Preview always lets you hear the instrument.</p><div id="drum-slots"></div><small>32 CC0 library sounds: acoustic drums and TR-808 recordings. <a href="./public/samples/credits.html" target="_blank">Sources & licenses</a>. Classic-break names below describe rhythm presets, not bundled recordings.</small></section></details><details id="learn-panel"><summary>Learn this beat</summary><section class="inspector"><h2>Listen closer</h2><p id="explanation">Select any hit for its role, tracker fields, and reason for being there.</p></section></details></aside></div>
+
+<footer>Single-shot tracker · Audio stays local. Save project includes your samples and settings; autosave restores your latest workspace on this browser. WAV includes tails; muted lanes are excluded. Pitch repitches the sound. MP3 export remains planned.</footer>
+</main><script type="module" src="./dist/web.js"></script></body></html>
