@@ -57,6 +57,23 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-24] - EDM Production Integration: Drill 3-3-2 Hats, Reggae Triad, Drumfunk Linear & Garage Choking (Antigravity)
+- **UK Drill 3-3-2 Tresillo Hats & Counter-Snares (`src/core/groove.ts`):**
+  - Enforced sacred 3-3-2 syncopated space for Drill hi-hats (`[0, 3, 6, 8, 11, 14]`), preventing indiscriminate 16th-note subdivision filling from flattening the groove.
+  - Added authentic 1/32 rolling bursts immediately preceding the beat-3 snare and crisp syncopated counter-snares/rimshots on steps 14/15.
+- **Dub & Reggae Triad Architecture (`src/core/groove-profiles.ts`):**
+  - Expanded Dub kick motifs to incorporate authentic *One Drop* (silent on beat 1, kick on beat 3), *Rockers* (kicks on beats 1 and 3), and *Steppers* (militant four-on-the-floor) rhythmic modes across variations.
+- **Linear Funk Drumming for Drumfunk (`src/core/groove.ts`):**
+  - Implemented an acoustic linear drumming filter: suppressed simultaneous kick and ghost snare strikes on the same tick, mirroring live funk drummers and Paradox-style choppage.
+- **UK Garage Upbeat Choking & Open Hats (`src/core/groove.ts`):**
+  - Configured authentic 909-style open hi-hat decay (0.92–1.0) on upbeat 8ths (`steps 2, 6, 10, 14`) paired with tight choked 16th taps (0.24–0.34 decay) on following subdivisions.
+- **Breakcore & IDM Pitch Glitches (`src/core/groove.ts`):**
+  - Extended Spicy pitch excursion range up to $\pm 12$ semitones (1 full octave) for Breakcore, Atmospheric Breakcore, and IDM.
+- **Verification & Deployment (`public/index.html`):**
+  - Bumped version cache buster to `?v=0.2.0-edm-groove`.
+  - 66/66 unit tests passing (`npm.cmd test`).
+  - Site build verified and Playwright smoke tests passing (`npm.cmd run test:site`).
+
 ### [2026-09-24] - A/B Empirical Refinement: Full-Pattern Spicy Rolls & High-Res Complexity Bursts (Antigravity)
 - **A/B Benchmark & Slider Sensitivity (`src/core/groove.ts`, `scratch/ab-test.mjs`):**
   - Conducted empirical A/B benchmark comparing Legacy Engine 1 vs Groove Engine 2 across all genres.

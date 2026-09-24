@@ -17,7 +17,7 @@ const families:Record<Family,Omit<GrooveRule,'family'|'response'>>={
 };
 function rule(family:Family,response:number[],extra:Partial<GrooveRule>={}):GrooveRule{return {...families[family],family,response,...extra};}
 export const GROOVES:Record<Genre,GrooveRule>={
- jungle:rule('Jungle & DnB',[3,11,15],{kicks:[[0,8,11],[0,6,10],[0,7,11],[0,3,8,10],[0,6,11,14],[0,10,14],[0,3,7,10]]}),
+ jungle:rule('Jungle & DnB',[3,11,15],{kicks:[[0,8,11],[0,6,10],[0,7,11],[0,3,8,10],[0,6,11,14],[0,10,14],[0,3,7,10],[0,6,8,11],[0,4,10],[0,8,10,14]]}),
  dnb:rule('Jungle & DnB',[7,14],{detail:.45,maxBursts:2,reverse:.12,kicks:[[0,10],[0,6,10],[0,8,11],[0,7,10],[0,3,10],[0,10,14]]}),
  hiphop:rule('Hip-Hop & Downtempo',[7,14],{kicks:[[0,6],[0,10],[0,7],[0,3,10],[0,6,14],[0,8,10]]}),
  trap:rule('Hip-Hop & Downtempo',[3,11,14],{fillStyle:'hats',lateSnareMs:0,detail:.6,maxRatchet:6,hatSwing:1,pitch:4,kicks:[[0,6,11],[0,3,14],[0,8,11],[0,3,7,14],[0,6,10,14]]}),
@@ -44,13 +44,13 @@ export const GROOVES:Record<Genre,GrooveRule>={
  garage:rule('Garage',[7,15],{kicks:[[0,4,8,12],[0,4,8,12,15],[0,3,4,8,12],[0,4,7,8,12],[0,4,8,11,12]]}),
  speedgarage:rule('Garage',[3,11,15],{detail:.55,fillStyle:'rave',lateSnareMs:0,kicks:[[0,4,8,12],[0,4,8,11,12],[0,4,7,8,12],[0,3,4,8,12],[0,4,8,12,15]]}),
  twostepgarage:rule('Garage',[3,7,14],{detail:.6,kicks:[[0,6,10],[0,7,14],[0,3,10],[0,7,11,14],[0,3,6,11],[0,4,7,10]]}),
- dub:rule('Dub & Bass',[14],{detail:.25,lateSnareMs:4,maxBursts:1,reverse:.1,kickExtras:[6,14],kicks:[[8],[8,14],[8,11],[8,13],[5,8,14],[8,15]]}),
+ dub:rule('Dub & Bass',[14],{detail:.25,lateSnareMs:4,maxBursts:1,reverse:.1,kickExtras:[6,14],kicks:[[8],[8,14],[8,11],[8,13],[5,8,14],[8,15],[0,8],[0,4,8,12]]}),
  psydub:rule('Dub & Bass',[5,11,14],{fillStyle:'broken',detail:.55,maxRatchet:4,pitch:3,kicks:[[0,7,10],[0,6,14],[0,3,8,11],[0,5,11,14],[0,7,11,15]]}),
  dubstep:rule('Dub & Bass',[3,11],{detail:.35,ghostLevel:.2,kicks:[[0,6],[0,3,11],[0,7,14],[0,5,10],[0,6,14],[0,3,8]]}),
  brostep:rule('Dub & Bass',[3,6,15],{fillStyle:'rave',lateSnareMs:0,detail:.6,maxBursts:3,maxRatchet:6,kicks:[[0,3,6],[0,6,14],[0,3,10],[0,5,11],[0,6,13]]}),
  postdubstep:rule('Dub & Bass',[5,9,15],{fillStyle:'garage',detail:.45,lateSnareMs:6,hatSwing:1,kicks:[[0,5,11],[0,7,14],[0,3,10],[0,6,11],[0,7,13]]}),
  drumfunk:rule('Jungle & DnB',[3,9,11,15],{fillStyle:'funk',detail:.75,ghostLevel:.32,lateSnareMs:2,maxBursts:3,kicks:[[0,3,9,10],[0,6,8,14],[0,7,11,14],[0,2,8,10],[0,3,7,11,15]]}),
- amenscience:rule('Jungle & DnB',[3,7,9,15],{detail:.75,maxBursts:4,maxRatchet:8,reverse:.3,pitch:4,kicks:[[0,6,10,15],[0,7,10,13],[0,3,8,11],[0,6,9,14],[0,3,6,10,14]]}),
+ amenscience:rule('Jungle & DnB',[3,7,9,15],{detail:.75,maxBursts:4,maxRatchet:8,reverse:.3,pitch:4,kicks:[[0,6,10,15],[0,7,10,13],[0,3,8,11],[0,6,9,14],[0,3,6,10,14],[0,6,8,11],[0,8,11,14]]}),
  atmosphericbreakcore:rule('Experimental',[7,11,15],{detail:.45,maxBursts:3,ghostLevel:.22,pitch:4,lateSnareMs:2,kicks:[[0,10],[0,7,11],[0,6,10],[0,8,14],[0,3,10]]}),
  triphop:rule('Hip-Hop & Downtempo',[3,11],{fillStyle:'dub',detail:.3,lateSnareMs:8,kicks:[[0,7,8],[0,6,11],[0,3,10],[0,8,10],[0,5,11,14]]}),
  halftimednb:rule('Jungle & DnB',[5,11,14],{fillStyle:'dub',detail:.45,maxBursts:2,ghostLevel:.22,kicks:[[0,5,11],[0,7,14],[0,3,10],[0,6,11],[0,5,10,14]]}),

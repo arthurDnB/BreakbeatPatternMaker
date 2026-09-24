@@ -90,6 +90,7 @@ export function generateGroove(settings:Settings):Pattern{
    if(chance(s,'answer-enabled:'+bar)<Math.min(0.9, s.syncopation*1.35))add('kick',origin+answer*240,.64,false,false,'This response-bar kick answers the original motif.');
   }
   for(let step=0;step<16;step++){
+   if(s.genre==='drill')continue; // Drill preserves sacred 3-3-2 space
    if(!hats.includes(step)&&chance(s,'hat:'+bar+':'+step)<s.complexity*Math.max(0.35, rule.detail*1.4))
     add('hat',origin+step*240,.22+(step%4===2?.08:0),false,false,'A quiet subdivision adds detail between the main hat accents.');
   }
@@ -98,6 +99,7 @@ export function generateGroove(settings:Settings):Pattern{
     add('kick',origin+step*240,.54,false,false,'A quiet syncopated pickup supports the recurring kick motif.');
   }
   for(const step of profile.ghosts){
+   if(s.genre==='drumfunk'&&hits.has('kick-'+(origin+step*240)))continue; // Linear funk drumming: kick and ghost snare do not clash on the same tick
    const ghostThreshold=Math.max(s.ghostAmount, s.complexity*0.45);
    if(chance(s,'ghost:'+bar+':'+step)<ghostThreshold){
     const roll=chance(s,'ghost-tier:'+bar+':'+step);
@@ -110,12 +112,21 @@ export function generateGroove(settings:Settings):Pattern{
    if(chance(s,'perc:'+bar+':'+step)<s.complexity*(response?.95:.6))
     add('percussion',origin+step*240,.3+(response?.08:0),false,false,'Percussion answers the main drums, with stronger responses in alternating bars.');
   }
+  if(s.genre==='drill'&&chance(s,'drill-counter:'+bar)<(0.4+s.syncopation*0.5)){
+   const counterStep=chance(s,'drill-counter-step:'+bar)>.4?14:15;
+   add('percussion',origin+counterStep*240,.68,false,false,'A crisp UK drill counter-snare/rimshot responds to the main backbeat.');
+  }
   if(s.resolution>=32&&s.complexity>.45){
    const spacing=s.resolution===64&&s.complexity>.75?60:120;
    const rollStart=origin+(s.genre==='breakcore'||s.genre==='drill'||s.genre==='trap'?2880:3360);
    for(let tick=rollStart;tick<origin+BAR;tick+=spacing){
     if(tick%240!==0&&chance(s,'hi-res-roll:'+bar+':'+tick)<s.complexity*.85){
      add('hat',tick,.28,false,false,spacing===60?'A 1/64 micro-roll adds fast detail.':'A 1/32 rolling burst adds phrase detail.');
+    }
+   }
+   if(s.genre==='drill'&&chance(s,'drill-roll:'+bar)<s.complexity*.75){
+    for(let tick=origin+1680;tick<origin+1920;tick+=120){
+     add('hat',tick,.26,false,false,'A 1/32 UK drill rolling burst builds tension into the beat 3 snare.');
     }
    }
   }
@@ -129,7 +140,11 @@ export function generateGroove(settings:Settings):Pattern{
   grooveTiming(hit,s);
   if(hit.role==='hat'){
    const step=Math.floor(hit.baseTick/240)%16;
-   if(step%4===0||(profile.hats===4&&step%2===0)){
+   if(rule.family==='Garage'&&step%4===2){
+    hit.decay=.92+.08*chance(s,'hat-decay:'+hit.id);
+   }else if(rule.family==='Garage'&&step%4===3){
+    hit.decay=.24+.1*chance(s,'hat-decay:'+hit.id);
+   }else if(step%4===0||(profile.hats===4&&step%2===0)){
     hit.decay=.85+.15*chance(s,'hat-decay:'+hit.id);
    }else if(step%2===1){
     hit.decay=.26+.18*chance(s,'hat-decay:'+hit.id);
@@ -160,7 +175,7 @@ export function generateGroove(settings:Settings):Pattern{
   hit.gate=(s.spicy??0)>.6?(chance(s,'gate:'+hit.id)>.5?.5:.75):(rule.family==='Experimental'?.55:.8);
   hit.reason+=' A bounded ×'+hit.ratchets+' burst marks the phrase response.';
   if(chance(s,'reverse:'+hit.id)<Math.max(rule.reverse,0.15)*(s.spicy??0)){hit.reverse=true;hit.reason+=' This ornament plays in reverse.';}
-  const pitchRange=Math.max(rule.pitch,3);
+  const pitchRange=(s.genre==='breakcore'||s.genre==='atmosphericbreakcore'||s.genre==='idm')&&(s.spicy??0)>.5?12:Math.max(rule.pitch,3);
   if(rule.pitch>0&&hit.role!=='snare')hit.pitch=Math.round((chance(s,'pitch:'+hit.id)*2-1)*pitchRange);
  }
  if((s.spicy??0)>0.25){
@@ -187,7 +202,7 @@ export function generateGroove(settings:Settings):Pattern{
     hit.reason+=' (Spicy reverse ornament)';
    }
    if((hit.role==='hat'||hit.role==='percussion'||hit.ghost)&&chance(s,'pitch-roll:'+hit.id)<(s.spicy??0)*0.5&&hit.role!=='snare'){
-    const pitchRange=Math.max(rule.pitch,3);
+    const pitchRange=(s.genre==='breakcore'||s.genre==='atmosphericbreakcore'||s.genre==='idm')&&(s.spicy??0)>.5?12:Math.max(rule.pitch,3);
     const shift=Math.floor(chance(s,'pitch-val:'+hit.id)*(pitchRange*2+1))-pitchRange;
     if(shift!==0){
      hit.pitch=shift;
