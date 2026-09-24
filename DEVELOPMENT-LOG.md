@@ -57,6 +57,24 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-24] - Compact Beat Generator Console Rack & Tracker Follow Playhead (Antigravity)
+* **Rationale & Problem Addressed:**
+  - In `media_1790258630858.png`, opening the bottom rack / advanced generator caused inputs, helper labels, and multi-line descriptions to balloon the tray to >450px, completely devouring center stage and hiding all tracker table rows.
+  - In addition, users requested an explicit playhead follow toggle button on the tracker to keep the active row visible during pattern and song playback.
+* **UI/UX & CSS Architecture Changes:**
+  - **Compact `.primary` Console:** Reduced input and select heights to 22px with 11px font; hid verbose multi-line `<small>` descriptions; arranged `Genre`, `Drum Kit`, `Bars`, `BPM`, `Complexity`, `Spicy` into a tight hardware-style console strip.
+  - **Dense 9-Column Advanced Generation Grid:** Replaced 3 large rows of 45px inputs with a single sleek 9-column grid for `Break`, `Resolution`, `Engine`, `Seed`, `Syncopation`, `Swing`, `Humanize`, `Ghost`, and `Fill` with 20px input height and responsive breakpoints.
+  - **Tracker Viewport Protection:** Enforced `min-height: 240px` on `.studio-layout` and `min-height: 180px` on `.workspace #grid`, while capping `.daw-tray-bottom .tray-body` to `max-height: 180px; overflow-y: auto;`.
+  - **`🎯 Follow` Playhead Button:** Added `#tracker-follow-playhead` to `.tracker-quick-actions` with neon cyan active styling, `f` keyboard shortcut, and auto-scroll synchronization during both pattern and song playback.
+* **Files Modified:**
+  - `public/index.html`: Added `#tracker-follow-playhead` button to `.tracker-quick-actions`; added `type="text"` to `#seed`.
+  - `public/workspace.css`: Styled `.tracker-follow-btn`, redesigned `#controls`, `.primary`, `#advanced-generation`, `.advanced`, and `.generation-toolbar`, updated tray and grid layout rules.
+  - `src/web.ts`: Added `followPlayhead` state, `syncFollowPlayhead()`, click and `F` key listeners, and hooked auto-scrolling into `play()` and `playArrangement()`.
+* **Testing & Verification:**
+  - `npm.cmd test`: 66 / 66 tests passing.
+  - `npm.cmd run test:site`: All 233 licensed WAVs, preview/playback, WAV export, project roundtrip, and credits verified across mount prefixes.
+  - `node scripts/layout-browser-smoke.mjs`: Verified viewport layout and tracker visibility across resolutions.
+
 ### [2026-09-24] - Single-Screen Viewport DAW Chassis & Empty Space Elimination (Antigravity)
 * **Single-Screen 100dvh DAW Architecture (`public/workspace.css`):**
   * Locked workstation chassis to `100dvh` on desktop displays ($\ge 650\text{px}$ height and $\ge 801\text{px}$ width) with `overflow: hidden` on body and chassis.

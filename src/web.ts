@@ -31,6 +31,16 @@ let persistenceReady=false,saveTimer:ReturnType<typeof setTimeout>|undefined;
 let saveQueue:Promise<unknown>=Promise.resolve();
 let rowAnchor=0,cursorLane:Role='kick',playToken=0;
 const assets=new Map<string,AudioAsset>();
+let followPlayhead=true;
+
+function syncFollowPlayhead(){
+  const btn=document.getElementById('tracker-follow-playhead');
+  if(btn){
+    btn.classList.toggle('is-active',followPlayhead);
+    btn.setAttribute('aria-pressed',String(followPlayhead));
+    btn.title=`Follow Playhead: ${followPlayhead?'ON':'OFF'} (Auto-scroll during playback / F)`;
+  }
+}
 
 let context:AudioContext|undefined,timer:ReturnType<typeof setInterval>|undefined;
 const playingSources=new Set<AudioBufferSourceNode>();
@@ -349,8 +359,12 @@ async function play(){
   }
   const row=Math.floor((Math.max(0,now-start)%duration)/duration*transfer.timing.lines);
   document.querySelector('.playing-row')?.classList.remove('playing-row');
-  document.querySelector('[data-play-row="'+row+'"]')?.classList.add('playing-row');
+  const rowEl = document.querySelector('[data-play-row="'+row+'"]');
+  rowEl?.classList.add('playing-row');
   updateHudPosition(row);
+  if(followPlayhead && rowEl){
+    revealPlaybackItem(el('grid'), rowEl, el('grid').querySelector('thead')?.getBoundingClientRect().height??0);
+  }
   if(row!==lastMeterRow){
     lastMeterRow=row;
     const hasSolo=ROLES.some(r=>kitPanel.mix[r].solo);
@@ -408,7 +422,8 @@ el('append-step').onclick=()=>{stop();if(bank!.sequence.length>=64)return;bank!.
 function revealPlaybackItem(container:HTMLElement, item:Element|null, inset=0){
  if(!item||!container.clientHeight)return;
  const bounds=container.getBoundingClientRect(),target=item.getBoundingClientRect();
- if(target.bottom>bounds.bottom)container.scrollTop+=target.bottom-bounds.bottom;
+ const pad = 24;
+ if(target.bottom>bounds.bottom - pad)container.scrollTop+=target.bottom-(bounds.bottom - pad);
  else if(target.top<bounds.top+inset)container.scrollTop-=bounds.top+inset-target.top;
 }
 async function playArrangement(){
@@ -432,7 +447,7 @@ async function playArrangement(){
    const key=position.step+':'+position.repeat+':'+position.row;
    if(key!==lastPosition){
     lastPosition=key;
-    revealPlaybackItem(el('grid'),document.querySelector('.playing-row'),el('grid').querySelector('thead')?.getBoundingClientRect().height??0);
+    if(followPlayhead) revealPlaybackItem(el('grid'),document.querySelector('.playing-row'),el('grid').querySelector('thead')?.getBoundingClientRect().height??0);
     const tray=document.querySelector<HTMLElement>('#tray-left .tray-body');if(tray)revealPlaybackItem(tray,document.querySelector('.playing-step'));
     el('transport-state').textContent='Song · Step '+(position.step+1)+' / '+bank!.sequence.length;
     el('song-position').textContent='Step '+(position.step+1)+' / '+bank!.sequence.length+' · '+bank!.slots[position.slot]!.name+' · Repeat '+(position.repeat+1)+' / '+bank!.sequence[position.step]!.repeats;
@@ -507,6 +522,7 @@ document.addEventListener('keydown',event=>{
   if((event.target as HTMLElement).closest('input,select,textarea,[contenteditable="true"]'))return;
   if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='z'){event.preventDefault();history(event.shiftKey?'redo':'undo');}
   else if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='y'){event.preventDefault();history('redo');}
+  else if(!event.ctrlKey&&!event.metaKey&&!event.altKey&&event.key.toLowerCase()==='f'){event.preventDefault();followPlayhead=!followPlayhead;syncFollowPlayhead();status(`Follow playhead ${followPlayhead?'enabled':'disabled'}.`);}
 });
 el('regenerate').onclick=()=>{if(pendingCount()){status('Apply or Revert pending hit edits before generating a variation.',true);return;}edit(()=>editor.variation(),'Related variation generated. Seed, core motif, anchors and locks are retained.');syncControls();};
 el('export-wav').onclick=()=>{
@@ -1040,6 +1056,16 @@ function initTrackerLiveBar() {
   if (quickPitchUp) quickPitchUp.onclick = () => shiftPitch(1);
   const quickPitchDown = document.getElementById('quick-pitch-down');
   if (quickPitchDown) quickPitchDown.onclick = () => shiftPitch(-1);
+  const followBtn = document.getElementById('tracker-follow-playhead');
+  if (followBtn) {
+    followBtn.onclick = () => {
+      followPlayhead = !followPlayhead;
+      syncFollowPlayhead();
+      status(`Follow playhead ${followPlayhead ? 'enabled' : 'disabled'}.`);
+      el('grid').focus();
+    };
+    syncFollowPlayhead();
+  }
 
   // Setup tap tempo
   const tapBtn = document.getElementById('hud-bpm-tap');

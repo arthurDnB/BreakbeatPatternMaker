@@ -153,6 +153,7 @@
           <button id="quick-roll-4" title="Set 4 ratchets">×4</button>
           <button id="quick-pitch-up" title="Transpose +1 semitone (+)">+1 st</button>
           <button id="quick-pitch-down" title="Transpose -1 semitone (-)">-1 st</button>
+          <button type="button" id="tracker-follow-playhead" class="tracker-follow-btn is-active" title="Follow Playhead: Auto-scroll tracker rows during playback (F)" aria-pressed="true">🎯 Follow</button>
         </div>
         <div class="tracker-hint-pill" title="Press keys to enter notes directly in the tracker">
           <span class="key-pill">Z–M</span> Notes · <span class="key-pill">1–9</span> Vol · <span class="key-pill">Del</span> Cut · <span class="key-pill">Space</span> Play
@@ -268,7 +269,7 @@
         <label>Spicy 🌶️ <output id="spicy-value" for="spicy">0%</output><input id="spicy" type="range" min="0" max="1" step=".01" value="0"><small>Rolls &amp; chaos</small></label>
       </div>
       <details id="advanced-generation"><summary>Advanced generation</summary><div class="advanced"><label>Break<select id="breakStyle"><option value="genre">Genre default</option></select><small id="break-description">Use the selected genre’s rhythm.</small><small>Rhythm presets · synthesized kit, not original recordings</small></label><label>Resolution<select id="resolution"><option value="8">1/8</option><option value="16" selected>1/16</option><option value="32">1/32</option><option value="64">1/64</option></select></label><label>Engine<select id="algorithm"><option value="groove-v2">Groove v2</option><option value="legacy-v1">Legacy v1 (older seeds)</option></select></label><input id="variation" type="hidden" value="0">
-      <label>Seed<input id="seed" value="break-042" maxlength="80"></label>
+      <label>Seed<input id="seed" type="text" value="break-042" maxlength="80"></label>
 
       <label>Syncopation<input id="syncopation" type="number" min="0" max="1" step=".05" value=".4"></label>
       <label>Swing ratio<input id="swing" type="number" min=".5" max=".67" step=".01" value=".50"><small>.50 = straight; .60 = swung 16ths</small></label>
