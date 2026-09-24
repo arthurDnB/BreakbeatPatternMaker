@@ -10,6 +10,8 @@ export function validateSettings(s: Settings): void {
   if(s.algorithm!==undefined&&!['legacy-v1','groove-v2','groove-v3'].includes(s.algorithm))throw Error('Unsupported generation engine.');
   if(s.algorithm==='legacy-v1'&&Object.hasOwn(NEW_GENRES,s.genre))throw Error('This genre requires Groove v2 or Groove v3.');
   if(s.variation!==undefined)bounded(s.variation,0,1000000,'variation',true);
+  if(s.phraseLength!==undefined&&(![4,8,16].includes(s.phraseLength)||s.algorithm!=='groove-v3'))throw Error('Phrase context requires Groove v3 and 4, 8 or 16 bars.');
+  if(s.phraseOffset!==undefined){if(s.phraseLength===undefined)throw Error('Choose a phrase length before its position.');bounded(s.phraseOffset,0,s.phraseLength-1,'phrase position',true);}
   text(s.seed, 'seed', 80);
   bounded(s.bpm, 32, 999, 'BPM'); bounded(s.bars, 1, 4, 'bars', true);
   if (![8,16,32,64].includes(s.resolution)) throw new Error('Resolution must be 8, 16, 32 or 64.');

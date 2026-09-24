@@ -29,3 +29,11 @@ Collapsed tracker articulation controls provide 1–8 repeats per row and a gate
 - Export target explicitly selects Active pattern or Full song arrangement. Pattern export retains Loop/Tail options; full songs retain continuous effects and final tails.
 - Project schema v2 adds bank.songBpm. Version 1 files/autosaves migrate using their saved active pattern BPM without modifying pattern data, samples or locks.
 - Verification: npm.cmd test; with the dev server running, node scripts/song-browser-smoke.mjs; npm.cmd run test:site.
+
+
+## Implemented: Groove v3 phrase development
+- Genre-specific support phrases and articulation budgets preserve anchor spines; Jungle/Drumfunk include seed-selected displaced backbeat motifs, and Two-step Garage has its own shuffled supporting pulse.
+- Complexity adds call/answer phrases and optional complete Euclidean support layers; Spicy obeys each genre's repeat ceilings and minimum onset spacing, with energy-normalized repeat contours.
+- Optional 4/8/16-bar phrase context plus section starting bar controls cadence placement. Patterns remain 1–4 bars; users generate separate sections into bank slots. Repeated arrangement blocks do not regenerate automatically.
+- V3 generation revision `0.3.0-groove.2`; stored projects keep their written events. Legacy/v2 generation and audio fingerprints remain unchanged. Existing kick choke behavior retained.
+- Research and listening checklist: `docs/GROOVE-V3-RESEARCH.md`.

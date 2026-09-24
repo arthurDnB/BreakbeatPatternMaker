@@ -1,6 +1,7 @@
 import {generate} from './generate.js';
 import {grooveFill,grooveTiming} from './groove.js';
 import {grooveV3Fill,grooveV3Timing} from './groove-v3.js';
+import {V3_RULES} from './groove-v3-profiles.js';
 import {GROOVES} from './groove-profiles.js';
 import {compile} from './compile.js';
 import {random} from './random.js';
@@ -90,7 +91,9 @@ export class Editor {
       let target=hit.baseTick+(rng()<.5?-step:step);
       if(['groove-v2','groove-v3'].includes(next.pattern.settings.algorithm??'')){
         const rule=GROOVES[next.pattern.settings.genre],origin=Math.floor(hit.baseTick/(4*PPQ))*4*PPQ;
-        const choices=(hit.role==='kick'?rule.kickExtras:hit.role==='snare'?rule.response:[1,3,5,7,9,11,13,15]).map(n=>origin+Math.round(n*240/step)*step).filter(t=>t!==hit.baseTick&&Math.abs(t-hit.baseTick)<=step*2);
+        const v3=next.pattern.settings.algorithm==='groove-v3'?V3_RULES[next.pattern.settings.genre]:undefined;
+        const positions=v3?(hit.role==='kick'?v3.pickups:hit.role==='snare'?v3.ghosts:hit.role==='hat'?[...v3.hats,...v3.hatDetails]:v3.percussion):(hit.role==='kick'?rule.kickExtras:hit.role==='snare'?rule.response:[1,3,5,7,9,11,13,15]);
+        const choices=positions.map(n=>origin+(v3?n*240:Math.round(n*240/step)*step)).filter(t=>t!==hit.baseTick&&Math.abs(t-hit.baseTick)<=(v3?480:step*2));
         target=choices.length?choices[Math.floor(rng()*choices.length)]!:hit.baseTick;
       }
       const row=Math.floor(Math.max(0,Math.round((target+hit.offsetTick)/step*256))/256);

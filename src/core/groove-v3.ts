@@ -3,12 +3,14 @@ import {BREAKS} from './breaks.js';
 import {V3_RULES,type V3Rule,type V3Cadence} from './groove-v3-profiles.js';
 import {V3_BAR as BAR,V3_SIXTEENTH as STEP,euclideanSteps,v3Chance,v3LayerEnabled,v3Pick} from './groove-v3-primitives.js';
 
-export const GROOVE_V3_VERSION='0.3.0-groove.1';
+import {developmentFor,phrasePosition,SUPPORT,musicalSpans} from './groove-v3-development.js';
+
+export const GROOVE_V3_VERSION='0.3.0-groove.2';
 const rounded=(n:number)=>Math.round(n*10000)/10000;
 const actual=(h:Hit)=>h.baseTick+h.offsetTick;
 const compare=(a:Hit,b:Hit)=>a.baseTick-b.baseTick||ROLES.indexOf(a.role)-ROLES.indexOf(b.role);
 const enabled=(s:Settings,role:Role)=>!s.enabledRoles||s.enabledRoles.includes(role);
-const isResponse=(s:Settings,bar:number)=>s.bars===1||bar%2===1||bar===s.bars-1;
+const isResponse=(s:Settings,bar:number)=>phrasePosition(s,bar).response;
 
 /** Stage 2: a selective groove map. Anchors are never randomized by variation/depth. */
 export function grooveV3Timing(hit:Hit,s:Settings):void {
@@ -47,12 +49,12 @@ function context(s:Settings):Context {
 function anchors(c:Context):void {
  const {s,rule,add}=c,recipe=s.breakStyle&&s.breakStyle!=='genre'?BREAKS[s.breakStyle]:undefined;
  const motif=v3Pick(recipe?.kicks??rule.kicks,s,'spine','kick',false);
- const snares=recipe?.snares??rule.snares;
+ const snares=recipe?.snares??(rule.snareMotifs?v3Pick(rule.snareMotifs,s,'spine','snare',false):rule.snares);
  for(let bar=0;bar<s.bars;bar++){
   for(const step of motif)add(createHit(s,'kick',bar*BAR+step*STEP,step%4===0?.94:.79,true,false,
    s.genre==='dub'&&!recipe?'The one-drop kick and snare meet on beat 3, leaving beat 1 open.':'This recurring kick belongs to the protected rhythmic spine.'));
   for(const step of snares)add(createHit(s,'snare',bar*BAR+step*STEP,step===8?.94:step===4?.88:.93,true,false,
-   step===8?'The beat-3 backbeat establishes the half-time pulse.':'This protected backbeat gives the surrounding edits a stable reference.'));
+   step===8?'The beat-3 backbeat establishes the half-time pulse.':[10,14].includes(step)?'This seed-selected displaced backbeat is part of the protected break motif, not a random fill.':'This protected backbeat gives the surrounding edits a stable reference.'));
  }
 }
 
@@ -97,14 +99,13 @@ function layers(c:Context):void {
    }
    add(hit);
   }
-  if(rule.euclidean&&s.complexity>=.65){
+  if(rule.euclidean&&v3LayerEnabled(s,'cross-rhythm',String(bar),callSpace?.25:rule.activity,.65)){
    const [pulses,steps,rotation]=rule.euclidean;
    for(const index of euclideanSteps(pulses,steps,rotation)){
-    const key=`${bar}:${index}`,tick=origin+Math.round(index*BAR/steps);
-    if(!v3LayerEnabled(s,'cross-rhythm',key,callSpace?.25:rule.activity,.65))continue;
+    const tick=origin+Math.round(index*BAR/steps);
     // Cross-rhythms are a supporting layer, never a replacement backbeat.
     if([...hits.values()].some(h=>h.anchor&&Math.abs(h.baseTick-tick)<STEP/2))continue;
-    const hit=createHit(s,'percussion',tick,.24,false,false,`${pulses} evenly spaced accents across ${steps} subdivisions create a counter-rhythm that resets at the bar boundary.`);
+    const hit=createHit(s,'percussion',tick,.24,false,false,`Supporting accents from a ${pulses}-in-${steps} Euclidean phrase reset at the bar boundary, leaving space around the anchors.`);
     hit.pan=(index%2?.16:-.16);add(hit);
    }
   }
@@ -112,6 +113,27 @@ function layers(c:Context):void {
   if(response&&s.complexity>=.7&&s.syncopation>.4&&['jungle','breaks','experimental'].includes(rule.family)){
    const step=s.genre==='footworkjungle'?10:11;
    if(v3LayerEnabled(s,'snare-answer',String(bar),rule.activity,.7))add(createHit(s,'snare',origin+step*STEP,.56,false,false,'This supporting snare anticipates the backbeat by a sixteenth; the main backbeat remains in place.'));
+  }
+ }
+}
+
+/** Supporting phrases are coordinated units, not independent random extra notes. */
+function interaction(c:Context):void {
+ const {s,rule,add,hits}=c,dev=developmentFor(s.genre);
+ for(let bar=0;bar<s.bars;bar++){
+  const phase=phrasePosition(s,bar),answer=phase.response;
+  if(!v3LayerEnabled(s,'interaction',String(bar),answer?1:.65,.48))continue;
+  const phrase=SUPPORT[dev.style][answer?1:0]!;
+  for(const [index,note] of phrase.entries()){
+   if(index>1&&s.complexity<.82)continue;
+   if(note.ghost&&(s.ghostAmount===0||v3Chance(s,'interaction-ghost',`${bar}`)>=s.ghostAmount))continue;
+   if(rule.melodicPercussion&&note.role==='percussion')continue;
+   const tick=bar*BAR+note.step*STEP;
+   if([...hits.values()].some(h=>h.anchor&&Math.abs(h.baseTick-tick)<STEP/2))continue;
+   const hit=createHit(s,note.role,tick,note.gain,false,!!note.ghost,
+    `This ${dev.style} ${answer?'answer':'call'} links softer drum accents instead of filling every subdivision.`);
+   if(note.role==='hat')hit.decay=.42;
+   add(hit);
   }
  }
 }
@@ -137,7 +159,7 @@ export function grooveV3Fill(s:Settings,startTick:number,endTick:number):Hit[] {
  const notes=v3Pick(CADENCES[rule.cadence],s,'cadence',`${start}:${end}`),seen=new Set<string>();
  const hits:Hit[]=[];
  for(const [i,note] of notes.entries()){
-  if(!enabled(s,note.role))continue;
+  if(!enabled(s,note.role)||(note.ghost&&s.ghostAmount===0))continue;
   // Low depth leaves a compact two-note turnaround, preserving intentional rest.
   if(i>1&&s.complexity<.4)continue;
   const hit=createHit(s,note.role,origin+Math.round(note.at*span),note.gain,false,!!note.ghost,'This '+rule.cadence+' turnaround answers the phrase and leaves room for the next downbeat.');
@@ -156,54 +178,48 @@ function spice(events:Hit[],s:Settings,rule:V3Rule,end:number,protectedHits:Hit[
  const spicy=s.spicy??0;if(spicy<=0)return;
  const budget=new Map<number,number>();
  const ranked=events.filter(h=>!h.anchor&&h.role!=='kick'&&!(rule.melodicPercussion&&h.role==='percussion'))
-  .sort((a,b)=>v3Chance(s,'gesture-rank',a.id)-v3Chance(s,'gesture-rank',b.id)||compare(a,b));
+  .sort((a,b)=>Number(b.baseTick%BAR>=3*PPQ)-Number(a.baseTick%BAR>=3*PPQ)||v3Chance(s,'gesture-rank',a.id)-v3Chance(s,'gesture-rank',b.id)||compare(a,b));
  for(const hit of ranked){
   const bar=Math.floor(hit.baseTick/BAR),local=hit.baseTick%BAR,onset=actual(hit);
-  const phraseEnding=local>=PPQ*3,halfTimePickup=(s.genre==='trap'||s.genre==='drill')&&local>=PPQ&&local<PPQ*2;
-  const isResp = isResponse(s, bar);
-  
-  let validLocation = false;
-  if (spicy > 0.8) {
-      validLocation = true; // High spicy: allow anywhere
-  } else if (spicy > 0.5) {
-      validLocation = isResp || phraseEnding || halfTimePickup; 
-  } else if (spicy > 0.2) {
-      validLocation = phraseEnding || halfTimePickup;
-  } else {
-      validLocation = isResp && (phraseEnding || halfTimePickup);
-  }
-
-  if(!validLocation||onset<start)continue;
-  
-  // Budget scales from burstBudget at 0 to ~burstBudget*4 at 1.0
-  const maxBudget = rule.burstBudget + Math.floor(spicy * Math.max(2, rule.burstBudget * 3));
+  const dev=developmentFor(s.genre),phase=phrasePosition(s,bar);
+  const phraseEnding=local>=PPQ*3,halfTimePickup=dev.style==='hat-roll'&&local>=PPQ&&local<PPQ*2;
+  // Main hats stay legible; variation is concentrated on answers and pickups.
+  const offbeat=local%PPQ!==0;
+  if(onset<start||(!phraseEnding&&!halfTimePickup&&!(spicy>=.55&&offbeat)))continue;
+  const capacity=phase.ending?dev.ending:phase.response||phase.turnaround?dev.answer:dev.call;
+  const maxBudget=Math.ceil(capacity*spicy);
   if((budget.get(bar)??0)>=maxBudget)continue;
-  
-  if(v3Chance(s,'gesture-enabled',hit.id)>.15+spicy*.85)continue;
-  
+  if(dev.style==='hat-roll'&&hit.role!=='hat')continue;
+  if(['pocket','space','skip'].includes(dev.style)&&hit.role==='snare'&&!hit.ghost)continue;
+  if(v3Chance(s,'gesture-enabled',hit.id)>.2+spicy*.8)continue;
   const nextEvent=Math.min(end,...events.filter(h=>h.id!==hit.id&&h.role===hit.role&&actual(h)>onset).map(actual));
   const nextAnchor=Math.min(end,...protectedHits.filter(h=>h.anchor&&actual(h)>onset).map(actual));
   const available=Math.floor(Math.min(nextEvent,nextAnchor,end)-onset);
-  const wanted=spicy>.65?PPQ/2:PPQ/4;
-  const duration=Math.min(wanted,available);
-  // An ornament needs at least a 1/32-note span; do not generate unresolved click clusters.
-  if(duration<PPQ/8)continue;
-  const choices=(spicy<.3?[2]:spicy<.65?[2,3]:[2,3,4,...(rule.maxRepeats>=6||spicy>0.85?[6]:[])]).filter(x=>x<=rule.maxRepeats || (spicy>0.85 && x<=6));
+  const wanted=phase.ending&&spicy>.65?PPQ/2:PPQ/4;
+  // Keep exact musical subdivisions despite microtiming. Never stretch a tuplet to an arbitrary collision gap.
+  const duration=[...musicalSpans].reverse().find(t=>t<=Math.min(wanted,available));
+  if(duration===undefined)continue;
+  const minGap=hit.role==='hat'?Math.min(18,dev.minGapMs):dev.minGapMs;
+  const choices=(spicy<.3?[2]:spicy<.65?[2,3]:[2,3,4,6,8])
+    .filter(x=>x<=rule.maxRepeats&&duration*60000/s.bpm/PPQ/x>=minGap);
+  if(!choices.length)continue;
   const count=v3Pick(choices,s,'gesture-count',hit.id);
   const rising=v3Chance(s,'gesture-curve',hit.id)>.48;
   const pitched=spicy>.4&&v3Chance(s,'gesture-pitch',hit.id)<spicy*.6;
   const pitch=pitched?v3Pick(rule.pitchSteps,s,'gesture-interval',hit.id):0;
-  const reverse=spicy>.5&&v3Chance(s,'gesture-reverse',hit.id)<Math.max(rule.reverseChance, 0.1)*spicy;
-  const chopped=spicy>.7&&(rule.family==='experimental'||spicy>0.8)&&v3Chance(s,'gesture-chop',hit.id)<(spicy>0.9?.45:.25);
+  const reverse=phase.ending&&spicy>.65&&v3Chance(s,'gesture-reverse',hit.id)<rule.reverseChance*spicy;
+  const chopped=dev.chop&&phase.response&&spicy>.75&&v3Chance(s,'gesture-chop',hit.id)<.35;
   hit.ratchets=count;
   hit.articulation={durationTicks:duration,mode:chopped?'chop':'natural',...(hit.role==='hat'?{chokeGroup:'hat' as const}:{}),
    repeats:Array.from({length:count},(_,i)=>({gain:rounded(rising?.55+.45*i/(count-1):1-.55*i/(count-1)),
-    ...(pitch?{pitch:Math.round(pitch*i/(count-1))}:{}),
+    ...(pitch?{pitch:i%2===0?0:pitch}:{}),
     ...(reverse&&i===0?{reverse:true}:{}),
     ...(chopped?{sourceOffset:rounded(i*.035)}:{}),
     ...(pitched&&pitch!==0&&i===count-1&&spicy>.8?{glide:hit.role==='snare'?-1:-2}:{})}))};
+  const energy=Math.sqrt(hit.articulation.repeats!.reduce((sum,r)=>sum+r.gain*r.gain,0));
+  for(const r of hit.articulation.repeats!)r.gain=rounded(r.gain/Math.max(1,energy));
   if(chopped)hit.gate=.82;
-  hit.reason+=` A ${count===3?'triplet':`×${count}`} ${rising?'rising':'falling'} velocity burst spans ${duration/PPQ} beats and resolves before the next accent.`;
+  hit.reason+=` A ${phase.ending?'phrase-ending':phase.response?'answer':'pickup'} gesture: ${count===3?'triplet':`×${count}`} ${rising?'rising':'falling'} velocity burst spans ${duration/PPQ} beats and resolves before the next accent.`;
   if(reverse)hit.reason+=' Its first repeat is reversed.';
   if(pitch)hit.reason+=' The pitch contour adds a short melodic flutter.';
   budget.set(bar,(budget.get(bar)??0)+1);
@@ -212,20 +228,26 @@ function spice(events:Hit[],s:Settings,rule:V3Rule,end:number,protectedHits:Hit[
 
 function cadence(c:Context):void {
  const {s,rule,add}=c;
- if(s.fillAmount===0||v3Chance(s,'cadence-enabled','phrase')>=s.fillAmount*rule.fillStrength)return;
- const ending=s.bars*BAR;
- for(const hit of grooveV3Fill(s,ending-PPQ,ending)){
-  // Articulation is applied once, after every event is available for collision checks.
-  delete hit.ratchets;delete hit.gate;
-  hit.articulation={durationTicks:PPQ,mode:'natural',...(hit.role==='hat'?{chokeGroup:'hat' as const}:{})};
-  add(hit);
+ for(let bar=0;bar<s.bars;bar++){
+  const phase=phrasePosition(s,bar);
+  if(!phase.ending&&!phase.turnaround)continue;
+  const strength=phase.ending?1:.35;
+  if(s.fillAmount===0||v3Chance(s,'cadence-enabled',String(phase.position))>=s.fillAmount*rule.fillStrength*strength)continue;
+  const ending=(bar+1)*BAR;
+  const notes=grooveV3Fill(s,ending-(phase.ending?PPQ:PPQ/2),ending);
+  for(const hit of phase.ending?notes:notes.slice(0,1)){
+   delete hit.ratchets;delete hit.gate;
+   hit.articulation={durationTicks:PPQ,mode:'natural',...(hit.role==='hat'?{chokeGroup:'hat' as const}:{})};
+   hit.reason+=` Bar ${phase.position+1} of ${phase.length}: ${phase.ending?'phrase resolution':'small turnaround'}.`;
+   add(hit);
+  }
  }
 }
 
 /** V3 leaves old-engine RNG streams, profiles and serialization untouched. */
 export function generateGrooveV3(settings:Settings):Pattern {
  const s:Settings={...settings,algorithm:'groove-v3'},c=context(s);
- anchors(c);layers(c);cadence(c);
+ anchors(c);layers(c);interaction(c);cadence(c);
  const events=[...c.hits.values()].sort(compare);
  spice(events,s,c.rule,s.bars*BAR);
  for(const hit of events){

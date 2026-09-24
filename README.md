@@ -122,3 +122,12 @@ Beside **Export WAV**, choose **Active pattern** or **Full song arrangement**. L
 Saved projects now use schema version 2. Version 1 projects and autosaves open automatically, initializing song tempo from the saved active pattern. New files should be opened with the updated app.
 
 Regression check: run `npm.cmd test`, start the local server, then run `node scripts/song-browser-smoke.mjs`. The song test checks playback following, repeat boundaries, exact rendered WAV data, reordering, tempo persistence and mobile layout.
+
+
+## Groove v3 musical phrasing
+
+Choose **Advanced generation → Engine → Groove v3**. Complexity develops coordinated hat/ghost/percussion phrases. Spicy adds genre-limited, velocity-shaped doubles, triplets, rolls and pitch accents; only the more disruptive styles use generated micro-chops. Main anchors, locks, undo/redo and Preview/WAV share the existing workflow. Saved patterns keep their events until you generate again.
+
+For longer arrangements, choose **Phrase = 16 bars** and set **Starting bar** for the section you are generating. Four four-bar sections starting at 1, 5, 9 and 13 form a 16-bar phrase with its strongest turnaround at the end. Save each generated section in its own bank slot. Repeating one stored pattern does not automatically generate new fills. **This pattern** retains the simple loop workflow. These controls are available only for v3 and persist in projects/autosaves.
+
+Research notes and genre-by-genre implementation rationale are maintained in `docs/GROOVE-V3-RESEARCH.md` in the source repository. Timing/gain values are adjustable production recipes, not claims of a universal genre formula. Test with `npm.cmd test` and, with the local server running, `node scripts/groove-v3-browser-smoke.mjs`.

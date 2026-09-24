@@ -5,7 +5,7 @@ export const V3_BAR=4*PPQ;
 export const V3_SIXTEENTH=PPQ/4;
 /** Named streams make unrelated controls unable to perturb the core motif. */
 export function v3Chance(s:Settings,stage:string,key:string,variation=true):number {
- return random(s.seed,`groove-v3:${s.genre}:${stage}:${variation?s.variation??0:0}:${key}`)();
+ return random(s.seed,`groove-v3:${s.genre}:${stage}:${variation?s.variation??0:0}:${key}${variation&&s.phraseLength?`:phrase-${s.phraseOffset??0}`:''}`)();
 }
 export function v3Pick<T>(items:readonly T[],s:Settings,stage:string,key:string,variation=true):T {
  if(items.length===0)throw Error('A groove phrase needs at least one choice.');

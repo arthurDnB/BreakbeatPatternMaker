@@ -14,7 +14,7 @@ This document maintains the running project state and change log so that multipl
 2. **Execution on Windows:**
    * PowerShell execution policy may block `npm.ps1`. Always use `npm.cmd` directly for commands (e.g. `npm.cmd test`, `npm.cmd run build:site`).
 3. **Verify tests before committing:**
-   * Unit test suite (58 tests): `npm.cmd test`
+   * Unit test suite (90 tests): `npm.cmd test`
    * Site deployment build & Playwright smoke test: `npm.cmd run test:site`
 4. **Update this log:**
    * Document each change under the [Change Log](#change-log) section with date, summary of files modified, and rationale.
@@ -26,7 +26,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.3.0-alpha`
-* **Test Status:** 84 / 84 unit tests passing (`npm.cmd test`).
+* **Test Status:** 90 / 90 unit tests passing (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -62,6 +62,17 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-09-25] - Genre-aware phrase development and musical Spicy refinement (Codex)
+- Synced origin/main and reviewed the v3 kick-overlap fix before editing. The audio choke implementation is unchanged.
+- Added `docs/GROOVE-V3-RESEARCH.md`: primary Strudel documentation, producer tutorials and first-person production discussions, with explicit source-to-rule mapping and limitations. Numeric timing/gain recipes are tunable choices rather than invented universal genre specifications.
+- Added `src/core/groove-v3-development.ts`: genre-specific call/answer/end budgets, supporting hat/ghost/percussion phrases, minimum repeat spacing and phrase-position helpers for all 38 supported styles.
+- Updated v3 generation to admit coordinated support phrases and complete Euclidean support layers; preserve exact musical burst spans; enforce genre repeat/chop limits at maximum Spicy; prioritize endings; normalize repeat-contour energy; keep pitches on chosen intervals. Complexity retains existing rhythmic positions as layers are added.
+- Refined protected Jungle/Drumfunk-family snare motif options and Two-step Garage hats; tightened Jump Up kick motifs. V3 mutation now consults v3 placement rules instead of v2 rules.
+- Added v3-only Advanced **Phrase** (pattern/4/8/16 bars) and **Starting bar** controls, validated and persisted in project/autosave settings. A pattern remains 1–4 bars: generate separate sections into bank slots for a longer phrase. Repeated blocks do not regenerate themselves. Updated inspector help to distinguish musical spans from tracker rows.
+- Bumped v3 generation revision to `0.3.0-groove.2` and browser asset cache keys. Existing saved events remain untouched until an explicit generation/edit; legacy/v2 pattern and PCM compatibility fixtures pass.
+- Added six musicality tests and expanded the v3 browser test for phrase save/import/autosave. `npm.cmd test`: **90/90 passing**. Targeted v3 browser test and deployment smoke checks (root and repository mount, all 233 samples) passed. All 12 browser scripts passed: the first 10 in the full run, then sounds and v3 after correcting a stale pre-existing sound-group assertion (3 groups before UDNB, 4 named groups now). `npm.cmd run test:site` passed at both mounts. Final `npm.cmd test` re-run: 90/90.
+
 
 ### [2026-09-25] - Fix V3 Kick Drum Overlap / "Too Wet" Issue (Antigravity)
 - **Audio Engine Updates (`src/audio/voice-v3.ts`):**

@@ -100,6 +100,7 @@ function getTrackerStep(): number {
 function settings(){
   const s=defaults(input('genre').value as Genre);
   s.algorithm=input('algorithm').value as NonNullable<Pattern['settings']['algorithm']>;s.variation=Number(input('variation').value);
+  if(s.algorithm==='groove-v3'&&Number(input('phraseLength').value)){s.phraseLength=Number(input('phraseLength').value) as 4|8|16;s.phraseOffset=Number(input('phraseOffset').value);}
   s.enabledRoles=ROLES.filter(r=>kitPanel.mix[r].include);
   s.breakStyle=input('breakStyle').value as BreakStyle;
   s.seed=input('seed').value;s.bpm=Number(input('bpm').value);s.bars=Number(input('bars').value);
@@ -286,6 +287,7 @@ function selectRows(start:number,end:number,anchor=true){
 }
 function syncControls(){
   const s=editor.state.pattern.settings;
+  input('phraseLength').value=String(s.phraseLength??0);syncPhraseControls(s.phraseOffset??0);
   input('algorithm').value=s.algorithm??'legacy-v1';input('variation').value=String(s.variation??0);
   for(const [key,value] of Object.entries(s))if(key!=='enabledRoles')input(key).value=String(value);
   for(const r of ROLES)kitPanel.mix[r].include=!s.enabledRoles||s.enabledRoles.includes(r);kitPanel.restore(kitPanel.snapshot());
@@ -496,7 +498,15 @@ function breakDescription(){
   const key=input('breakStyle').value as BreakStyle;
   el('break-description').textContent=key==='genre'?'Use the selected genre’s rhythm.':BREAKS[key].description+' Genre still controls tempo suggestions, detail and fill intensity.';
 }
+function syncPhraseControls(offset=Number(input('phraseOffset').value)||0){
+ const v3=input('algorithm').value==='groove-v3',length=Number(input('phraseLength').value);
+ el('phrase-length-field').hidden=!v3;el('phrase-offset-field').hidden=!v3||!length;
+ const select=el<HTMLSelectElement>('phraseOffset');select.replaceChildren();
+ for(let i=0;i<(length||1);i++){const option=document.createElement('option');option.value=String(i);option.textContent=String(i+1);select.append(option);}
+ select.value=String(Math.min(offset,(length||1)-1));
+}
 function presets(){
+  syncPhraseControls();
   breakDescription();
   syncSliders();
   const genre=input('genre').value as Genre;
@@ -557,12 +567,14 @@ input('bpm').addEventListener('input',()=>{syncSliders();});
 input('bpm-slider').addEventListener('input',()=>{input('bpm').value=input('bpm-slider').value;syncSliders();});
 input('complexity').addEventListener('input',syncSliders);
 input('spicy').addEventListener('input',syncSliders);
-input('algorithm').addEventListener('change',syncSliders);
+input('algorithm').addEventListener('change',()=>{syncSliders();syncPhraseControls();});
+input('phraseLength').addEventListener('change',()=>syncPhraseControls());
 
 el('breakStyle').onchange=()=>{breakDescription();dirty();};
 function restoreGenerationDefaults(){
  const genre=input('genre').value as Genre;
  const keepV3=input('algorithm').value==='groove-v3';
+ input('phraseLength').value='0';syncPhraseControls(0);
  input('algorithm').querySelector<HTMLOptionElement>('[value="legacy-v1"]')!.disabled=Object.hasOwn(NEW_GENRES,genre);
  for(const [key,value] of Object.entries(genreDefaults(genre)))input(key).value=String(value);
  if(keepV3)input('algorithm').value='groove-v3';
@@ -686,6 +698,7 @@ function updateEntry(hit?:Hit){
   }else{input('edit-row').value=String(rowAnchor);input('edit-lane').value=cursorLane;}
   const isV3=pattern.settings.algorithm==='groove-v3';
   el('burst-span-field').hidden=!isV3;
+  el('articulation-help').textContent=isV3?'Repeats divide the musical Burst span, independent of tracker resolution. Generated natural hits can sustain; Gate deliberately shortens attacks. Pitch and velocity contours are shown above.':'Ratchets divide one tracker row into equal repeats. Gate shortens each attack; 50% leaves half its interval silent. Effects can ring beyond the gate.';
   el('edit-ratchets-label').textContent=isV3?'Repeats in burst':'Ratchets per row';
   const span=el<HTMLSelectElement>('edit-burst-span');span.querySelector('[data-custom]')?.remove();
   const duration=hit?.articulation?.durationTicks??0;
@@ -904,6 +917,7 @@ function applyProject(raw:unknown){
   assets.clear();loaded.forEach((a,id)=>assets.set(id,a));kitPanel.restore(p.kit);
   bank=p.bank?structuredClone(p.bank):newBank(p.editor.pattern);slotEditors.clear();
   editor=new Editor(p.editor.pattern);editor.state=structuredClone(p.editor);rowAnchor=0;
+  input('phraseLength').value=String(p.draft.phraseLength??0);syncPhraseControls(p.draft.phraseOffset??0);
   input('algorithm').value=p.draft.algorithm??'legacy-v1';input('variation').value=String(p.draft.variation??0);
   for(const [key,value] of Object.entries(p.draft))if(key!=='enabledRoles')input(key).value=String(value);
   presets();refresh();return true;

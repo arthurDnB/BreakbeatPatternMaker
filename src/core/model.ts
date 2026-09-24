@@ -7,6 +7,7 @@ export type BreakStyle = 'genre' | 'amen' | 'think' | 'apache' | 'funkyDrummer' 
 export interface Settings {
   algorithm?: 'legacy-v1' | 'groove-v2' | 'groove-v3';
   variation?: number;
+  phraseLength?:4|8|16; phraseOffset?:number; // V3 section position, zero-based bars.
   breakStyle?: BreakStyle;
   enabledRoles?: Role[];
   genre: Genre; seed: string; bpm: number; bars: number;

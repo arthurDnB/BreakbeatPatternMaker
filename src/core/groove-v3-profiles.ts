@@ -5,7 +5,7 @@ export type V3Cadence = 'soft'|'funk'|'jungle'|'hats'|'dub'|'garage'|'broken'|'r
 export interface V3Rule {
  family:V3Family;
  /** Sixteenth positions. Each seed selects one recurring spine; variation never changes it. */
- kicks:number[][]; snares:number[];
+ kicks:number[][]; snares:number[]; snareMotifs?:number[][];
  hats:number[]; hatDetails:number[]; ghosts:number[]; pickups:number[]; percussion:number[];
  accents:[number,number,number,number];
  snareDragMs:number; ghostPushMs:number; hatSwing:number; percussionSwing:number;
@@ -27,7 +27,7 @@ const rule=(family:V3Family,input:RuleInput):V3Rule=>({...bases[family],family,.
 
 /** Original production recipes, not transcriptions of recordings or claims about an entire genre. */
 export const V3_RULES:Record<Genre,V3Rule>={
- jungle:rule('jungle',{kicks:[[0,6,10],[0,8,11],[0,7,10]],ghosts:[3,7,9,11,15]}),
+ jungle:rule('jungle',{snareMotifs:[[4,12],[4,10]],kicks:[[0,6,10],[0,8,11],[0,7,10]],ghosts:[3,7,9,11,15]}),
  dnb:rule('jungle',{kicks:[[0,10],[0,6,10]],hats:[0,2,4,6,8,10,12,14],hatDetails:[3,7,11,15],pickups:[7,14],percussion:[13],activity:.6,ghostGain:.27,burstBudget:1,cadence:'funk',reverseChance:.04,pitchSteps:[0,0,-2]}),
  hiphop:rule('hiphop',{kicks:[[0,6],[0,7,10]],hatDetails:[2,6,10,14,15],percussion:[7],snareDragMs:7}),
  trap:rule('hiphop',{kicks:[[0,6,11],[0,3,14]],snares:[8],hats:[0,2,4,6,8,10,12,14],hatDetails:[3,7,11,15],ghosts:[15],pickups:[3,10,14],percussion:[7,13],snareDragMs:0,ghostPushMs:0,cadence:'hats',activity:.82,burstBudget:2,maxRepeats:6,pitchSteps:[0,-2,-5,-12],fillStrength:.75}),
@@ -42,25 +42,25 @@ export const V3_RULES:Record<Genre,V3Rule>={
  nuskoolbreaks:rule('breaks',{kicks:[[0,7,10],[0,6,11,14]],hats:[0,2,5,6,8,10,13,14],hatDetails:[3,7,11,15],ghosts:[3,15],percussion:[7,11],snareDragMs:0,hatSwing:.25,cadence:'broken',activity:.8,burstBudget:2}),
  electrobreaks:rule('breaks',{kicks:[[0,3,8,14],[0,6,8,11]],hats:[0,2,4,6,8,10,12,14],hatDetails:[7,15],ghosts:[15],percussion:[3,6,11,14],snareDragMs:0,ghostPushMs:0,hatSwing:0,percussionSwing:0,activity:.5,cadence:'garage',reverseChance:0,pitchSteps:[0],maxRepeats:3}),
  breakbeathardcore:rule('breaks',{kicks:[[0,4,8,11,12],[0,4,7,8,12]],hats:[2,6,10,14],hatDetails:[3,7,11,15],ghosts:[3,7,15],cadence:'jungle',activity:.87,fillStrength:.95,burstBudget:3,maxRepeats:6}),
- raggajungle:rule('jungle',{kicks:[[0,6,11,14],[0,7,10]],hats:[0,2,3,6,8,10,11,14],hatDetails:[5,7,13,15],ghosts:[3,7,9,15],percussion:[5,13,15],cadence:'funk',activity:.86,ghostGain:.35,percussionSwing:1}),
- atmosphericjungle:rule('jungle',{kicks:[[0,10],[0,7]],hats:[0,2,6,8,10,14],hatDetails:[7,15],ghosts:[3,7,11,15],percussion:[13],snareDragMs:2,activity:.42,ghostGain:.25,cadence:'soft',fillStrength:.32,burstBudget:1,maxRepeats:3,spaciousCall:true,reverseChance:.07,pitchSteps:[0,7]}),
+ raggajungle:rule('jungle',{snareMotifs:[[4,12],[4,10]],kicks:[[0,6,11,14],[0,7,10]],hats:[0,2,3,6,8,10,11,14],hatDetails:[5,7,13,15],ghosts:[3,7,9,15],percussion:[5,13,15],cadence:'funk',activity:.86,ghostGain:.35,percussionSwing:1}),
+ atmosphericjungle:rule('jungle',{snareMotifs:[[4,12],[4,10]],kicks:[[0,10],[0,7]],hats:[0,2,6,8,10,14],hatDetails:[7,15],ghosts:[3,7,11,15],percussion:[13],snareDragMs:2,activity:.42,ghostGain:.25,cadence:'soft',fillStrength:.32,burstBudget:1,maxRepeats:3,spaciousCall:true,reverseChance:.07,pitchSteps:[0,7]}),
  footworkjungle:rule('jungle',{kicks:[[0,3,6,10,14],[0,3,7,10,13]],snares:[8,12],hats:[0,3,6,8,11,14],hatDetails:[],ghosts:[5,7,13,15],percussion:[2,9,15],pickups:[9,13],cadence:'broken',activity:.83,burstBudget:2,maxRepeats:6,euclidean:[3,8,0],hatSwing:0}),
  downtempo:rule('hiphop',{kicks:[[0,7],[0,10]],hats:[0,4,8,12],hatDetails:[6,14],ghosts:[3,11],percussion:[14],pickups:[6],snareDragMs:5,activity:.32,cadence:'soft',fillStrength:.2,maxRepeats:2}),
  lofihiphop:rule('hiphop',{kicks:[[0,6,10],[0,7,11]],hats:[0,2,8,10],hatDetails:[6,14],ghosts:[3,7,11],percussion:[15],snareDragMs:9,activity:.42,ghostGain:.25,cadence:'soft',fillStrength:.3,maxRepeats:2,pitchSteps:[0,-2]}),
  boombap:rule('hiphop',{kicks:[[0,3,8,10],[0,6,8,14]],hats:[0,2,4,6,8,10,12,14],hatDetails:[7,15],ghosts:[3,11,15],percussion:[7],pickups:[13,15],snareDragMs:4,activity:.68,ghostGain:.34,accents:[.49,.25,.37,.22],fillStrength:.55}),
  mellowbeats:rule('hiphop',{kicks:[[0,10],[0,6]],hats:[0,4,8,14],hatDetails:[10],ghosts:[11],pickups:[14],percussion:[6],snareDragMs:6,activity:.22,ghostGain:.23,cadence:'soft',fillStrength:.15,maxRepeats:2,reverseChance:0,pitchSteps:[0]}),
  liquiddnb:rule('jungle',{kicks:[[0,10],[0,7,10]],hats:[0,2,4,6,8,10,12,14],hatDetails:[5,13],ghosts:[3,7,11,15],percussion:[13],pickups:[7,14],snareDragMs:2.5,activity:.58,ghostGain:.28,cadence:'funk',fillStrength:.4,burstBudget:1,maxRepeats:3,reverseChance:.03,pitchSteps:[0,7]}),
- jumpup:rule('jungle',{kicks:[[0,6,10],[0,10,14]],hats:[0,2,6,8,10,14],hatDetails:[7,15],ghosts:[7,15],percussion:[3],pickups:[3,14],snareDragMs:0,hatSwing:.25,activity:.5,ghostGain:.27,cadence:'rave',fillStrength:.7,burstBudget:1,maxRepeats:4,reverseChance:.04,pitchSteps:[0,-2]}),
+ jumpup:rule('jungle',{kicks:[[0,10],[0,8,10]],hats:[0,2,6,8,10,14],hatDetails:[7,15],ghosts:[7,15],percussion:[3],pickups:[3,14],snareDragMs:0,hatSwing:.25,activity:.5,ghostGain:.27,cadence:'rave',fillStrength:.7,burstBudget:1,maxRepeats:4,reverseChance:.04,pitchSteps:[0,-2]}),
  garage:rule('garage',{kicks:[[0,4,8,12]],hatDetails:[3,5,7,11,13,15]}),
  speedgarage:rule('garage',{kicks:[[0,4,8,12]],hats:[2,6,10,14],hatDetails:[3,7,11,15],ghosts:[7,15],percussion:[3,6,11,14],pickups:[3,11,15],snareDragMs:0,hatSwing:.8,activity:.8,cadence:'rave',fillStrength:.8,maxRepeats:4,accents:[.35,.24,.52,.3]}),
- twostepgarage:rule('garage',{kicks:[[0,6,10],[0,7,14],[0,3,10]],hats:[0,3,6,8,11,14],hatDetails:[5,7,13,15],pickups:[3,7,14],percussion:[2,7,10,15],snareDragMs:2,activity:.82,ghostGain:.3}),
+ twostepgarage:rule('garage',{kicks:[[0,6,10],[0,7,14],[0,3,10]],hats:[2,6,10,14],hatDetails:[1,3,7,9,11,15],pickups:[3,7,14],percussion:[2,7,10,15],snareDragMs:2,activity:.82,ghostGain:.3}),
  dub:rule('dub',{kicks:[[8]],hats:[2,6,10,14],hatDetails:[],ghosts:[7],percussion:[3,11],pickups:[14],snareDragMs:4,activity:.28,fillStrength:.2,maxRepeats:2,pitchSteps:[0],reverseChance:0}),
  psydub:rule('dub',{kicks:[[0,7,10],[0,6,14]],hats:[0,3,8,11],hatDetails:[6,14],ghosts:[7,15],percussion:[2,5,9,13],pickups:[5,11],activity:.75,cadence:'broken',fillStrength:.65,euclidean:[5,16,2],burstBudget:2,maxRepeats:4,reverseChance:.2,pitchSteps:[0,7,12,-5]}),
  dubstep:rule('dub',{kicks:[[0,6],[0,3,11]],hats:[0,2,6,10,14],hatDetails:[7,15],ghosts:[15],percussion:[3,13],pickups:[14],activity:.42,fillStrength:.35,hatSwing:.8}),
  brostep:rule('dub',{kicks:[[0,3,6],[0,6,14]],hats:[0,2,4,6,10,12,14],hatDetails:[7,15],ghosts:[7,15],percussion:[5,13],pickups:[3,11],snareDragMs:0,hatSwing:0,cadence:'rave',activity:.72,fillStrength:.95,burstBudget:2,maxRepeats:6,reverseChance:.14,pitchSteps:[0,7,-12]}),
  postdubstep:rule('dub',{kicks:[[0,5,11],[0,7,14]],snares:[6,12],hats:[0,3,7,10,14],hatDetails:[5,13],ghosts:[5,11,15],percussion:[2,9,13],pickups:[9,15],snareDragMs:6,hatSwing:1,percussionSwing:1,activity:.58,cadence:'garage',fillStrength:.4,reverseChance:.12}),
- drumfunk:rule('jungle',{kicks:[[0,3,10],[0,6,8,14],[0,7,11]],hats:[0,2,6,8,10,14],hatDetails:[5,13],ghosts:[2,3,7,9,11,15],percussion:[5,13],pickups:[6,9,14],snareDragMs:2,activity:.92,ghostGain:.39,cadence:'funk',fillStrength:.9,linear:true,burstBudget:2,maxRepeats:4,reverseChance:.04,pitchSteps:[0,-2]}),
- amenscience:rule('jungle',{kicks:[[0,6,10,15],[0,7,10],[0,3,8,11]],hats:[0,2,3,6,8,10,11,14],hatDetails:[5,7,13,15],ghosts:[3,7,9,11,15],percussion:[5,13],pickups:[2,9,14],activity:.94,ghostGain:.34,fillStrength:1,burstBudget:3,maxRepeats:8,reverseChance:.26,pitchSteps:[0,7,12,-12]}),
+ drumfunk:rule('jungle',{snareMotifs:[[4,12],[4,10],[4,14]],kicks:[[0,3,10],[0,6,8,14],[0,7,11]],hats:[0,2,6,8,10,14],hatDetails:[5,13],ghosts:[2,3,7,9,11,15],percussion:[5,13],pickups:[6,9,14],snareDragMs:2,activity:.92,ghostGain:.39,cadence:'funk',fillStrength:.9,linear:true,burstBudget:2,maxRepeats:4,reverseChance:.04,pitchSteps:[0,-2]}),
+ amenscience:rule('jungle',{snareMotifs:[[4,12],[4,10],[4,14]],kicks:[[0,6,10,15],[0,7,10],[0,3,8,11]],hats:[0,2,3,6,8,10,11,14],hatDetails:[5,7,13,15],ghosts:[3,7,9,11,15],percussion:[5,13],pickups:[2,9,14],activity:.94,ghostGain:.34,fillStrength:1,burstBudget:3,maxRepeats:8,reverseChance:.26,pitchSteps:[0,7,12,-12]}),
  atmosphericbreakcore:rule('experimental',{kicks:[[0,10],[0,7,11]],hats:[0,4,8,12],hatDetails:[2,6,10,14],ghosts:[3,7,11,15],percussion:[2,6,10,14],pickups:[7,14],snareDragMs:2,activity:.65,ghostGain:.28,spaciousCall:true,melodicPercussion:true,euclidean:undefined,cadence:'jungle',fillStrength:.78,burstBudget:2,maxRepeats:6,reverseChance:.14,pitchSteps:[0,7,12,-12]}),
  triphop:rule('hiphop',{kicks:[[0,7,8],[0,6,11]],hats:[0,4,10,12],hatDetails:[6,14],ghosts:[3,15],percussion:[7,13],pickups:[11],snareDragMs:8,activity:.4,cadence:'dub',fillStrength:.35,pitchSteps:[0,-2,-5],reverseChance:.1}),
  halftimednb:rule('jungle',{kicks:[[0,5,11],[0,7,14]],snares:[8],hats:[0,3,6,10,14],hatDetails:[7,15],ghosts:[7,15],percussion:[2,9,13],pickups:[3,14],activity:.6,cadence:'dub',fillStrength:.5,burstBudget:1,maxRepeats:4}),

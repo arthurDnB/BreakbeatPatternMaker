@@ -38,9 +38,13 @@ try {
   await page.fill('#ghostAmount','1');
   await page.fill('#fillAmount','1');
   await page.selectOption('#bars','2');
+  await page.selectOption('#phraseLength','16');
+  await page.selectOption('#phraseOffset',{label:'15'});
   await page.click('#generate');
   let project=await saved();
   assert.equal(project.version,3);
+  assert.equal(project.editor.pattern.settings.phraseLength,16);
+  assert.equal(project.editor.pattern.settings.phraseOffset,14);
   assert.equal(project.editor.pattern.settings.algorithm,'groove-v3');
   assert.ok(project.editor.pattern.events.some(hit=>hit.ratchets>1&&hit.articulation?.repeats?.length>1),'Spicy generates expressive bursts');
 
@@ -107,12 +111,16 @@ try {
   assert.equal(await page.inputValue('#algorithm'),'groove-v3');
   assert.deepEqual(restored.editor.pattern,portable.editor.pattern);
   assert.deepEqual(restored.bank,portable.bank);
+  assert.equal(await page.inputValue('#phraseLength'),'16');
+  assert.equal(await page.inputValue('#phraseOffset'),'14');
   await page.waitForFunction(()=>document.querySelector('#save-status').textContent==='Saved locally');
   await page.reload();
   await page.waitForFunction(()=>document.querySelector('#save-status').textContent==='Restored local workspace');
   assert.equal(await page.inputValue('#algorithm'),'groove-v3');
   assert.deepEqual((await saved()).editor.pattern,portable.editor.pattern);
   await page.locator(selector).click();await openDetails('#hit-articulation');
+  await openDetails('#advanced-generation');
+  await page.screenshot({path:'test-results/groove-v3-phrasing.png',fullPage:true});
   await page.locator('.tracker-edit').screenshot({path:'test-results/groove-v3-inspector.png'});
   assert.deepEqual(errors,[]);
   console.log('Groove v3 browser: opt-in engine, genre retention, expressive generation, locked anchors, history, inspector articulation preservation, Preview, WAV, project import and autosave passed.');
