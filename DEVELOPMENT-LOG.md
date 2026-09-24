@@ -57,6 +57,26 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-24] - High-Tempo Drum Body Anti-Clicking & Melodic Atmospheric Breakcore Synthesis (Antigravity)
+* **High-Tempo Drum Body & Anti-Clicking (`src/audio/performance.ts`):**
+  * Diagnosed high-tempo click cause: `interval` calculation divided by resolution ($64$). At 180–220 BPM with gate applied, one-shot samples were truncated to 5–9 ms (smaller than a 60 Hz kick cycle), generating sharp DC offset clicks.
+  * Added `minBody` enforcement for unsliced drum hits ($80\text{ ms}$ for kicks, $65\text{ ms}$ for snares) so hits retain punch, low-end body, and acoustic snap even during fast rolls.
+  * Maintained strict manual slice test contract (`!hit.slice`) to preserve micro-edits in `tests/articulation.test.mjs`.
+  * Increased audio voice cutoff envelope to 2 ms (`rate * 0.002`) for smooth de-zippering on voice transitions.
+* **Acoustic Kit Decay Tuning (`src/audio/library.ts`):**
+  * Relaxed choked decays on `acoustic-break` kit (snare: $0.50 \rightarrow 0.85$, percussion: $0.15 \rightarrow 0.70$) so ghost snares and ride cymbal rings have natural sustain.
+* **Melodic Atmospheric Breakcore (`src/audio/library.ts`, `src/core/groove.ts`):**
+  * Created dedicated `atmospheric-breakcore` kit preset pairing punchy acoustic kicks and snappy jungle snares with tuned metallic lead percussion (`808-cowbell`).
+  * Implemented structured 4-bar melodic phrasing quantized to D Minor Pentatonic / Hirajoshi scale (`[-12, -7, -5, 0, 2, 3, 5, 7, 8, 10, 12, 14, 15]`) on the percussion lane.
+  * Excluded kicks from spicy ratchet rolls to prevent bottom-end phase smearing.
+  * Raised spicy roll gates on snares to $0.9$ and hats/percussion to $0.75\text{--}0.85$, preventing clicks.
+  * Protected atmospheric melodic percussion from pattern-wide random pitch shifts, and quantized any remaining spicy ornaments to the atmospheric scale.
+* **Cache Buster Bump (`public/index.html`):**
+  * Updated asset version strings to `?v=0.2.0-musical-atmo`.
+* **Verification:**
+  * All 66 tests passing in `npm.cmd test`.
+  * Browser build and smoke tests passing in `npm.cmd run test:site`.
+
 ### [2026-09-24] - EDM Production Integration: Drill 3-3-2 Hats, Reggae Triad, Drumfunk Linear & Garage Choking (Antigravity)
 - **UK Drill 3-3-2 Tresillo Hats & Counter-Snares (`src/core/groove.ts`):**
   - Enforced sacred 3-3-2 syncopated space for Drill hi-hats (`[0, 3, 6, 8, 11, 14]`), preventing indiscriminate 16th-note subdivision filling from flattening the groove.

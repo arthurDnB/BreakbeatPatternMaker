@@ -305,7 +305,7 @@ export const KIT_PRESETS: KitPreset[] = [
       percussion: 'acoustic-ride-22',
     },
     levels: {snare: 0.80, percussion: 0.65},
-    decays: {snare: 0.50, percussion: 0.15},
+    decays: {snare: 0.85, percussion: 0.70},
   },
   {
     id: 'lofi-soul',
@@ -366,6 +366,19 @@ export const KIT_PRESETS: KitPreset[] = [
       percussion: '808-rim',
     }
   },
+  {
+    id: 'atmospheric-breakcore',
+    name: '🌌 Atmospheric Breakcore (Melodic Chime & Break)',
+    description: 'Punchy 24" kick, piccolo jungle snare, tight hat, tuned 808 cowbell melodic lead',
+    slots: {
+      kick: 'acoustic-kick-punch',
+      snare: 'acoustic-snare-piccolo',
+      hat: 'acoustic-hat-tight',
+      percussion: '808-cowbell',
+    },
+    levels: {snare: 0.85, percussion: 0.82},
+    decays: {snare: 0.85, percussion: 0.85},
+  },
 ];
 
 export const GENRE_KITS: Record<string, string> = {
@@ -392,6 +405,6 @@ export const GENRE_KITS: Record<string, string> = {
   twostepgarage:'uk-garage', speedgarage:'uk-garage',
   downtempo:'lofi-soul', lofihiphop:'lofi-soul', boombap:'studio-acoustic', mellowbeats:'lofi-soul', triphop:'lofi-soul',
   liquiddnb:'acoustic-break', jumpup:'electronic-dance', drumfunk:'studio-acoustic', amenscience:'acoustic-break',
-  atmosphericbreakcore:'acoustic-break', halftimednb:'electronic-dance', neurofunk:'electronic-dance',
+  atmosphericbreakcore:'atmospheric-breakcore', halftimednb:'electronic-dance', neurofunk:'electronic-dance',
   dub:'studio-acoustic', psydub:'lofi-soul', brostep:'hardcore-rave', postdubstep:'uk-garage',
 };

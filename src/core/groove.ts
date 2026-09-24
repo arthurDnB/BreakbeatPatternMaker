@@ -108,9 +108,27 @@ export function generateGroove(settings:Settings):Pattern{
     add('snare',origin+step*240,Math.min(.65,ghostGain),false,true,'This quiet ghost snare connects the backbeats without replacing them.');
    }
   }
-  for(const step of profile.percussion??rule.response){
-   if(chance(s,'perc:'+bar+':'+step)<s.complexity*(response?.95:.6))
-    add('percussion',origin+step*240,.3+(response?.08:0),false,false,'Percussion answers the main drums, with stronger responses in alternating bars.');
+  if(s.genre==='atmosphericbreakcore'){
+   const melodyPhrases=[
+    [{step:2,pitch:0,gain:.82},{step:6,pitch:3,gain:.85},{step:10,pitch:7,gain:.88}],
+    [{step:2,pitch:7,gain:.84},{step:6,pitch:10,gain:.88},{step:10,pitch:12,gain:.92},{step:14,pitch:7,gain:.80}],
+    [{step:2,pitch:12,gain:.90},{step:6,pitch:10,gain:.86},{step:10,pitch:5,gain:.84},{step:14,pitch:3,gain:.80}],
+    [{step:2,pitch:3,gain:.82},{step:6,pitch:0,gain:.86},{step:10,pitch:-5,gain:.84},{step:14,pitch:0,gain:.90}]
+   ];
+   const phrase=melodyPhrases[(bar+(s.variation??0))%melodyPhrases.length]!;
+   for(const note of phrase){
+    if(chance(s,'atmo-mel:'+bar+':'+note.step)<Math.max(0.65,s.complexity*1.1)){
+     add('percussion',origin+note.step*240,note.gain,false,false,'An ethereal D minor melodic chime floats across the atmospheric breakcore landscape.');
+     const id='percussion-'+(origin+note.step*240);
+     const hit=hits.get(id);
+     if(hit)hit.pitch=note.pitch;
+    }
+   }
+  }else{
+   for(const step of profile.percussion??rule.response){
+    if(chance(s,'perc:'+bar+':'+step)<s.complexity*(response?.95:.6))
+     add('percussion',origin+step*240,.3+(response?.08:0),false,false,'Percussion answers the main drums, with stronger responses in alternating bars.');
+   }
   }
   if(s.genre==='drill'&&chance(s,'drill-counter:'+bar)<(0.4+s.syncopation*0.5)){
    const counterStep=chance(s,'drill-counter-step:'+bar)>.4?14:15;
@@ -172,23 +190,33 @@ export function generateGroove(settings:Settings):Pattern{
   const pool=(s.spicy??0)>.75?[2,3,4,6,8]:(s.spicy??0)>.4?[2,3,4]:[2];
   const validPool=pool.filter(r=>r<=rule.maxRatchet);
   hit.ratchets=validPool[Math.floor(chance(s,'ratchet:'+hit.id)*validPool.length)]??2;
-  hit.gate=(s.spicy??0)>.6?(chance(s,'gate:'+hit.id)>.5?.5:.75):(rule.family==='Experimental'?.55:.8);
+  const defaultGate=(s.bpm>=160||rule.family==='Experimental')?.85:.75;
+  hit.gate=hit.role==='snare'?.9:(s.spicy??0)>.6?(chance(s,'gate:'+hit.id)>.5?.75:.85):defaultGate;
   hit.reason+=' A bounded ×'+hit.ratchets+' burst marks the phrase response.';
   if(chance(s,'reverse:'+hit.id)<Math.max(rule.reverse,0.15)*(s.spicy??0)){hit.reverse=true;hit.reason+=' This ornament plays in reverse.';}
+  if(s.genre==='atmosphericbreakcore'&&hit.role==='percussion'&&hit.pitch!==undefined)continue;
   const pitchRange=(s.genre==='breakcore'||s.genre==='atmosphericbreakcore'||s.genre==='idm')&&(s.spicy??0)>.5?12:Math.max(rule.pitch,3);
-  if(rule.pitch>0&&hit.role!=='snare')hit.pitch=Math.round((chance(s,'pitch:'+hit.id)*2-1)*pitchRange);
+  if(rule.pitch>0&&hit.role!=='snare'){
+   if(s.genre==='atmosphericbreakcore'){
+    const ATMO_SCALE=[-12,-7,-5,0,2,3,5,7,8,10,12,14,15];
+    const raw=Math.round((chance(s,'pitch:'+hit.id)*2-1)*pitchRange);
+    hit.pitch=ATMO_SCALE.reduce((prev,curr)=>Math.abs(curr-raw)<Math.abs(prev-raw)?curr:prev);
+   }else{
+    hit.pitch=Math.round((chance(s,'pitch:'+hit.id)*2-1)*pitchRange);
+   }
+  }
  }
  if((s.spicy??0)>0.25){
   const patternSpicyBudget=Math.round((s.spicy??0)*8);
   let patternRatchets=0;
-  const patternCandidates=events.filter(h=>!h.anchor&&!h.ratchets).sort((a,b)=>chance(s,'pattern-spice:'+a.id)-chance(s,'pattern-spice:'+b.id));
+  const patternCandidates=events.filter(h=>!h.anchor&&!h.ratchets&&h.role!=='kick').sort((a,b)=>chance(s,'pattern-spice:'+a.id)-chance(s,'pattern-spice:'+b.id));
   for(const hit of patternCandidates){
    if(patternRatchets>=patternSpicyBudget)break;
    if(chance(s,'ratchet-chance:'+hit.id)<(s.spicy??0)*0.4){
     const pool=(s.spicy??0)>.75?[2,3,4,6,8]:(s.spicy??0)>.4?[2,3,4]:[2];
     const validPool=pool.filter(r=>r<=rule.maxRatchet);
     hit.ratchets=validPool[Math.floor(chance(s,'ratchet-val:'+hit.id)*validPool.length)]??2;
-    hit.gate=(s.spicy??0)>.6?(chance(s,'gate-val:'+hit.id)>.5?.5:.75):.8;
+    hit.gate=hit.role==='snare'?.9:(s.spicy??0)>.6?(chance(s,'gate-val:'+hit.id)>.5?.75:.85):.85;
     hit.reason+=` (Spicy ×${hit.ratchets} roll)`;
     patternRatchets++;
    }
@@ -202,8 +230,10 @@ export function generateGroove(settings:Settings):Pattern{
     hit.reason+=' (Spicy reverse ornament)';
    }
    if((hit.role==='hat'||hit.role==='percussion'||hit.ghost)&&chance(s,'pitch-roll:'+hit.id)<(s.spicy??0)*0.5&&hit.role!=='snare'){
+    if(s.genre==='atmosphericbreakcore'&&hit.role==='percussion'&&hit.pitch!==undefined)continue;
     const pitchRange=(s.genre==='breakcore'||s.genre==='atmosphericbreakcore'||s.genre==='idm')&&(s.spicy??0)>.5?12:Math.max(rule.pitch,3);
-    const shift=Math.floor(chance(s,'pitch-val:'+hit.id)*(pitchRange*2+1))-pitchRange;
+    const raw=Math.floor(chance(s,'pitch-val:'+hit.id)*(pitchRange*2+1))-pitchRange;
+    const shift=s.genre==='atmosphericbreakcore'?[-12,-7,-5,0,2,3,5,7,8,10,12,14,15].reduce((prev,curr)=>Math.abs(curr-raw)<Math.abs(prev-raw)?curr:prev):raw;
     if(shift!==0){
      hit.pitch=shift;
      hit.reason+=` (Spicy pitch ${shift>0?'+':''}${shift})`;

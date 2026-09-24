@@ -35,10 +35,11 @@ export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,
     const naturalLength=Math.ceil((to-from)/sourceRate/ratio*rate),decayActive=hit.decay!==undefined&&hit.decay<1;
     const decayMax=decayActive?Math.max(Math.round(rate*.02),Math.round(naturalLength*hit.decay!)):naturalLength;
     const gated=hit.gate!==undefined||count>1||decayActive;
+    const minBody=!hit.slice&&(hit.role==='kick'?Math.round(rate*.08):(hit.role==='snare'&&!hit.ghost&&count===1?Math.round(rate*.065):0));
     return Array.from({length:count},(_,repeat)=>{
       const onset=start+repeat*interval;
       const window=Math.min(interval*(hit.gate??1),Math.max(0,position-onset));
-      const length=gated?Math.min(naturalLength,decayMax,Math.max(0,Math.round(window*rate))):naturalLength;
+      const length=gated?Math.min(naturalLength,Math.max(minBody||0,Math.min(decayMax,Math.max(0,Math.round(window*rate))))):naturalLength;
       return {hit,channels,from,to,start:onset,step:sourceRate/rate*ratio,length,gated};
     }).filter(v=>v.length>0&&(count===1||v.start<position));
   });
@@ -61,7 +62,7 @@ export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,
       const pos=v.hit.reverse?v.to-1-i*v.step:v.from+i*v.step,index=Math.floor(pos),fraction=pos-index;if(index>=v.to||index<v.from)break;
       for(let c=0;c<2;c++){const data=v.channels[Math.min(c,v.channels.length-1)]!;
         const value=data[index]!*(1-fraction)+data[Math.min(v.to-1,index+1)]!*fraction;
-        const fade=Math.max(1,Math.min(Math.round(rate*.001),Math.floor(v.length/2)));
+        const fade=Math.max(1,Math.min(Math.round(rate*.002),Math.floor(v.length/2)));
         let envelope=v.gated?Math.min(1,i/fade,(v.length-1-i)/fade):1;
         if(v.hit.decay!==undefined&&v.hit.decay<1){
           const t=i/v.length;
