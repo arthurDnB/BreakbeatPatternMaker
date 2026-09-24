@@ -63,6 +63,15 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-25] - Fix V3 Kick Drum Overlap / "Too Wet" Issue (Antigravity)
+- **Audio Engine Updates (`src/audio/voice-v3.ts`):**
+  - Added the Kick Drum to its own V3 choke group in `applyV3Chokes()`.
+  - Previously, V3's enhanced `minBody` enforcement (80ms minimum for full sub-bass weight) caused multiple consecutive kicks in fast rhythms (like Liquid DnB double-kicks) to overlap and phase-smear.
+  - The new choke logic ensures a new kick instantly, smoothly truncates the ringing sub tail of the previous kick.
+  - Restores the tight, punchy genre accuracy of V2 while keeping V3's high-quality body synthesis and smooth crossfades.
+- **Verification:**
+  - 84/84 unit tests passing (`npm.cmd test`).
+
 ### [2026-09-25] - Spicy Slider Scaling & Articulation Fix (Antigravity)
 * **Rationale & Problem Addressed:**
   - The "Spicy" slider was not producing the intended musical variations (ratchets, rolls, micro-chops, pitch flutters) at higher values (e.g., 100%) for genres like Liquid DnB.
