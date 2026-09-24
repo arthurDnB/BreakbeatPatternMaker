@@ -1097,6 +1097,24 @@ input[type=range]::-webkit-slider-thumb:hover {
   color: #e2e8f0;
   border-radius: 4px;
 }
+.dsp-reset-btn {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  background: #141c2c;
+  border: 1px solid #24344d;
+  color: var(--text-muted);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.dsp-reset-btn:hover {
+  background: #1c273d;
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+}
 .quick-fx-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

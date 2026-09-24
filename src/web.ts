@@ -1176,8 +1176,32 @@ function initBottomRack(){
       switchBottomTab('slicer');
     } else if (target.id === 'tab-fx') {
       switchBottomTab('fx');
+    } else if (target.id === 'dsp-reset') {
+      resetDsp();
     }
   });
+
+  function resetDsp(){
+    const sel = document.getElementById('dsp-role-select') as HTMLSelectElement | null;
+    const target = sel?.value || 'all';
+    const rolesToUpdate = target === 'all' ? ROLES : [target as Role];
+    const def = defaultEffects();
+    for(const r of rolesToUpdate){
+      kitPanel.mix[r].effects = { ...def };
+      for(const key of ['highpass','lowpass','resonance','drive','punch','delayMs','feedback','mix'] as const){
+        const rackInput = document.getElementById('fx-' + key + '-' + r) as HTMLInputElement | null;
+        if(rackInput) rackInput.value = String(def[key]);
+      }
+      const bypassInput = document.getElementById('fx-bypass-' + r) as HTMLInputElement | null;
+      if(bypassInput) bypassInput.checked = false;
+    }
+    syncDspControls();
+    dirty();
+    status(target === 'all' ? 'Master DSP: all track effects restored to defaults.' : `Master DSP: ${target} effects restored to defaults.`);
+  }
+
+  const dspResetBtn = document.getElementById('dsp-reset');
+  if(dspResetBtn) dspResetBtn.onclick = resetDsp;
 
   function syncDspControls(){
     const sel = document.getElementById('dsp-role-select') as HTMLSelectElement | null;

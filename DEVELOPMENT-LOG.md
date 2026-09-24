@@ -54,6 +54,15 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-24] - Feature: Master DSP Restore Defaults Button (Antigravity)
+- **Master DSP Strip (`public/index.html`, `public/workspace.css`, `src/web.ts`):**
+  - Added dedicated `[Restore defaults]` button (`#dsp-reset`, `.dsp-reset-btn`) inside `.quick-fx-header`.
+  - Implemented `resetDsp()`: resets either the currently selected track's effects or all tracks' effects back to `defaultEffects()` (0 Hz highpass, 20kHz lowpass, 0 Q, 0 drive, 0 punch, 250ms delay, 30% feedback, 0% wet mix, bypass disabled).
+  - Synchronizes sliders, numerical output values, instrument rack channel controls, marks project dirty, and displays status confirmation.
+  - Bumped version cache buster to `?v=0.2.0-hotfix2`.
+- **Verification:**
+  - 55/55 unit tests passing (`npm.cmd test`).
+
 ### [2026-09-24] - Hotfix: Bottom Rack Buttons, Delegated Events & Cache-Busting (Antigravity)
 - **Browser Cache Busting (`public/index.html`):**
   - Appended version query string `?v=0.2.0-hotfix` to `<script type="module" src="./dist/web.js">` and `<link rel="stylesheet">` tags in `public/index.html`.
