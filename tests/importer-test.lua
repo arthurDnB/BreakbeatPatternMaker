@@ -13,8 +13,8 @@ assert(#json.decode('"\\uD83D\\uDE00"')==4)
 for _,invalid in ipairs({'{"a":1,"a":2}','[1,]','{"a":}','01','1e999','1.','true false','"\\uDC00"','"\\x"',string.rep('[',18)..'0'..string.rep(']',18)}) do rejects(function()json.decode(invalid)end) end
 for _,invalid in ipairs({
  GOOD_JSON:gsub('"version": 1','"version": 2',1),
- GOOD_JSON:gsub('"row": 0','"row": 99999',1),
- GOOD_JSON:gsub('"delay": 0','"delay": 256',1),
+ GOOD_JSON:gsub('"row": %d+','"row": 99999',1),
+ GOOD_JSON:gsub('"delay": %d+','"delay": 256',1),
  GOOD_JSON:gsub('"format":','"evil": true, "format":',1),
  GOOD_JSON:gsub('"notes": %[' ,'"notes": {} ,"unused": [',1)
 }) do rejects(function()validate.decode(invalid)end) end

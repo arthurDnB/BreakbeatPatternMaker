@@ -1,11 +1,13 @@
+import {NEW_GENRES} from './new-genres.js';
 import type {Genre, Settings} from './model.js';
-interface Profile {
+export interface Profile {
   name:string; description?:string; presets:number[]; bpm:number; swing:number; kicks:number[][];
   hats:number; ghosts:number[]; fill:number;
   snares?:number[]; hatSteps?:number[]; percussion?:number[]; detail?:number;
   rolls?:boolean; fourFloor?:boolean;
 }
 export const PROFILES: Record<Genre,Profile> = {
+  ...NEW_GENRES,
   jungle: {name: 'Jungle', presets: [160, 165, 170], bpm: 165, swing: .5,
     kicks: [[0, 8, 11], [0, 6, 10], [0, 7, 11]], hats: 2, ghosts: [3, 7, 15], fill: .7},
   dnb: {name: 'DnB Roller', presets: [170, 174, 176], bpm: 174, swing: .5,
@@ -30,7 +32,7 @@ export const PROFILES: Record<Genre,Profile> = {
 };
 export function defaults(genre: Genre = 'jungle'): Settings {
   if (!Object.hasOwn(PROFILES, genre)) throw new Error(`Unsupported genre. Choose ${Object.keys(PROFILES).join(', ')}.`);
-  return {genre, breakStyle:'genre', seed: 'break-042', bpm: PROFILES[genre].bpm, bars: 2, resolution: 16,
+  return {...(Object.hasOwn(NEW_GENRES,genre)?{algorithm:'groove-v2' as const}:{}),genre, breakStyle:'genre', seed: 'break-042', bpm: PROFILES[genre].bpm, bars: 2, resolution: 16,
     complexity: .45, syncopation: .4, swing: PROFILES[genre].swing, humanizeMs: 0,
     ghostAmount: .35, fillAmount: .4, spicy: 0};
 }
@@ -55,7 +57,27 @@ export function genreDefaults(genre:Genre):Settings {
     breakbeathardcore:{complexity:.7,resolution:32,syncopation:.5,ghostAmount:.4,fillAmount:.7,spicy:.6},
     raggajungle:{complexity:.65,resolution:32,syncopation:.6,ghostAmount:.55,fillAmount:.65,spicy:.5},
     atmosphericjungle:{complexity:.35,syncopation:.35,ghostAmount:.45,fillAmount:.2,spicy:.2},
+    downtempo:{complexity:.25,syncopation:.3,humanizeMs:3,ghostAmount:.15,fillAmount:.15},
+    lofihiphop:{complexity:.3,syncopation:.4,humanizeMs:5,ghostAmount:.25,fillAmount:.2},
+    boombap:{complexity:.45,syncopation:.5,humanizeMs:3,ghostAmount:.25,fillAmount:.35},
+    mellowbeats:{complexity:.2,syncopation:.25,humanizeMs:3,ghostAmount:.1,fillAmount:.1},
+    liquiddnb:{complexity:.45,syncopation:.4,ghostAmount:.45,fillAmount:.25,spicy:.15},
+    jumpup:{complexity:.4,syncopation:.5,ghostAmount:.15,fillAmount:.45,spicy:.3},
+    garage:{complexity:.5,syncopation:.45,ghostAmount:.2,fillAmount:.3,spicy:.2},
+    speedgarage:{complexity:.55,syncopation:.5,ghostAmount:.15,fillAmount:.45,spicy:.35},
+    twostepgarage:{complexity:.5,syncopation:.65,ghostAmount:.25,fillAmount:.35,humanizeMs:2,spicy:.2},
+    dub:{complexity:.2,syncopation:.25,ghostAmount:.1,fillAmount:.15},
+    psydub:{complexity:.6,syncopation:.65,ghostAmount:.25,fillAmount:.4,spicy:.4,resolution:32},
+    dubstep:{complexity:.3,syncopation:.45,ghostAmount:.15,fillAmount:.3,spicy:.2},
+    brostep:{complexity:.6,syncopation:.45,ghostAmount:.15,fillAmount:.65,spicy:.65,resolution:32},
+    postdubstep:{complexity:.4,syncopation:.7,ghostAmount:.2,fillAmount:.25,humanizeMs:3},
+    drumfunk:{complexity:.7,syncopation:.65,ghostAmount:.7,fillAmount:.65,spicy:.35,resolution:32},
+    amenscience:{complexity:.75,syncopation:.7,ghostAmount:.65,fillAmount:.7,spicy:.65,resolution:32},
+    atmosphericbreakcore:{complexity:.55,syncopation:.5,ghostAmount:.35,fillAmount:.65,spicy:.7,resolution:64},
+    triphop:{complexity:.35,syncopation:.4,ghostAmount:.2,fillAmount:.25,humanizeMs:3},
+    halftimednb:{complexity:.4,syncopation:.6,ghostAmount:.2,fillAmount:.35,spicy:.25},
+    neurofunk:{complexity:.6,syncopation:.55,ghostAmount:.3,fillAmount:.5,spicy:.4,resolution:32},
     footworkjungle:{complexity:.7,resolution:32,syncopation:.7,ghostAmount:.35,fillAmount:.6,spicy:.6}
   };
-  return {...base,...overrides[genre],bpm:profile.bpm,swing:profile.swing};
+  return {...base,...overrides[genre],algorithm:'groove-v2',variation:0,bpm:profile.bpm,swing:profile.swing};
 }

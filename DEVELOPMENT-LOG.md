@@ -26,7 +26,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.2.0-alpha`
-* **Test Status:** 58 / 58 unit tests passing (`npm.cmd test`).
+* **Test Status:** 66 / 66 unit tests passing (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -43,17 +43,44 @@ This document maintains the running project state and change log so that multipl
 * [x] **Milestone 2 (Complete):** Renoise 3-tray retractable layout shell with persistable left/right/bottom drawers.
 * [x] **Milestone 4 (Complete):** Tracker track mixer strips with Solo (S) switches, inline volume faders, and peak meters.
 * [x] **Milestone 5 (Complete):** Waveform Slicer & Scramble/Mutate DSP Rack in bottom tray with instant breakbeat chopping.
-* [x] **Phase 4 (Complete):**
-  - Explicit Pattern/Song transport and Active pattern/Full song WAV export targets.
-  - Song tempo, project v1→v2 migration, tracker/arrangement playback following.
-  - Bar-range blocks, drag headings and keyboard/touch reorder buttons.
-* [ ] **Next Priority:** Arrangement editing history (undo/redo for sequence and song-tempo changes), followed by named song sections. Pattern editing history remains independent.
-* [ ] **Future Audio Roadmaps:** MP3 export, velocity-layered drum kits, sample-browser filtering.
+* [x] **Phase 4 (Complete):** Unified song arrangement & transport awareness, song tempo migration v1->v2, full song WAV export.
+* [x] **Groove v2 Engine & 38 Genres (Complete):**
+  - Staged rhythm engine: main motif → groove timing → supporting hits → phrase responses → genre-aware fills.
+  - 38 distinct genre profiles grouped into 6 musical families (`Jungle & DnB`, `Hip-Hop & Downtempo`, `Garage`, `Dub & Bass`, `Breaks & Rave`, `Experimental`).
+  - Instrument-specific microtimings (laid-back snares, swung hats, solid kicks).
+  - Musical variation preserving seed and recurring motifs; backward-compatible legacy-v1 seed reproduction.
+* [ ] **Next Priority:** Arrangement editing history (undo/redo for sequence and song-tempo changes), followed by named song sections.
+* [ ] **Future Audio Roadmaps:** Procedural vinyl texture rack, MP3 export, velocity-layered drum kits, sample-browser filtering.
 * [ ] *Note: Renoise integration has been retired in favor of the standalone in-browser instrument.*
 
 ---
 
 ## 📝 Change Log
+
+### [2026-09-24] - Groove v2 Engine & 38 Curated Genres (Codex & Antigravity)
+- **Staged Rhythm & Groove Engine (`src/core/groove.ts`, `src/core/groove-profiles.ts`):**
+  - Implemented `Groove v2` staged generation: core motif → microtiming & groove offsets → phrase response answers → genre fills → bounded ratchets/bursts.
+  - Added instrument-specific groove timing (`grooveTiming`): relaxed laid-back snares, adjustable hat swing, anchor jitter limits, and response pickups.
+  - Curated phrase endings (`grooveFill`) across 8 fill styles: `soft`, `funk`, `jungle`, `hats`, `dub`, `garage`, `broken`, `rave`.
+- **Expanded to 38 Genre Profiles (`src/core/new-genres.ts`, `src/core/profiles.ts`, `src/core/model.ts`):**
+  - Added 20 new curated rhythmic profiles bringing total genres to 38:
+    - Downtempo, Lo-Fi Hip-Hop, Boom Bap, Mellow Beats
+    - Liquid DnB, Jump Up, Garage, Speed Garage, Two-Step Garage
+    - Dub, PsyDub, Dubstep, Brostep, Post-Dubstep
+    - Drumfunk, AmenScience, Atmospheric Breakcore
+    - Trip-Hop, Halftime DnB, Neurofunk
+  - Grouped into 6 optgroup families in the selector (`Jungle & DnB`, `Hip-Hop & Downtempo`, `Garage`, `Dub & Bass`, `Breaks & Rave`, `Experimental`).
+- **Musical Variation & Genre-Aware Fills (`src/core/editor.ts`):**
+  - `editor.variation()` now musically develops the existing pattern while strictly retaining seed, recurring core kick/snare anchors, exclusions, and locks.
+  - `editor.fill()` uses genre-aware multi-instrument phrasing inside the selected row range.
+- **Legacy Engine Support & Schema Compatibility (`src/core/generate-legacy.ts`, `schemas/bbpattern-v1.schema.json`):**
+  - Isolated legacy generation to preserve byte-identical reproduction for older seeds under `legacy-v1`.
+  - Added `algorithm` selector in Advanced Generation.
+  - Updated JSON Schema and Lua importer validators for all 38 genres.
+- **Verification:**
+  - 66/66 unit tests passing (`npm.cmd test`).
+  - Full browser smoke suite passing (`npm.cmd run test:browser` including `scripts/genres-browser-smoke.mjs` and `scripts/workspace-browser-smoke.mjs`).
+  - Static site packaging verified (`npm.cmd run test:site`).
 
 ### [2026-09-24] - Phase 4: Unified Song Arrangement & Transport (Codex)
 - **Sync:** Read `AGENTS.md`, pulled `origin main` (already current), reviewed this log and `PROJECT-SCOPE.md`; baseline 55/55 tests passed.

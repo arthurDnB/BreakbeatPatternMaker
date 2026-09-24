@@ -15,7 +15,7 @@
     "package:tool": "node scripts/package-tool.mjs",
     "fixtures": "npm run build && node scripts/fixtures.mjs",
     "check": "npm test",
-    "test:browser": "node scripts/browser-smoke.mjs && node scripts/editor-browser-smoke.mjs && node scripts/workspace-browser-smoke.mjs && node scripts/effects-browser-smoke.mjs && node scripts/bank-browser-smoke.mjs && node scripts/song-browser-smoke.mjs && node scripts/articulation-browser-smoke.mjs && node scripts/layout-browser-smoke.mjs && node scripts/drafts-browser-smoke.mjs && node scripts/sounds-browser-smoke.mjs",
+    "test:browser": "node scripts/browser-smoke.mjs && node scripts/genres-browser-smoke.mjs && node scripts/editor-browser-smoke.mjs && node scripts/workspace-browser-smoke.mjs && node scripts/effects-browser-smoke.mjs && node scripts/bank-browser-smoke.mjs && node scripts/song-browser-smoke.mjs && node scripts/articulation-browser-smoke.mjs && node scripts/layout-browser-smoke.mjs && node scripts/drafts-browser-smoke.mjs && node scripts/sounds-browser-smoke.mjs",
     "test:browser:legacy": "node scripts/sample-browser-smoke.mjs && node scripts/tracker-browser-smoke.mjs && node scripts/drum-kit-browser-smoke.mjs",
     "build:site": "npm run build && node scripts/build-site.mjs",
     "test:site": "npm run build:site && node scripts/site-browser-smoke.mjs"

@@ -8,7 +8,7 @@ try{
  // Independent generation filter, mute, and lock handling.
  await page.check('#lock-snare');await page.uncheck('#kit-include-snare');await page.click('#generate');assert.match(await page.locator('#status').textContent(),/excluded.*locked/);
  await page.uncheck('#lock-snare');await page.click('#generate');assert.equal(await page.locator('.hit.snare').count(),0);
- await page.click('#select-ending');await page.click('#fill');assert.match(await page.locator('#status').textContent(),/excluded/);
+ await page.click('#select-ending');await page.click('#fill');assert.equal(await page.locator('.hit.snare').count(),0); // Genre fill may use other enabled lanes.
  await page.click('#regenerate');assert.equal(await page.locator('.hit.snare').count(),0);
  const beforeMute=await download('#export-wav');await page.check('#kit-mute-kick');assert.notDeepEqual(await download('#export-wav'),beforeMute);await page.uncheck('#kit-mute-kick');
  const pcm=new Float32Array(4410).map((_,i)=>Math.sin(i*.1)*.2);await page.setInputFiles('#kit-file-kick',{name:'saved-kick.wav',mimeType:'audio/wav',buffer:Buffer.from(encodeWav([pcm],44100))});await page.waitForFunction(()=>document.querySelector('#kit-info-kick').textContent.includes('saved-kick.wav'));

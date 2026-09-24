@@ -1,3 +1,5 @@
+import {GROOVES} from './core/groove-profiles.js';
+import {NEW_GENRES} from './core/new-genres.js';
 import {newBank,arrange,songTimeline,songPosition,moveSequenceStep,slotLabel,addPatternSlot,duplicatePatternSlot,deletePatternSlot,type Bank} from './core/bank.js';
 import {makeProject,readProject,localProject} from './audio/project.js';
 import {defaultKitState} from './audio/drum-kit.js';
@@ -71,6 +73,7 @@ function getTrackerStep(): number {
 }
 function settings(){
   const s=defaults(input('genre').value as Genre);
+  s.algorithm=input('algorithm').value as 'groove-v2'|'legacy-v1';s.variation=Number(input('variation').value);
   s.enabledRoles=ROLES.filter(r=>kitPanel.mix[r].include);
   s.breakStyle=input('breakStyle').value as BreakStyle;
   s.seed=input('seed').value;s.bpm=Number(input('bpm').value);s.bars=Number(input('bars').value);
@@ -257,6 +260,7 @@ function selectRows(start:number,end:number,anchor=true){
 }
 function syncControls(){
   const s=editor.state.pattern.settings;
+  input('algorithm').value=s.algorithm??'legacy-v1';input('variation').value=String(s.variation??0);
   for(const [key,value] of Object.entries(s))if(key!=='enabledRoles')input(key).value=String(value);
   for(const r of ROLES)kitPanel.mix[r].include=!s.enabledRoles||s.enabledRoles.includes(r);kitPanel.restore(kitPanel.snapshot());
   presets();
@@ -464,7 +468,9 @@ function presets(){
   breakDescription();
   syncSliders();
   const genre=input('genre').value as Genre;
-  const p=PROFILES[genre];el('genre-description').textContent=p.description??'A seeded rhythm profile with its own kick motif, hat spacing and fills.';const container=el('presets');container.replaceChildren();
+  const isNew=Object.hasOwn(NEW_GENRES,genre);input('algorithm').querySelector<HTMLOptionElement>('[value="legacy-v1"]')!.disabled=isNew;
+  if(isNew&&input('algorithm').value==='legacy-v1')input('algorithm').value='groove-v2';
+  const p=PROFILES[genre];el('genre-description').textContent=p.description??'A repeating motif with '+GROOVES[genre].fillStyle+' fills and instrument-specific groove.';const container=el('presets');container.replaceChildren();
   for(const bpm of p.presets){const button=document.createElement('button');button.textContent=String(bpm);button.onclick=()=>{input('bpm').value=String(bpm);syncSliders();dirty();};container.append(button);}
 }
 function dirty(){scheduleSave();status('Settings changed. Press Generate to apply; the displayed pattern remains the export target.');}
@@ -486,7 +492,7 @@ document.addEventListener('keydown',event=>{
   if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='z'){event.preventDefault();history(event.shiftKey?'redo':'undo');}
   else if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='y'){event.preventDefault();history('redo');}
 });
-el('regenerate').onclick=()=>{input('seed').value=`break-${crypto.getRandomValues(new Uint32Array(1))[0]!.toString(16)}`;build();};
+el('regenerate').onclick=()=>{if(pendingCount()){status('Apply or Revert pending hit edits before generating a variation.',true);return;}edit(()=>editor.variation(),'Related variation generated. Seed, core motif, anchors and locks are retained.');syncControls();};
 el('export-wav').onclick=()=>{
   try{
     if(input('export-target').value==='song'){exportArrangement();return;}
@@ -522,6 +528,7 @@ input('spicy').addEventListener('input',syncSliders);
 el('breakStyle').onchange=()=>{breakDescription();dirty();};
 function restoreGenerationDefaults(){
  const genre=input('genre').value as Genre;
+ input('algorithm').querySelector<HTMLOptionElement>('[value="legacy-v1"]')!.disabled=Object.hasOwn(NEW_GENRES,genre);
  for(const [key,value] of Object.entries(genreDefaults(genre)))input(key).value=String(value);
  const autoKit=document.getElementById('auto-kit') as HTMLInputElement | null;
  if(autoKit&&autoKit.checked){
@@ -536,9 +543,15 @@ el('restore-defaults').onclick=restoreGenerationDefaults;
 el('view').onchange=()=>render();el('genre').onchange=restoreGenerationDefaults;
 for(const control of document.querySelectorAll('#controls input, #controls select'))control.addEventListener('input',dirty);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)stop();});
-for(const [value,profile] of Object.entries(PROFILES)) {
-  const option=document.createElement('option');option.value=value;option.textContent=profile.name;el('genre').append(option);
+for(const family of ['Jungle & DnB','Hip-Hop & Downtempo','Garage','Dub & Bass','Breaks & Rave','Experimental']){
+ const group=document.createElement('optgroup');group.label=family;
+ for(const [value,profile] of Object.entries(PROFILES).sort(([a],[b])=>a==='jungle'?-1:b==='jungle'?1:0)){
+  if(GROOVES[value as Genre].family!==family)continue;
+  const option=document.createElement('option');option.value=value;option.textContent=profile.name;group.append(option);
+ }
+ el('genre').append(group);
 }
+
 for(const [value,preset] of Object.entries(BREAKS)){
   const option=document.createElement('option');option.value=value;option.textContent=preset.name;el('breakStyle').append(option);
 }
@@ -822,6 +835,7 @@ function applyProject(raw:unknown){
   assets.clear();loaded.forEach((a,id)=>assets.set(id,a));kitPanel.restore(p.kit);
   bank=p.bank?structuredClone(p.bank):newBank(p.editor.pattern);slotEditors.clear();
   editor=new Editor(p.editor.pattern);editor.state=structuredClone(p.editor);rowAnchor=0;
+  input('algorithm').value=p.draft.algorithm??'legacy-v1';input('variation').value=String(p.draft.variation??0);
   for(const [key,value] of Object.entries(p.draft))if(key!=='enabledRoles')input(key).value=String(value);
   presets();refresh();return true;
 }
@@ -831,7 +845,7 @@ el('project-open').onchange=async e=>{const field=e.target as HTMLInputElement,f
 };
 el('project-new').onclick=()=>{
   if(!confirm('Start a new project? Save project first to keep your current work.'))return;
-  hitDrafts.clear();stop();samplePanel.stop();assets.clear();bank=undefined;slotEditors.clear();kitPanel.restore(defaultKitState());editor=new Editor(generate(defaults()));syncControls();
+  hitDrafts.clear();stop();samplePanel.stop();assets.clear();bank=undefined;slotEditors.clear();kitPanel.restore(defaultKitState());editor=new Editor(generate(genreDefaults('jungle')));syncControls();
   const genre=input('genre').value as Genre,defaultKitId=GENRE_KITS[genre]||'acoustic-break';
   void kitPanel.applyPreset(defaultKitId);
   const ks=document.getElementById('kit-preset-select') as HTMLSelectElement | null;if(ks)ks.value=defaultKitId;
@@ -1166,15 +1180,15 @@ function initBottomRack(){
 
   const scrambleBtn = document.getElementById('action-scramble');
   if(scrambleBtn){
-    scrambleBtn.onclick = doScramble;
+    scrambleBtn.onclick = e => {e.stopPropagation();doScramble();};
   }
   const mutateBtn = document.getElementById('action-mutate');
   if(mutateBtn){
-    mutateBtn.onclick = doMutate;
+    mutateBtn.onclick = e => {e.stopPropagation();doMutate();};
   }
   const variationBtn = document.getElementById('action-variation');
   if(variationBtn){
-    variationBtn.onclick = doVariation;
+    variationBtn.onclick = e => {e.stopPropagation();doVariation();};
   }
 
   const tabGen = document.getElementById('tab-generator');

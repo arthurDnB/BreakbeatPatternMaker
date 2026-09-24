@@ -389,5 +389,9 @@ export const GENRE_KITS: Record<string, string> = {
   nuskoolbreaks: 'electronic-dance',
   garage: 'uk-garage',
   dubstep: 'uk-garage',
-  two_step: 'uk-garage',
+  twostepgarage:'uk-garage', speedgarage:'uk-garage',
+  downtempo:'lofi-soul', lofihiphop:'lofi-soul', boombap:'studio-acoustic', mellowbeats:'lofi-soul', triphop:'lofi-soul',
+  liquiddnb:'acoustic-break', jumpup:'electronic-dance', drumfunk:'studio-acoustic', amenscience:'acoustic-break',
+  atmosphericbreakcore:'acoustic-break', halftimednb:'electronic-dance', neurofunk:'electronic-dance',
+  dub:'studio-acoustic', psydub:'lofi-soul', brostep:'hardcore-rave', postdubstep:'uk-garage',
 };

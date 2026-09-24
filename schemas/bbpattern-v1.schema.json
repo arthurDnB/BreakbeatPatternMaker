@@ -9,7 +9,7 @@
     "format": {"const":"breakbeat-pattern"}, "version":{"const":1},
     "engineVersion":{"type":"string","minLength":1,"maxLength":32},
     "name":{"type":"string","minLength":1,"maxLength":120},
-    "genre":{"enum":["jungle","dnb","hiphop","trap","rap","drill","breakcore","idm","hardcore","experimental","breaks","bigbeat","nuskoolbreaks","electrobreaks","breakbeathardcore","raggajungle","atmosphericjungle","footworkjungle"]},
+    "genre":{"enum":["jungle","dnb","hiphop","trap","rap","drill","breakcore","idm","hardcore","experimental","breaks","bigbeat","nuskoolbreaks","electrobreaks","breakbeathardcore","raggajungle","atmosphericjungle","footworkjungle","downtempo","lofihiphop","boombap","mellowbeats","liquiddnb","jumpup","garage","speedgarage","twostepgarage","dub","psydub","dubstep","brostep","postdubstep","drumfunk","amenscience","atmosphericbreakcore","triphop","halftimednb","neurofunk"]},
     "seed":{"type":"string","minLength":1,"maxLength":80},
     "timing": {
       "type":"object","additionalProperties":false,

@@ -32,8 +32,8 @@ try{
  const beforeRegenerate=await exported();await page.click('#regenerate');const regenerated=await exported();
  assert.deepEqual(regenerated.notes.filter(n=>n.lane==='kick'),beforeRegenerate.notes.filter(n=>n.lane==='kick'));
  await page.click('#undo');assert.deepEqual(await exported(),beforeRegenerate);
- // A locked snare lane makes a selected fill a no-op.
- await page.check('#lock-snare');await page.click('#select-ending');const beforeBlocked=await exported();
+ // Genre fills can use several lanes; locking every lane makes a fill a no-op.
+ await page.check('#lock-snare');await page.check('#lock-hat');await page.check('#lock-percussion');await page.click('#select-ending');const beforeBlocked=await exported();
  await page.click('#fill');assert.match(await page.locator('#status').textContent(),/No editable/);assert.deepEqual(await exported(),beforeBlocked);
  await page.uncheck('#lock-snare');
  // Ctrl+Z belongs to the editor outside text controls.

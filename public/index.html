@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Breakbeat Pattern Maker</title><link rel="stylesheet" href="./public/style.css?v=0.2.0-phase4"><link rel="stylesheet" href="./public/workspace.css?v=0.2.0-phase4"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Breakbeat Pattern Maker</title><link rel="stylesheet" href="./public/style.css?v=0.2.0-grooves"><link rel="stylesheet" href="./public/workspace.css?v=0.2.0-grooves"></head>
 <body><main class="daw-chassis">
 
 <!-- Coherent Modern Studio Title Bar -->
@@ -250,7 +250,8 @@
         <label>Spicy 🌶️ <output id="spicy-value" for="spicy">0%</output><input id="spicy" type="range" min="0" max="1" step=".01" value="0"><small>Rolls &amp; chaos</small></label>
         <label>Bars<select id="bars"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label>
       </div>
-      <details id="advanced-generation"><summary>Advanced generation</summary><div class="advanced"><label>Break<select id="breakStyle"><option value="genre">Genre default</option></select><small id="break-description">Use the selected genre’s rhythm.</small><small>Rhythm presets · synthesized kit, not original recordings</small></label><label>Resolution<select id="resolution"><option value="8">1/8</option><option value="16" selected>1/16</option><option value="32">1/32</option><option value="64">1/64</option></select></label><label>Seed<input id="seed" value="break-042" maxlength="80"></label>
+      <details id="advanced-generation"><summary>Advanced generation</summary><div class="advanced"><label>Break<select id="breakStyle"><option value="genre">Genre default</option></select><small id="break-description">Use the selected genre’s rhythm.</small><small>Rhythm presets · synthesized kit, not original recordings</small></label><label>Resolution<select id="resolution"><option value="8">1/8</option><option value="16" selected>1/16</option><option value="32">1/32</option><option value="64">1/64</option></select></label><label>Engine<select id="algorithm"><option value="groove-v2">Groove v2</option><option value="legacy-v1">Legacy v1 (older seeds)</option></select></label><input id="variation" type="hidden" value="0">
+      <label>Seed<input id="seed" value="break-042" maxlength="80"></label>
 
       <label>Syncopation<input id="syncopation" type="number" min="0" max="1" step=".05" value=".4"></label>
       <label>Swing ratio<input id="swing" type="number" min=".5" max=".67" step=".01" value=".50"><small>.50 = straight; .60 = swung 16ths</small></label>
@@ -327,4 +328,4 @@
   </div>
   <p class="footer-note" hidden>Single-shot tracker · Audio stays local. Save project includes your samples and settings; autosave restores your latest workspace on this browser. WAV includes tails; muted lanes are excluded. Pitch repitches the sound. MP3 export remains planned.</p>
 </footer>
-</main><script type="module" src="./dist/web.js?v=0.2.0-phase4"></script></body></html>
+</main><script type="module" src="./dist/web.js?v=0.2.0-grooves"></script></body></html>

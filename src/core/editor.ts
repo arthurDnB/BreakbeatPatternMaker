@@ -1,3 +1,6 @@
+import {generate} from './generate.js';
+import {grooveFill,grooveTiming} from './groove.js';
+import {GROOVES} from './groove-profiles.js';
 import {compile} from './compile.js';
 import {random} from './random.js';
 import {PPQ, ROLES, type Pattern, type Role, type Hit} from './model.js';
@@ -37,7 +40,7 @@ export class Editor {
     next.lockedIds=all?next.lockedIds.filter(id=>!ids.has(id)):[...new Set([...next.lockedIds,...ids])];
     return this.commit(next,all?'Unlock selected hits':'Lock selected hits');
   }
-  replace(pattern:Pattern){
+  replace(pattern:Pattern,label='Generate'){
     const next=copy(this.state),old=next.pattern;
     const hasLocks=next.lockedIds.length>0||next.lockedRoles.length>0;
     if(hasLocks&&(['bars','bpm','resolution'] as const).some(key=>old.settings[key]!==pattern.settings[key]))throw Error('Unlock hits and drum lanes before changing BPM, bars or resolution.');
@@ -48,7 +51,14 @@ export class Editor {
     next.pattern.events=next.pattern.events.filter(h=>!next.lockedRoles.includes(h.role)&&!preservedIds.has(h.id)&&!kept.some(k=>k.role===h.role&&k.baseTick===h.baseTick)).concat(kept);
     next.pattern.events.sort((a,b)=>a.baseTick-b.baseTick||ROLES.indexOf(a.role)-ROLES.indexOf(b.role));
     next.selection=emptySelection();next.revision++;
-    return this.commit(next,'Generate');
+    return this.commit(next,label);
+  }
+  variation(){
+    const original=this.state.pattern;
+    const next=generate({...original.settings,algorithm:'groove-v2',variation:(original.settings.variation??0)+1});
+    const anchors=original.events.filter(h=>h.anchor||(h.role==='kick'&&h.gain>=.7));
+    next.events=next.events.filter(h=>!h.anchor&&!(h.role==='kick'&&h.gain>=.7)&&!anchors.some(a=>a.id===h.id||(a.role===h.role&&a.baseTick===h.baseTick))).concat(copy(anchors));
+    return this.replace(next,'Generate variation');
   }
   write(hit:Hit,replaceId?:string){
     const next=copy(this.state),prior=next.pattern.events.find(h=>h.id===replaceId);
@@ -75,11 +85,16 @@ export class Editor {
     for(let i=eligible.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[eligible[i],eligible[j]]=[eligible[j]!,eligible[i]!];}
     for(const hit of eligible.slice(0,Math.max(1,Math.ceil(eligible.length*.2)))){
       const step=PPQ*4/next.pattern.settings.resolution;
-      const target=hit.baseTick+(rng()<.5?-step:step);
+      let target=hit.baseTick+(rng()<.5?-step:step);
+      if(next.pattern.settings.algorithm==='groove-v2'){
+        const rule=GROOVES[next.pattern.settings.genre],origin=Math.floor(hit.baseTick/(4*PPQ))*4*PPQ;
+        const choices=(hit.role==='kick'?rule.kickExtras:hit.role==='snare'?rule.response:[1,3,5,7,9,11,13,15]).map(n=>origin+Math.round(n*240/step)*step).filter(t=>t!==hit.baseTick&&Math.abs(t-hit.baseTick)<=step*2);
+        target=choices.length?choices[Math.floor(rng()*choices.length)]!:hit.baseTick;
+      }
       const row=Math.floor(Math.max(0,Math.round((target+hit.offsetTick)/step*256))/256);
       const range=next.selection.rows;
       if(rng()<.65&&target>=0&&target<next.pattern.settings.bars*PPQ*4&&(!range||(row>=range[0]&&row<=range[1]))&&!next.pattern.events.some(e=>e.id!==hit.id&&e.role===hit.role&&e.baseTick===target)){
-        hit.baseTick=target;hit.reason='This variation moves an ornament to a neighboring subdivision while retaining the main backbeat.';
+        hit.baseTick=target;if(next.pattern.settings.algorithm==='groove-v2')grooveTiming(hit,next.pattern.settings);if(range)hit.offsetTick=Math.max(range[0]*step-hit.baseTick,Math.min((range[1]+1)*step-1-hit.baseTick,hit.offsetTick));hit.reason='This variation moves an ornament to a neighboring subdivision while retaining the main backbeat.';
       }else{
         hit.gain=Math.round(Math.max(.08,Math.min(hit.ghost?.35:.85,hit.gain+(hit.gain>(hit.ghost?.27:.55)?-.12:.12)))*10000)/10000;
         hit.reason=hit.ghost?'This ghost snare has a revised quiet accent; the main backbeat stays in place.':'This variation changes the accent strength while preserving the rhythm.';
@@ -115,6 +130,23 @@ export class Editor {
   fill(){
     const next=copy(this.state),range=next.selection.rows;
     if(!range)throw Error('Select an ending using row numbers or Select last beat.');
+    if(next.pattern.settings.algorithm==='groove-v2'){
+      const step=PPQ*4/next.pattern.settings.resolution,start=range[0]*step,end=(range[1]+1)*step;
+      const additions=grooveFill({...next.pattern.settings,variation:next.revision},start,end);
+      let changed=false;
+      for(const hit of additions){
+        if(next.lockedRoles.includes(hit.role))continue;
+        const occupied=next.pattern.events.filter(h=>h.role===hit.role&&Math.abs(h.baseTick+h.offsetTick-hit.baseTick-hit.offsetTick)<step*.5);
+        if(occupied.some(h=>h.anchor||locked(next,h)||h.baseTick+h.offsetTick<start||h.baseTick+h.offsetTick>=end))continue;
+        next.pattern.events=next.pattern.events.filter(h=>!occupied.includes(h));
+        // Timing moves can leave an existing ID at a different position.
+        hit.id='fill-'+next.revision+'-'+hit.id;while(next.pattern.events.some(h=>h.id===hit.id))hit.id+='x';
+        next.pattern.events.push(hit);changed=true;
+      }
+      if(!changed)return false;
+      next.pattern.events.sort((a,b)=>a.baseTick-b.baseTick||ROLES.indexOf(a.role)-ROLES.indexOf(b.role));
+      next.selection.ids=[];next.revision++;return this.commit(next,'Generate genre fill');
+    }
     if(next.pattern.settings.enabledRoles&&!next.pattern.settings.enabledRoles.includes('snare'))throw Error('Snare is excluded from this pattern. Include it and Generate before adding a fill.');
     if(next.lockedRoles.includes('snare'))return false;
     const step=PPQ*4/next.pattern.settings.resolution;

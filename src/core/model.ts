@@ -2,9 +2,11 @@ export const ENGINE_VERSION = '0.1.0';
 export const PPQ = 960;
 export const ROLES = ['kick', 'snare', 'hat', 'percussion'] as const;
 export type Role = typeof ROLES[number];
-export type Genre = 'jungle' | 'dnb' | 'hiphop' | 'trap' | 'rap' | 'drill' | 'breakcore' | 'idm' | 'hardcore' | 'experimental' | 'breaks' | 'bigbeat' | 'nuskoolbreaks' | 'electrobreaks' | 'breakbeathardcore' | 'raggajungle' | 'atmosphericjungle' | 'footworkjungle';
+export type Genre = 'jungle' | 'dnb' | 'hiphop' | 'trap' | 'rap' | 'drill' | 'breakcore' | 'idm' | 'hardcore' | 'experimental' | 'breaks' | 'bigbeat' | 'nuskoolbreaks' | 'electrobreaks' | 'breakbeathardcore' | 'raggajungle' | 'atmosphericjungle' | 'footworkjungle' | 'downtempo' | 'lofihiphop' | 'boombap' | 'mellowbeats' | 'liquiddnb' | 'jumpup' | 'garage' | 'speedgarage' | 'twostepgarage' | 'dub' | 'psydub' | 'dubstep' | 'brostep' | 'postdubstep' | 'drumfunk' | 'amenscience' | 'atmosphericbreakcore' | 'triphop' | 'halftimednb' | 'neurofunk';
 export type BreakStyle = 'genre' | 'amen' | 'think' | 'apache' | 'funkyDrummer' | 'hotPants';
 export interface Settings {
+  algorithm?: 'legacy-v1' | 'groove-v2';
+  variation?: number;
   breakStyle?: BreakStyle;
   enabledRoles?: Role[];
   genre: Genre; seed: string; bpm: number; bars: number;
