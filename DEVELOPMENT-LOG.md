@@ -25,8 +25,8 @@ This document maintains the running project state and change log so that multipl
 
 ## 📌 Current Project Status
 
-* **Version:** `0.1.0`
-* **Test Status:** 52 / 52 unit tests passing (`npm test`).
+* **Version:** `0.2.0-alpha`
+* **Test Status:** 54 / 54 unit tests passing (`npm test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -39,6 +39,9 @@ This document maintains the running project state and change log so that multipl
 * [x] **Phase 1 (Complete):** Tracker-first workspace layout, sticky transport, contextual inspector, pattern bank tabs.
 * [x] **Phase 2 (Complete):** Editing clarity, pending draft state, pitch slider gesture undo grouping, hit articulation (ratchets & gates).
 * [x] **Phase 3 (Complete):** Simplified sound selection, 32 CC0 bundled sample catalog, compact routing/effects indicators.
+* [x] **Milestone 1 (Complete):** Unlimited dynamic pattern bank engine (`+ New`, `⧉ Dup`, `✕ Delete`).
+* [x] **Milestone 2 (Complete):** Renoise 3-tray retractable layout shell with persistable left/right/bottom drawers.
+* [x] **Milestone 4 (Complete):** Tracker track mixer strips with Solo (S) switches, inline volume faders, and peak meters.
 * [ ] **Phase 4 (Next Priority):** 
   - Unified song arrangement & export presentation.
   - Make transport explicitly aware of playback target (Pattern vs. Song).
@@ -49,6 +52,21 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-09-24] - Milestone 4: Tracker Track Mixer Strips & Solo Engine (Antigravity)
+- **Track Mixer Strips (`src/web.ts`, `public/workspace.css`):**
+  - Upgraded tracker column headers (`th.track-col-header`) into tactile Renoise-inspired mixer channel strips.
+  - Added Solo (`S`) button (`.track-header-solo`) next to Mute (`M`) with glowing amber/gold indicator state (`.is-soloed`).
+  - Added inline volume fader (`.track-header-fader`) and numerical percentage readout (`.track-header-vol`) directly on the header, synchronized bi-directionally with the Instrument Rack sliders.
+  - Added real-time peak activity meter (`.track-header-meter`, `.track-meter-bar`) that lights up with velocity-scaled levels during pattern playback, auditions, and inspector previews with smooth exponential decay.
+- **Solo Audio Engine (`src/audio/drum-kit.ts`, `src/audio/project.ts`):**
+  - Added `solo?: boolean` to `KitSlot` and `defaultKitState`.
+  - Updated `withDrumKit` audio filter: when any track has Solo active, only soloed (and non-muted) tracks are rendered in playback and audio export.
+  - Added `kit-solo-[role]` control to Instrument Rack cards and synchronized with tracker headers.
+  - Preserved backward-compatible project validation in `readProject`.
+  - Added live pattern mix re-rendering on cycle boundaries so volume, mute, and solo changes reflect instantly during continuous playback.
+- **Verification:**
+  - 54/54 unit tests passing (+1 unit test covering solo isolation, multi-solo, and solo+mute interactions).
 
 ### [2026-09-24] - Milestone 1: Dynamic Multi-Pattern Bank Engine & Actions (Antigravity)
 - **Unlimited Pattern Engine (`src/core/bank.ts`, `src/web.ts`, `public/workspace.css`):**

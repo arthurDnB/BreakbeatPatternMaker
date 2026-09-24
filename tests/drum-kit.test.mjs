@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {withDrumKit} from '../dist/audio/drum-kit.js';import {generate} from '../dist/core/generate.js';import {defaults} from '../dist/core/profiles.js';import {renderPerformance} from '../dist/audio/performance.js';
+import {withDrumKit,defaultKitState} from '../dist/audio/drum-kit.js';import {generate} from '../dist/core/generate.js';import {defaults} from '../dist/core/profiles.js';import {renderPerformance} from '../dist/audio/performance.js';
 test('kit selection maps lane hits and ghosts without mutating notes or replacing explicit slices',()=>{
  const p=generate({...defaults(),ghostAmount:1}),before=structuredClone(p);
  const ref={assetId:'snare-test',startFrame:0,endFrame:100,sampleRate:44100,label:'Custom snare'};
@@ -14,4 +14,18 @@ test('uploaded single hit is the PCM source for the renderer and inactive slots 
  const ref={assetId:asset.id,startFrame:0,endFrame:100,sampleRate:44100,label:'Kick'};
  const audio=renderPerformance(withDrumKit(p,{kick:ref}),new Map([[asset.id,asset]]));assert.equal(audio.channels[0][10],.25);assert.equal(audio.channels[0][110],0);
  assert.notEqual(renderPerformance(withDrumKit(p,{}),new Map()).channels[0][10],.25);
+});
+test('solo isolates selected lane audio in mix and honors mute',()=>{
+ const p=generate(defaults()),kit=defaultKitState();
+ assert.ok(p.events.some(h=>h.role==='snare')&&p.events.some(h=>h.role==='kick'));
+ kit.snare.solo=true;
+ const soloSnare=withDrumKit(p,{},kit);
+ assert.ok(soloSnare.events.length>0);
+ assert.ok(soloSnare.events.every(h=>h.role==='snare'));
+ kit.kick.solo=true;
+ const soloSnareKick=withDrumKit(p,{},kit);
+ assert.ok(soloSnareKick.events.every(h=>h.role==='snare'||h.role==='kick'));
+ kit.snare.mute=true;
+ const mutedSolo=withDrumKit(p,{},kit);
+ assert.ok(mutedSolo.events.every(h=>h.role==='kick'));
 });
