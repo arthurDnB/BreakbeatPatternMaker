@@ -13,7 +13,7 @@ const genres=Object.keys(PROFILES);
 test('groove v2: all 38 genres deterministic and bounded across seeds, grids and extreme controls',()=>{
  assert.equal(genres.length,38);
  for(const genre of genres)for(const resolution of [8,16,32,64])for(let seed=0;seed<8;seed++){
-  const s={...genreDefaults(genre),bars:4,resolution,seed:'qa-'+seed,complexity:seed%2,spicy:seed%2,swing:.67,humanizeMs:10};
+  const s={...genreDefaults(genre), algorithm:'groove-v2', bars:4,resolution,seed:'qa-'+seed,complexity:seed%2,spicy:seed%2,swing:.67,humanizeMs:10};
   const before=structuredClone(s),p=generate(s);
   assert.deepEqual(p,generate(s));assert.deepEqual(s,before);assert.equal(p.engineVersion,'0.2.0-groove.1');
   const t=compile(p);assert.equal(t.notes.length,p.events.length);assert.equal(t.warnings.length,0);
@@ -28,7 +28,7 @@ test('groove v2: all 38 genres deterministic and bounded across seeds, grids and
 });
 
 test('genre grammar: one-drop, four-floor, two-step, half-time and atmospheric space differ',()=>{
- const p=(genre,bars=1)=>generate({...genreDefaults(genre),seed:'grammar',bars,complexity:0,syncopation:0,ghostAmount:0,fillAmount:0,spicy:0});
+ const p=(genre,bars=1)=>generate({...genreDefaults(genre), algorithm:'groove-v2', seed:'grammar',bars,complexity:0,syncopation:0,ghostAmount:0,fillAmount:0,spicy:0});
  assert.equal(p('dub').events.some(h=>h.role==='kick'&&h.baseTick===0),false);
  assert.ok(p('dub').events.some(h=>h.anchor&&h.role==='kick'&&h.baseTick===1920));
  for(const genre of ['garage','speedgarage','hardcore'])assert.deepEqual(p(genre).events.filter(h=>h.role==='kick'&&h.anchor).map(h=>h.baseTick),[0,960,1920,2880]);
@@ -41,7 +41,7 @@ test('genre grammar: one-drop, four-floor, two-step, half-time and atmospheric s
 
 test('groove complexity preserves anchors and ghost amount has independent kick and hat streams',()=>{
  for(const genre of genres){
-  const s={...genreDefaults(genre),fillAmount:0,spicy:0};
+  const s={...genreDefaults(genre), algorithm:'groove-v2', fillAmount:0,spicy:0};
   const low=generate({...s,complexity:0}),high=generate({...s,complexity:1});
   assert.deepEqual(low.events.filter(h=>h.anchor),high.events.filter(h=>h.anchor),genre);
   assert.ok(high.events.length>=low.events.length,genre);
@@ -53,7 +53,7 @@ test('groove complexity preserves anchors and ghost amount has independent kick 
 test('every groove differs at matched tempo and has audible, finite output',()=>{
  const signatures=new Set();
  for(const genre of genres){
-  const p=generate({...genreDefaults(genre),bpm:150,bars:1,seed:'sound-check'});
+  const p=generate({...genreDefaults(genre), algorithm:'groove-v2', bpm:150,bars:1,seed:'sound-check'});
   signatures.add(JSON.stringify(p.events.map(h=>[h.role,h.baseTick,h.offsetTick,h.gain,h.ratchets])));
   const audio=renderPerformance(p,new Map(),8000);let peak=0;
   for(const ch of audio.channels)for(const v of ch){assert.ok(Number.isFinite(v)&&Math.abs(v)<=1);peak=Math.max(peak,Math.abs(v));}
@@ -64,7 +64,7 @@ test('every groove differs at matched tempo and has audible, finite output',()=>
 
 test('genre fill and mutation respect selection, exclusions, exact locks and undo/redo',()=>{
  for(const genre of genres){
-  const editor=new Editor(generate({...genreDefaults(genre),bars:2,enabledRoles:['kick','snare','hat']}));
+  const editor=new Editor(generate({...genreDefaults(genre), algorithm:'groove-v2', bars:2,enabledRoles:['kick','snare','hat']}));
   const last=editor.state.pattern.settings.resolution*2-1;
   editor.state.selection.rows=[last-3,last];editor.state.lockedRoles=['kick'];
   editor.state.lockedIds=[editor.state.pattern.events.find(h=>h.role==='snare').id];
@@ -84,7 +84,7 @@ test('genre fill and mutation respect selection, exclusions, exact locks and und
 
 test('related variations develop motifs, keep anchors, exclusions and locks while preserving seed and history',()=>{
  for(const genre of genres){
-  const e=new Editor(generate({...genreDefaults(genre),complexity:.8,enabledRoles:['kick','snare','hat']}));
+  const e=new Editor(generate({...genreDefaults(genre), algorithm:'groove-v2', complexity:.8,enabledRoles:['kick','snare','hat']}));
   e.state.lockedRoles=['hat'];const before=structuredClone(e.state);
   e.variation();
   assert.equal(e.state.pattern.settings.seed,before.pattern.settings.seed);
@@ -96,23 +96,23 @@ test('related variations develop motifs, keep anchors, exclusions and locks whil
 });
 
 test('engine and variation survive project roundtrip; legacy settings remain reproducible',()=>{
- const e=new Editor(generate(genreDefaults('amenscience')));e.variation();
+ const e=new Editor(generate({...genreDefaults('amenscience'), algorithm:'groove-v2'}));e.variation();
  const project=makeProject(e.state,e.state.pattern.settings,defaultKitState(),new Map());
  const restored=readProject(JSON.parse(JSON.stringify(project))).project;
  assert.deepEqual(restored.editor,e.state);assert.deepEqual(generate(restored.draft),generate(e.state.pattern.settings));
  assert.equal(generate(defaults()).engineVersion,'0.1.0');
  assert.throws(()=>validateSettings({...defaults(),algorithm:'unknown'}),/engine/);
  assert.throws(()=>validateSettings({...defaults(),variation:-1}),/variation/);
- assert.throws(()=>generate({...genreDefaults('dub'),algorithm:'legacy-v1'}),/requires Groove/);
+ assert.throws(()=>generate({...genreDefaults('dub'), algorithm:'legacy-v1'}),/requires Groove/);
 });
 
 
 test('variation handles moved primary hits without duplicate IDs; fill leaves adjacent outside hits intact',()=>{
- const e=new Editor(generate({...genreDefaults('jungle'),complexity:1,bars:2}));
+ const e=new Editor(generate({...genreDefaults('jungle'), complexity:1,bars:2}));
  const kick=e.state.pattern.events.find(h=>h.role==='kick'&&h.anchor);
  e.write({...kick,baseTick:kick.baseTick+60},kick.id);
  e.variation();assert.deepEqual(e.state.pattern.events.find(h=>h.id===kick.id),{...kick,baseTick:kick.baseTick+60});compile(e.state.pattern);
- const f=new Editor(generate({...genreDefaults('brostep'),resolution:16,bars:1}));
+ const f=new Editor(generate({...genreDefaults('brostep'), resolution:16,bars:1}));
  const outside={id:'outside-selection',role:'snare',sourceId:'kit.snare',baseTick:2879,offsetTick:0,gain:.2,pan:0,anchor:false,ghost:true,reason:'Outside selected ending.'};
  f.write(outside);f.state.selection={ids:[],rows:[12,15]};f.fill();
  assert.deepEqual(f.state.pattern.events.find(h=>h.id===outside.id),outside);

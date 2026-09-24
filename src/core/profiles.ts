@@ -79,5 +79,5 @@ export function genreDefaults(genre:Genre):Settings {
     neurofunk:{complexity:.6,syncopation:.55,ghostAmount:.3,fillAmount:.5,spicy:.4,resolution:32},
     footworkjungle:{complexity:.7,resolution:32,syncopation:.7,ghostAmount:.35,fillAmount:.6,spicy:.6}
   };
-  return {...base,...overrides[genre],algorithm:'groove-v2',variation:0,bpm:profile.bpm,swing:profile.swing};
+  return {...base,...overrides[genre],algorithm:'groove-v3',variation:0,bpm:profile.bpm,swing:profile.swing};
 }

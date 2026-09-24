@@ -63,6 +63,10 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-25] - Default to Audio Engine 3 (Antigravity)
+- **UI and Core Defaults:** Set `groove-v3` as the default engine in `src/core/profiles.ts` and `public/index.html`. 
+- **Tests Updated:** Updated V2-specific determinism tests in `tests/groove.test.mjs` to explicitly request `groove-v2` so they don't break when checking the old output.
+
 ### [2026-09-25] - Liquid DnB Master Anchoring (Antigravity)
 - **Audio Engine Updates (`src/core/groove-v3-profiles.ts`):**
   - Following deep reference analysis of `dracodraco - freefall.mp3` (~161 BPM), updated the `liquiddnb` profile for maximum genre authenticity.
