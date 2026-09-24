@@ -57,6 +57,27 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-24] - Single-Screen Viewport DAW Chassis & Empty Space Elimination (Antigravity)
+* **Single-Screen 100dvh DAW Architecture (`public/workspace.css`):**
+  * Locked workstation chassis to `100dvh` on desktop displays ($\ge 650\text{px}$ height and $\ge 801\text{px}$ width) with `overflow: hidden` on body and chassis.
+  * Anchored Transport and Studio Header at the top (`flex-shrink: 0`) and docked Bottom Rack at the bottom (`flex-shrink: 0`).
+  * Converted Center Workspace (`#grid`) to a dynamic flex-grow container (`flex: 1 1 0; overflow-y: auto;`) with its own dedicated scrollbar, eliminating window-level page scrolling and preventing the Bottom Rack from getting pushed off-screen.
+* **Balanced Symmetric 6-Item Generator Strip (`public/index.html`, `public/workspace.css`):**
+  * Reordered generation controls into logical functional groups: Preset & Kit Configuration (`Genre`, `Drum Kit`, `Bars`) and Realtime Groove Tweaks (`BPM`, `Complexity`, `Spicy`).
+  * On wide displays ($\ge 1101\text{px}$), all 6 controls fit on a single sleek line with zero wrapping.
+  * On standard/medium displays ($\le 1100\text{px}$), controls neatly form a balanced 3-column × 2-row grid, completely eliminating the broken 4-column overflow and orphaned second-row blank spaces.
+* **Left Tray Session HUD & Dead Void Elimination (`public/index.html`, `public/workspace.css`, `src/web.ts`):**
+  * Added a sleek **Live Status HUD** at the bottom of the Left Tray displaying active pattern name, bar length, tempo, selected drum kit name, channel count, and quick keyboard shortcuts (`Space: Play`, `Z-M: Notes`, `1-9: Vol`).
+  * Updated `syncHud()` in `src/web.ts` to automatically refresh side HUD fields alongside transport updates.
+  * Stretched `.daw-tray-left` cleanly to match studio row height, eliminating the ~440px empty black void under the pattern bank.
+* **Flush Rack Body & Compact Tab Alignment (`public/workspace.css`):**
+  * Removed redundant top/bottom margins and padding between `.tray-rack-tabs` and `.tray-body`, allowing Beat Generator controls to sit flush under active rack tabs.
+  * Added `.tray-rack-tabs` to `.tray-bottom-collapsed` so the bottom tray collapses neatly to 28px when toggled.
+* **Testing & Verification:**
+  * Verified 66/66 unit tests pass (`npm.cmd test`).
+  * Verified full site build and Playwright test suite passes across root and subfolder mounts (`npm.cmd run test:site`).
+  * Verified layout across multiple viewports ($1440 \times 900$, $1366 \times 768$, $1024 \times 600$) with `scripts/layout-browser-smoke.mjs`.
+
 ### [2026-09-24] - Integration of 188 Personal UDNB Drum Hits & Dedicated Kit Presets (Antigravity)
 * **188 Personal Drum Hits Added (`Drums/`, `public/samples/`):**
   * Integrated user's personal drum collection: 24 kicks, 27 snares, 55 hi-hats, and 82 percussion hits (188 WAV files, 26.4 MB).

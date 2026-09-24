@@ -101,6 +101,22 @@
         <p id="song-position" role="status">Song stopped</p>
         <div id="sequence"></div><div class="actions"><select id="append-slot" aria-label="Pattern to append"></select><button id="append-step">Add pattern</button><button id="play-arrangement">Play arrangement</button><button id="export-arrangement">Export arrangement WAV</button></div><p id="arrangement-info"></p>
       </details>
+
+      <div class="tray-session-hud" id="tray-session-hud" aria-label="Live session status">
+        <div class="hud-header">
+          <span class="hud-dot"></span>
+          <span class="hud-title">LIVE STATUS</span>
+        </div>
+        <div class="hud-grid">
+          <div class="hud-item"><span class="hud-lbl">PATTERN</span><span class="hud-val" id="hud-pattern-name">A (2 Bars)</span></div>
+          <div class="hud-item"><span class="hud-lbl">TEMPO</span><span class="hud-val" id="hud-tempo-val">165.0 BPM</span></div>
+          <div class="hud-item"><span class="hud-lbl">KIT</span><span class="hud-val" id="hud-kit-name">Custom Kit</span></div>
+          <div class="hud-item"><span class="hud-lbl">TRACKS</span><span class="hud-val" id="hud-tracks-val">4 Channels</span></div>
+        </div>
+        <div class="hud-keys">
+          <span class="key-tag">Space</span> Play · <span class="key-tag">Z–M</span> Notes · <span class="key-tag">1–9</span> Vol
+        </div>
+      </div>
     </div>
   </aside>
 
@@ -245,11 +261,11 @@
     <section id="controls" class="daw-controls" aria-label="Generation controls">
       <div class="primary">
         <label>Genre<select id="genre"></select><small id="genre-description"></small></label>
+        <label>Drum Kit<select id="generator-kit-select"><option value="custom">Custom Kit</option></select><small id="generator-kit-desc">Kit sounds</small></label>
+        <label class="control-bars">Bars<select id="bars"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label>
         <div class="tempo-control"><label for="bpm-slider">BPM</label><input id="bpm-slider" aria-label="BPM slider" type="range" min="32" max="300" step=".1" value="165"><input aria-label="Exact BPM" id="bpm" type="number" min="32" max="999" step=".1" value="165"><span id="presets" class="presets"></span></div>
         <label>Complexity <output id="complexity-value" for="complexity">45%</output><input id="complexity" type="range" min="0" max="1" step=".01" value=".45"><small>Simple to detailed</small></label>
         <label>Spicy 🌶️ <output id="spicy-value" for="spicy">0%</output><input id="spicy" type="range" min="0" max="1" step=".01" value="0"><small>Rolls &amp; chaos</small></label>
-        <label>Bars<select id="bars"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label>
-        <label>Drum Kit<select id="generator-kit-select"><option value="custom">Custom Kit</option></select><small id="generator-kit-desc">Kit sounds</small></label>
       </div>
       <details id="advanced-generation"><summary>Advanced generation</summary><div class="advanced"><label>Break<select id="breakStyle"><option value="genre">Genre default</option></select><small id="break-description">Use the selected genre’s rhythm.</small><small>Rhythm presets · synthesized kit, not original recordings</small></label><label>Resolution<select id="resolution"><option value="8">1/8</option><option value="16" selected>1/16</option><option value="32">1/32</option><option value="64">1/64</option></select></label><label>Engine<select id="algorithm"><option value="groove-v2">Groove v2</option><option value="legacy-v1">Legacy v1 (older seeds)</option></select></label><input id="variation" type="hidden" value="0">
       <label>Seed<input id="seed" value="break-042" maxlength="80"></label>

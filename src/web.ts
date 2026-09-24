@@ -46,6 +46,21 @@ function syncHud() {
     const bars=input('transport-target').value==='song' && bank ? bank.sequence.reduce((n,s)=>n+bank!.slots[s.slot]!.editor!.pattern.settings.bars*s.repeats,0) : pattern.settings.bars;
     barsVal.textContent = `${bars} BAR${bars !== 1 ? 'S' : ''}`;
   }
+  const sidePattern = document.getElementById('hud-pattern-name');
+  if (sidePattern && bank) {
+    const slot = bank.slots[bank.active];
+    sidePattern.textContent = `${slot?.name ?? 'A'} (${pattern?.settings.bars ?? 2} Bars)`;
+  }
+  const sideTempo = document.getElementById('hud-tempo-val');
+  if (sideTempo) {
+    sideTempo.textContent = `${(pattern?.settings.bpm ?? Number(input('bpm').value)).toFixed(1)} BPM`;
+  }
+  const sideKit = document.getElementById('hud-kit-name');
+  if (sideKit) {
+    const kitSelect = document.getElementById('generator-kit-select') as HTMLSelectElement | null;
+    const txt = kitSelect?.selectedOptions[0]?.text?.replace(/^[^\w\s]+/, '')?.trim() ?? 'Custom Kit';
+    sideKit.textContent = txt.length > 16 ? txt.slice(0, 14) + '…' : txt;
+  }
 }
 function updateHudPosition(row: number) {
   const posVal = document.getElementById('hud-pos-val');

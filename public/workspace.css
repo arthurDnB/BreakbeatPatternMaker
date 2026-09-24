@@ -62,12 +62,89 @@ body {
 }
 
 /* --------------------------------------------------------------------------
-   2. Main Container (Chassis)
+   2. Main Container (Chassis) & Single-Screen Viewport Lock
    -------------------------------------------------------------------------- */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 main.daw-chassis {
   max-width: 1720px;
   margin: 0 auto;
   padding: 4px 12px 16px;
+  box-sizing: border-box;
+}
+
+@media (min-height: 650px) and (min-width: 801px) {
+  html, body {
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+  main.daw-chassis {
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    padding: 3px 10px 4px;
+    overflow: hidden;
+  }
+  .app-header.tracker-header,
+  .transport {
+    flex-shrink: 0;
+  }
+  .studio-layout {
+    flex: 1 1 0;
+    min-height: 0;
+    margin-top: 3px;
+    align-items: stretch;
+  }
+  .daw-tray-left,
+  .daw-tray-right {
+    height: 100%;
+    min-height: 0;
+    max-height: 100%;
+  }
+  .daw-tray-left .tray-body,
+  .daw-tray-right .tray-body {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+  }
+  .daw-stage-center,
+  .workspace {
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .workspace .grid-heading,
+  .legend,
+  .tracker-live-bar,
+  .editor-tools {
+    flex-shrink: 0;
+  }
+  .workspace #grid {
+    flex: 1 1 0;
+    min-height: 100px;
+    height: auto !important;
+    max-height: none !important;
+    overflow-y: auto;
+  }
+  .daw-tray-bottom {
+    flex-shrink: 0;
+    margin: 4px 0 0 0;
+  }
+  footer.daw-footer {
+    flex-shrink: 0;
+  }
+  .footer-status-bar {
+    padding: 2px 6px;
+  }
 }
 
 /* --------------------------------------------------------------------------
@@ -505,7 +582,7 @@ main.daw-chassis {
 
 .primary {
   display: grid;
-  grid-template-columns: minmax(130px, 1.2fr) minmax(210px, 1.4fr) minmax(110px, 1fr) minmax(110px, 1fr) 70px;
+  grid-template-columns: minmax(130px, 1.15fr) minmax(140px, 1.15fr) 60px minmax(170px, 1.3fr) minmax(110px, 1fr) minmax(110px, 1fr);
   align-items: center;
   gap: 8px;
 }
@@ -517,6 +594,11 @@ main.daw-chassis {
   font-weight: 600;
   color: var(--text-muted);
   gap: 2px;
+  min-width: 0;
+}
+
+.primary label.control-bars {
+  max-width: 70px;
 }
 
 .primary select,
@@ -861,6 +943,73 @@ input[type=range]::-webkit-slider-thumb:hover {
   color: var(--accent-purple);
 }
 
+/* Session HUD at bottom of Left Tray */
+.tray-session-hud {
+  margin-top: auto;
+  padding: 8px 10px;
+  background: var(--bg-inset);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.tray-session-hud .hud-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.tray-session-hud .hud-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent-cyan);
+  box-shadow: 0 0 5px var(--accent-cyan);
+}
+.tray-session-hud .hud-title {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  color: var(--text-muted);
+}
+.tray-session-hud .hud-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 6px;
+}
+.tray-session-hud .hud-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.tray-session-hud .hud-lbl {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.tray-session-hud .hud-val {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-blue);
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tray-session-hud .hud-keys {
+  font-size: 9.5px;
+  color: var(--text-dim);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 4px;
+  margin-top: 2px;
+}
+.tray-session-hud .key-tag {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
 /* Center Stage */
 .daw-stage-center {
   min-width: 0;
@@ -887,19 +1036,20 @@ input[type=range]::-webkit-slider-thumb:hover {
   background: var(--bg-card);
   border: 1px solid var(--border-card);
   border-radius: 8px;
-  margin: 8px 0 10px 0;
+  margin: 4px 0 0 0;
   overflow: hidden;
   transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
 }
 
 .daw-tray-bottom .tray-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 5px 12px;
+  padding: 4px 10px;
   background: #111724;
   border-bottom: 1px solid var(--border-subtle);
-  min-height: 32px;
+  min-height: 28px;
 }
 .daw-tray-bottom .tray-header-left {
   display: flex;
@@ -940,6 +1090,7 @@ input[type=range]::-webkit-slider-thumb:hover {
 }
 
 .daw-tray-bottom.tray-bottom-collapsed .tray-header,
+.daw-tray-bottom.tray-bottom-collapsed .tray-rack-tabs,
 .daw-tray-bottom.tray-bottom-collapsed .tray-body {
   display: none;
 }
@@ -948,13 +1099,13 @@ input[type=range]::-webkit-slider-thumb:hover {
 }
 
 .daw-tray-bottom .tray-body {
-  padding: 8px 12px;
+  padding: 4px 10px 4px;
 }
 .daw-tray-bottom #controls.daw-controls {
-  margin: 0;
-  border: none;
-  padding: 4px 0 0 0;
-  background: transparent;
+  margin: 0 !important;
+  border: none !important;
+  padding: 0 !important;
+  background: transparent !important;
 }
 
 /* Bottom Tray Hardware Action Buttons & Slicer / DSP Controls */
@@ -1035,7 +1186,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 6px 12px;
+  padding: 3px 10px;
   background: #0c111a;
   border-bottom: 1px solid #192233;
   position: relative;
@@ -1050,7 +1201,8 @@ input[type=range]::-webkit-slider-thumb:hover {
   font-family: var(--font-sans);
   font-size: 11px;
   font-weight: 700;
-  padding: 4px 10px;
+  padding: 2px 8px;
+  min-height: 22px;
   border-radius: 4px;
   cursor: pointer;
   position: relative;
@@ -2312,7 +2464,10 @@ tr.bar-start .row-select { color: var(--accent-cyan); font-weight: 700; }
   .studio-layout {
     grid-template-columns: var(--tray-left-w, 200px) minmax(0, 1fr) var(--tray-right-w, 300px);
   }
-  .primary { grid-template-columns: 1fr 1.3fr 1fr 65px; }
+  .primary {
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px 8px;
+  }
   .footer-tabs { display: none; }
 }
 
