@@ -1086,17 +1086,27 @@ function initWorkspaceTrays() {
 }
 
 function initBottomRack(){
+  const doScramble = () => {
+    edit(() => editor.scramble(), 'Scrambled breakbeat chops! Anchors and locks preserved. Use Undo to revert.');
+  };
+  const doMutate = () => {
+    edit(() => editor.mutate(), 'Variation applied. Locked hits and main anchors are unchanged. Preview and export now use this edit.');
+  };
+  const doVariation = () => {
+    el('regenerate').click();
+  };
+
   const scrambleBtn = document.getElementById('action-scramble');
   if(scrambleBtn){
-    scrambleBtn.onclick=()=>edit(()=>editor.scramble(),'Scrambled breakbeat chops! Anchors and locks preserved. Use Undo to revert.');
+    scrambleBtn.onclick = doScramble;
   }
   const mutateBtn = document.getElementById('action-mutate');
   if(mutateBtn){
-    mutateBtn.onclick=()=>edit(()=>editor.mutate(),'Variation applied. Locked hits and main anchors are unchanged. Preview and export now use this edit.');
+    mutateBtn.onclick = doMutate;
   }
   const variationBtn = document.getElementById('action-variation');
   if(variationBtn){
-    variationBtn.onclick=()=>{el('regenerate').click();};
+    variationBtn.onclick = doVariation;
   }
 
   const tabGen = document.getElementById('tab-generator');
@@ -1117,24 +1127,57 @@ function initBottomRack(){
 
     if(tabId==='generator'){
       pnlGen.style.display = '';
+      pnlGen.hidden = false;
       pnlSli.hidden = true;
+      pnlSli.style.display = 'none';
       pnlFx.hidden = true;
+      pnlFx.style.display = 'none';
+      status('Bottom rack: Beat Generator active.');
     }else if(tabId==='slicer'){
       pnlGen.style.display = 'none';
+      pnlGen.hidden = true;
       pnlSli.hidden = false;
+      pnlSli.removeAttribute('hidden');
+      pnlSli.style.display = '';
       pnlFx.hidden = true;
+      pnlFx.style.display = 'none';
       window.dispatchEvent(new Event('resize'));
+      status('Bottom rack: Waveform Slicer active.');
     }else if(tabId==='fx'){
       pnlGen.style.display = 'none';
+      pnlGen.hidden = true;
       pnlSli.hidden = true;
+      pnlSli.style.display = 'none';
       pnlFx.hidden = false;
+      pnlFx.removeAttribute('hidden');
+      pnlFx.style.display = '';
       syncDspControls();
+      status('Bottom rack: Master DSP active.');
     }
   }
 
   if(tabGen) tabGen.onclick = () => switchBottomTab('generator');
   if(tabSli) tabSli.onclick = () => switchBottomTab('slicer');
   if(tabFx) tabFx.onclick = () => switchBottomTab('fx');
+
+  // Resilient delegated listener on document to ensure buttons always work regardless of DOM updates
+  document.addEventListener('click', (e) => {
+    const target = (e.target as HTMLElement | null)?.closest('button');
+    if (!target) return;
+    if (target.id === 'action-scramble') {
+      doScramble();
+    } else if (target.id === 'action-mutate') {
+      doMutate();
+    } else if (target.id === 'action-variation') {
+      doVariation();
+    } else if (target.id === 'tab-generator') {
+      switchBottomTab('generator');
+    } else if (target.id === 'tab-slicer') {
+      switchBottomTab('slicer');
+    } else if (target.id === 'tab-fx') {
+      switchBottomTab('fx');
+    }
+  });
 
   function syncDspControls(){
     const sel = document.getElementById('dsp-role-select') as HTMLSelectElement | null;

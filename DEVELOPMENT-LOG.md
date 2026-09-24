@@ -54,6 +54,20 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-24] - Hotfix: Bottom Rack Buttons, Delegated Events & Cache-Busting (Antigravity)
+- **Browser Cache Busting (`public/index.html`):**
+  - Appended version query string `?v=0.2.0-hotfix` to `<script type="module" src="./dist/web.js">` and `<link rel="stylesheet">` tags in `public/index.html`.
+  - Prevents Fastly/GitHub Pages CDN and client browsers from executing stale cached ES modules when new DOM elements are deployed.
+- **Resilient Delegated Event Handling (`src/web.ts`):**
+  - Added global document-level delegated click listener for `#action-scramble`, `#action-mutate`, `#action-variation`, `#tab-generator`, `#tab-slicer`, and `#tab-fx`.
+  - Guarantees button clicks always execute even if DOM elements are rendered or touched asynchronously.
+  - Added explicit feedback status updates on tab switching (`"Bottom rack: Beat Generator active."`, `"Bottom rack: Waveform Slicer active."`, `"Bottom rack: Master DSP active."`).
+- **Pointer-Events & CSS Z-Index Protection (`public/workspace.css`):**
+  - Set `pointer-events: none; user-select: none; max-width: 380px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;` on `#status` to guarantee it never intercepts pointer clicks intended for hardware action buttons.
+  - Added `position: relative; z-index: 10; pointer-events: auto;` to `.tray-hardware-actions`, `.hw-action-btn`, `.tray-rack-tabs`, and `.tray-rack-tab`.
+- **Verification:**
+  - 55/55 unit tests passing (`npm.cmd test`).
+
 ### [2026-09-24] - Milestone 5: Waveform Slicer & Scramble/Mutate DSP Rack (Antigravity)
 - **Breakbeat Scrambler Engine (`src/core/editor.ts`, `tests/editor.test.mjs`):**
   - Implemented `editor.scramble()`: intelligent breakbeat chop randomizer that permutes slice mappings (if slices exist) or rhythmic subdivisions/microtimings among unlocked hits, while strictly preserving backbeat anchors and locked tracks.

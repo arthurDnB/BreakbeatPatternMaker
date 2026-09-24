@@ -909,6 +909,12 @@ input[type=range]::-webkit-slider-thumb:hover {
 .daw-tray-bottom #status {
   margin: 0;
   padding: 0;
+  pointer-events: none;
+  user-select: none;
+  max-width: 380px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .daw-tray-bottom .tray-collapsed-bar {
@@ -956,6 +962,9 @@ input[type=range]::-webkit-slider-thumb:hover {
   display: flex;
   align-items: center;
   gap: 6px;
+  position: relative;
+  z-index: 10;
+  pointer-events: auto;
 }
 
 .hw-action-btn {
@@ -969,6 +978,9 @@ input[type=range]::-webkit-slider-thumb:hover {
   letter-spacing: 0.5px;
   border-radius: 4px;
   cursor: pointer;
+  pointer-events: auto;
+  position: relative;
+  z-index: 10;
   border: 1px solid transparent;
   transition: all 0.15s ease;
   line-height: 1.2;
@@ -1026,6 +1038,9 @@ input[type=range]::-webkit-slider-thumb:hover {
   padding: 6px 12px;
   background: #0c111a;
   border-bottom: 1px solid #192233;
+  position: relative;
+  z-index: 10;
+  pointer-events: auto;
 }
 
 .tray-rack-tab {
@@ -1038,6 +1053,9 @@ input[type=range]::-webkit-slider-thumb:hover {
   padding: 4px 10px;
   border-radius: 4px;
   cursor: pointer;
+  position: relative;
+  z-index: 10;
+  pointer-events: auto;
   transition: all 0.15s ease;
 }
 .tray-rack-tab:hover {
