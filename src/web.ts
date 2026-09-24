@@ -1,3 +1,4 @@
+import {setRatchets,articulationLabel} from './core/articulation.js';
 import {GROOVES} from './core/groove-profiles.js';
 import {NEW_GENRES} from './core/new-genres.js';
 import {newBank,arrange,songTimeline,songPosition,moveSequenceStep,slotLabel,addPatternSlot,duplicatePatternSlot,deletePatternSlot,type Bank} from './core/bank.js';
@@ -98,7 +99,7 @@ function getTrackerStep(): number {
 }
 function settings(){
   const s=defaults(input('genre').value as Genre);
-  s.algorithm=input('algorithm').value as 'groove-v2'|'legacy-v1';s.variation=Number(input('variation').value);
+  s.algorithm=input('algorithm').value as NonNullable<Pattern['settings']['algorithm']>;s.variation=Number(input('variation').value);
   s.enabledRoles=ROLES.filter(r=>kitPanel.mix[r].include);
   s.breakStyle=input('breakStyle').value as BreakStyle;
   s.seed=input('seed').value;s.bpm=Number(input('bpm').value);s.bars=Number(input('bars').value);
@@ -240,7 +241,7 @@ function render(){
         const articulation=(hit.ratchets&&hit.ratchets>1?'×'+hit.ratchets:'')+(hit.gate!==undefined?(hit.ratchets&&hit.ratchets>1?' · ':'')+'Gate '+Math.round(hit.gate*100)+'%':'');
         const badge=(articulation?articulation+' ':'')+(reverse?'↶ ':'')+(locked(editor.state,hit)?'🔒 ':'');
         button.textContent=badge+(view==='beginner'?(hit.ghost?'Ghost':lane.name):view==='renoise'?tracker:`${label} · ${tracker}`);
-        button.title=`${label}, row ${row}, volume ${hex(n.volume)}, delay ${hex(n.delay)}${articulation}`;
+        button.title=`${label}, row ${row}, volume ${hex(n.volume)}, delay ${hex(n.delay)} · ${articulation} · ${articulationLabel(hit)} · ${hit.reason}`;
         button.onclick=e=>{
           showHitEditor();
           if(e.shiftKey){selectRows(rowAnchor,row,false);return;}
@@ -318,7 +319,7 @@ const samplePanel=setupSamplePanel(stop);
 async function auditionRole(role: Role) {
   flashTrackMeter(role, kitPanel.mix[role].level);
   stop();samplePanel.stop();context??=new AudioContext();const token=playToken;await context.resume();if(token!==playToken)return;
-  const one=generate({...defaults(),bars:1});one.events=[{id:'preview',role,sourceId:'kit.'+role,baseTick:0,offsetTick:0,gain:1,pan:0,anchor:false,ghost:false,reason:'Instrument preview.'}];
+  const one=generate({...defaults(),algorithm:pattern?.settings.algorithm,bpm:pattern?.settings.bpm??120,bars:1});one.events=[{id:'preview',role,sourceId:'kit.'+role,baseTick:0,offsetTick:0,gain:1,pan:0,anchor:false,ghost:false,reason:'Instrument preview.'}];
   const mix=kitPanel.snapshot();mix[role].mute=false;mix[role].solo=true;
   const audio=renderPerformance(withDrumKit(one,drumKit,mix),assets,context.sampleRate,effectMap());
   const b=context.createBuffer(2,audio.channels[0]!.length,audio.sampleRate);audio.channels.forEach((c,i)=>b.copyToChannel(new Float32Array(c),i));
@@ -485,7 +486,7 @@ function syncSliders(){
   const spicyEl=document.getElementById('spicy-value');
   if(spicyEl){
     const pct=Math.round(spicyVal*100);
-    const tag=spicyVal>=0.7?' 🔥 Chaos':spicyVal>=0.35?' 🌶️ Spicy':spicyVal>0?' 🌶️ Mild':' Off';
+    const tag=spicyVal>=0.7?(input('algorithm').value==='groove-v3'?' 🔥 Expressive':' 🔥 Chaos'):spicyVal>=0.35?' 🌶️ Spicy':spicyVal>0?' 🌶️ Mild':' Off';
     spicyEl.textContent=pct+'%'+tag;
     input('spicy').setAttribute('aria-valuetext',spicyEl.textContent);
   }
@@ -556,12 +557,15 @@ input('bpm').addEventListener('input',()=>{syncSliders();});
 input('bpm-slider').addEventListener('input',()=>{input('bpm').value=input('bpm-slider').value;syncSliders();});
 input('complexity').addEventListener('input',syncSliders);
 input('spicy').addEventListener('input',syncSliders);
+input('algorithm').addEventListener('change',syncSliders);
 
 el('breakStyle').onchange=()=>{breakDescription();dirty();};
 function restoreGenerationDefaults(){
  const genre=input('genre').value as Genre;
+ const keepV3=input('algorithm').value==='groove-v3';
  input('algorithm').querySelector<HTMLOptionElement>('[value="legacy-v1"]')!.disabled=Object.hasOwn(NEW_GENRES,genre);
  for(const [key,value] of Object.entries(genreDefaults(genre)))input(key).value=String(value);
+ if(keepV3)input('algorithm').value='groove-v3';
  const autoKit=document.getElementById('auto-kit') as HTMLInputElement | null;
  if(autoKit&&autoKit.checked){
    const defaultKitId=GENRE_KITS[genre]||'acoustic-break';
@@ -618,7 +622,7 @@ initKitPresetSelect('generator-kit-select');
 
 function patternJSON(){
   const pattern=withDrumKit(editor.state.pattern,drumKit,kitPanel.mix);
-  if(!pattern.events.length||ROLES.some(r=>kitPanel.mix[r].level!==1||kitPanel.mix[r].tune!==0||kitPanel.mix[r].mute||kitPanel.mix[r].reverse||(kitPanel.mix[r].effects&&!kitPanel.mix[r].effects!.bypass&&(kitPanel.mix[r].effects!.highpass>0||kitPanel.mix[r].effects!.lowpass<20000||kitPanel.mix[r].effects!.drive>0||kitPanel.mix[r].effects!.mix>0)))||pattern.events.some(h=>h.slice||h.pitch||h.fineOffset||h.reverse||h.ratchets&&h.ratchets>1||h.gate!==undefined))return JSON.stringify({...JSON.parse(serialize(transfer)),format:'breakbeat-notes',version:1,pattern,effects:effectMap(),audioAssets:[...new Set(pattern.events.flatMap(h=>h.slice?[h.slice.assetId]:[]))].map(id=>{const a=assets.get(id);return {id,name:a?.name,sampleRate:a?.sampleRate};}),notice:'Audio assets are not included. Export WAV to preserve the sound.'},null,2);
+  if(!pattern.events.length||ROLES.some(r=>kitPanel.mix[r].level!==1||kitPanel.mix[r].tune!==0||kitPanel.mix[r].mute||kitPanel.mix[r].reverse||(kitPanel.mix[r].effects&&!kitPanel.mix[r].effects!.bypass&&(kitPanel.mix[r].effects!.highpass>0||kitPanel.mix[r].effects!.lowpass<20000||kitPanel.mix[r].effects!.drive>0||kitPanel.mix[r].effects!.mix>0)))||pattern.events.some(h=>h.slice||h.pitch||h.fineOffset||h.reverse||h.articulation||h.ratchets&&h.ratchets>1||h.gate!==undefined))return JSON.stringify({...JSON.parse(serialize(transfer)),format:'breakbeat-notes',version:1,pattern,effects:effectMap(),audioAssets:[...new Set(pattern.events.flatMap(h=>h.slice?[h.slice.assetId]:[]))].map(id=>{const a=assets.get(id);return {id,name:a?.name,sampleRate:a?.sampleRate};}),notice:'Audio assets are not included. Export WAV to preserve the sound.'},null,2);
   return serialize(transfer);
 }
 function currentAsset(){
@@ -627,7 +631,7 @@ function currentAsset(){
   if(!assets.has(current.id))assets.set(current.id,{id:current.id,name:current.name,sampleRate:current.buffer.sampleRate,channels:Array.from({length:current.buffer.numberOfChannels},(_,i)=>current.buffer.getChannelData(i))});
   return {...current,asset:assets.get(current.id)!};
 }
-const hitFields=['edit-row','edit-lane','edit-sound','edit-volume','edit-pan','edit-delay','edit-pitch','edit-reverse','edit-ratchets','edit-gate'] as const;
+const hitFields=['edit-row','edit-lane','edit-sound','edit-volume','edit-pan','edit-delay','edit-pitch','edit-reverse','edit-ratchets','edit-gate','edit-burst-span'] as const;
 type HitDraft=Partial<Record<typeof hitFields[number],string>>;
 const hitDrafts=new Map<Editor,Map<string,HitDraft>>();
 let draftTargets:{slot:number;id:string}[]=[];
@@ -680,6 +684,13 @@ function updateEntry(hit?:Hit){
     const n=transfer.notes.find(n=>n.id===hit.id)!;input('edit-row').value=String(n.row);input('edit-lane').value=hit.role;
     input('edit-volume').value=String(n.volume);input('edit-pan').value=String(n.pan);input('edit-delay').value=String(n.delay);input('edit-pitch').value=String(hit.pitch??0);input('edit-reverse').checked=!!hit.reverse;input('edit-ratchets').value=String(hit.ratchets??1);const gateSelect=el<HTMLSelectElement>('edit-gate');gateSelect.querySelector('[data-custom]')?.remove();if(hit.gate!==undefined&&!Array.from(gateSelect.options).some(o=>Number(o.value)===hit.gate)){const option=document.createElement('option');option.dataset.custom='true';option.value=String(hit.gate);option.textContent=Math.round(hit.gate*100)+'%';gateSelect.append(option);}gateSelect.value=String(hit.gate??0);input('edit-sound').value='keep';
   }else{input('edit-row').value=String(rowAnchor);input('edit-lane').value=cursorLane;}
+  const isV3=pattern.settings.algorithm==='groove-v3';
+  el('burst-span-field').hidden=!isV3;
+  el('edit-ratchets-label').textContent=isV3?'Repeats in burst':'Ratchets per row';
+  const span=el<HTMLSelectElement>('edit-burst-span');span.querySelector('[data-custom]')?.remove();
+  const duration=hit?.articulation?.durationTicks??0;
+  if(duration&&!Array.from(span.options).some(o=>Number(o.value)===duration)){const o=document.createElement('option');o.dataset.custom='true';o.value=String(duration);o.textContent=+(duration/960).toFixed(3)+' beats';span.append(o);}span.value=String(duration);
+  el('hit-expression').hidden=!hit?.articulation;el('hit-expression').textContent=hit?articulationLabel(hit):'';
   el('inspector-context').textContent=hit?hit.role+' · row '+input('edit-row').value:'Row '+rowAnchor+' · '+cursorLane;
   entryKey=hit?.id;entryOwner=editor;entryBaseline=Object.fromEntries(hitFields.map(id=>[id,fieldValue(id)]));
   if(entryKey){const draft=draftMap().get(entryKey);if(draft){for(const id of hitFields){if(draft[id]===entryBaseline[id])delete draft[id];if(draft[id]!==undefined)setField(id,draft[id]!);}if(!Object.keys(draft).length)draftMap().delete(entryKey);}}
@@ -697,11 +708,29 @@ function entryHit(replace:boolean,pitchOverride?:number){
   if(replace&&!prior)throw Error('Select one hit to edit.');
   const tick=(row+delay/256)*960/transfer.timing.lpb;
   const hit:Hit={id:prior?.id??'entry-'+crypto.randomUUID(),role,sourceId:'kit.'+role,baseTick:Math.floor(tick),fineOffset:tick-Math.floor(tick),offsetTick:0,gain:volume/128,pan:pan/64-1,pitch,reverse:input('edit-reverse').checked,ratchets:Number(input('edit-ratchets').value),...(Number(input('edit-gate').value)?{gate:Number(input('edit-gate').value)}:{}),anchor:prior?.anchor??false,ghost:prior?.ghost??false,reason:'A manually entered tracker hit.'};
+  if(prior?.decay!==undefined)hit.decay=prior.decay;
+  if(pattern.settings.algorithm==='groove-v3'){
+    const duration=Number(input('edit-burst-span').value)||3840/pattern.settings.resolution;
+    const expression=prior?.articulation?structuredClone(prior.articulation):undefined;
+    if(expression||hit.ratchets!>1||hit.gate!==undefined||Number(input('edit-burst-span').value)){
+      hit.articulation={...(expression??{}),durationTicks:duration,mode:hit.gate!==undefined||hit.ratchets!>1?'gate':'natural'};
+      if(expression&&hit.ratchets===(prior?.ratchets??1)&&hit.gate===prior?.gate)hit.articulation.mode=expression.mode;
+      if(hit.ratchets!==(prior?.ratchets??1))delete hit.articulation.repeats;
+      if(role!=='hat')delete hit.articulation.chokeGroup;
+    }
+    hit.sourceKind=prior?.sourceKind??(prior?.slice?'slice':'oneShot');
+    if(prior)hit.reason=prior.reason;
+  }
   const oldNote=prior&&transfer.notes.find(n=>n.id===prior.id);
   if(prior&&oldNote?.row===row&&oldNote.delay===delay){hit.baseTick=prior.baseTick;hit.offsetTick=prior.offsetTick;hit.fineOffset=prior.fineOffset;}
   const sound=input('edit-sound').value;
-  if(sound==='slice'){const a=currentAsset();hit.slice=sliceReference(a.asset,a.markers,a.selected);}
+  if(sound==='slice'){const a=currentAsset();hit.slice=sliceReference(a.asset,a.markers,a.selected);if(pattern.settings.algorithm==='groove-v3')hit.sourceKind='slice';}
   else if(sound==='keep'&&prior?.slice)hit.slice={...prior.slice};
+  if(pattern.settings.algorithm==='groove-v3'){
+    if(sound!=='slice'&&sound!=='keep')hit.sourceKind='oneShot';
+    if(prior&&oldNote?.volume===volume)hit.gain=prior.gain;
+    if(prior&&oldNote?.pan===pan)hit.pan=prior.pan;
+  }
   compile({...pattern,events:[hit]});return {hit,prior};
 }
 function writeEntry(replace:boolean,pitchOverride?:number){const {hit,prior}=entryHit(replace,pitchOverride);const changed=editor.write(hit,prior?.id);if(changed&&entryKey)draftMap().delete(entryKey);return changed;}
@@ -1004,7 +1033,7 @@ function initTrackerLiveBar() {
       });
       if (hitAtCursor && !locked(editor.state, hitAtCursor)) {
         const nextRatchets = hitAtCursor.ratchets === 2 ? 1 : 2;
-        editor.write({ ...hitAtCursor, ratchets: nextRatchets }, hitAtCursor.id);
+        editor.write(setRatchets(hitAtCursor,nextRatchets,3840/pattern.settings.resolution),hitAtCursor.id);
         refresh();
         el('grid').focus();
         status(nextRatchets === 2 ? 'Set 2 ratchets (roll ×2).' : 'Cleared roll ratchets.');
@@ -1023,7 +1052,7 @@ function initTrackerLiveBar() {
       });
       if (hitAtCursor && !locked(editor.state, hitAtCursor)) {
         const nextRatchets = hitAtCursor.ratchets === 4 ? 1 : 4;
-        editor.write({ ...hitAtCursor, ratchets: nextRatchets }, hitAtCursor.id);
+        editor.write(setRatchets(hitAtCursor,nextRatchets,3840/pattern.settings.resolution),hitAtCursor.id);
         refresh();
         el('grid').focus();
         status(nextRatchets === 4 ? 'Set 4 ratchets (roll ×4).' : 'Cleared roll ratchets.');

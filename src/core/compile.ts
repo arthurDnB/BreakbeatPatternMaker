@@ -1,4 +1,5 @@
 import {DEFAULT_SOURCES, PPQ, ROLES, bounded, identifier, text, type Pattern, type Source, type Transfer} from './model.js';
+import {validateArticulation} from './articulation.js';
 import {validateSettings} from './generate.js';
 
 export function compile(pattern: Pattern, sources: Source[] = DEFAULT_SOURCES, lpb = pattern.settings.resolution / 4): Transfer {
@@ -24,6 +25,7 @@ export function compile(pattern: Pattern, sources: Source[] = DEFAULT_SOURCES, l
     sources:[],lanes:[],notes:[],warnings:[]};
   const usedSources=new Set<string>(), counts=new Map<string,number>(), columns=new Map<string,number>(), ids=new Set<string>();
   const notes=pattern.events.map(hit=>{
+    validateArticulation(hit);
     if(hit.reverse!==undefined&&typeof hit.reverse!=='boolean')throw Error('Invalid reverse flag.');
     if(hit.ratchets!==undefined)bounded(hit.ratchets,1,8,'ratchets',true);
     if(hit.gate!==undefined)bounded(hit.gate,.05,1,'gate');

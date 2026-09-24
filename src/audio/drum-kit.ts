@@ -16,8 +16,12 @@ export function withDrumKit(pattern:Pattern,kit:DrumKit,mix?:KitState):Pattern{
     return !mix[h.role].mute;
   }).map(hit=>{
     const result=hit.slice||!kit[hit.role]?{...hit}:{...hit,slice:{...kit[hit.role]!}};
+    if(pattern.settings.algorithm==='groove-v3')result.sourceKind=hit.sourceKind??(hit.slice?'slice':'oneShot');
     if(mix){
       result.reverse=!!hit.reverse||!!mix[hit.role].reverse;
+      if(pattern.settings.algorithm==='groove-v3'&&mix[hit.role].reverse&&hit.articulation?.repeats){
+        result.articulation={...hit.articulation,repeats:hit.articulation.repeats.map(r=>({...r,reverse:true}))};
+      }
       result.gain*=mix[hit.role].level;
       result.pitch=Math.max(-48,Math.min(48,(hit.pitch??0)+mix[hit.role].tune));
       const slotDecay=mix[hit.role].decay;

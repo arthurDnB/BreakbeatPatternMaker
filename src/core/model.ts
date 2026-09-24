@@ -5,7 +5,7 @@ export type Role = typeof ROLES[number];
 export type Genre = 'jungle' | 'dnb' | 'hiphop' | 'trap' | 'rap' | 'drill' | 'breakcore' | 'idm' | 'hardcore' | 'experimental' | 'breaks' | 'bigbeat' | 'nuskoolbreaks' | 'electrobreaks' | 'breakbeathardcore' | 'raggajungle' | 'atmosphericjungle' | 'footworkjungle' | 'downtempo' | 'lofihiphop' | 'boombap' | 'mellowbeats' | 'liquiddnb' | 'jumpup' | 'garage' | 'speedgarage' | 'twostepgarage' | 'dub' | 'psydub' | 'dubstep' | 'brostep' | 'postdubstep' | 'drumfunk' | 'amenscience' | 'atmosphericbreakcore' | 'triphop' | 'halftimednb' | 'neurofunk';
 export type BreakStyle = 'genre' | 'amen' | 'think' | 'apache' | 'funkyDrummer' | 'hotPants';
 export interface Settings {
-  algorithm?: 'legacy-v1' | 'groove-v2';
+  algorithm?: 'legacy-v1' | 'groove-v2' | 'groove-v3';
   variation?: number;
   breakStyle?: BreakStyle;
   enabledRoles?: Role[];
@@ -15,7 +15,17 @@ export interface Settings {
   spicy?: number;
 }
 export interface SliceRef {assetId:string; startFrame:number; endFrame:number; sampleRate:number; label:string}
+export interface RepeatArticulation {
+  gain:number; pitch?:number; sourceOffset?:number; reverse?:boolean; glide?:number;
+}
+export interface Articulation {
+  // Musical ticks for the complete gesture, independent of the visible tracker grid.
+  durationTicks:number; mode:'natural'|'gate'|'chop';
+  repeats?:RepeatArticulation[]; chokeGroup?:'hat';
+}
 export interface Hit {
+  sourceKind?:'oneShot'|'slice';
+  articulation?:Articulation;
   reverse?:boolean;
   ratchets?:number; gate?:number; // Repeats within one row; gate is a fraction of each repeat interval.
   decay?:number; // Sample envelope decay ratio (0.02 to 1.0; < 1 tightens sound and removes room reverb)

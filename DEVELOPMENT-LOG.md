@@ -25,8 +25,8 @@ This document maintains the running project state and change log so that multipl
 
 ## 📌 Current Project Status
 
-* **Version:** `0.2.0-alpha`
-* **Test Status:** 66 / 66 unit tests passing (`npm.cmd test`).
+* **Version:** `0.3.0-alpha`
+* **Test Status:** 84 / 84 unit tests passing (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -49,6 +49,12 @@ This document maintains the running project state and change log so that multipl
   - 38 distinct genre profiles grouped into 6 musical families (`Jungle & DnB`, `Hip-Hop & Downtempo`, `Garage`, `Dub & Bass`, `Breaks & Rave`, `Experimental`).
   - Instrument-specific microtimings (laid-back snares, swung hats, solid kicks).
   - Musical variation preserving seed and recurring motifs; backward-compatible legacy-v1 seed reproduction.
+* [x] **Audio Engine 3 (Groove v3) (Complete):**
+  - 5-stage generation pipeline: Protected Anchor Spine → Selective Groove & Micro-timing Map → Subgenre Layers & Melodic/Euclidean Support → Phrase-Local Spicy Articulation Rack → Turnaround Cadences.
+  - Expressive musical bursts (2, 3, 4, 6 repeats) with explicit tick durations, rising/falling velocity curves, pitch glide intervals (+7, +12, -2, -5), and micro-chops.
+  - Fixed fast-tempo drum clicks: one-shot sample preservation ensures acoustic kicks/snares retain body and punch at 170–220+ BPM without abrupt row cutoffs.
+  - Hi-hat choke groups closing open hats across tracker steps and arrangement loop boundaries.
+  - Isolated deterministic random streams (`v3Chance`, `v3Pick`) and Strudel-inspired Euclidean rhythmic distribution.
 * [ ] **Next Priority:** Arrangement editing history (undo/redo for sequence and song-tempo changes), followed by named song sections.
 * [ ] **Future Audio Roadmaps:** Procedural vinyl texture rack, MP3 export, velocity-layered drum kits, sample-browser filtering.
 * [ ] *Note: Renoise integration has been retired in favor of the standalone in-browser instrument.*
@@ -56,6 +62,23 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-09-25] - Audio Engine 3 (Groove v3) Architecture, Strudel Primitives, & Expressive Articulation (Codex & Antigravity)
+* **Rationale & Problem Addressed:**
+  - Fast-tempo genres (170–220+ BPM like Atmospheric D&B, Jungle, Breakcore) previously suffered from drum hits being truncated at tracker row edges, making one-shots sound clicky or thin.
+  - Spicy and Complexity sliders previously produced erratic random placements rather than authentic, musical subgenre expressions.
+  - Users requested an elite third-generation rhythm engine (`groove-v3`) incorporating production techniques from Strudel pattern grammar, DOA/Reddit beatmaking archives, and authentic genre break interpretations.
+* **Core Architecture & Engine 3 Implementation:**
+  - **`src/core/groove-v3-primitives.ts`:** Implemented isolated deterministic random streams (`v3Chance`, `v3Pick`) so adjusting Complexity/Spicy never perturbs the anchor spine; added rational subdivision ticks and Strudel-style Euclidean spacing (`euclideanSteps`).
+  - **`src/core/groove-v3-profiles.ts`:** Calibrated 38 subgenres across 6 families (`jungle`, `hiphop`, `garage`, `dub`, `breaks`, `experimental`) with exact micro-timing pockets (`snareDragMs`, `ghostPushMs`, `hatSwing`, `percussionSwing`), cadence types, and minor-pentatonic melodic percussion runs.
+  - **`src/core/groove-v3.ts`:** Created 5-stage pipeline (Anchors → Groove Map → Layers & Euclidean → Musical Spicy Rack → Turnaround Cadences). Spicy creates structured bursts with musical tick durations, velocity curves, pitch flutter intervals, reverse accents, and micro-chops.
+  - **`src/audio/voice-v3.ts` & `src/core/articulation.ts`:** Separated `oneShot` hits from `slice` references, allowing kicks and snares to sustain naturally through their acoustic body even at high tempos; added continuous pitch glides, anti-click edge fades, and hi-hat choke groups across loops.
+  - **`src/web.ts` & `public/index.html`:** Added `Groove v3` to `#algorithm` select dropdown, added burst duration (`#burst-span-field` / `#edit-burst-span`) and articulation badges (`#hit-expression`) to the hit inspector.
+* **Compatibility, Testing & Deployment:**
+  - Added regression test suite `tests/engine-compatibility.test.mjs` confirming byte-for-byte exact reproducibility of legacy-v1 and groove-v2 patterns and exported audio.
+  - Added `tests/audio-v3.test.mjs`, `tests/v3-integration.test.mjs`, and `scripts/groove-v3-browser-smoke.mjs`.
+  - Expanded unit test suite from 66 to **84 tests passing** (`npm.cmd test`).
+  - Verified Playwright browser smoke test and site export tests (`npm.cmd run test:site`).
 
 ### [2026-09-24] - Compact Beat Generator Console Rack & Tracker Follow Playhead (Antigravity)
 * **Rationale & Problem Addressed:**

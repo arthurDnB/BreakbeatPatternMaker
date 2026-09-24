@@ -1,5 +1,6 @@
 import {generate} from './generate.js';
 import {grooveFill,grooveTiming} from './groove.js';
+import {grooveV3Fill,grooveV3Timing} from './groove-v3.js';
 import {GROOVES} from './groove-profiles.js';
 import {compile} from './compile.js';
 import {random} from './random.js';
@@ -55,7 +56,7 @@ export class Editor {
   }
   variation(){
     const original=this.state.pattern;
-    const next=generate({...original.settings,algorithm:'groove-v2',variation:(original.settings.variation??0)+1});
+    const next=generate({...original.settings,algorithm:original.settings.algorithm==='groove-v3'?'groove-v3':'groove-v2',variation:(original.settings.variation??0)+1});
     const anchors=original.events.filter(h=>h.anchor);
     next.events=next.events.filter(h=>!h.anchor&&!anchors.some(a=>a.id===h.id||(a.role===h.role&&a.baseTick===h.baseTick))).concat(copy(anchors));
     return this.replace(next,'Generate variation');
@@ -83,10 +84,11 @@ export class Editor {
     const rng=random(next.pattern.settings.seed,`mutate:${next.revision}`);
     // Fisher-Yates, avoiding engine-dependent random sort comparators.
     for(let i=eligible.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[eligible[i],eligible[j]]=[eligible[j]!,eligible[i]!];}
-    for(const hit of eligible.slice(0,Math.max(1,Math.ceil(eligible.length*.2)))){
+    const changedHits=eligible.slice(0,Math.max(1,Math.ceil(eligible.length*.2)));
+    for(const hit of changedHits){
       const step=PPQ*4/next.pattern.settings.resolution;
       let target=hit.baseTick+(rng()<.5?-step:step);
-      if(next.pattern.settings.algorithm==='groove-v2'){
+      if(['groove-v2','groove-v3'].includes(next.pattern.settings.algorithm??'')){
         const rule=GROOVES[next.pattern.settings.genre],origin=Math.floor(hit.baseTick/(4*PPQ))*4*PPQ;
         const choices=(hit.role==='kick'?rule.kickExtras:hit.role==='snare'?rule.response:[1,3,5,7,9,11,13,15]).map(n=>origin+Math.round(n*240/step)*step).filter(t=>t!==hit.baseTick&&Math.abs(t-hit.baseTick)<=step*2);
         target=choices.length?choices[Math.floor(rng()*choices.length)]!:hit.baseTick;
@@ -94,12 +96,13 @@ export class Editor {
       const row=Math.floor(Math.max(0,Math.round((target+hit.offsetTick)/step*256))/256);
       const range=next.selection.rows;
       if(rng()<.65&&target>=0&&target<next.pattern.settings.bars*PPQ*4&&(!range||(row>=range[0]&&row<=range[1]))&&!next.pattern.events.some(e=>e.id!==hit.id&&e.role===hit.role&&e.baseTick===target)){
-        hit.baseTick=target;if(next.pattern.settings.algorithm==='groove-v2')grooveTiming(hit,next.pattern.settings);if(range)hit.offsetTick=Math.max(range[0]*step-hit.baseTick,Math.min((range[1]+1)*step-1-hit.baseTick,hit.offsetTick));hit.reason='This variation moves an ornament to a neighboring subdivision while retaining the main backbeat.';
+        hit.baseTick=target;if(['groove-v2','groove-v3'].includes(next.pattern.settings.algorithm??''))(next.pattern.settings.algorithm==='groove-v3'?grooveV3Timing:grooveTiming)(hit,next.pattern.settings);if(range)hit.offsetTick=Math.max(range[0]*step-hit.baseTick,Math.min((range[1]+1)*step-1-hit.baseTick,hit.offsetTick));hit.reason='This variation moves an ornament to a neighboring subdivision while retaining the main backbeat.';
       }else{
         hit.gain=Math.round(Math.max(.08,Math.min(hit.ghost?.35:.85,hit.gain+(hit.gain>(hit.ghost?.27:.55)?-.12:.12)))*10000)/10000;
         hit.reason=hit.ghost?'This ghost snare has a revised quiet accent; the main backbeat stays in place.':'This variation changes the accent strength while preserving the rhythm.';
       }
     }
+    this.boundGestures(next,changedHits,next.selection.rows);
     next.revision++;return this.commit(next,scoped?'Mutate selection':'Mutate pattern');
   }
   scramble(){
@@ -125,14 +128,27 @@ export class Editor {
       });
       next.pattern.events.sort((a,b)=>a.baseTick-b.baseTick||ROLES.indexOf(a.role)-ROLES.indexOf(b.role));
     }
+    this.boundGestures(next,eligible,next.selection.rows);
     next.revision++;return this.commit(next,scoped?'Scramble selection':'Scramble break');
+  }
+  private boundGestures(next:EditorState,hits:Hit[],range:[number,number]|null){
+    if(next.pattern.settings.algorithm!=='groove-v3')return;
+    const rowTicks=PPQ*4/next.pattern.settings.resolution;
+    const end=Math.min(next.pattern.settings.bars*4*PPQ,range?(range[1]+1)*rowTicks:Infinity);
+    for(const h of hits){
+      if(!h.articulation||h.anchor||locked(next,h))continue;
+      const start=h.baseTick+h.offsetTick+(h.fineOffset??0);
+      const stop=next.pattern.events.filter(k=>k.id!==h.id&&k.role===h.role&&(k.anchor||locked(next,k)))
+        .map(k=>k.baseTick+k.offsetTick+(k.fineOffset??0)).filter(t=>t>start).reduce((a,b)=>Math.min(a,b),end);
+      h.articulation.durationTicks=Math.max(1,Math.min(h.articulation.durationTicks,Math.floor(stop-start)));
+    }
   }
   fill(){
     const next=copy(this.state),range=next.selection.rows;
     if(!range)throw Error('Select an ending using row numbers or Select last beat.');
-    if(next.pattern.settings.algorithm==='groove-v2'){
+    if(['groove-v2','groove-v3'].includes(next.pattern.settings.algorithm??'')){
       const step=PPQ*4/next.pattern.settings.resolution,start=range[0]*step,end=(range[1]+1)*step;
-      const additions=grooveFill({...next.pattern.settings,variation:next.revision},start,end);
+      const additions=(next.pattern.settings.algorithm==='groove-v3'?grooveV3Fill:grooveFill)({...next.pattern.settings,variation:next.revision},start,end);
       let changed=false;
       for(const hit of additions){
         if(next.lockedRoles.includes(hit.role))continue;
@@ -141,6 +157,7 @@ export class Editor {
         next.pattern.events=next.pattern.events.filter(h=>!occupied.includes(h));
         // Timing moves can leave an existing ID at a different position.
         hit.id='fill-'+next.revision+'-'+hit.id;while(next.pattern.events.some(h=>h.id===hit.id))hit.id+='x';
+        this.boundGestures(next,[hit],range);
         next.pattern.events.push(hit);changed=true;
       }
       if(!changed)return false;

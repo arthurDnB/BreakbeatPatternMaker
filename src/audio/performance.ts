@@ -2,6 +2,7 @@ import {effectTail,processEffects,type Effects} from './effects.js';
 import {ROLES,type Role,type Pattern} from '../core/model.js';
 import {compile} from '../core/compile.js';
 import type {AudioAsset} from './slices.js';
+import {planV3Voices,applyV3Chokes,renderV3Voice,type RenderVoice} from './voice-v3.js';
 // @ts-expect-error Shared original synth.
 import {synthesize} from '../../public/synth.js';
 export interface RenderOptions {
@@ -15,15 +16,16 @@ export function renderPerformance(pattern:Pattern,assets:Map<string,AudioAsset>,
 }
 export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,rate=44100,effects:Partial<Record<Role,Effects>>={},options:RenderOptions={}){
   if(!patterns.length)throw Error('Add a pattern to the arrangement.');
+  if(!Number.isInteger(rate)||rate<8000||rate>192000)throw Error('Render sample rate must be 8–192 kHz.');
   patterns.forEach(p=>compile(p));
   const duration=patterns.reduce((sum,p)=>sum+p.settings.bars*240/p.settings.bpm,0);
   if(duration>170)throw Error('Arrangement limit is 170 seconds plus effect tails.');
   let position=0;
   const kit=new Map<string,Float32Array>();
-  const voices=patterns.flatMap(pattern=>{
+  const voices:RenderVoice[]=patterns.flatMap(pattern=>{
   const origin=position;position+=pattern.settings.bars*240/pattern.settings.bpm;
   const secondsPerTick=60/pattern.settings.bpm/960;
-  return pattern.events.flatMap(hit=>{
+  return pattern.events.flatMap((hit):RenderVoice[]=>{
     const ratio=2**((hit.pitch??0)/12),start=origin+Math.max(0,(hit.baseTick+hit.offsetTick+(hit.fineOffset??0))*secondsPerTick);
     let channels:Float32Array[],sourceRate=rate,from=0,to=0;
     if(hit.slice){
@@ -31,6 +33,7 @@ export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,
       if(asset.sampleRate!==hit.slice.sampleRate||hit.slice.endFrame>asset.channels[0]!.length)throw Error('Slice audio does not match its saved boundaries.');
       channels=asset.channels;sourceRate=asset.sampleRate;from=hit.slice.startFrame;to=hit.slice.endFrame;
     }else{if(!kit.has(hit.role))kit.set(hit.role,synthesize(hit.role,rate));channels=[kit.get(hit.role)!];to=channels[0]!.length;}
+    if(pattern.settings.algorithm==='groove-v3')return planV3Voices(pattern,hit,channels,sourceRate,from,to,origin,position,rate);
     const count=hit.ratchets??1,interval=240/pattern.settings.bpm/pattern.settings.resolution/count;
     const naturalLength=Math.ceil((to-from)/sourceRate/ratio*rate),decayActive=hit.decay!==undefined&&hit.decay<1;
     const decayMax=decayActive?Math.max(Math.round(rate*.02),Math.round(naturalLength*hit.decay!)):naturalLength;
@@ -44,6 +47,7 @@ export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,
     }).filter(v=>v.length>0&&(count===1||v.start<position));
   });
   });
+  applyV3Chokes(voices,rate,options.loop?duration:undefined);
   const end=voices.reduce((end,v)=>Math.max(end,v.start+v.length/rate+effectTail(effects[v.hit.role])),duration+.6);
   if(end>180)throw Error('Rendered audio is limited to three minutes. Shorten the sample or increase its pitch.');
   const loopSamples=Math.round(duration*rate);
@@ -54,6 +58,7 @@ export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,
   const laneVoices=voices.filter(v=>v.hit.role===role);if(!laneVoices.length)continue;
   const bus=[new Float32Array(busLength),new Float32Array(busLength)];
   for(const v of laneVoices){
+    if(v.v3){renderV3Voice(v,bus,rate);continue;}
     const offset=Math.round(v.start*rate),pan=v.hit.pan;
     const gains=v.channels.length===1?[Math.cos((pan+1)*Math.PI/4),Math.sin((pan+1)*Math.PI/4)]:[pan>0?1-pan:1,pan<0?1+pan:1];
     // Mono slices stay at unity at centre, demo drums retain the established kit level.
