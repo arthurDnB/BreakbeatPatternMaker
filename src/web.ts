@@ -96,7 +96,7 @@ function render(){
       b.className='lane-settings';
       b.textContent=label;
       b.setAttribute('aria-label','Open '+label+' instrument settings');
-      b.onclick=()=>{el<HTMLDetailsElement>('sounds-panel').open=true;el('kit-choice-'+role).closest('.drum-slot')?.scrollIntoView({behavior:'smooth',block:'nearest'});el('kit-choice-'+role).focus({preventScroll:true});};
+      b.onclick=()=>{document.getElementById('studio-layout')?.classList.remove('tray-right-collapsed');el<HTMLDetailsElement>('sounds-panel').open=true;el('kit-choice-'+role).closest('.drum-slot')?.scrollIntoView({behavior:'smooth',block:'nearest'});el('kit-choice-'+role).focus({preventScroll:true});};
       const muteBtn=document.createElement('button');
       muteBtn.className='track-header-mute'+(kitPanel.mix[role].mute?' is-muted':'');
       muteBtn.textContent='M';
@@ -904,6 +904,7 @@ function initSubnavTabs() {
   if (tabSounds) {
     tabSounds.onclick = () => {
       setTabActive(tabSounds);
+      document.getElementById('studio-layout')?.classList.remove('tray-right-collapsed');
       el<HTMLDetailsElement>('sounds-panel').open = true;
       el('sounds-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     };
@@ -912,6 +913,7 @@ function initSubnavTabs() {
   if (tabArranger) {
     tabArranger.onclick = () => {
       setTabActive(tabArranger);
+      document.getElementById('studio-layout')?.classList.remove('tray-left-collapsed');
       el<HTMLDetailsElement>('arranger').open = true;
       el('arranger').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     };
@@ -919,3 +921,83 @@ function initSubnavTabs() {
 }
 
 initSubnavTabs();
+
+function initWorkspaceTrays() {
+  const shell = document.getElementById('studio-layout');
+  const bottomTray = document.getElementById('tray-bottom');
+
+  const toggleLeft = document.getElementById('toggle-tray-left');
+  const railLeft = document.getElementById('rail-tray-left');
+  const toggleRight = document.getElementById('toggle-tray-right');
+  const railRight = document.getElementById('rail-tray-right');
+  const toggleBottom = document.getElementById('toggle-tray-bottom');
+  const barBottom = document.getElementById('bar-tray-bottom');
+
+  const setTrayLeft = (collapsed: boolean) => {
+    if (!shell) return;
+    shell.classList.toggle('tray-left-collapsed', collapsed);
+    if (toggleLeft) toggleLeft.textContent = collapsed ? '▶' : '◀';
+    try { localStorage.setItem('bpm_tray_left', collapsed ? '1' : '0'); } catch {}
+  };
+
+  const setTrayRight = (collapsed: boolean) => {
+    if (!shell) return;
+    shell.classList.toggle('tray-right-collapsed', collapsed);
+    if (toggleRight) toggleRight.textContent = collapsed ? '◀' : '▶';
+    try { localStorage.setItem('bpm_tray_right', collapsed ? '1' : '0'); } catch {}
+  };
+
+  const setTrayBottom = (collapsed: boolean) => {
+    if (!bottomTray) return;
+    bottomTray.classList.toggle('tray-bottom-collapsed', collapsed);
+    if (toggleBottom) toggleBottom.textContent = collapsed ? '▲' : '▼';
+    try { localStorage.setItem('bpm_tray_bottom', collapsed ? '1' : '0'); } catch {}
+  };
+
+  if (toggleLeft) toggleLeft.onclick = () => setTrayLeft(!shell?.classList.contains('tray-left-collapsed'));
+  if (railLeft) railLeft.onclick = () => setTrayLeft(false);
+
+  if (toggleRight) toggleRight.onclick = () => setTrayRight(!shell?.classList.contains('tray-right-collapsed'));
+  if (railRight) railRight.onclick = () => setTrayRight(false);
+
+  if (toggleBottom) toggleBottom.onclick = () => setTrayBottom(!bottomTray?.classList.contains('tray-bottom-collapsed'));
+  if (barBottom) barBottom.onclick = () => setTrayBottom(false);
+
+  // Restore states from localStorage if saved
+  try {
+    if (localStorage.getItem('bpm_tray_left') === '1') setTrayLeft(true);
+    if (localStorage.getItem('bpm_tray_right') === '1') setTrayRight(true);
+    if (localStorage.getItem('bpm_tray_bottom') === '1') setTrayBottom(true);
+  } catch {}
+
+  // Keyboard shortcuts Alt+1 (Left), Alt+2 (Bottom), Alt+3 (Right)
+  window.addEventListener('keydown', (e) => {
+    if (e.altKey && !e.ctrlKey && !e.metaKey) {
+      if (e.key === '1') {
+        e.preventDefault();
+        setTrayLeft(!shell?.classList.contains('tray-left-collapsed'));
+      } else if (e.key === '2') {
+        e.preventDefault();
+        setTrayBottom(!bottomTray?.classList.contains('tray-bottom-collapsed'));
+      } else if (e.key === '3') {
+        e.preventDefault();
+        setTrayRight(!shell?.classList.contains('tray-right-collapsed'));
+      }
+    }
+  });
+
+  const origShowSounds = el('show-sounds').onclick;
+  el('show-sounds').onclick = (e) => {
+    setTrayRight(false);
+    origShowSounds?.call(el('show-sounds'), e);
+  };
+
+  const origShowArranger = el('show-arrangement').onclick;
+  el('show-arrangement').onclick = (e) => {
+    setTrayLeft(false);
+    origShowArranger?.call(el('show-arrangement'), e);
+  };
+}
+
+initWorkspaceTrays();
+
