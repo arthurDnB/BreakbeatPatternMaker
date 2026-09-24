@@ -62,8 +62,10 @@ This document maintains the running project state and change log so that multipl
   * Integrated user's personal drum collection: 24 kicks, 27 snares, 55 hi-hats, and 82 percussion hits (188 WAV files, 26.4 MB).
   * Preserved original source files in root `Drums/` folder while copying and standardizing deployable assets into `public/samples/udnb-*.wav`.
   * Computed SHA-256 hashes and cataloged all 188 sounds in `public/samples/catalog.json`, expanding the sound collection from 45 to 233 samples.
-* **UI Grouping & Fast Sound Selection (`src/audio/drum-kit.ts`):**
-  * Added a dedicated `<optgroup label="UDNB Collection (Personal)">` right beneath `Built-in` synthesis in the kit sound selector, making personal files immediately accessible without scrolling past legacy samples.
+* **UI Grouping, Generator Integration & Fast Sound Selection (`public/index.html`, `src/web.ts`, `src/audio/drum-kit.ts`):**
+  * Added a dedicated `<optgroup label="UDNB Collection (Personal)">` right beneath `Built-in` synthesis in each lane's sound selector, making personal files immediately accessible without scrolling past legacy samples.
+  * Added **Drum Kit** preset selector directly into the Beat Generator primary controls (`#generator-kit-select`), syncing bidirectionally with the Inspector's preset selector (`#kit-preset-select`).
+  * Ensured `<details id="sounds-panel" open>` is expanded by default in the right tray, so clicking the top **Drum Kit** tab or any track header immediately displays the kit presets and drum cards.
 * **Dedicated UDNB Kit Presets (`src/audio/library.ts`):**
   * Added `udnb-signature` (*🔥 UDNB Signature Drum Kit*) and `udnb-heavy-roller` (*⚡ UDNB Heavy Roller*) presets with custom levels and decays tailored for heavy Drum & Bass / Jungle production.
 * **Build & Test Infrastructure (`tests/workspace.test.mjs`, `scripts/site-browser-smoke.mjs`, `scripts/workspace-browser-smoke.mjs`):**

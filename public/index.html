@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Breakbeat Pattern Maker</title><link rel="stylesheet" href="./public/style.css?v=0.2.0-udnb-collection"><link rel="stylesheet" href="./public/workspace.css?v=0.2.0-udnb-collection"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Breakbeat Pattern Maker</title><link rel="stylesheet" href="./public/style.css?v=0.2.0-udnb-ui"><link rel="stylesheet" href="./public/workspace.css?v=0.2.0-udnb-ui"></head>
 <body><main class="daw-chassis">
 
 <!-- Coherent Modern Studio Title Bar -->
@@ -170,12 +170,12 @@
     <div class="tray-body">
       <div class="inspector-heading"><h2>Inspector &amp; Sounds</h2><span id="inspector-context">Select a hit</span></div>
       
-      <details id="sounds-panel"><summary>Instruments &amp; effects <small>Shared across patterns</small></summary>
+      <details id="sounds-panel" open><summary>Instruments &amp; effects <small>Shared across patterns</small></summary>
         <section class="sample-panel" aria-label="Single-hit drum kit">
           <div class="kit-presets-strip"><label>Drum Kit Preset <select id="kit-preset-select"><option value="custom">Custom Kit</option></select></label><label class="loop-label auto-kit-label"><input id="auto-kit" type="checkbox" checked> Auto-load kit with genre</label></div>
           <p>One shared kit for every pattern. Generate notes affects your next generation; Mute audio silences existing notes in playback and export. Preview always lets you hear the instrument.</p>
           <div id="drum-slots"></div>
-          <small>32 CC0 library sounds: acoustic drums and TR-808 recordings. <a href="./public/samples/credits.html" target="_blank">Sources &amp; licenses</a>.</small>
+          <small>233 library sounds: 188 UDNB personal hits + 45 acoustic &amp; 808 recordings. <a href="./public/samples/credits.html" target="_blank">Sources &amp; licenses</a>.</small>
         </section>
       </details>
 
@@ -249,6 +249,7 @@
         <label>Complexity <output id="complexity-value" for="complexity">45%</output><input id="complexity" type="range" min="0" max="1" step=".01" value=".45"><small>Simple to detailed</small></label>
         <label>Spicy 🌶️ <output id="spicy-value" for="spicy">0%</output><input id="spicy" type="range" min="0" max="1" step=".01" value="0"><small>Rolls &amp; chaos</small></label>
         <label>Bars<select id="bars"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label>
+        <label>Drum Kit<select id="generator-kit-select"><option value="custom">Custom Kit</option></select><small id="generator-kit-desc">Kit sounds</small></label>
       </div>
       <details id="advanced-generation"><summary>Advanced generation</summary><div class="advanced"><label>Break<select id="breakStyle"><option value="genre">Genre default</option></select><small id="break-description">Use the selected genre’s rhythm.</small><small>Rhythm presets · synthesized kit, not original recordings</small></label><label>Resolution<select id="resolution"><option value="8">1/8</option><option value="16" selected>1/16</option><option value="32">1/32</option><option value="64">1/64</option></select></label><label>Engine<select id="algorithm"><option value="groove-v2">Groove v2</option><option value="legacy-v1">Legacy v1 (older seeds)</option></select></label><input id="variation" type="hidden" value="0">
       <label>Seed<input id="seed" value="break-042" maxlength="80"></label>
@@ -328,4 +329,4 @@
   </div>
   <p class="footer-note" hidden>Single-shot tracker · Audio stays local. Save project includes your samples and settings; autosave restores your latest workspace on this browser. WAV includes tails; muted lanes are excluded. Pitch repitches the sound. MP3 export remains planned.</p>
 </footer>
-</main><script type="module" src="./dist/web.js?v=0.2.0-udnb-collection"></script></body></html>
+</main><script type="module" src="./dist/web.js?v=0.2.0-udnb-ui"></script></body></html>

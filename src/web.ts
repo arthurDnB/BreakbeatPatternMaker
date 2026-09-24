@@ -302,10 +302,11 @@ async function auditionRole(role: Role) {
 const kitPanel=setupDrumKit(assets,()=>{
   stop();samplePanel.stop();
   const ks=document.getElementById('kit-preset-select') as HTMLSelectElement | null;
-  if(ks){
-    const matching=KIT_PRESETS.find(p=>ROLES.every(r=>kitPanel.mix[r].choice===p.slots[r]));
-    ks.value=matching?matching.id:'custom';
-  }
+  const gks=document.getElementById('generator-kit-select') as HTMLSelectElement | null;
+  const matching=KIT_PRESETS.find(p=>ROLES.every(r=>kitPanel.mix[r].choice===p.slots[r]));
+  const matchedId=matching?matching.id:'custom';
+  if(ks) ks.value=matchedId;
+  if(gks) gks.value=matchedId;
   if(editor)refresh();
 },auditionRole);
 const drumKit=kitPanel.kit;
@@ -536,6 +537,8 @@ function restoreGenerationDefaults(){
    void kitPanel.applyPreset(defaultKitId);
    const ks=document.getElementById('kit-preset-select') as HTMLSelectElement | null;
    if(ks) ks.value=defaultKitId;
+   const gks=document.getElementById('generator-kit-select') as HTMLSelectElement | null;
+   if(gks) gks.value=defaultKitId;
  }
  presets();scheduleSave();status(PROFILES[genre].name+' generation defaults loaded, including BPM and advanced settings. Press Generate to apply to the pattern.');
 }
@@ -555,8 +558,9 @@ for(const family of ['Jungle & DnB','Hip-Hop & Downtempo','Garage','Dub & Bass',
 for(const [value,preset] of Object.entries(BREAKS)){
   const option=document.createElement('option');option.value=value;option.textContent=preset.name;el('breakStyle').append(option);
 }
-const kitSelect=el<HTMLSelectElement>('kit-preset-select');
-if(kitSelect){
+function initKitPresetSelect(selectId: string){
+  const kitSelect=document.getElementById(selectId) as HTMLSelectElement | null;
+  if(!kitSelect) return;
   kitSelect.replaceChildren();
   const customOpt=document.createElement('option');
   customOpt.value='custom';
@@ -571,10 +575,15 @@ if(kitSelect){
   kitSelect.onchange=async()=>{
     if(kitSelect.value!=='custom'){
       await kitPanel.applyPreset(kitSelect.value);
+      const otherId=selectId==='kit-preset-select'?'generator-kit-select':'kit-preset-select';
+      const other=document.getElementById(otherId) as HTMLSelectElement | null;
+      if(other) other.value=kitSelect.value;
       dirty();
     }
   };
 }
+initKitPresetSelect('kit-preset-select');
+initKitPresetSelect('generator-kit-select');
 
 function patternJSON(){
   const pattern=withDrumKit(editor.state.pattern,drumKit,kitPanel.mix);
@@ -848,7 +857,7 @@ el('project-new').onclick=()=>{
   hitDrafts.clear();stop();samplePanel.stop();assets.clear();bank=undefined;slotEditors.clear();kitPanel.restore(defaultKitState());editor=new Editor(generate(genreDefaults('jungle')));syncControls();
   const genre=input('genre').value as Genre,defaultKitId=GENRE_KITS[genre]||'acoustic-break';
   void kitPanel.applyPreset(defaultKitId);
-  const ks=document.getElementById('kit-preset-select') as HTMLSelectElement | null;if(ks)ks.value=defaultKitId;
+  const ks=document.getElementById('kit-preset-select') as HTMLSelectElement | null;if(ks)ks.value=defaultKitId;const gks=document.getElementById('generator-kit-select') as HTMLSelectElement | null;if(gks)gks.value=defaultKitId;
   refresh();status('New project started.');
 };
 presets();build();
@@ -859,7 +868,7 @@ try{
   else{
     const genre=input('genre').value as Genre,defaultKitId=GENRE_KITS[genre]||'acoustic-break';
     void kitPanel.applyPreset(defaultKitId);
-    const ks=document.getElementById('kit-preset-select') as HTMLSelectElement | null;if(ks)ks.value=defaultKitId;
+    const ks=document.getElementById('kit-preset-select') as HTMLSelectElement | null;if(ks)ks.value=defaultKitId;const gks=document.getElementById('generator-kit-select') as HTMLSelectElement | null;if(gks)gks.value=defaultKitId;
   }
 }catch(e){el('save-status').textContent='Could not restore autosave — use Open project';}
 persistenceReady=true;
