@@ -204,56 +204,67 @@ export const KIT_PRESETS: KitPreset[] = [
   {
     id: 'acoustic-break',
     name: '🥁 Acoustic Break (Jungle / DnB / Breaks)',
-    description: 'Crisp acoustic kick, firm snare, tight hat, tambourine',
+    description: 'Punchy acoustic kick, crisp rimshot crack, tight hat, rolling shaker',
     slots: {
-      kick: 'acoustic-kick',
-      snare: 'acoustic-snare',
+      kick: 'acoustic-kick-2',
+      snare: 'acoustic-rimshot',
       hat: 'acoustic-hat',
-      percussion: 'tambourine',
+      percussion: 'acoustic-shaker',
     }
   },
   {
     id: 'trap-808',
     name: '🎛️ 808 Trap & Sub (Trap / Drill / Hip-Hop)',
-    description: 'Deep 808 long sub kick, tight 808 clap, 808 hat, cowbell',
+    description: 'Deep 808 long sub kick, snappy 808 snare, 808 hat, 808 clap',
     slots: {
       kick: '808-kick-long',
-      snare: '808-clap',
+      snare: '808-snare-75',
       hat: '808-hat',
-      percussion: '808-cowbell',
+      percussion: '808-clap',
     }
   },
   {
     id: 'electronic-dance',
-    name: '⚡ Electronic & Big Beat (Electro / Big Beat)',
-    description: 'Punchy acoustic-2 kick, 808 snare-75, short open hat, high tom',
+    name: '⚡ Electronic & Big Beat (Electro / Big Beat / House)',
+    description: 'Punchy 808-75 kick, crisp 808-75 snare, open hat, 808 clap',
     slots: {
-      kick: 'acoustic-kick-2',
+      kick: '808-kick-75',
       snare: '808-snare-75',
       hat: '808-openhat-short',
-      percussion: '808-hightom',
+      percussion: '808-clap',
     }
   },
   {
     id: 'hardcore-rave',
     name: '💥 Hardcore Rave (Breakcore / Gabber)',
-    description: 'Raw 808 kick-00, marching snare, loose hat, conga',
+    description: 'Raw punchy 808 kick, rapid-fire marching snare, loose hat, rim click',
     slots: {
       kick: '808-kick-00',
       snare: 'marching-snare',
       hat: 'acoustic-loosehat',
-      percussion: '808-conga',
+      percussion: '808-rim',
     }
   },
   {
     id: 'lofi-soul',
     name: '🍂 Lo-Fi Soul & BoomBap (Chill / Hip-Hop)',
-    description: 'Muted acoustic kick, soft snare, pedal hat, shaker',
+    description: 'Warm acoustic kick-2, tight rimshot crack, pedal hat, shaker',
     slots: {
-      kick: 'acoustic-kick-muted',
-      snare: 'acoustic-snare-soft',
+      kick: 'acoustic-kick-2',
+      snare: 'acoustic-rimshot',
       hat: 'acoustic-pedalhat',
       percussion: 'acoustic-shaker',
+    }
+  },
+  {
+    id: 'uk-garage',
+    name: '🏙️ UK Garage & 2-Step (Garage / Dubstep)',
+    description: 'Punchy acoustic kick, crisp firm snare, short open hat, 808 rim',
+    slots: {
+      kick: 'acoustic-kick-2',
+      snare: 'acoustic-snare',
+      hat: '808-openhat-short',
+      percussion: '808-rim',
     }
   },
 ];
@@ -277,4 +288,7 @@ export const GENRE_KITS: Record<string, string> = {
   bigbeat: 'electronic-dance',
   electrobreaks: 'electronic-dance',
   nuskoolbreaks: 'electronic-dance',
+  garage: 'uk-garage',
+  dubstep: 'uk-garage',
+  two_step: 'uk-garage',
 };

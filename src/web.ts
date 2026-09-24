@@ -490,11 +490,23 @@ el('project-open').onchange=async e=>{const field=e.target as HTMLInputElement,f
 };
 el('project-new').onclick=()=>{
   if(!confirm('Start a new project? Save project first to keep your current work.'))return;
-  hitDrafts.clear();stop();samplePanel.stop();assets.clear();bank=undefined;slotEditors.clear();kitPanel.restore(defaultKitState());editor=new Editor(generate(defaults()));syncControls();refresh();status('New project started.');
+  hitDrafts.clear();stop();samplePanel.stop();assets.clear();bank=undefined;slotEditors.clear();kitPanel.restore(defaultKitState());editor=new Editor(generate(defaults()));syncControls();
+  const genre=input('genre').value as Genre,defaultKitId=GENRE_KITS[genre]||'acoustic-break';
+  void kitPanel.applyPreset(defaultKitId);
+  const ks=document.getElementById('kit-preset-select') as HTMLSelectElement | null;if(ks)ks.value=defaultKitId;
+  refresh();status('New project started.');
 };
 presets();build();
 // Do not overwrite a stored workspace with the initial default pattern.
-try{const saved=await localProject();if(saved){applyProject(saved);el('save-status').textContent='Restored local workspace';}}catch(e){el('save-status').textContent='Could not restore autosave — use Open project';}
+try{
+  const saved=await localProject();
+  if(saved){applyProject(saved);el('save-status').textContent='Restored local workspace';}
+  else{
+    const genre=input('genre').value as Genre,defaultKitId=GENRE_KITS[genre]||'acoustic-break';
+    void kitPanel.applyPreset(defaultKitId);
+    const ks=document.getElementById('kit-preset-select') as HTMLSelectElement | null;if(ks)ks.value=defaultKitId;
+  }
+}catch(e){el('save-status').textContent='Could not restore autosave — use Open project';}
 persistenceReady=true;
 
 

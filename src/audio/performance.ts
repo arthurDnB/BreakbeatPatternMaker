@@ -59,6 +59,17 @@ export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,
   }
   processEffects(bus,rate,effects[role]);for(let c=0;c<2;c++)for(let i=0;i<bus[c]!.length;i++)channels[c]![i]!+=bus[c]![i]!;
   }
+  // Master bus glue & soft saturation: warm analog tape curve for peaks above 0.7
+  for(let c=0;c<2;c++){
+    const ch=channels[c]!;
+    for(let i=0;i<ch.length;i++){
+      const v=ch[i]!,abs=Math.abs(v);
+      if(abs>0.7){
+        const sign=v<0?-1:1;
+        ch[i]=sign*(0.7+0.28*Math.tanh((abs-0.7)/0.28));
+      }
+    }
+  }
   let peak=0;for(const channel of channels)for(const value of channel)peak=Math.max(peak,Math.abs(value));
   const attenuation=peak>1?.98/peak:1;
   if(attenuation<1)for(const channel of channels)for(let i=0;i<channel.length;i++)channel[i]!*=attenuation;

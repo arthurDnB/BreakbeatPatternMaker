@@ -50,6 +50,23 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-24] - Punchy Sample Assignments, Master Bus Glue & Audio Quality (Antigravity)
+- **Master Bus Glue & Soft Saturation (`src/audio/performance.ts`):**
+  - Implemented an analog-style tape soft saturation transfer curve on the master performance bus for peaks above 0.7 threshold.
+  - Glues drum layers together, increases perceived loudness and punch, and avoids digital clipping and harsh hard-normalization.
+  - Signal <= 0.7 is 100% linear and bit-identical, preserving unit test baselines.
+- **Refined Genre Sample Assignments (`src/audio/library.ts`):**
+  - Upgraded *Acoustic Break* (Jungle / DnB) from concert bass drum & hollow snare to `acoustic-kick-2` (hard punch strike), `acoustic-rimshot` (sharp breakbeat crack), and `acoustic-shaker`.
+  - Upgraded *808 Trap & Sub* to use both `808-snare-75` and `808-clap`, with `808-kick-long` sub and `808-hat`.
+  - Upgraded *Electronic & Big Beat* to use `808-kick-75` (round electronic punch), `808-snare-75`, `808-openhat-short`, and `808-clap`.
+  - Upgraded *Lo-Fi Soul & BoomBap* to use punchy `acoustic-kick-2` and `acoustic-rimshot`.
+  - Added new *UK Garage & 2-Step* preset (`uk-garage`) mapped to garage and dubstep genres.
+- **Immediate Startup with Real Samples (`src/web.ts`):**
+  - First-time visitors and new projects now immediately auto-load the genre's high-quality sample kit rather than defaulting to the mathematical sine-wave synth.
+- **Verification:**
+  - 52/52 unit tests passing (`npm.cmd test`).
+  - Playwright site smoke tests passing on root `/` and subpath `/breakbeat-pattern-maker/` (`npm.cmd run test:site`).
+
 ### [2026-09-24] - Sound Quality, Genre-Adaptive Kits, Spicy Slider & Tracker UI (Antigravity)
 - **Granular Sound & Effects (`src/audio/effects.ts`, `src/audio/drum-kit.ts`):**
   - Added `resonance` (0 to 1) and `punch` (0 to 1) to channel effects engine.
