@@ -39,7 +39,9 @@ export function generateGroove(settings:Settings):Pattern{
  const s={...settings,algorithm:'groove-v2' as const},rule=GROOVES[s.genre];
  const breakRecipe=s.breakStyle&&s.breakStyle!=='genre'?BREAKS[s.breakStyle]:undefined;
  const profile=breakRecipe?{...PROFILES[s.genre],...breakRecipe,fourFloor:false}:PROFILES[s.genre];
- const motif=profile.kicks[Math.floor(random(s.seed,'motif')()*profile.kicks.length)]!;
+ const motifCount=profile.kicks.length;
+ const baseMotif=Math.floor(random(s.seed,'motif')()*motifCount);
+ const motif=profile.kicks[(baseMotif + (s.variation??0)) % motifCount]!;
  const hits=new Map<string,Hit>(),grid=BAR/s.resolution;
  const add=(role:Role,tick:number,gain:number,anchor:boolean,ghost:boolean,reason:string)=>{
   if(s.enabledRoles&&!s.enabledRoles.includes(role))return;
@@ -62,24 +64,27 @@ export function generateGroove(settings:Settings):Pattern{
    add('hat',origin+step*240,gain,false,false,'A recurring hat accent defines the pulse; quieter hits leave room for the backbeat.');
   }
   if(response){
-   const answer=rule.response[Math.floor(random(s.seed,'answer:'+bar)()*rule.response.length)]!;
-   if(chance(s,'answer-enabled:'+bar)<s.syncopation)add('kick',origin+answer*240,.62,false,false,'This response-bar kick answers the original motif.');
+   const answerPool=rule.response;
+   const answerIndex=(Math.floor(random(s.seed,'answer:'+bar)()*answerPool.length) + (s.variation??0)) % answerPool.length;
+   const answer=answerPool[answerIndex]!;
+   if(chance(s,'answer-enabled:'+bar)<Math.min(0.9, s.syncopation*1.35))add('kick',origin+answer*240,.64,false,false,'This response-bar kick answers the original motif.');
   }
   for(let step=0;step<16;step++){
-   if(!hats.includes(step)&&chance(s,'hat:'+bar+':'+step)<s.complexity*rule.detail)
-    add('hat',origin+step*240,.22+(step%4===2?.06:0),false,false,'A quiet subdivision adds detail between the main hat accents.');
+   if(!hats.includes(step)&&chance(s,'hat:'+bar+':'+step)<s.complexity*Math.max(0.35, rule.detail*1.4))
+    add('hat',origin+step*240,.22+(step%4===2?.08:0),false,false,'A quiet subdivision adds detail between the main hat accents.');
   }
   for(const step of rule.kickExtras){
-   if(chance(s,'kick:'+bar+':'+step)<s.complexity*s.syncopation*.22)
-    add('kick',origin+step*240,.52,false,false,'A quiet syncopated pickup supports the recurring kick motif.');
+   if(chance(s,'kick:'+bar+':'+step)<s.complexity*(0.25+s.syncopation*0.45))
+    add('kick',origin+step*240,.54,false,false,'A quiet syncopated pickup supports the recurring kick motif.');
   }
   for(const step of profile.ghosts){
-   if(chance(s,'ghost:'+bar+':'+step)<s.ghostAmount)
+   const ghostThreshold=Math.max(s.ghostAmount, s.complexity*0.45);
+   if(chance(s,'ghost:'+bar+':'+step)<ghostThreshold)
     add('snare',origin+step*240,rule.ghostLevel*(.85+.3*chance(s,'ghost-level:'+bar+':'+step)),false,true,'This quiet ghost snare connects the backbeats without replacing them.');
   }
   for(const step of profile.percussion??rule.response){
-   if(chance(s,'perc:'+bar+':'+step)<s.complexity*(response?.85:.5))
-    add('percussion',origin+step*240,.28+(response?.06:0),false,false,'Percussion answers the main drums, with stronger responses in alternating bars.');
+   if(chance(s,'perc:'+bar+':'+step)<s.complexity*(response?.95:.6))
+    add('percussion',origin+step*240,.3+(response?.08:0),false,false,'Percussion answers the main drums, with stronger responses in alternating bars.');
   }
  }
  // Fills are phrase endings, not automatic rolls at the end of every bar.
@@ -102,14 +107,33 @@ export function generateGroove(settings:Settings):Pattern{
   const bar=Math.floor(hit.baseTick/BAR),local=hit.baseTick%BAR;
   const eligibleBar=bar===s.bars-1||(bar%2===1&&s.genre!=='atmosphericbreakcore');
   if(!eligibleBar||local<PPQ*3||(bursts.get(bar)??0)>=rule.maxBursts)continue;
-  if(chance(s,'burst:'+hit.id)>=(s.spicy??0)*.85)continue;
+  if(chance(s,'burst:'+hit.id)>=(s.spicy??0)*0.9)continue;
   bursts.set(bar,(bursts.get(bar)??0)+1);
-  const max=Math.min(rule.maxRatchet,(s.spicy??0)>.75?8:(s.spicy??0)>.4?4:2);
-  hit.ratchets=max>2&&chance(s,'ratchet:'+hit.id)>.55?max:2;
-  hit.gate=rule.family==='Experimental'?.55:.8;
+  const pool=(s.spicy??0)>.75?[2,3,4,6,8]:(s.spicy??0)>.4?[2,3,4]:[2];
+  const validPool=pool.filter(r=>r<=rule.maxRatchet);
+  hit.ratchets=validPool[Math.floor(chance(s,'ratchet:'+hit.id)*validPool.length)]??2;
+  hit.gate=(s.spicy??0)>.6?(chance(s,'gate:'+hit.id)>.5?.5:.75):(rule.family==='Experimental'?.55:.8);
   hit.reason+=' A bounded ×'+hit.ratchets+' burst marks the phrase response.';
-  if(chance(s,'reverse:'+hit.id)<rule.reverse*(s.spicy??0)){hit.reverse=true;hit.reason+=' This ornament plays in reverse.';}
-  if(rule.pitch>0&&hit.role!=='snare')hit.pitch=Math.round((chance(s,'pitch:'+hit.id)*2-1)*rule.pitch);
+  if(chance(s,'reverse:'+hit.id)<Math.max(rule.reverse,0.15)*(s.spicy??0)){hit.reverse=true;hit.reason+=' This ornament plays in reverse.';}
+  const pitchRange=Math.max(rule.pitch,3);
+  if(rule.pitch>0&&hit.role!=='snare')hit.pitch=Math.round((chance(s,'pitch:'+hit.id)*2-1)*pitchRange);
+ }
+ if((s.spicy??0)>0){
+  for(const hit of events){
+   if(hit.anchor||hit.ratchets)continue;
+   if((hit.role==='percussion'||hit.ghost||hit.role==='hat')&&chance(s,'reverse-ornament:'+hit.id)<Math.max(rule.reverse,0.2)*(s.spicy??0)*0.75){
+    hit.reverse=true;
+    hit.reason+=' (Spicy reverse ornament)';
+   }
+   if((hit.role==='hat'||hit.role==='percussion'||hit.ghost)&&chance(s,'pitch-roll:'+hit.id)<(s.spicy??0)*0.5&&hit.role!=='snare'){
+    const pitchRange=Math.max(rule.pitch,3);
+    const shift=Math.floor(chance(s,'pitch-val:'+hit.id)*(pitchRange*2+1))-pitchRange;
+    if(shift!==0){
+     hit.pitch=shift;
+     hit.reason+=` (Spicy pitch ${shift>0?'+':''}${shift})`;
+    }
+   }
+  }
  }
  return {engineVersion:GROOVE_VERSION,ppq:PPQ,settings:s,events};
 }

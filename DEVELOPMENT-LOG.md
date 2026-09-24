@@ -57,6 +57,22 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-24] - Engine Sensitivity, Spicy Dynamics & Creative Variation (Antigravity)
+- **Spicy 🌶️ Slider Dynamics (`src/core/groove.ts`, `src/core/groove-profiles.ts`):**
+  - Expanded ratchets pool to allow 2, 3, 4, 6, and 8 subdivisions when Spicy > 75% on beat 4, respecting genre `maxRatchet` and `maxBursts`.
+  - Removed `maxBursts: 0` constraints so every genre audibly reacts to the Spicy slider.
+  - Enabled full-pattern reverse ornaments (`hit.reverse = true`) and pitch rolls (`hit.pitch` from -7 to +7 st) on hats, ghost snares, and percussions as soon as Spicy > 0.
+- **Complexity Sensitivity Range (`src/core/groove.ts`, `src/core/groove-profiles.ts`):**
+  - Widened dynamic range of the Complexity slider: simple skeletal downbeat grooves at 0% up to dense, intricate 16th shuffles, ghost fills, syncopated pickups, and percussion answers at 100%.
+  - Increased baseline detail, reverse probabilities, and pitch ranges across musical families.
+- **Creative Motif Variation (`src/core/editor.ts`, `src/core/groove.ts`):**
+  - Updated `editor.variation()` to anchor downbeat kicks and backbeat snares (`h.anchor`) while allowing secondary syncopated kicks to cycle through the genre's curated kick motifs and response variations.
+  - Generates noticeably distinct yet structurally grounded rhythmic variations without duplicating IDs or moving anchors.
+- **Cache-Busting & Test Verification (`public/index.html`, `tests/groove.test.mjs`):**
+  - Bumped asset query strings to `?v=0.2.0-spicy`.
+  - Updated variation unit tests in `tests/groove.test.mjs` to verify anchor preservation and motif variation.
+  - 66/66 unit tests passing (`npm.cmd test`), static site build verified (`npm.cmd run test:site`).
+
 ### [2026-09-24] - Groove v2 Engine & 38 Curated Genres (Codex & Antigravity)
 - **Staged Rhythm & Groove Engine (`src/core/groove.ts`, `src/core/groove-profiles.ts`):**
   - Implemented `Groove v2` staged generation: core motif → microtiming & groove offsets → phrase response answers → genre fills → bounded ratchets/bursts.

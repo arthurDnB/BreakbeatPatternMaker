@@ -82,14 +82,14 @@ test('genre fill and mutation respect selection, exclusions, exact locks and und
  }
 });
 
-test('related variations keep motif, anchors, exclusions and locks while preserving seed and history',()=>{
+test('related variations develop motifs, keep anchors, exclusions and locks while preserving seed and history',()=>{
  for(const genre of genres){
   const e=new Editor(generate({...genreDefaults(genre),complexity:.8,enabledRoles:['kick','snare','hat']}));
   e.state.lockedRoles=['hat'];const before=structuredClone(e.state);
   e.variation();
   assert.equal(e.state.pattern.settings.seed,before.pattern.settings.seed);
   assert.equal(e.state.pattern.settings.variation,1);
-  for(const h of before.pattern.events.filter(h=>h.anchor||h.role==='hat'||h.role==='kick'&&h.gain>=.7))assert.deepEqual(e.state.pattern.events.find(n=>n.id===h.id),h,genre);
+  for(const h of before.pattern.events.filter(h=>h.anchor||h.role==='hat'))assert.deepEqual(e.state.pattern.events.find(n=>n.id===h.id),h,genre);
   assert.ok(e.state.pattern.events.every(h=>h.role!=='percussion'));
   const after=structuredClone(e.state);e.undo();assert.deepEqual(e.state,before);e.redo();assert.deepEqual(e.state,after);
  }
@@ -109,7 +109,7 @@ test('engine and variation survive project roundtrip; legacy settings remain rep
 
 test('variation handles moved primary hits without duplicate IDs; fill leaves adjacent outside hits intact',()=>{
  const e=new Editor(generate({...genreDefaults('jungle'),complexity:1,bars:2}));
- const kick=e.state.pattern.events.find(h=>h.role==='kick'&&!h.anchor&&h.gain>=.7);
+ const kick=e.state.pattern.events.find(h=>h.role==='kick'&&h.anchor);
  e.write({...kick,baseTick:kick.baseTick+60},kick.id);
  e.variation();assert.deepEqual(e.state.pattern.events.find(h=>h.id===kick.id),{...kick,baseTick:kick.baseTick+60});compile(e.state.pattern);
  const f=new Editor(generate({...genreDefaults('brostep'),resolution:16,bars:1}));

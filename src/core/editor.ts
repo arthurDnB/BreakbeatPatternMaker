@@ -56,8 +56,8 @@ export class Editor {
   variation(){
     const original=this.state.pattern;
     const next=generate({...original.settings,algorithm:'groove-v2',variation:(original.settings.variation??0)+1});
-    const anchors=original.events.filter(h=>h.anchor||(h.role==='kick'&&h.gain>=.7));
-    next.events=next.events.filter(h=>!h.anchor&&!(h.role==='kick'&&h.gain>=.7)&&!anchors.some(a=>a.id===h.id||(a.role===h.role&&a.baseTick===h.baseTick))).concat(copy(anchors));
+    const anchors=original.events.filter(h=>h.anchor);
+    next.events=next.events.filter(h=>!h.anchor&&!anchors.some(a=>a.id===h.id||(a.role===h.role&&a.baseTick===h.baseTick))).concat(copy(anchors));
     return this.replace(next,'Generate variation');
   }
   write(hit:Hit,replaceId?:string){
