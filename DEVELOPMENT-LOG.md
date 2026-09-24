@@ -57,6 +57,22 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-24] - Human Feel, Breakbeat Snare Anticipations & Deep Motif Library (Antigravity)
+- **Breakbeat Snare Syncopations & Drags (`src/core/groove.ts`):**
+  - Added syncopated snare anticipations on step 11 (the "and" of 3, Think/Amen break feel) and double-tap response snares on step 14 when complexity > 0.25.
+  - Implemented 3-tier ghost snare dynamics: subtle whisper ghosts (0.16–0.22), connecting groove taps (0.26–0.34), and punchy lead-in drags/flams (0.42–0.52) right before backbeats.
+- **Hi-Hat Articulation & Decay Modulation (`src/core/groove.ts`):**
+  - Dynamic `hit.decay` modulation: accent hats on quarters ring open (0.85–1.0 decay) while offbeat 16th subdivisions are tightly choked (0.26–0.44 decay), eliminating robotic machine-gun sizzle.
+  - Added subtle velocity arcs building momentum toward phrase turnarounds.
+- **Intentional Pocket Microtiming (`src/core/groove.ts`):**
+  - Baked in authentic pocket microtiming: syncopated offbeat kicks push forward (-3ms), backbeat snares lay back with genre-specific lag (+1 to +9ms), and lead-in ghost snares drag slightly (+2.5ms).
+- **Expanded Curated Kick Motifs (`src/core/groove-profiles.ts`):**
+  - Expanded kick motifs pool across all 38 genres to 5–7 distinct, authentic rhythmic templates (polyrhythmic 3-3-2, syncopated 2-step, broken double-kick, sub-kick pickups) so Variation continuously yields fresh musical patterns.
+- **Cache-Busting & Test Verification (`public/index.html`):**
+  - Bumped version cache buster to `?v=0.2.0-groove-pocket`.
+  - 66/66 unit tests passing (`npm.cmd test`).
+  - Static site packaging verified (`npm.cmd run test:site`).
+
 ### [2026-09-24] - Engine Sensitivity, Spicy Dynamics & Creative Variation (Antigravity)
 - **Spicy 🌶️ Slider Dynamics (`src/core/groove.ts`, `src/core/groove-profiles.ts`):**
   - Expanded ratchets pool to allow 2, 3, 4, 6, and 8 subdivisions when Spicy > 75% on beat 4, respecting genre `maxRatchet` and `maxBursts`.

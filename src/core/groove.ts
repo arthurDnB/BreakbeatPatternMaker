@@ -12,8 +12,10 @@ export function grooveTiming(hit:Hit,s:Settings){
  const amount=hit.role==='hat'?rule.hatSwing:hit.role==='percussion'?1:hit.ghost?.8:.25;
  const swing=step%2 ? (s.swing-.5)*480*amount : 0;
  const late=hit.role==='snare'?rule.lateSnareMs*s.bpm*PPQ/60000:0;
+ const pushKick=(hit.role==='kick'&&!hit.anchor&&step%2===1)?-3*s.bpm*PPQ/60000:0;
+ const ghostDrag=(hit.ghost&&(step===3||step===11||step===15))?2.5*s.bpm*PPQ/60000:0;
  const jitter=(random(s.seed,'timing:'+hit.id)()*2-1)*(hit.anchor?Math.min(1,s.humanizeMs):s.humanizeMs)*s.bpm*PPQ/60000;
- hit.offsetTick=Math.round(Math.max(-hit.baseTick,Math.min(s.bars*BAR-1-hit.baseTick,swing+late+jitter)));
+ hit.offsetTick=Math.round(Math.max(-hit.baseTick,Math.min(s.bars*BAR-1-hit.baseTick,swing+late+pushKick+ghostDrag+jitter)));
 }
 
 /** Curated phrase endings, shared by Generate and the selected-row Fill action. */
@@ -39,9 +41,10 @@ export function generateGroove(settings:Settings):Pattern{
  const s={...settings,algorithm:'groove-v2' as const},rule=GROOVES[s.genre];
  const breakRecipe=s.breakStyle&&s.breakStyle!=='genre'?BREAKS[s.breakStyle]:undefined;
  const profile=breakRecipe?{...PROFILES[s.genre],...breakRecipe,fourFloor:false}:PROFILES[s.genre];
- const motifCount=profile.kicks.length;
+ const kicksPool=breakRecipe?profile.kicks:(rule.kicks??profile.kicks);
+ const motifCount=kicksPool.length;
  const baseMotif=Math.floor(random(s.seed,'motif')()*motifCount);
- const motif=profile.kicks[(baseMotif + (s.variation??0)) % motifCount]!;
+ const motif=kicksPool[(baseMotif + (s.variation??0)) % motifCount]!;
  const hits=new Map<string,Hit>(),grid=BAR/s.resolution;
  const add=(role:Role,tick:number,gain:number,anchor:boolean,ghost:boolean,reason:string)=>{
   if(s.enabledRoles&&!s.enabledRoles.includes(role))return;
@@ -53,9 +56,26 @@ export function generateGroove(settings:Settings):Pattern{
  };
  for(let bar=0;bar<s.bars;bar++){
   const origin=bar*BAR,response=bar%2===1;
-  for(const step of motif)add('kick',origin+step*240,step===0?.9:.76,step===0||(!!profile.fourFloor&&step%4===0)||(s.genre==='dub'&&step===8),false,s.genre==='dub'?'The one-drop kick leaves space on beat 1.':step===0?'The downbeat kick anchors the recurring motif.':'This kick belongs to the recurring core motif.');
+  for(const step of motif){
+   const isDownbeat=step===0;
+   const isAnchor=isDownbeat||(!!profile.fourFloor&&step%4===0)||(s.genre==='dub'&&step===8);
+   const kickGain=isDownbeat?.94:.78;
+   add('kick',origin+step*240,kickGain,isAnchor,false,s.genre==='dub'?'The one-drop kick leaves space on beat 1.':isDownbeat?'The downbeat kick anchors the recurring motif.':'This kick belongs to the recurring core motif.');
+  }
   const snares=!breakRecipe&&s.genre==='drill'&&response?[8,14]:profile.snares??[4,12];
-  for(const step of snares)add('snare',origin+step*240,.9,true,false,step===8?'The beat-3 snare anchors a half-time or one-drop groove.':'The main snare anchors the phrase.');
+  for(const step of snares){
+   const snareGain=step===4?.88:.94;
+   add('snare',origin+step*240,snareGain,true,false,step===8?'The beat-3 snare anchors a half-time or one-drop groove.':'The main snare anchors the phrase.');
+  }
+  if(s.complexity>.25&&(rule.family==='Jungle & DnB'||rule.family==='Breaks & Rave'||rule.family==='Experimental'||rule.family==='Garage')){
+   if(chance(s,'snare-push:'+bar)<s.syncopation*(response?.7:.42)*s.complexity){
+    const pushStep=(s.genre==='footworkjungle'||s.genre==='idm')?10:11;
+    add('snare',origin+pushStep*240,.8,false,false,'An anticipated snare push drives the syncopated breakbeat pulse.');
+   }
+   if(response&&s.complexity>.5&&chance(s,'snare-double:'+bar)<s.syncopation*.45){
+    add('snare',origin+14*240,.72,false,false,'A syncopated snare bounce responds to beat 4.');
+   }
+  }
   const hats=profile.hatSteps??Array.from({length:16/profile.hats},(_,i)=>i*profile.hats);
   for(const step of hats){
    // Atmospheric breakcore deliberately leaves breathing room before its response bar.
@@ -79,8 +99,12 @@ export function generateGroove(settings:Settings):Pattern{
   }
   for(const step of profile.ghosts){
    const ghostThreshold=Math.max(s.ghostAmount, s.complexity*0.45);
-   if(chance(s,'ghost:'+bar+':'+step)<ghostThreshold)
-    add('snare',origin+step*240,rule.ghostLevel*(.85+.3*chance(s,'ghost-level:'+bar+':'+step)),false,true,'This quiet ghost snare connects the backbeats without replacing them.');
+   if(chance(s,'ghost:'+bar+':'+step)<ghostThreshold){
+    const roll=chance(s,'ghost-tier:'+bar+':'+step);
+    const isDrag=(step===3||step===11||step===15);
+    const ghostGain=isDrag&&roll>.55?rule.ghostLevel*(1.3+.3*roll):roll>.35?rule.ghostLevel*(.95+.25*roll):rule.ghostLevel*(.65+.2*roll);
+    add('snare',origin+step*240,Math.min(.65,ghostGain),false,true,'This quiet ghost snare connects the backbeats without replacing them.');
+   }
   }
   for(const step of profile.percussion??rule.response){
    if(chance(s,'perc:'+bar+':'+step)<s.complexity*(response?.95:.6))
@@ -94,6 +118,18 @@ export function generateGroove(settings:Settings):Pattern{
  const events=[...hits.values()].sort((a,b)=>a.baseTick-b.baseTick||ROLES.indexOf(a.role)-ROLES.indexOf(b.role));
  for(const hit of events){
   grooveTiming(hit,s);
+  if(hit.role==='hat'){
+   const step=Math.floor(hit.baseTick/240)%16;
+   if(step%4===0||(profile.hats===4&&step%2===0)){
+    hit.decay=.85+.15*chance(s,'hat-decay:'+hit.id);
+   }else if(step%2===1){
+    hit.decay=.26+.18*chance(s,'hat-decay:'+hit.id);
+   }else{
+    hit.decay=.55+.2*chance(s,'hat-decay:'+hit.id);
+   }
+   const bar=Math.floor(hit.baseTick/BAR);
+   if(bar===s.bars-1&&step>=12)hit.gain=Math.min(1,hit.gain*1.12);
+  }
   if(!hit.anchor){
    hit.gain*=.94+.12*random(s.seed,'accent:'+hit.id)();
    if(s.humanizeMs)hit.gain*=.96+.08*random(s.seed,'humanize:'+hit.id)();
