@@ -64,3 +64,18 @@ test('repeated edits across resolutions preserve protected hits and always compi
   for(const h of before)assert.deepEqual(e.state.pattern.events.find(n=>n.id===h.id),h);
  }
 });
+test('scramble shuffles timing/slices while strictly preserving anchors and locks',()=>{
+ const e=create();
+ e.toggleRole('snare');
+ const before=structuredClone(e.state.pattern);
+ assert.ok(e.scramble());
+ for(const h of before.events.filter(ev=>ev.role==='snare')){
+  assert.deepEqual(e.state.pattern.events.find(ev=>ev.id===h.id), h);
+ }
+ for(const h of before.events.filter(ev=>ev.anchor)){
+  assert.deepEqual(e.state.pattern.events.find(ev=>ev.id===h.id), h);
+ }
+ assert.ok(e.undo());
+ assert.deepEqual(e.state.pattern, before);
+ assert.ok(e.redo());
+});

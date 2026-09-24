@@ -951,6 +951,207 @@ input[type=range]::-webkit-slider-thumb:hover {
   background: transparent;
 }
 
+/* Bottom Tray Hardware Action Buttons & Slicer / DSP Controls */
+.tray-hardware-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hw-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+  line-height: 1.2;
+}
+
+.hw-btn-scramble {
+  background: #092823;
+  border-color: #00f5d4;
+  color: #00f5d4;
+  box-shadow: 0 0 8px rgba(0, 245, 212, 0.25);
+}
+.hw-btn-scramble:hover {
+  background: #00f5d4;
+  color: #080c14;
+  box-shadow: 0 0 16px rgba(0, 245, 212, 0.6);
+  transform: translateY(-1px);
+}
+.hw-btn-scramble:active {
+  transform: translateY(0);
+}
+
+.hw-btn-mutate {
+  background: #251433;
+  border-color: #c084fc;
+  color: #c084fc;
+  box-shadow: 0 0 8px rgba(192, 132, 252, 0.25);
+}
+.hw-btn-mutate:hover {
+  background: #c084fc;
+  color: #080c14;
+  box-shadow: 0 0 16px rgba(192, 132, 252, 0.6);
+  transform: translateY(-1px);
+}
+.hw-btn-mutate:active {
+  transform: translateY(0);
+}
+
+.hw-btn-variation {
+  background: #2b1f0d;
+  border-color: #fbbf24;
+  color: #fbbf24;
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.2);
+}
+.hw-btn-variation:hover {
+  background: #fbbf24;
+  color: #080c14;
+  box-shadow: 0 0 14px rgba(251, 191, 36, 0.6);
+  transform: translateY(-1px);
+}
+
+.tray-rack-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: #0c111a;
+  border-bottom: 1px solid #192233;
+}
+
+.tray-rack-tab {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #8395a7;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.tray-rack-tab:hover {
+  color: var(--text-main);
+  background: #151d2c;
+}
+.tray-rack-tab.active {
+  background: #1b263b;
+  border-color: #2b3d5e;
+  color: var(--accent-cyan);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* Master DSP Strip */
+.quick-fx-panel {
+  padding: 8px 4px;
+}
+.quick-fx-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #182233;
+}
+.quick-fx-target {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.quick-fx-target select {
+  font-size: 11px;
+  padding: 3px 8px;
+  background: #121824;
+  border: 1px solid #243247;
+  color: #e2e8f0;
+  border-radius: 4px;
+}
+.quick-fx-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+.quick-fx-col {
+  background: #0f1521;
+  border: 1px solid #1a2538;
+  border-radius: 6px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.quick-fx-col h4 {
+  margin: 0 0 4px 0;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--accent-cyan);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.quick-fx-col label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 10px;
+  color: #8c9eb0;
+}
+.quick-fx-col output {
+  float: right;
+  font-size: 10px;
+  font-weight: 700;
+  color: #e2e8f0;
+  font-variant-numeric: tabular-nums;
+}
+.quick-fx-col input[type="range"] {
+  height: 5px;
+  -webkit-appearance: none;
+  background: #172133;
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+  padding: 0;
+  margin: 2px 0;
+}
+.quick-fx-col input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 10px;
+  height: 14px;
+  background: #64748b;
+  border: 1px solid #94a3b8;
+  border-radius: 2px;
+  cursor: pointer;
+}
+.quick-fx-col input[type="range"]::-webkit-slider-thumb:hover {
+  background: var(--accent-cyan);
+}
+
+/* Waveform Slicer Panel in Bottom Tray */
+.sample-panel {
+  padding: 8px 4px;
+}
+.sample-panel #waveform {
+  width: 100%;
+  height: 120px;
+  background: #0b1018;
+  border: 1px solid #1a2436;
+  border-radius: 6px;
+  margin: 8px 0;
+  display: block;
+}
+
 /* --------------------------------------------------------------------------
    7. Pattern Bank Strip (Sketch Sample MPC-Pads)
    -------------------------------------------------------------------------- */

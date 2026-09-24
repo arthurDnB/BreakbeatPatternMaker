@@ -87,6 +87,31 @@ export class Editor {
     }
     next.revision++;return this.commit(next,scoped?'Mutate selection':'Mutate pattern');
   }
+  scramble(){
+    const next=copy(this.state),scope=selectedIds(next);
+    const scoped=next.selection.rows!==null||next.selection.ids.length>0;
+    const eligible=next.pattern.events.filter(h=>!h.anchor&&!locked(next,h)&&(!scoped||scope.has(h.id)));
+    if(eligible.length<2)return false;
+    const rng=random(next.pattern.settings.seed,`scramble:${next.revision}`);
+    const hasSlices=eligible.filter(h=>h.slice);
+    if(hasSlices.length>=2){
+      const slices=hasSlices.map(h=>structuredClone(h.slice));
+      for(let i=slices.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[slices[i],slices[j]]=[slices[j]!,slices[i]!];}
+      hasSlices.forEach((h,idx)=>{h.slice=slices[idx];h.reason='Scrambled break slice mapping.';});
+    }else{
+      const ticks=eligible.map(h=>({baseTick:h.baseTick,offsetTick:h.offsetTick,fineOffset:h.fineOffset,reverse:h.reverse}));
+      for(let i=ticks.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[ticks[i],ticks[j]]=[ticks[j]!,ticks[i]!];}
+      eligible.forEach((h,idx)=>{
+        h.baseTick=ticks[idx]!.baseTick;
+        h.offsetTick=ticks[idx]!.offsetTick;
+        if(ticks[idx]!.fineOffset!==undefined)h.fineOffset=ticks[idx]!.fineOffset;
+        if(ticks[idx]!.reverse!==undefined)h.reverse=ticks[idx]!.reverse;
+        h.reason='Scrambled breakbeat chop timing.';
+      });
+      next.pattern.events.sort((a,b)=>a.baseTick-b.baseTick||ROLES.indexOf(a.role)-ROLES.indexOf(b.role));
+    }
+    next.revision++;return this.commit(next,scoped?'Scramble selection':'Scramble break');
+  }
   fill(){
     const next=copy(this.state),range=next.selection.rows;
     if(!range)throw Error('Select an ending using row numbers or Select last beat.');

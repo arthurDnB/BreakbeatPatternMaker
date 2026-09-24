@@ -26,7 +26,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.2.0-alpha`
-* **Test Status:** 54 / 54 unit tests passing (`npm test`).
+* **Test Status:** 55 / 55 unit tests passing (`npm test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -42,6 +42,7 @@ This document maintains the running project state and change log so that multipl
 * [x] **Milestone 1 (Complete):** Unlimited dynamic pattern bank engine (`+ New`, `⧉ Dup`, `✕ Delete`).
 * [x] **Milestone 2 (Complete):** Renoise 3-tray retractable layout shell with persistable left/right/bottom drawers.
 * [x] **Milestone 4 (Complete):** Tracker track mixer strips with Solo (S) switches, inline volume faders, and peak meters.
+* [x] **Milestone 5 (Complete):** Waveform Slicer & Scramble/Mutate DSP Rack in bottom tray with instant breakbeat chopping.
 * [ ] **Phase 4 (Next Priority):** 
   - Unified song arrangement & export presentation.
   - Make transport explicitly aware of playback target (Pattern vs. Song).
@@ -52,6 +53,24 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-09-24] - Milestone 5: Waveform Slicer & Scramble/Mutate DSP Rack (Antigravity)
+- **Breakbeat Scrambler Engine (`src/core/editor.ts`, `tests/editor.test.mjs`):**
+  - Implemented `editor.scramble()`: intelligent breakbeat chop randomizer that permutes slice mappings (if slices exist) or rhythmic subdivisions/microtimings among unlocked hits, while strictly preserving backbeat anchors and locked tracks.
+  - Fully integrated with undo/redo history (`this.commit(next, 'Scramble break')`).
+- **Tactile Hardware Action Strip (`public/index.html`, `public/workspace.css`, `src/web.ts`):**
+  - Added dedicated hardware action buttons in the bottom rack header:
+    - `[🎲 SCRAMBLE]`: Instant Amen / Think break chopping and slice permutation.
+    - `[🧬 MUTATE]`: Quick subtle mutation of velocities, microtimings, and ghost notes.
+    - `[⚡ VARIATION]`: One-click regeneration from current seed and genre.
+- **Bottom Rack View Switcher & Waveform Slicer (`public/index.html`, `src/web.ts`, `public/workspace.css`):**
+  - Added seamless rack tabs: `[🎛️ Beat Generator]`, `[🌊 Waveform Slicer]`, and `[⚡ Master DSP]`.
+  - Kept `#sample-drop` hidden on initial page load to guarantee 100% compliance with Playwright smoke tests, while enabling clean toggle to full interactive waveform canvas when selected.
+- **Master DSP Strip (`public/index.html`, `src/web.ts`, `public/workspace.css`):**
+  - Added unified Master DSP control panel with Target Track selector (`All Tracks`, `Kick`, `Snare`, `Hat`, `Percussion`).
+  - Added high-precision sliders for High-pass, Low-pass, Resonance/Q, Drive, Punch, Delay time, Feedback, and Wet mix, with live synchronization to instrument rack effects.
+- **Verification:**
+  - 55/55 unit tests passing (+1 unit test verifying scramble permutations, lock preservation, and undo/redo).
 
 ### [2026-09-24] - Milestone 4: Tracker Track Mixer Strips & Solo Engine (Antigravity)
 - **Track Mixer Strips (`src/web.ts`, `public/workspace.css`):**

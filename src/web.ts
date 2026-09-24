@@ -14,6 +14,7 @@ import {generate} from './core/generate.js';
 import {compile,serialize} from './core/compile.js';
 import {ROLES,hex,noteName,type Hit,type Role,type Genre,type BreakStyle,type Pattern,type Transfer} from './core/model.js';
 import {Editor,emptySelection,locked,selectedIds} from './core/editor.js';
+import {defaultEffects,type Effects} from './audio/effects.js';
 
 
 const el=<T extends HTMLElement>(id:string)=>document.getElementById(id) as T;
@@ -1084,5 +1085,134 @@ function initWorkspaceTrays() {
   };
 }
 
+function initBottomRack(){
+  const scrambleBtn = document.getElementById('action-scramble');
+  if(scrambleBtn){
+    scrambleBtn.onclick=()=>edit(()=>editor.scramble(),'Scrambled breakbeat chops! Anchors and locks preserved. Use Undo to revert.');
+  }
+  const mutateBtn = document.getElementById('action-mutate');
+  if(mutateBtn){
+    mutateBtn.onclick=()=>edit(()=>editor.mutate(),'Variation applied. Locked hits and main anchors are unchanged. Preview and export now use this edit.');
+  }
+  const variationBtn = document.getElementById('action-variation');
+  if(variationBtn){
+    variationBtn.onclick=()=>{el('regenerate').click();};
+  }
+
+  const tabGen = document.getElementById('tab-generator');
+  const tabSli = document.getElementById('tab-slicer');
+  const tabFx = document.getElementById('tab-fx');
+  const pnlGen = document.getElementById('controls');
+  const pnlSli = document.getElementById('sample-drop');
+  const pnlFx = document.getElementById('quick-fx-panel');
+
+  function switchBottomTab(tabId: 'generator'|'slicer'|'fx'){
+    if(!tabGen || !tabSli || !tabFx || !pnlGen || !pnlSli || !pnlFx) return;
+    tabGen.classList.toggle('active', tabId==='generator');
+    tabGen.setAttribute('aria-selected', String(tabId==='generator'));
+    tabSli.classList.toggle('active', tabId==='slicer');
+    tabSli.setAttribute('aria-selected', String(tabId==='slicer'));
+    tabFx.classList.toggle('active', tabId==='fx');
+    tabFx.setAttribute('aria-selected', String(tabId==='fx'));
+
+    if(tabId==='generator'){
+      pnlGen.style.display = '';
+      pnlSli.hidden = true;
+      pnlFx.hidden = true;
+    }else if(tabId==='slicer'){
+      pnlGen.style.display = 'none';
+      pnlSli.hidden = false;
+      pnlFx.hidden = true;
+      window.dispatchEvent(new Event('resize'));
+    }else if(tabId==='fx'){
+      pnlGen.style.display = 'none';
+      pnlSli.hidden = true;
+      pnlFx.hidden = false;
+      syncDspControls();
+    }
+  }
+
+  if(tabGen) tabGen.onclick = () => switchBottomTab('generator');
+  if(tabSli) tabSli.onclick = () => switchBottomTab('slicer');
+  if(tabFx) tabFx.onclick = () => switchBottomTab('fx');
+
+  function syncDspControls(){
+    const sel = document.getElementById('dsp-role-select') as HTMLSelectElement | null;
+    if(!sel) return;
+    const target = sel.value || 'all';
+    const sampleRole: Role = target === 'all' ? 'snare' : target as Role;
+    const fx = kitPanel.mix[sampleRole].effects ?? defaultEffects();
+    const bypassCb = document.getElementById('dsp-bypass') as HTMLInputElement | null;
+    if(bypassCb) bypassCb.checked = !!fx.bypass;
+    const setVal = (id: string, textId: string, val: number, unit = '') => {
+      const inp = document.getElementById(id) as HTMLInputElement | null;
+      const out = document.getElementById(textId);
+      if(inp) inp.value = String(val);
+      if(out) out.textContent = val + unit;
+    };
+    setVal('dsp-hp', 'dsp-hp-val', fx.highpass, ' Hz');
+    setVal('dsp-lp', 'dsp-lp-val', fx.lowpass, ' Hz');
+    const resEl = document.getElementById('dsp-res') as HTMLInputElement | null;
+    if(resEl) resEl.value = String(fx.resonance ?? 0);
+    const resOut = document.getElementById('dsp-res-val');
+    if(resOut) resOut.textContent = (fx.resonance ?? 0).toFixed(2);
+
+    const driveEl = document.getElementById('dsp-drive') as HTMLInputElement | null;
+    if(driveEl) driveEl.value = String(fx.drive);
+    const driveOut = document.getElementById('dsp-drive-val');
+    if(driveOut) driveOut.textContent = fx.drive.toFixed(2);
+
+    const punchEl = document.getElementById('dsp-punch') as HTMLInputElement | null;
+    if(punchEl) punchEl.value = String(fx.punch ?? 0);
+    const punchOut = document.getElementById('dsp-punch-val');
+    if(punchOut) punchOut.textContent = (fx.punch ?? 0).toFixed(2);
+
+    setVal('dsp-delay', 'dsp-delay-val', fx.delayMs, ' ms');
+    const fbEl = document.getElementById('dsp-feedback') as HTMLInputElement | null;
+    if(fbEl) fbEl.value = String(fx.feedback);
+    const fbOut = document.getElementById('dsp-feedback-val');
+    if(fbOut) fbOut.textContent = Math.round(fx.feedback * 100) + '%';
+
+    const mixEl = document.getElementById('dsp-mix') as HTMLInputElement | null;
+    if(mixEl) mixEl.value = String(fx.mix);
+    const mixOut = document.getElementById('dsp-mix-val');
+    if(mixOut) mixOut.textContent = Math.round(fx.mix * 100) + '%';
+  }
+
+  function updateDspParam(key: keyof Effects, val: number | boolean){
+    const sel = document.getElementById('dsp-role-select') as HTMLSelectElement | null;
+    const target = sel?.value || 'all';
+    const rolesToUpdate = target === 'all' ? ROLES : [target as Role];
+    for(const r of rolesToUpdate){
+      const cur = kitPanel.mix[r].effects ?? defaultEffects();
+      kitPanel.mix[r].effects = { ...cur, [key]: val };
+      const rackInput = document.getElementById('fx-' + key + '-' + r) as HTMLInputElement | null;
+      if(rackInput) rackInput.value = String(val);
+    }
+    syncDspControls();
+    dirty();
+  }
+
+  const dspSel = document.getElementById('dsp-role-select');
+  if(dspSel) dspSel.onchange = () => syncDspControls();
+
+  const dspBypass = document.getElementById('dsp-bypass') as HTMLInputElement | null;
+  if(dspBypass) dspBypass.onchange = () => updateDspParam('bypass', dspBypass.checked);
+
+  const bindSlider = (id: string, key: keyof Effects) => {
+    const inp = document.getElementById(id) as HTMLInputElement | null;
+    if(inp) inp.oninput = () => updateDspParam(key, Number(inp.value));
+  };
+  bindSlider('dsp-hp', 'highpass');
+  bindSlider('dsp-lp', 'lowpass');
+  bindSlider('dsp-res', 'resonance');
+  bindSlider('dsp-drive', 'drive');
+  bindSlider('dsp-punch', 'punch');
+  bindSlider('dsp-delay', 'delayMs');
+  bindSlider('dsp-feedback', 'feedback');
+  bindSlider('dsp-mix', 'mix');
+}
+
 initWorkspaceTrays();
+initBottomRack();
 
