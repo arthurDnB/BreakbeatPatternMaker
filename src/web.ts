@@ -1,4 +1,4 @@
-import {newBank,arrange,slotLabel,addPatternSlot,duplicatePatternSlot,deletePatternSlot,type Bank} from './core/bank.js';
+import {newBank,arrange,songTimeline,songPosition,moveSequenceStep,slotLabel,addPatternSlot,duplicatePatternSlot,deletePatternSlot,type Bank} from './core/bank.js';
 import {makeProject,readProject,localProject} from './audio/project.js';
 import {defaultKitState} from './audio/drum-kit.js';
 import {setupDrumKit,withDrumKit} from './audio/drum-kit.js';
@@ -22,6 +22,7 @@ const input=(id:string)=>el<HTMLInputElement>(id);
 let pattern:Pattern,transfer:Transfer;
 let editor:Editor;
 let bank:Bank|undefined,pendingSlot:number|undefined;
+let draggedStep:number|undefined;
 let mode:'pattern'|'arrangement'|undefined;
 const slotEditors=new Map<number,Editor>();
 let persistenceReady=false,saveTimer:ReturnType<typeof setTimeout>|undefined;
@@ -36,11 +37,12 @@ function status(message:string,error=false){el('status').textContent=message;el(
 function syncHud() {
   const bpmVal = document.getElementById('hud-bpm-val');
   if (bpmVal && Number.isFinite(Number(input('bpm').value))) {
-    bpmVal.textContent = Number(input('bpm').value).toFixed(1);
+    bpmVal.textContent = (input('transport-target').value==='song' && bank ? bank.songBpm : pattern?.settings.bpm ?? Number(input('bpm').value)).toFixed(1);
   }
   const barsVal = document.getElementById('hud-bars-val');
   if (barsVal && pattern?.settings?.bars) {
-    barsVal.textContent = `${pattern.settings.bars} BAR${pattern.settings.bars > 1 ? 'S' : ''}`;
+    const bars=input('transport-target').value==='song' && bank ? bank.sequence.reduce((n,s)=>n+bank!.slots[s.slot]!.editor!.pattern.settings.bars*s.repeats,0) : pattern.settings.bars;
+    barsVal.textContent = `${bars} BAR${bars !== 1 ? 'S' : ''}`;
   }
 }
 function updateHudPosition(row: number) {
@@ -268,7 +270,7 @@ function stop(){
   if(timer)clearInterval(timer);timer=undefined;
   for(const source of playingSources){try{source.stop();}catch{}source.disconnect();}playingSources.clear();
   mode=undefined;pendingSlot=undefined;el('transport-state').textContent='Stopped';el('play-arrangement').textContent='Play arrangement';el('bank-status').textContent='';document.querySelectorAll('.playing-step').forEach(e=>e.classList.remove('playing-step'));
-  playToken++;el('play').textContent='Play pattern';document.querySelector('.playing-row')?.classList.remove('playing-row');
+  playToken++;el('play').textContent=input('transport-target').value==='song'?'Play song':'Play pattern';el('song-position').textContent='Song stopped';document.querySelector('.playing-row')?.classList.remove('playing-row');
   resetHud();
 }
 function build(){
@@ -307,7 +309,7 @@ function effectMap(){return Object.fromEntries(ROLES.map(r=>[r,kitPanel.mix[r].e
 function audioBuffer(audio:ReturnType<typeof renderPerformance>){const b=context!.createBuffer(2,audio.channels[0]!.length,audio.sampleRate);audio.channels.forEach((c,i)=>b.copyToChannel(new Float32Array(c),i));return b;}
 function startSource(buffer:AudioBuffer,at:number){const s=context!.createBufferSource();s.buffer=buffer;s.connect(context!.destination);playingSources.add(s);s.onended=()=>{playingSources.delete(s);s.disconnect();};s.start(at);}
 async function play(){
- if(mode){stop();return;}stop();samplePanel.stop();const token=playToken;context??=new AudioContext();await context.resume();if(token!==playToken)return;
+ if(mode){stop();return;}if(input('transport-target').value==='song'){await playArrangement();return;}stop();samplePanel.stop();const token=playToken;context??=new AudioContext();await context.resume();if(token!==playToken)return;
  let audio=renderPerformance(withDrumKit(pattern,drumKit,kitPanel.mix),assets,context.sampleRate,effectMap()),buffer=audioBuffer(audio);
  let next=context.currentTime+.08,start=next,duration=audio.duration,boundary:{at:number;slot:number;duration:number}|undefined;
  mode='pattern';el('transport-state').textContent='Pattern playing';el('play').textContent='Stop';
@@ -362,19 +364,82 @@ function renderBank(){if(!bank)return;const host=el('bank-slots');host.replaceCh
   const rename=document.createElement('button');rename.textContent='⋯';rename.setAttribute('aria-label','Rename '+label);rename.onclick=()=>{name.style.display='block';name.focus();name.select();};card.append(rename);
   title.title='Double-click to rename';title.ondblclick=()=>{name.style.display='block';name.focus();name.select();};
   const b=document.createElement('button');b.id='slot-'+i;b.setAttribute('aria-pressed',String(bank!.active===i));b.title=slot.editor?'Edit '+slot.name+'; queues during playback':'Copy current pattern into '+slot.name;b.textContent=slot.editor?slot.name:'+ '+slot.name;b.onclick=()=>{if(!slot.editor){stop();stashSlot();slot.editor=structuredClone(editor.state);slotEditors.delete(i);activateSlot(i);status('Copied pattern. Generate a variation or edit this slot.');}else chooseSlot(i);};card.append(b);
-  if(slot.editor){const preview=document.createElement('button');preview.id='slot-preview-'+i;preview.textContent='▶';preview.setAttribute('aria-label','Preview '+slot.name);preview.onclick=()=>{if(mode==='pattern'&&i!==bank!.active){chooseSlot(i);return;}stop();activateSlot(i);void play().catch(e=>status(String(e),true));};card.append(preview);}
+  if(slot.editor){const preview=document.createElement('button');preview.id='slot-preview-'+i;preview.textContent='▶';preview.setAttribute('aria-label','Preview '+slot.name);preview.onclick=()=>{if(mode==='pattern'&&i!==bank!.active){chooseSlot(i);return;}stop();input('transport-target').value='pattern';syncHud();activateSlot(i);void play().catch(e=>status(String(e),true));};card.append(preview);}
   if(bank!.slots.length>1){const del=document.createElement('button');del.className='slot-del-btn';del.textContent='✕';del.title='Delete '+slot.name;del.setAttribute('aria-label','Delete '+slot.name);del.onclick=(e)=>{e.stopPropagation();stop();stashSlot();deletePatternSlot(bank!,i);slotEditors.clear();activateSlot(bank!.active);renderBank();scheduleSave();status('Deleted pattern.');};card.append(del);}
   host.append(card);});
+ input('song-bpm').value=String(bank.songBpm);syncHud();
+ let firstBar=1;
  const seq=el('sequence');seq.replaceChildren();bank.sequence.forEach((step,i)=>{const row=document.createElement('div');row.className='sequence-step';row.dataset.step=String(i);const title=document.createElement('span');title.textContent=String(i+1)+'. '+bank!.slots[step.slot]!.name;row.append(title);
+ const barCount=bank!.slots[step.slot]!.editor!.pattern.settings.bars*step.repeats;
+ const range=document.createElement('small');range.className='sequence-range';range.textContent='Bars '+firstBar+'–'+(firstBar+barCount-1);firstBar+=barCount;row.append(range);
+ title.draggable=true;title.title='Drag this heading to reorder the song';row.setAttribute('aria-label','Step '+(i+1)+': '+bank!.slots[step.slot]!.name+', '+range.textContent);
+ row.ondragstart=e=>{if((e.target as HTMLElement).closest('input,button')){e.preventDefault();return;}draggedStep=i;e.dataTransfer?.setData('text/plain',String(i));if(e.dataTransfer)e.dataTransfer.effectAllowed='move';};
+ row.ondragover=e=>{if(draggedStep!==undefined){e.preventDefault();row.classList.add('drop-target');}};
+ row.ondragleave=()=>row.classList.remove('drop-target');
+ row.ondragend=()=>{draggedStep=undefined;document.querySelectorAll('.drop-target').forEach(e=>e.classList.remove('drop-target'));};
+ row.ondrop=e=>{e.preventDefault();if(draggedStep===undefined)return;stop();moveSequenceStep(bank!,draggedStep,i);draggedStep=undefined;renderBank();scheduleSave();};
  const label=document.createElement('label');label.textContent='Repeats ';const count=document.createElement('input');count.type='number';count.min='1';count.max='16';count.value=String(step.repeats);count.setAttribute('aria-label','Repeats for step '+(i+1));count.onchange=()=>{const v=Number(count.value);if(!Number.isInteger(v)||v<1||v>16){count.value=String(step.repeats);return;}stop();step.repeats=v;renderBank();scheduleSave();};label.append(count);row.append(label);
- for(const [text,delta] of [['Move up',-1],['Move down',1],['Remove',0]] as const){const b=document.createElement('button');b.textContent=text;b.disabled=delta!==0&&(i+delta<0||i+delta>=bank!.sequence.length);b.onclick=()=>{stop();if(delta===0)bank!.sequence.splice(i,1);else [bank!.sequence[i],bank!.sequence[i+delta]]=[bank!.sequence[i+delta]!,step];renderBank();scheduleSave();};row.append(b);}seq.append(row);});
+ for(const [text,delta] of [['Move up',-1],['Move down',1],['Remove',0]] as const){const b=document.createElement('button');b.textContent=text;b.disabled=delta!==0&&(i+delta<0||i+delta>=bank!.sequence.length);b.onclick=()=>{stop();if(delta===0)bank!.sequence.splice(i,1);else moveSequenceStep(bank!,i,i+delta);renderBank();scheduleSave();const focusStep=Math.min(delta===0?i:i+delta,bank!.sequence.length-1);el('sequence').querySelector<HTMLElement>('[data-step="'+focusStep+'"] button:not(:disabled)')?.focus();};row.append(b);}seq.append(row);});
  const select=el<HTMLSelectElement>('append-slot'),value=select.value;select.replaceChildren();bank.slots.forEach((s,i)=>{if(s.editor){const o=document.createElement('option');o.value=String(i);o.textContent=s.name;select.append(o);}});if(Array.from(select.options).some(o=>o.value===value))select.value=value;
- const bars=bank.sequence.reduce((n,s)=>n+bank!.slots[s.slot]!.editor!.pattern.settings.bars*s.repeats,0);el('arrangement-info').textContent=bars+' bars - '+(bars*240/pattern.settings.bpm).toFixed(1)+' seconds - '+pattern.settings.bpm+' BPM';input('play-arrangement').disabled=!bars;input('export-arrangement').disabled=!bars;input('append-step').disabled=bank.sequence.length>=64;
+ const bars=bank.sequence.reduce((n,s)=>n+bank!.slots[s.slot]!.editor!.pattern.settings.bars*s.repeats,0);el('arrangement-info').textContent=bars+' bars - '+(bars*240/bank.songBpm).toFixed(1)+' seconds - '+bank.songBpm+' BPM · max 170s';input('play-arrangement').disabled=!bars;input('export-arrangement').disabled=!bars;input('append-step').disabled=bank.sequence.length>=64;
 }
-function arrangementAudio(rate:number){stashSlot();return renderSequence(arrange(bank!,pattern.settings.bpm).map(p=>withDrumKit(p,drumKit,kitPanel.mix)),assets,rate,effectMap());}
+function arrangementAudio(rate:number){stashSlot();return renderSequence(arrange(bank!).map(p=>withDrumKit(p,drumKit,kitPanel.mix)),assets,rate,effectMap());}
 el('append-step').onclick=()=>{stop();if(bank!.sequence.length>=64)return;bank!.sequence.push({slot:Number(input('append-slot').value),repeats:1});renderBank();scheduleSave();};
-el('play-arrangement').onclick=async()=>{try{if(mode==='arrangement'){stop();return;}stop();samplePanel.stop();context??=new AudioContext();const token=playToken;await context.resume();if(token!==playToken)return;const audio=arrangementAudio(context.sampleRate),buffer=audioBuffer(audio),start=context.currentTime+.05;startSource(buffer,start);mode='arrangement';el('transport-state').textContent='Arrangement playing';el('play-arrangement').textContent='Stop arrangement';el('play').textContent='Stop';const ends=bank!.sequence.map(s=>bank!.slots[s.slot]!.editor!.pattern.settings.bars*240/pattern.settings.bpm*s.repeats);timer=setInterval(()=>{let t=context!.currentTime-start,index=0;while(index<ends.length&&t>=ends[index]!){t-=ends[index]!;index++;}document.querySelectorAll('.playing-step').forEach(e=>e.classList.remove('playing-step'));document.querySelector('[data-step="'+index+'"]')?.classList.add('playing-step');if(context!.currentTime>=start+buffer.duration)stop();},30);}catch(e){stop();status(String(e),true);}};
-el('export-arrangement').onclick=()=>{try{const audio=arrangementAudio(44100);downloadBytes(encodeWav(audio.channels,audio.sampleRate),'breakbeat-arrangement.wav');status('Arrangement exported with continuous effects and final tails.');}catch(e){status(String(e),true);}};
+function revealPlaybackItem(container:HTMLElement, item:Element|null, inset=0){
+ if(!item||!container.clientHeight)return;
+ const bounds=container.getBoundingClientRect(),target=item.getBoundingClientRect();
+ if(target.bottom>bounds.bottom)container.scrollTop+=target.bottom-bounds.bottom;
+ else if(target.top<bounds.top+inset)container.scrollTop-=bounds.top+inset-target.top;
+}
+async function playArrangement(){
+ if(mode){stop();return;}
+ stop();samplePanel.stop();context??=new AudioContext();const token=playToken;
+ await context.resume();if(token!==playToken)return;
+ const audio=arrangementAudio(context.sampleRate),timeline=songTimeline(bank!),buffer=audioBuffer(audio),start=context.currentTime+.05;
+ input('transport-target').value='song';syncHud();
+ startSource(buffer,start);mode='arrangement';el('transport-state').textContent='Song playing';el('play-arrangement').textContent='Stop arrangement';el('play').textContent='Stop';
+ let lastPosition='';
+ timer=setInterval(()=>{
+  const elapsed=context!.currentTime-start,position=songPosition(timeline,Math.max(0,elapsed));
+  if(position){
+   if(bank!.active!==position.slot)activateSlot(position.slot);
+   document.querySelectorAll('.playing-step').forEach(e=>e.classList.remove('playing-step'));
+   document.querySelector('[data-step="'+position.step+'"]')?.classList.add('playing-step');
+   document.querySelector('.playing-row')?.classList.remove('playing-row');
+   document.querySelector('[data-play-row="'+position.row+'"]')?.classList.add('playing-row');
+   const beat=Math.max(0,elapsed)*bank!.songBpm/60;
+   el('hud-pos-val').textContent=String(Math.floor(beat/4)+1).padStart(2,'0')+'.'+(Math.floor(beat%4)+1);
+   const key=position.step+':'+position.repeat+':'+position.row;
+   if(key!==lastPosition){
+    lastPosition=key;
+    revealPlaybackItem(el('grid'),document.querySelector('.playing-row'),el('grid').querySelector('thead')?.getBoundingClientRect().height??0);
+    const tray=document.querySelector<HTMLElement>('#tray-left .tray-body');if(tray)revealPlaybackItem(tray,document.querySelector('.playing-step'));
+    el('transport-state').textContent='Song · Step '+(position.step+1)+' / '+bank!.sequence.length;
+    el('song-position').textContent='Step '+(position.step+1)+' / '+bank!.sequence.length+' · '+bank!.slots[position.slot]!.name+' · Repeat '+(position.repeat+1)+' / '+bank!.sequence[position.step]!.repeats;
+    const solo=ROLES.some(r=>kitPanel.mix[r].solo);
+    for(const note of transfer.notes.filter(n=>n.row===position.row))if(!kitPanel.mix[note.lane].mute&&(!solo||kitPanel.mix[note.lane].solo))flashTrackMeter(note.lane,kitPanel.mix[note.lane].level*(pattern.events.find(h=>h.id===note.id)?.gain??1));
+   }
+  }else{
+   document.querySelectorAll('.playing-step,.playing-row').forEach(e=>e.classList.remove('playing-step','playing-row'));
+   el('song-position').textContent='Song ending · effect tails';
+  }
+  if(elapsed>=buffer.duration)stop();
+ },25);
+}
+function exportArrangement(){
+ const audio=arrangementAudio(44100);
+ downloadBytes(encodeWav(audio.channels,audio.sampleRate),'breakbeat-arrangement.wav');
+ status('Full song exported at '+bank!.songBpm+' BPM with continuous effects and final tails.');
+}
+el('play-arrangement').onclick=()=>{playArrangement().catch(e=>{stop();status(String(e),true);});};
+el('export-arrangement').onclick=()=>{try{exportArrangement();}catch(e){status(String(e),true);}};
+el('transport-target').onchange=()=>{stop();syncHud();};
+el('export-target').onchange=()=>{input('export-mode').disabled=input('export-target').value==='song';};
+el('song-bpm').onchange=()=>{
+ const bpm=Number(input('song-bpm').value);
+ if(!Number.isFinite(bpm)||bpm<32||bpm>999){input('song-bpm').value=String(bank!.songBpm);status('Song tempo must be between 32 and 999 BPM.',true);return;}
+ stop();bank!.songBpm=bpm;renderBank();scheduleSave();status('Song tempo updated. Pattern tempos are unchanged.');
+};
 function syncSliders(){
   const bpm=Number(input('bpm').value);
   input('bpm-slider').max=String(Math.max(300,Number.isFinite(bpm)?bpm:300));
@@ -424,6 +489,7 @@ document.addEventListener('keydown',event=>{
 el('regenerate').onclick=()=>{input('seed').value=`break-${crypto.getRandomValues(new Uint32Array(1))[0]!.toString(16)}`;build();};
 el('export-wav').onclick=()=>{
   try{
+    if(input('export-target').value==='song'){exportArrangement();return;}
     const modeEl=document.getElementById('export-mode') as HTMLSelectElement | null;
     const isLoop=modeEl?.value!=='tail';
     const audio=renderPerformance(
@@ -953,6 +1019,8 @@ function initTrackerLiveBar() {
         const avgInterval = intervalSum / (tapTimes.length - 1);
         if (avgInterval > 0) {
           const calculatedBpm = Math.max(32, Math.min(300, Math.round((60000 / avgInterval) * 10) / 10));
+          stop();
+          if(input('transport-target').value==='song'){bank!.songBpm=calculatedBpm;renderBank();scheduleSave();return;}
           input('bpm').value = calculatedBpm.toFixed(1);
           input('bpm-slider').value = calculatedBpm.toFixed(1);
           pattern.settings.bpm = calculatedBpm;

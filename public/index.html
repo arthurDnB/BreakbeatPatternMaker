@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Breakbeat Pattern Maker</title><link rel="stylesheet" href="./public/style.css?v=0.2.0-hotfix2"><link rel="stylesheet" href="./public/workspace.css?v=0.2.0-hotfix2"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Breakbeat Pattern Maker</title><link rel="stylesheet" href="./public/style.css?v=0.2.0-phase4"><link rel="stylesheet" href="./public/workspace.css?v=0.2.0-phase4"></head>
 <body><main class="daw-chassis">
 
 <!-- Coherent Modern Studio Title Bar -->
@@ -34,6 +34,7 @@
 <!-- Global Hardware Transport Bar -->
 <div class="transport daw-transport" aria-label="Playback and export">
   <div class="toolbar-group transport-main">
+    <label class="transport-target">Play <select id="transport-target" aria-label="Playback target"><option value="pattern">Pattern</option><option value="song">Song</option></select></label>
     <button id="play" class="daw-btn-play" disabled><span class="play-icon">▶</span> Play</button>
     <span id="transport-state" role="status">Stopped</span>
   </div>
@@ -60,6 +61,7 @@
   </div>
 
   <div class="toolbar-group output-group">
+    <select id="export-target" aria-label="WAV export target"><option value="pattern">Active pattern</option><option value="song">Full song arrangement</option></select>
     <button id="export-wav" class="export">Export WAV ↓</button>
     <select id="export-mode" class="export-mode-select" title="WAV export mode">
       <option value="loop" selected>🔄 Seamless Loop (Exact Bars)</option>
@@ -94,7 +96,9 @@
       </section>
 
       <details id="arranger"><summary>Song arrangement</summary>
-        <p>Patterns play in order at the active pattern's BPM. Repeats use whole patterns; tails continue across boundaries. Maximum 170 seconds.</p>
+        <label class="song-tempo">Song tempo <input id="song-bpm" type="number" min="32" max="999" step="0.1" value="165"> BPM</label>
+        <p class="song-help">Drag headings or use buttons to reorder. Song tempo is independent.</p>
+        <p id="song-position" role="status">Song stopped</p>
         <div id="sequence"></div><div class="actions"><select id="append-slot" aria-label="Pattern to append"></select><button id="append-step">Add pattern</button><button id="play-arrangement">Play arrangement</button><button id="export-arrangement">Export arrangement WAV</button></div><p id="arrangement-info"></p>
       </details>
     </div>
@@ -323,4 +327,4 @@
   </div>
   <p class="footer-note" hidden>Single-shot tracker · Audio stays local. Save project includes your samples and settings; autosave restores your latest workspace on this browser. WAV includes tails; muted lanes are excluded. Pitch repitches the sound. MP3 export remains planned.</p>
 </footer>
-</main><script type="module" src="./dist/web.js?v=0.2.0-hotfix2"></script></body></html>
+</main><script type="module" src="./dist/web.js?v=0.2.0-phase4"></script></body></html>

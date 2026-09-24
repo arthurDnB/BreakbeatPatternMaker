@@ -14,7 +14,7 @@ This document maintains the running project state and change log so that multipl
 2. **Execution on Windows:**
    * PowerShell execution policy may block `npm.ps1`. Always use `npm.cmd` directly for commands (e.g. `npm.cmd test`, `npm.cmd run build:site`).
 3. **Verify tests before committing:**
-   * Unit test suite (52 tests): `npm.cmd test`
+   * Unit test suite (58 tests): `npm.cmd test`
    * Site deployment build & Playwright smoke test: `npm.cmd run test:site`
 4. **Update this log:**
    * Document each change under the [Change Log](#change-log) section with date, summary of files modified, and rationale.
@@ -26,7 +26,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.2.0-alpha`
-* **Test Status:** 55 / 55 unit tests passing (`npm test`).
+* **Test Status:** 58 / 58 unit tests passing (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -43,16 +43,27 @@ This document maintains the running project state and change log so that multipl
 * [x] **Milestone 2 (Complete):** Renoise 3-tray retractable layout shell with persistable left/right/bottom drawers.
 * [x] **Milestone 4 (Complete):** Tracker track mixer strips with Solo (S) switches, inline volume faders, and peak meters.
 * [x] **Milestone 5 (Complete):** Waveform Slicer & Scramble/Mutate DSP Rack in bottom tray with instant breakbeat chopping.
-* [ ] **Phase 4 (Next Priority):** 
-  - Unified song arrangement & export presentation.
-  - Make transport explicitly aware of playback target (Pattern vs. Song).
-  - Explicit song tempo with backward-compatible project migration.
+* [x] **Phase 4 (Complete):**
+  - Explicit Pattern/Song transport and Active pattern/Full song WAV export targets.
+  - Song tempo, project v1→v2 migration, tracker/arrangement playback following.
+  - Bar-range blocks, drag headings and keyboard/touch reorder buttons.
+* [ ] **Next Priority:** Arrangement editing history (undo/redo for sequence and song-tempo changes), followed by named song sections. Pattern editing history remains independent.
 * [ ] **Future Audio Roadmaps:** MP3 export, velocity-layered drum kits, sample-browser filtering.
 * [ ] *Note: Renoise integration has been retired in favor of the standalone in-browser instrument.*
 
 ---
 
 ## 📝 Change Log
+
+### [2026-09-24] - Phase 4: Unified Song Arrangement & Transport (Codex)
+- **Sync:** Read `AGENTS.md`, pulled `origin main` (already current), reviewed this log and `PROJECT-SCOPE.md`; baseline 55/55 tests passed.
+- **Transport & arranger (`src/web.ts`, `public/index.html`, `public/workspace.css`):** Added explicit Pattern/Song playback selection and Active pattern/Full song WAV target. Song playback follows the playing slot, repeat and tracker row, scrolls the internal panels, and clears indicators on stop/target change. Blocks show bar ranges, draggable headings, drop feedback and keyboard/touch reorder controls with focus retention. Song export uses the existing shared sequence renderer with continuous effects and final tails; pattern Loop/Tail export remains available.
+- **Song model & migration (`src/core/bank.ts`, `src/audio/project.ts`):** Independent validated `bank.songBpm` (32–999), initialized from the first pattern; switching patterns or editing generator tempo leaves it unchanged. TAP follows transport target. Project schema v2 reads legacy v1 files/autosaves by deriving tempo from their saved active pattern, without mutating input or altering per-pattern data. Added pure timeline/position/reordering helpers. Existing 64-step, 16-repeat and 170-second limits retained.
+- **Tests (`tests/bank.test.mjs`, `scripts/song-browser-smoke.mjs`, `package.json`):** Three new unit tests cover migration/invalid tempos, mixed lengths/resolutions/repeats/tails, and reorder invariants. New browser regression verifies tracker follow, exact WAV bytes against the renderer, export targets, drag/buttons, saved tempo, locks and mobile layout; included in `test:browser`.
+- **Docs (`README.md`, `PROJECT-SCOPE.md`):** Updated song workflow, schema migration and current scope. New v2 projects require the updated app; old v1 projects remain supported.
+- **Verification:** 58/58 unit tests (`npm.cmd test`); song, bank and layout browser smoke tests; `npm.cmd run test:site` at root and repository subpath with all 45 licensed WAVs. No browser errors; no horizontal overflow at mobile width. `git diff --check` passed.
+- **Next:** Add arrangement-specific undo/redo and named song sections. Sequence changes currently save immediately; existing pattern undo/redo is preserved.
+
 
 ### [2026-09-24] - Feature: Master DSP Restore Defaults Button (Antigravity)
 - **Master DSP Strip (`public/index.html`, `public/workspace.css`, `src/web.ts`):**

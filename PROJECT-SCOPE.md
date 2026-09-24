@@ -11,12 +11,21 @@ Next candidates: MP3 export; arrangement; velocity-layered kits; stronger sample
 Implemented polish: simplified generator toolbar and advanced disclosure; Preview naming; per-lane high/low-pass, drive and delay with bypass; lane/per-hit reverse; shared DSP for preview and WAV; backward-compatible project persistence.
 
 ## Implemented: pattern bank and arrangement
-- Four named slots (A, B, C, Fill), copy into empty slots, automatic edit retention, and per-slot in-memory undo history.
+- Dynamic bank of 1–256 named slots (starting with A, B, C, Fill), copy into empty slots, automatic edit retention, and per-slot in-memory undo history.
 - Queued pattern switching at full-pattern boundaries; stop cancels pending switches.
 - Collapsible arrangement with append, repeats, reorder, remove, playback progress and one-pass playback.
 - Full-arrangement WAV export with continuous lane effects and release tails.
-- Shared kit/effects; arrangement tempo comes from the active pattern. Maximum 64 steps, 16 repeats per step, 170 seconds before final tails.
+- Shared kit/effects; independent song tempo, initialized from the first pattern. Maximum 64 steps, 16 repeats per step, 170 seconds before final tails.
 - Bank and sequence saved in local autosave and portable projects; older projects start in A.
 
 ## Implemented: per-hit ratchets and gate
 Collapsed tracker articulation controls provide 1–8 repeats per row and a gate fraction for each repeat. A selected-hit Preview uses the common performance renderer. Tracker badges identify repeats and gate length. Gated attacks have short edge fades; repeats stay inside pattern boundaries while lane effects retain their tails. Locks, undo/redo, pattern banks, projects, autosave and full-note JSON preserve articulation. Existing hits default to natural decay and one attack.
+
+## Implemented: Phase 4 — song arrangement and transport
+- Sticky transport target: Pattern loops the active pattern; Song plays the full arrangement once, then its effect tails.
+- Song playback follows the current slot and tracker row; arrangement blocks show bar ranges and the current repeat. Stop/target changes clear playback indicators.
+- Drag a block heading to reorder, or use Move up/down buttons (keyboard and touch accessible). Add pattern appends a block; repeats and remove remain available.
+- Song BPM is stored independently of per-pattern BPM; switching slots or genres cannot change it. Tap tempo follows the transport target.
+- Export target explicitly selects Active pattern or Full song arrangement. Pattern export retains Loop/Tail options; full songs retain continuous effects and final tails.
+- Project schema v2 adds bank.songBpm. Version 1 files/autosaves migrate using their saved active pattern BPM without modifying pattern data, samples or locks.
+- Verification: npm.cmd test; with the dev server running, node scripts/song-browser-smoke.mjs; npm.cmd run test:site.

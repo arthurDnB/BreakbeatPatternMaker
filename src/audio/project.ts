@@ -7,16 +7,22 @@ import type {EditorState} from '../core/editor.js';
 import {validateSettings} from '../core/generate.js';
 import type {AudioAsset} from './slices.js';
 import type {KitState} from './drum-kit.js';
-export interface Project {format:'breakbeat-project';version:1;bank?:Bank;editor:EditorState;draft:Settings;kit:KitState;assets:{id:string;name:string;sampleRate:number;channels:string[]}[]}
+export interface Project {format:'breakbeat-project';version:2;bank?:Bank;editor:EditorState;draft:Settings;kit:KitState;assets:{id:string;name:string;sampleRate:number;channels:string[]}[]}
 function base64(data:Float32Array){let s='';const bytes=new Uint8Array(data.buffer,data.byteOffset,data.byteLength);for(let i=0;i<bytes.length;i+=8192)s+=String.fromCharCode(...bytes.subarray(i,i+8192));return btoa(s);}
 export function makeProject(editor:EditorState,draft:Settings,kit:KitState,assets:Map<string,AudioAsset>,bank?:Bank):Project{
   const patterns=[editor.pattern,...(bank?.slots.flatMap(s=>s.editor?[s.editor.pattern]:[])??[])];
   const ids=new Set(patterns.flatMap(p=>p.events).flatMap(h=>h.slice?[h.slice.assetId]:[]));for(const r of ROLES){if(kit[r].assetId)ids.add(kit[r].assetId!);if(kit[r].uploadId)ids.add(kit[r].uploadId!);}
-  return {format:'breakbeat-project',version:1,...(bank?{bank:structuredClone(bank)}:{}),editor:structuredClone(editor),draft:structuredClone(draft),kit:structuredClone(kit),assets:[...ids].map(id=>{const a=assets.get(id);if(!a)throw Error('Missing project audio.');return {id,name:a.name,sampleRate:a.sampleRate,channels:a.channels.map(base64)};})};
+  return {format:'breakbeat-project',version:2,...(bank?{bank:structuredClone(bank)}:{}),editor:structuredClone(editor),draft:structuredClone(draft),kit:structuredClone(kit),assets:[...ids].map(id=>{const a=assets.get(id);if(!a)throw Error('Missing project audio.');return {id,name:a.name,sampleRate:a.sampleRate,channels:a.channels.map(base64)};})};
 }
 export function readProject(raw:unknown){
-  const p=raw as Project;
-  if(!p||p.format!=='breakbeat-project'||p.version!==1||!p.editor||!p.kit||!Array.isArray(p.assets)||p.assets.length>256)throw Error('Not a supported project.');
+  // Migrate a copy: opening an old file must not mutate the caller's data.
+  const legacy=structuredClone(raw) as Omit<Project,'version'> & {version:number};
+  if(legacy?.format==='breakbeat-project' && legacy.version===1 && legacy.editor?.pattern){
+    if(legacy.bank)legacy.bank.songBpm=legacy.editor.pattern.settings.bpm;
+    legacy.version=2;
+  }
+  const p=legacy as Project;
+  if(!p||p.format!=='breakbeat-project'||p.version!==2||!p.editor||!p.kit||!Array.isArray(p.assets)||p.assets.length>256)throw Error('Not a supported project.');
   compile(p.editor.pattern);validateSettings(p.draft);if(p.bank){validateBank(p.bank);if(JSON.stringify(p.bank.slots[p.bank.active]!.editor)!==JSON.stringify(p.editor))throw Error('Active slot mismatch.');}
   if(!Array.isArray(p.editor.lockedRoles)||p.editor.lockedRoles.some(r=>!ROLES.includes(r))||!Array.isArray(p.editor.lockedIds)||p.editor.lockedIds.some(id=>typeof id!=='string')||!Number.isInteger(p.editor.revision)||p.editor.revision<0)throw Error('Invalid project editor state.');
   const selection=p.editor.selection;

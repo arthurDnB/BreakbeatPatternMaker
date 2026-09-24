@@ -15,6 +15,7 @@ export interface PatternSlot {
 }
 
 export interface Bank {
+  songBpm: number;
   active: number;
   slots: PatternSlot[];
   sequence: { slot: number; repeats: number }[];
@@ -22,6 +23,7 @@ export interface Bank {
 
 export function newBank(pattern: Pattern): Bank {
   return {
+    songBpm: pattern.settings.bpm,
     active: 0,
     slots: SLOT_IDS.map((name, i) => ({
       name,
@@ -75,9 +77,10 @@ export function deletePatternSlot(bank: Bank, indexToDelete: number): void {
 }
 
 export function validateBank(bank: Bank) {
-  if (!bank || !Number.isInteger(bank.active) || bank.active < 0 || bank.active >= bank.slots.length || !Array.isArray(bank.slots) || bank.slots.length < 1 || bank.slots.length > 256 || !Array.isArray(bank.sequence) || bank.sequence.length > 64) {
+  if (!bank || !Number.isInteger(bank.active) || bank.active < 0 || !Array.isArray(bank.slots) || bank.active >= bank.slots.length || bank.slots.length < 1 || bank.slots.length > 256 || !Array.isArray(bank.sequence) || bank.sequence.length > 64) {
     throw Error('Invalid pattern bank.');
   }
+  if (!Number.isFinite(bank.songBpm) || bank.songBpm < 32 || bank.songBpm > 999) throw Error('Song BPM must be between 32 and 999.');
   for (const s of bank.slots) {
     if (!s || typeof s.name !== 'string' || !s.name.trim() || s.name.length > 40) throw Error('Invalid slot name.');
     if (s.editor) validateEditor(s.editor);
@@ -101,7 +104,7 @@ export function validateEditor(e: EditorState) {
   }
 }
 
-export function arrange(bank: Bank, bpm: number) {
+export function arrange(bank: Bank, bpm: number = bank.songBpm) {
   validateBank(bank);
   if (!bank.sequence.length) throw Error('Add a pattern to the arrangement.');
   return bank.sequence.flatMap(step => Array.from({ length: step.repeats }, () => {
@@ -109,4 +112,26 @@ export function arrange(bank: Bank, bpm: number) {
     p.settings.bpm = bpm;
     return p;
   }));
+}
+
+/** One entry per repeat, shared by the transport and timeline. */
+export function songTimeline(bank: Bank) {
+  validateBank(bank);
+  let start = 0;
+  return bank.sequence.flatMap((step, index) => Array.from({length: step.repeats}, (_, repeat) => {
+    const settings = bank.slots[step.slot]!.editor!.pattern.settings;
+    const duration = settings.bars * 240 / bank.songBpm;
+    const entry = {step: index, slot: step.slot, repeat, start, duration, lines: settings.bars * settings.resolution};
+    start += duration;
+    return entry;
+  }));
+}
+export function songPosition(timeline: ReturnType<typeof songTimeline>, seconds: number) {
+  const entry = timeline.find(e => seconds >= e.start && seconds < e.start + e.duration);
+  return entry ? {...entry, row: Math.min(entry.lines - 1, Math.floor((seconds - entry.start) / entry.duration * entry.lines))} : undefined;
+}
+export function moveSequenceStep(bank: Bank, from: number, to: number) {
+  if (![from, to].every(i => Number.isInteger(i) && i >= 0 && i < bank.sequence.length)) throw Error('Invalid arrangement position.');
+  const [step] = bank.sequence.splice(from, 1);
+  bank.sequence.splice(to, 0, step!);
 }

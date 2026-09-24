@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {newBank,arrange,validateBank,addPatternSlot,duplicatePatternSlot,deletePatternSlot,slotLabel} from '../dist/core/bank.js';
+import {newBank,arrange,validateBank,songTimeline,songPosition,moveSequenceStep,addPatternSlot,duplicatePatternSlot,deletePatternSlot,slotLabel} from '../dist/core/bank.js';
 import {generate} from '../dist/core/generate.js';import {defaults} from '../dist/core/profiles.js';
 import {renderPerformance,renderSequence} from '../dist/audio/performance.js';
 import {makeProject,readProject} from '../dist/audio/project.js';import {defaultKitState} from '../dist/audio/drum-kit.js';
@@ -73,4 +73,51 @@ test('unlimited pattern bank dynamic add, duplicate, delete and reorder',()=>{
   while(b.slots.length>1) deletePatternSlot(b,0);
   assert.equal(b.slots.length,1);
   assert.throws(()=>deletePatternSlot(b,0),/Cannot delete the last pattern/);
+});
+
+
+test('song tempo survives active pattern changes and version 1 projects migrate without mutation',()=>{
+ const p=generate(defaults()),b=newBank(p);
+ b.songBpm=128.5;
+ b.slots[1].editor=structuredClone(b.slots[0].editor);
+ b.slots[1].editor.pattern.settings.bpm=200;
+ b.active=1;
+ assert.equal(arrange(b)[0].settings.bpm,128.5);
+ const project=makeProject(b.slots[1].editor,p.settings,defaultKitState(),new Map(),b);
+ assert.equal(project.version,2);
+ assert.equal(readProject(project).project.bank.songBpm,128.5);
+ const legacy=structuredClone(project);legacy.version=1;delete legacy.bank.songBpm;
+ const migrated=readProject(legacy).project;
+ assert.equal(migrated.version,2);assert.equal(migrated.bank.songBpm,200);
+ assert.equal(legacy.version,1);assert.equal(legacy.bank.songBpm,undefined);
+ delete legacy.bank;
+ assert.equal(readProject(legacy).project.editor.pattern.settings.bpm,200);
+ for(const bpm of [null,undefined,NaN,31,1000,'120']){
+  const invalid=structuredClone(project);invalid.bank.songBpm=bpm;
+  assert.throws(()=>readProject(invalid),/Song BPM/);
+ }
+});
+
+test('song position follows repeats, different lengths, resolutions and final tails',()=>{
+ const b=newBank(generate({...defaults(),bars:1,resolution:16}));b.songBpm=120;
+ b.slots[1].editor=structuredClone(b.slots[0].editor);
+ b.slots[1].editor.pattern.settings.bars=2;b.slots[1].editor.pattern.settings.resolution=32;
+ b.sequence=[{slot:0,repeats:2},{slot:1,repeats:1}];
+ const timeline=songTimeline(b);
+ assert.deepEqual(timeline.map(e=>[e.start,e.duration,e.lines]),[[0,2,16],[2,2,16],[4,4,64]]);
+ assert.equal(songPosition(timeline,1).row,8);
+ assert.equal(songPosition(timeline,2).repeat,1);
+ assert.equal(songPosition(timeline,4).slot,1);
+ assert.equal(songPosition(timeline,7.99).row,63);
+ assert.equal(songPosition(timeline,8),undefined);
+ assert.equal(songPosition(timeline,-1),undefined);
+ const audio=renderSequence(arrange(b),new Map(),8000);
+ assert.equal(audio.duration,8);
+});
+
+test('tactile and drag reordering retain repeats and reject invalid positions',()=>{
+ const b=newBank(generate(defaults()));b.sequence=[{slot:0,repeats:1},{slot:0,repeats:2},{slot:0,repeats:3}];
+ moveSequenceStep(b,0,2);assert.deepEqual(b.sequence.map(s=>s.repeats),[2,3,1]);
+ moveSequenceStep(b,2,0);assert.deepEqual(b.sequence.map(s=>s.repeats),[1,2,3]);
+ const before=structuredClone(b);assert.throws(()=>moveSequenceStep(b,-1,0));assert.deepEqual(b,before);
 });

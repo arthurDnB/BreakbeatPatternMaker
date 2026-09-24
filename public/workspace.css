@@ -2368,3 +2368,27 @@ tr.bar-start .row-select { color: var(--accent-cyan); font-weight: 700; }
   .export-mode-select { max-width: 140px; }
   .tracker-quick-actions button { font-size: 10px; padding: 2px 5px; }
 }
+
+/* Phase 4: explicit transport targets and ordered song blocks. */
+.transport-target, .song-tempo { display:flex; align-items:center; gap:6px; font-size:12px; }
+.song-tempo input { width:85px; }
+.daw-transport select { max-width:190px; min-width:0; }
+#sequence .sequence-step { border-left:4px solid #9986dc; padding:10px; background:#182230; border-radius:5px; cursor:grab; }
+#sequence .sequence-step > span { font-weight:650; flex:1 1 100%; overflow-wrap:anywhere; }
+.sequence-range { color:#adbbce; flex:1 1 100%; }
+#sequence .sequence-step.playing-step { background:#253e3e; border-left-color:#00f5d4; }
+#sequence .drop-target { outline:2px dashed #00f5d4; }
+#song-position { color:#00f5d4; min-height:2.5em; font-size:12px; }
+@media(max-width:800px) { .daw-transport .output-group { flex-wrap:wrap; } }
+
+.transport-target, .song-tempo { flex-direction:row; }
+.transport-target select { width:auto; }
+#play { white-space:nowrap; flex-shrink:0; }
+.song-tempo { margin-top:10px; flex-wrap:wrap; }
+.song-tempo input { padding:4px; width:65px; }
+#arranger .song-help { font-size:11px; line-height:1.5; color:#adbbce; margin:8px 0; }
+#song-position { margin:6px 0; }
+#sequence .sequence-step { gap:5px; padding:8px; }
+#sequence .sequence-step label { flex-direction:row; align-items:center; flex:1 1 100%; }
+#sequence .sequence-step button { padding:4px 6px; font-size:10px; }
+#sequence .sequence-step > span { cursor:grab; user-select:none; }

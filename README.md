@@ -66,7 +66,7 @@ Genre, BPM, Complexity and Bars stay visible. Advanced generation holds rhythm p
 
 A, B, C and Fill hold independent patterns and edit histories. Edits automatically update the active slot. Click an empty slot to copy the current rhythm, then use Variation or Generate Fill. Click a populated slot to edit it; during pattern playback it queues a switch at the next full-pattern boundary. Stop cancels the queue. Names are editable. Undo/redo applies to the active pattern, not arrangement operations.
 
-Open Song arrangement, add slots, set 1–16 repeats, and use Move up, Move down or Remove. Play arrangement runs once through the sequence and final effect tails. Export arrangement WAV renders the same continuous instrument buses, including reverse, tuning, mute, filters, drive and delay. The arrangement uses the active pattern's BPM for every slot, with a 170-second musical duration limit and up to 64 steps. Instrument choices/effects are shared by the bank. Single-pattern Play and Export WAV remain available.
+Open Song arrangement, add slots, set 1–16 repeats, and use Move up, Move down or Remove. Play arrangement runs once through the sequence and final effect tails. Export arrangement WAV renders the same continuous instrument buses, including reverse, tuning, mute, filters, drive and delay. The arrangement uses its independent Song tempo for every slot, with a 170-second musical duration limit and up to 64 steps. Instrument choices/effects are shared by the bank. Single-pattern Play and Export WAV remain available.
 
 Save project and local autosave include all slots, names, locks, samples and sequence. Older projects open in slot A. In-memory per-slot undo histories are retained during switching but are not serialized.
 
@@ -109,3 +109,16 @@ The same artifact works at `/` or `/repository-name/` without a hard-coded repos
 Run `npm run test:site` to rebuild and test the artifact at both root and `/breakbeat-pattern-maker/`. The test checks module/CSS loading, all 32 samples, playback, WAV download, project import/export, autosave and help/license links, and rejects failed resource requests. Node.js is needed only to build/test, not by visitors. Existing localhost autosaves do not transfer automatically to a different website origin; download a project backup and open it on the hosted app.
 
 This prepares the files only. A GitHub Pages deployment workflow and repository Pages configuration are separate steps.
+
+
+## Song arrangement (Phase 4)
+
+Choose **Pattern** or **Song** beside Play in the transport. Pattern playback loops; Song plays the arranged blocks once and lets effects finish. The tracker follows the playing pattern, row, and repeat. Changing target stops playback.
+
+Open **Arrangement** to set **Song tempo**, append patterns, set repeats, and drag block headings into order. **Move up / Move down** work with a keyboard or touch. Block labels show their bar ranges. Song tempo stays fixed when selecting another pattern; each pattern retains its own tempo for Pattern playback/export. TAP changes the selected playback target's tempo.
+
+Beside **Export WAV**, choose **Active pattern** or **Full song arrangement**. Loop/Tail applies to pattern exports; a song always exports once with continuous effects and final tails. Maximum song duration is 170 seconds before tails.
+
+Saved projects now use schema version 2. Version 1 projects and autosaves open automatically, initializing song tempo from the saved active pattern. New files should be opened with the updated app.
+
+Regression check: run `npm.cmd test`, start the local server, then run `node scripts/song-browser-smoke.mjs`. The song test checks playback following, repeat boundaries, exact rendered WAV data, reordering, tempo persistence and mobile layout.
