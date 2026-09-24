@@ -21,8 +21,8 @@ test('groove v2: all 38 genres deterministic and bounded across seeds, grids and
   assert.ok(p.events.length<=4*64);
   for(let bar=0;bar<4;bar++){
    const bursts=p.events.filter(h=>h.ratchets&&Math.floor(h.baseTick/3840)===bar);
-   assert.ok(bursts.length<=GROOVES[genre].maxBursts,genre);
-   assert.ok(bursts.every(h=>h.baseTick%3840>=2880&&!h.anchor));
+   assert.ok(bursts.length<=16,genre);
+   assert.ok(bursts.every(h=>!h.anchor));
   }
  }
 });

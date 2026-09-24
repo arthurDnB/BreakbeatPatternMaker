@@ -57,6 +57,22 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-24] - A/B Empirical Refinement: Full-Pattern Spicy Rolls & High-Res Complexity Bursts (Antigravity)
+- **A/B Benchmark & Slider Sensitivity (`src/core/groove.ts`, `scratch/ab-test.mjs`):**
+  - Conducted empirical A/B benchmark comparing Legacy Engine 1 vs Groove Engine 2 across all genres.
+  - Identified that Engine 2's ratchets were previously trapped to beat 4 with strict `maxBursts` caps ($\le 1-2$), producing 0 rolls at 30%/60% Spicy (vs 7–10 in V1 across the entire bar).
+  - Liberated spicy ratchets across the entire pattern on non-anchor hits when `spicy > 0.25`: allocated `patternSpicyBudget = Math.round(spicy * 8)`, scaling from 1–2 rolls at 30% up to 11–12 rolls at 100% Spicy across all beats.
+- **High-Resolution Rolling Bursts (`src/core/groove.ts`):**
+  - Restored Engine 1's responsive micro-burst behavior: at resolution 32/64 and `complexity > 0.45`, added 32nd-note (`tick += 120`) and 64th-note (`tick += 60`) fast rolling bursts toward phrase turnarounds.
+  - Dynamic range ratio in Jungle jumped from 1.30x (V1) to 1.90x (V2), scaling from 29 hits up to 55 hits.
+- **Variation & Motif Freshness Verified:**
+  - Empirical variation distance: Jungle = 28.8% (vs 20.9% in V1), Breaks = 32.3% (vs 19.0% in V1).
+  - Motif diversity over 20 seeds jumped from 2–3 unique patterns in V1 to 12–16 unique patterns in V2.
+- **Test Suite & Cache-Busting (`tests/groove.test.mjs`, `public/index.html`):**
+  - Updated burst test assertion in `tests/groove.test.mjs` to permit pattern-wide rolls on non-anchor hits while enforcing strict backbeat anchor preservation.
+  - Bumped cache busters in `public/index.html` to `?v=0.2.0-full-groove`.
+  - 66/66 unit tests passing (`npm.cmd test`), Playwright site smoke tests passing (`npm.cmd run test:site`).
+
 ### [2026-09-24] - Human Feel, Breakbeat Snare Anticipations & Deep Motif Library (Antigravity)
 - **Breakbeat Snare Syncopations & Drags (`src/core/groove.ts`):**
   - Added syncopated snare anticipations on step 11 (the "and" of 3, Think/Amen break feel) and double-tap response snares on step 14 when complexity > 0.25.

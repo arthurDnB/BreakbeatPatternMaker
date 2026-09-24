@@ -110,6 +110,15 @@ export function generateGroove(settings:Settings):Pattern{
    if(chance(s,'perc:'+bar+':'+step)<s.complexity*(response?.95:.6))
     add('percussion',origin+step*240,.3+(response?.08:0),false,false,'Percussion answers the main drums, with stronger responses in alternating bars.');
   }
+  if(s.resolution>=32&&s.complexity>.45){
+   const spacing=s.resolution===64&&s.complexity>.75?60:120;
+   const rollStart=origin+(s.genre==='breakcore'||s.genre==='drill'||s.genre==='trap'?2880:3360);
+   for(let tick=rollStart;tick<origin+BAR;tick+=spacing){
+    if(tick%240!==0&&chance(s,'hi-res-roll:'+bar+':'+tick)<s.complexity*.85){
+     add('hat',tick,.28,false,false,spacing===60?'A 1/64 micro-roll adds fast detail.':'A 1/32 rolling burst adds phrase detail.');
+    }
+   }
+  }
  }
  // Fills are phrase endings, not automatic rolls at the end of every bar.
  if(chance(s,'fill-enabled')<s.fillAmount*profile.fill){
@@ -138,8 +147,8 @@ export function generateGroove(settings:Settings):Pattern{
   if(breakRecipe)hit.reason=breakRecipe.name+' interpretation: '+hit.reason;
  }
  const bursts=new Map<number,number>();
- const candidates=events.filter(h=>!h.anchor&&h.role!=='kick').sort((a,b)=>chance(s,'spice-rank:'+a.id)-chance(s,'spice-rank:'+b.id));
- for(const hit of candidates){
+ const phraseCandidates=events.filter(h=>!h.anchor&&h.role!=='kick').sort((a,b)=>chance(s,'spice-rank:'+a.id)-chance(s,'spice-rank:'+b.id));
+ for(const hit of phraseCandidates){
   const bar=Math.floor(hit.baseTick/BAR),local=hit.baseTick%BAR;
   const eligibleBar=bar===s.bars-1||(bar%2===1&&s.genre!=='atmosphericbreakcore');
   if(!eligibleBar||local<PPQ*3||(bursts.get(bar)??0)>=rule.maxBursts)continue;
@@ -153,6 +162,22 @@ export function generateGroove(settings:Settings):Pattern{
   if(chance(s,'reverse:'+hit.id)<Math.max(rule.reverse,0.15)*(s.spicy??0)){hit.reverse=true;hit.reason+=' This ornament plays in reverse.';}
   const pitchRange=Math.max(rule.pitch,3);
   if(rule.pitch>0&&hit.role!=='snare')hit.pitch=Math.round((chance(s,'pitch:'+hit.id)*2-1)*pitchRange);
+ }
+ if((s.spicy??0)>0.25){
+  const patternSpicyBudget=Math.round((s.spicy??0)*8);
+  let patternRatchets=0;
+  const patternCandidates=events.filter(h=>!h.anchor&&!h.ratchets).sort((a,b)=>chance(s,'pattern-spice:'+a.id)-chance(s,'pattern-spice:'+b.id));
+  for(const hit of patternCandidates){
+   if(patternRatchets>=patternSpicyBudget)break;
+   if(chance(s,'ratchet-chance:'+hit.id)<(s.spicy??0)*0.4){
+    const pool=(s.spicy??0)>.75?[2,3,4,6,8]:(s.spicy??0)>.4?[2,3,4]:[2];
+    const validPool=pool.filter(r=>r<=rule.maxRatchet);
+    hit.ratchets=validPool[Math.floor(chance(s,'ratchet-val:'+hit.id)*validPool.length)]??2;
+    hit.gate=(s.spicy??0)>.6?(chance(s,'gate-val:'+hit.id)>.5?.5:.75):.8;
+    hit.reason+=` (Spicy ×${hit.ratchets} roll)`;
+    patternRatchets++;
+   }
+  }
  }
  if((s.spicy??0)>0){
   for(const hit of events){
