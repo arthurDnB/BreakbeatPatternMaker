@@ -57,6 +57,21 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-24] - Integration of 188 Personal UDNB Drum Hits & Dedicated Kit Presets (Antigravity)
+* **188 Personal Drum Hits Added (`Drums/`, `public/samples/`):**
+  * Integrated user's personal drum collection: 24 kicks, 27 snares, 55 hi-hats, and 82 percussion hits (188 WAV files, 26.4 MB).
+  * Preserved original source files in root `Drums/` folder while copying and standardizing deployable assets into `public/samples/udnb-*.wav`.
+  * Computed SHA-256 hashes and cataloged all 188 sounds in `public/samples/catalog.json`, expanding the sound collection from 45 to 233 samples.
+* **UI Grouping & Fast Sound Selection (`src/audio/drum-kit.ts`):**
+  * Added a dedicated `<optgroup label="UDNB Collection (Personal)">` right beneath `Built-in` synthesis in the kit sound selector, making personal files immediately accessible without scrolling past legacy samples.
+* **Dedicated UDNB Kit Presets (`src/audio/library.ts`):**
+  * Added `udnb-signature` (*🔥 UDNB Signature Drum Kit*) and `udnb-heavy-roller` (*⚡ UDNB Heavy Roller*) presets with custom levels and decays tailored for heavy Drum & Bass / Jungle production.
+* **Build & Test Infrastructure (`tests/workspace.test.mjs`, `scripts/site-browser-smoke.mjs`, `scripts/workspace-browser-smoke.mjs`):**
+  * Updated catalog and static site bundle assertions to 233 WAVs.
+  * Verified all 233 samples pass SHA-256 integrity, RIFF WAV decoding, Playwright browser UI selection, playback preview, and WAV export.
+* **Cache Buster Bump (`public/index.html`):**
+  * Updated query version strings to `?v=0.2.0-udnb-collection`.
+
 ### [2026-09-24] - High-Tempo Drum Body Anti-Clicking & Melodic Atmospheric Breakcore Synthesis (Antigravity)
 * **High-Tempo Drum Body & Anti-Clicking (`src/audio/performance.ts`):**
   * Diagnosed high-tempo click cause: `interval` calculation divided by resolution ($64$). At 180–220 BPM with gate applied, one-shot samples were truncated to 5–9 ms (smaller than a 60 Hz kick cycle), generating sharp DC offset clicks.

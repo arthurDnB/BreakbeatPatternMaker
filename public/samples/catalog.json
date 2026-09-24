@@ -448,5 +448,1885 @@
     "author": "Karoryfer Samples / Stargate DAW contributors",
     "source": "https://raw.githubusercontent.com/stargatedaw/stargate-sample-pack/main/stargate-sample-pack/karoryfer/toms/tom_Szpaderski_18.wav",
     "sha256": "0024c36a41232c73d510dad817bb461840fd7a9fca726721d0ad158dd1176b9a"
+  },
+  {
+    "id": "udnb-kick-01",
+    "role": "kick",
+    "name": "UDNB Kick 01",
+    "path": "/public/samples/udnb-kick-01.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Kicks/UDNB_kick01.wav",
+    "sha256": "e1514194d7da46530077cd74a1b2a48bb3ad7822034f20e00c7b9b6fe5506ef3"
+  },
+  {
+    "id": "udnb-kick-02",
+    "role": "kick",
+    "name": "UDNB Kick 02",
+    "path": "/public/samples/udnb-kick-02.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Kicks/UDNB_kick02.wav",
+    "sha256": "1e484f916e105ccbaa3c3ea0a86fb5547157c8639e71948110df9ca8fa41a829"
+  },
+  {
+    "id": "udnb-kick-03",
+    "role": "kick",
+    "name": "UDNB Kick 03",
+    "path": "/public/samples/udnb-kick-03.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Kicks/UDNB_kick03.wav",
+    "sha256": "c7fe2e464e3c63f6336db298d618a472e52a15fd2a8a2a0f8ca1953bd1030167"
+  },
+  {
+    "id": "udnb-kick-04",
+    "role": "kick",
+    "name": "UDNB Kick 04",
+    "path": "/public/samples/udnb-kick-04.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Kicks/UDNB_kick04.wav",
+    "sha256": "e3e425241004a4c5171712a09e3f67b35425132219a3470491dd3425d7be9cd2"
+  },
+  {
+    "id": "udnb-kick-05",
+    "role": "kick",
+    "name": "UDNB Kick 05",
+    "path": "/public/samples/udnb-kick-05.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Kicks/UDNB_kick05.wav",
+    "sha256": "fa20a02e721e10973aff08234567dc70d88a563143c1572095a8cbcdf6358a01"
+  },
+  {
+    "id": "udnb-kick-06",
+    "role": "kick",
+    "name": "UDNB Kick 06",
+    "path": "/public/samples/udnb-kick-06.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Kicks/UDNB_kick06.wav",
+    "sha256": "78d1eccb10c6397a574d1104339b7ac2e126e25b44110fb4cb1dbd741579e96f"
+  },
+  {
+    "id": "udnb-kick-07",
+    "role": "kick",
+    "name": "UDNB Kick 07",
+    "path": "/public/samples/udnb-kick-07.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Kicks/UDNB_kick07.wav",
+    "sha256": "065fd8d0b6942aa6f6b1e66ac87f81acb94f83b853c579600b1af65f93b6de7d"
+  },
+  {
+    "id": "udnb-kick-08",
+    "role": "kick",
+    "name": "UDNB Kick 08",
+    "path": "/public/samples/udnb-kick-08.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Kicks/UDNB_kick08.wav",
+    "sha256": "93a5f7a22a159e77f95df1e5499769766c4adcd66e68d7a4988df0fa05a5b542"
+  },
+  {
+    "id": "udnb-kick-09",
+    "role": "kick",
+    "name": "UDNB Kick 09",
+    "path": "/public/samples/udnb-kick-09.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Kicks/UDNB_kick09.wav",
+    "sha256": "4d8019837ba1c17cd92b42a8ff0d70325efc3aa1ffcc5d9b80fe805db02cc112"
+  },
+  {
+    "id": "udnb-kick-10",
+    "role": "kick",
+    "name": "UDNB Kick 10",
+    "path": "/public/samples/udnb-kick-10.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Kicks/UDNB_kick10.wav",
+    "sha256": "5c6ebdf8c0e4751819f7965b5ed8534096cbf0e5f8ca5061b23e0a6bae27a3cf"
+  },
+  {
+    "id": "udnb-kick-11",
+    "role": "kick",
+    "name": "UDNB Kick 11",
+    "path": "/public/samples/udnb-kick-11.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Kicks/UDNB_kick11.wav",
+    "sha256": "8876d781173069c79f26241f1eef3ecbbc6f8e51129b594f00d088c04a8d6049"
+  },
+  {
+    "id": "udnb-kick-12",
+    "role": "kick",
+    "name": "UDNB Kick 12",
+    "path": "/public/samples/udnb-kick-12.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Kicks/UDNB_kick12.wav",
+    "sha256": "703aea85b11a32f406b10b47b742e48bd7873a5e7da78c0dda1db4153a4dd9f2"
+  },
+  {
+    "id": "udnb-kick-13",
+    "role": "kick",
+    "name": "UDNB Kick 13",
+    "path": "/public/samples/udnb-kick-13.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Kicks/UDNB_kick13.wav",
+    "sha256": "d75574f84315b7875f402df804840f0164b6241aac37d056fb08014ed557a135"
+  },
+  {
+    "id": "udnb-kick-14",
+    "role": "kick",
+    "name": "UDNB Kick 14",
+    "path": "/public/samples/udnb-kick-14.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Kicks/UDNB_kick14.wav",
+    "sha256": "71756af53b09ff51059831955d556d6902fe5143c914fafdb7e1b858c31e4cc9"
+  },
+  {
+    "id": "udnb-kick-15",
+    "role": "kick",
+    "name": "UDNB Kick 15",
+    "path": "/public/samples/udnb-kick-15.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Kicks/UDNB_kick15.wav",
+    "sha256": "3ddd2d36f9b9ea0ca6a2d0ffd63a6a91dddf1ad863baee649fc8387484988b07"
+  },
+  {
+    "id": "udnb-kick-16",
+    "role": "kick",
+    "name": "UDNB Kick 16",
+    "path": "/public/samples/udnb-kick-16.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Kicks/UDNB_kick16.wav",
+    "sha256": "3450d238f8399bc616743cccf5f208caa3c437464906d494a00807226256e741"
+  },
+  {
+    "id": "udnb-kick-17",
+    "role": "kick",
+    "name": "UDNB Kick 17",
+    "path": "/public/samples/udnb-kick-17.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Kicks/UDNB_kick17.wav",
+    "sha256": "3e74f5e706f5375d1168d73507abecad836b1908259a2ce69b37d942bc9df1a1"
+  },
+  {
+    "id": "udnb-kick-18",
+    "role": "kick",
+    "name": "UDNB Kick 18",
+    "path": "/public/samples/udnb-kick-18.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Kicks/UDNB_kick18.wav",
+    "sha256": "c2ef3a1a7cdf8e22b4ae0f49cf900133e798818751d68674cef955bf38fb731c"
+  },
+  {
+    "id": "udnb-kick-19",
+    "role": "kick",
+    "name": "UDNB Kick 19",
+    "path": "/public/samples/udnb-kick-19.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Kicks/UDNB_kick19.wav",
+    "sha256": "3719572bbf9ccab727181137c0f02e8ce4a1df99ec1c6acfa28c060a4056a62d"
+  },
+  {
+    "id": "udnb-kick-20",
+    "role": "kick",
+    "name": "UDNB Kick 20",
+    "path": "/public/samples/udnb-kick-20.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Kicks/UDNB_kick20.wav",
+    "sha256": "7411e108004e9bae233de1f4743df4dd6718a0f86c125f8d91b286d7f9ece80f"
+  },
+  {
+    "id": "udnb-kick-21",
+    "role": "kick",
+    "name": "UDNB Kick 21",
+    "path": "/public/samples/udnb-kick-21.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Kicks/UDNB_kick21.wav",
+    "sha256": "ad20a44e9dd9083ec05d748ec28f1995e10d605eb014cef020d4a05baf0f1302"
+  },
+  {
+    "id": "udnb-kick-22",
+    "role": "kick",
+    "name": "UDNB Kick 22",
+    "path": "/public/samples/udnb-kick-22.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Kicks/UDNB_kick22.wav",
+    "sha256": "f5e93cc0306992617a1f53b0d4eadc41b453c04c3b1c845472b0eaf341b4d117"
+  },
+  {
+    "id": "udnb-kick-23",
+    "role": "kick",
+    "name": "UDNB Kick 23",
+    "path": "/public/samples/udnb-kick-23.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Kicks/UDNB_kick23.wav",
+    "sha256": "b22443b347278d37cf78f41fa728a35ab96ccb79dd25d5fe6ef87e28484d2b6c"
+  },
+  {
+    "id": "udnb-kick-24",
+    "role": "kick",
+    "name": "UDNB Kick 24",
+    "path": "/public/samples/udnb-kick-24.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Kicks/UDNB_kick24.wav",
+    "sha256": "fce7676d569613bb115a2d0e646228e8263ebc1c3e891f471a152d6d7878d106"
+  },
+  {
+    "id": "udnb-snare-01",
+    "role": "snare",
+    "name": "UDNB Snare 01",
+    "path": "/public/samples/udnb-snare-01.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Snares/UDNB_snare01.wav",
+    "sha256": "3ae5f36cf81617869503b2d5075653303f36800cdaffe54114d80f85c86bc7b2"
+  },
+  {
+    "id": "udnb-snare-02",
+    "role": "snare",
+    "name": "UDNB Snare 02",
+    "path": "/public/samples/udnb-snare-02.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Snares/UDNB_snare02.wav",
+    "sha256": "17183047966ecec8d048f4a8f278f96469f237af37523ddb3bf2e1f8b316cd90"
+  },
+  {
+    "id": "udnb-snare-03",
+    "role": "snare",
+    "name": "UDNB Snare 03",
+    "path": "/public/samples/udnb-snare-03.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Snares/UDNB_snare03.wav",
+    "sha256": "a8e0db70e8ec9e632af4caab5709da455eeb235c7d1d137544cb616cdf8d8c75"
+  },
+  {
+    "id": "udnb-snare-04",
+    "role": "snare",
+    "name": "UDNB Snare 04",
+    "path": "/public/samples/udnb-snare-04.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Snares/UDNB_snare04.wav",
+    "sha256": "ebb3f93258945ed31ea9b38b325d781fff99ed4a2885ec79dc21f12aefaff5f2"
+  },
+  {
+    "id": "udnb-snare-05",
+    "role": "snare",
+    "name": "UDNB Snare 05",
+    "path": "/public/samples/udnb-snare-05.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Snares/UDNB_snare05.wav",
+    "sha256": "d724e8032e41d3341b1c9504454dbb378516b4eeafd3e998500e61e2171dbd70"
+  },
+  {
+    "id": "udnb-snare-06",
+    "role": "snare",
+    "name": "UDNB Snare 06",
+    "path": "/public/samples/udnb-snare-06.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Snares/UDNB_snare06.wav",
+    "sha256": "329dd8758b008f8bf2ddf95997f69fe9fbf5bd1a61c6a95881ebc6abe39e86d7"
+  },
+  {
+    "id": "udnb-snare-07",
+    "role": "snare",
+    "name": "UDNB Snare 07",
+    "path": "/public/samples/udnb-snare-07.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Snares/UDNB_snare07.wav",
+    "sha256": "86da220e00079c010d6112553c6fc92da6d2a8e7810d1069039795359415c934"
+  },
+  {
+    "id": "udnb-snare-08",
+    "role": "snare",
+    "name": "UDNB Snare 08",
+    "path": "/public/samples/udnb-snare-08.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Snares/UDNB_snare08.wav",
+    "sha256": "c562586882bd92cdf92b09def1ecf831dc50748e61b3f7fa028e6b0bb3257dc7"
+  },
+  {
+    "id": "udnb-snare-09",
+    "role": "snare",
+    "name": "UDNB Snare 09",
+    "path": "/public/samples/udnb-snare-09.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Snares/UDNB_snare09.wav",
+    "sha256": "9774ecfb533e385800d64c3c659438091ef02c1fae030fbb35295dc630802c54"
+  },
+  {
+    "id": "udnb-snare-10",
+    "role": "snare",
+    "name": "UDNB Snare 10",
+    "path": "/public/samples/udnb-snare-10.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Snares/UDNB_snare10.wav",
+    "sha256": "c380dbadbbcff9f3ee4c0c5a3e88b3062561f5b1ad199d330c60b59b13da69d2"
+  },
+  {
+    "id": "udnb-snare-11",
+    "role": "snare",
+    "name": "UDNB Snare 11",
+    "path": "/public/samples/udnb-snare-11.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Snares/UDNB_snare11.wav",
+    "sha256": "0c9899b52fb59c1ca98721543165aa059e5f09f2312c9e2b0fecca0826235f19"
+  },
+  {
+    "id": "udnb-snare-12",
+    "role": "snare",
+    "name": "UDNB Snare 12",
+    "path": "/public/samples/udnb-snare-12.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Snares/UDNB_snare12.wav",
+    "sha256": "45d0053290c626867acab7022cd71cf5113543e6ccc9415812e8416356353a03"
+  },
+  {
+    "id": "udnb-snare-13",
+    "role": "snare",
+    "name": "UDNB Snare 13",
+    "path": "/public/samples/udnb-snare-13.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Snares/UDNB_snare13.wav",
+    "sha256": "33f4bba24413031269b9845b1d884d6844f794789941dd15e6475ce334713f60"
+  },
+  {
+    "id": "udnb-snare-14",
+    "role": "snare",
+    "name": "UDNB Snare 14",
+    "path": "/public/samples/udnb-snare-14.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Snares/UDNB_snare14.wav",
+    "sha256": "a51c766b4c175effc73e386f79c9a694a024c02bdd88fe64f5a7abea82ca8d0c"
+  },
+  {
+    "id": "udnb-snare-15",
+    "role": "snare",
+    "name": "UDNB Snare 15",
+    "path": "/public/samples/udnb-snare-15.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Snares/UDNB_snare15.wav",
+    "sha256": "387ed39d4b3896b4795fb6d99590299c1c208242b51643af8ea11842b6f65554"
+  },
+  {
+    "id": "udnb-snare-16",
+    "role": "snare",
+    "name": "UDNB Snare 16",
+    "path": "/public/samples/udnb-snare-16.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Snares/UDNB_snare16.wav",
+    "sha256": "82f3db85cedcad12959fa9b70fc79bb566f3f657afa5f19615518325f9f1d81b"
+  },
+  {
+    "id": "udnb-snare-17",
+    "role": "snare",
+    "name": "UDNB Snare 17",
+    "path": "/public/samples/udnb-snare-17.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Snares/UDNB_snare17.wav",
+    "sha256": "3487de3ba5f92977c95fca44c9f77dc9ff9ad1862c81abbc2175496bceada90e"
+  },
+  {
+    "id": "udnb-snare-18",
+    "role": "snare",
+    "name": "UDNB Snare 18",
+    "path": "/public/samples/udnb-snare-18.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Snares/UDNB_snare18.wav",
+    "sha256": "89258807eb9a3ea9f00f598a31c51aec6299eb0c625b2d298918e98c275a69fb"
+  },
+  {
+    "id": "udnb-snare-19",
+    "role": "snare",
+    "name": "UDNB Snare 19",
+    "path": "/public/samples/udnb-snare-19.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Snares/UDNB_snare19.wav",
+    "sha256": "ef44666df291d5bcd9ad1c842272859d76ec416440474dcd02c10138a3e8f41a"
+  },
+  {
+    "id": "udnb-snare-20",
+    "role": "snare",
+    "name": "UDNB Snare 20",
+    "path": "/public/samples/udnb-snare-20.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Snares/UDNB_snare20.wav",
+    "sha256": "09e931c85e657a08c1bc32e2a98ccced6d6d5842089a6de9e149448eaef0de65"
+  },
+  {
+    "id": "udnb-snare-21",
+    "role": "snare",
+    "name": "UDNB Snare 21",
+    "path": "/public/samples/udnb-snare-21.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Snares/UDNB_snare21.wav",
+    "sha256": "4edcc905b8e2981a2f9d29a00b6879fc081680a026838cf7c8dedec70155f21b"
+  },
+  {
+    "id": "udnb-snare-22",
+    "role": "snare",
+    "name": "UDNB Snare 22",
+    "path": "/public/samples/udnb-snare-22.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Snares/UDNB_snare22.wav",
+    "sha256": "e14a05f0bf50d590586ad9af92398dbb3a596c6a75e6aa617f2c27c6f7d930c4"
+  },
+  {
+    "id": "udnb-snare-23",
+    "role": "snare",
+    "name": "UDNB Snare 23",
+    "path": "/public/samples/udnb-snare-23.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Snares/UDNB_snare23.wav",
+    "sha256": "f930c0df59208121d8119d6305b5fea9b87cf66ba248d8bcca453426ba96317e"
+  },
+  {
+    "id": "udnb-snare-24",
+    "role": "snare",
+    "name": "UDNB Snare 24",
+    "path": "/public/samples/udnb-snare-24.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Snares/UDNB_snare24.wav",
+    "sha256": "ee892b9a4e3d01513018f7ba2301fcbc3191642c92005e880c1d259a4e61ceeb"
+  },
+  {
+    "id": "udnb-snare-25",
+    "role": "snare",
+    "name": "UDNB Snare 25",
+    "path": "/public/samples/udnb-snare-25.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Snares/UDNB_snare25.wav",
+    "sha256": "b099abe1bfc2f56a27658aeac0bedeee0cfe80585bd174fd9bde7201206a7f65"
+  },
+  {
+    "id": "udnb-snare-26",
+    "role": "snare",
+    "name": "UDNB Snare 26",
+    "path": "/public/samples/udnb-snare-26.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Snares/UDNB_snare26.wav",
+    "sha256": "566aa6eedfec27c4db6651c30e6d9b6c2f1c3a66ed95640d6be72667aee1c6c6"
+  },
+  {
+    "id": "udnb-snare-27",
+    "role": "snare",
+    "name": "UDNB Snare 27",
+    "path": "/public/samples/udnb-snare-27.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Snares/UDNB_snare27.wav",
+    "sha256": "e14b9ce4e05c01ca85f71fe80893edd99eab1071f5782a158084d23fb17e1f2e"
+  },
+  {
+    "id": "udnb-hat-01",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 01",
+    "path": "/public/samples/udnb-hat-01.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats01.wav",
+    "sha256": "4e9bea396bd6430a42cc97cb626b42a8897e266aaaf91612496bb0e400df3ab2"
+  },
+  {
+    "id": "udnb-hat-02",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 02",
+    "path": "/public/samples/udnb-hat-02.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats02.wav",
+    "sha256": "12c75f7ebc9af03428bb914e12df8ba0dbd98b82a161eade912dc1bb648c28ee"
+  },
+  {
+    "id": "udnb-hat-03",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 03",
+    "path": "/public/samples/udnb-hat-03.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats03.wav",
+    "sha256": "2f74e62e4618565cee2d53cc1883827164c26201f3ce3072d62f90ef66e82403"
+  },
+  {
+    "id": "udnb-hat-04",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 04",
+    "path": "/public/samples/udnb-hat-04.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats04.wav",
+    "sha256": "43c4cda3cfe97547a28435db9d20bd1f469899d4e03c98276774d9362e0bfc5f"
+  },
+  {
+    "id": "udnb-hat-05",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 05",
+    "path": "/public/samples/udnb-hat-05.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats05.wav",
+    "sha256": "e63a1b94351391314ae9190dd0a006de7ac484e3585d80eae856381c6d412436"
+  },
+  {
+    "id": "udnb-hat-06",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 06",
+    "path": "/public/samples/udnb-hat-06.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats06.wav",
+    "sha256": "85ec037aa42cc19764dc80121c63368f0403138ad55c3ec8b0cff82d66340fcb"
+  },
+  {
+    "id": "udnb-hat-07",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 07",
+    "path": "/public/samples/udnb-hat-07.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats07.wav",
+    "sha256": "c0cc8fbdc71559384f8073dd0561e0375469716ad91eaf6fbbd704b99ca02a81"
+  },
+  {
+    "id": "udnb-hat-08",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 08",
+    "path": "/public/samples/udnb-hat-08.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats08.wav",
+    "sha256": "12e8ffd70d3b2d3fc9a942e5eee39266349a7fbb1050c45a558259edd619d85f"
+  },
+  {
+    "id": "udnb-hat-09",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 09",
+    "path": "/public/samples/udnb-hat-09.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats09.wav",
+    "sha256": "5dc269788899c8a5026ae2d5c52bd4d89159c4b4fe324d84cab62454041c4798"
+  },
+  {
+    "id": "udnb-hat-10",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 10",
+    "path": "/public/samples/udnb-hat-10.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats10.wav",
+    "sha256": "044cbf91bc2028c900bf74ac147364abf75d959989e2ebf50083136f517db0f5"
+  },
+  {
+    "id": "udnb-hat-11",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 11",
+    "path": "/public/samples/udnb-hat-11.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats11.wav",
+    "sha256": "ad50e9cdfaa940833b1fd64f2dd88be3176cd2b4d147dfbd4f4f8e6713ae294d"
+  },
+  {
+    "id": "udnb-hat-12",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 12",
+    "path": "/public/samples/udnb-hat-12.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats12.wav",
+    "sha256": "03bfe0a39e90d67b62aeabda0218d7d494bf37bd0701e4a83a4330a88b03c97b"
+  },
+  {
+    "id": "udnb-hat-13",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 13",
+    "path": "/public/samples/udnb-hat-13.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats13.wav",
+    "sha256": "db850e8b63d806579832921afaeafdbef83f9da2a667d105b36d851042ab71cb"
+  },
+  {
+    "id": "udnb-hat-14",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 14",
+    "path": "/public/samples/udnb-hat-14.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats14.wav",
+    "sha256": "d781c2be640a01b21eb8fa2fcf768092ae7a0921acc279d31799fa5949c7d99b"
+  },
+  {
+    "id": "udnb-hat-15",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 15",
+    "path": "/public/samples/udnb-hat-15.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats15.wav",
+    "sha256": "c64cd6985d6d855ce6b81d3de95d16c8c2a9d9c9d55e2eb6e9c1c0c634d5e7db"
+  },
+  {
+    "id": "udnb-hat-16",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 16",
+    "path": "/public/samples/udnb-hat-16.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats16.wav",
+    "sha256": "ea430bc5e5b6fd910443ce6dec468cec134e117d1d6d8d694e8944965feeccf5"
+  },
+  {
+    "id": "udnb-hat-17",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 17",
+    "path": "/public/samples/udnb-hat-17.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats17.wav",
+    "sha256": "9572d7ce7fafd9e6f3e1fe27401c6f100b96b89fa742a51ca0375fedc96ce05f"
+  },
+  {
+    "id": "udnb-hat-18",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 18",
+    "path": "/public/samples/udnb-hat-18.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats18.wav",
+    "sha256": "16dbabe10a5d1fe3f91db297d7948d462c7a3050a7b8a3f88aff1e12570393e5"
+  },
+  {
+    "id": "udnb-hat-19",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 19",
+    "path": "/public/samples/udnb-hat-19.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats19.wav",
+    "sha256": "d3424860ead01eae871d4928da9c1fbfaca288a557c8bb2ee34c8ac38799a64e"
+  },
+  {
+    "id": "udnb-hat-20",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 20",
+    "path": "/public/samples/udnb-hat-20.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats20.wav",
+    "sha256": "6705583832d6f975c864725aff09eb8efe6d4ca58a9cb292edaf991ca94cdef3"
+  },
+  {
+    "id": "udnb-hat-21",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 21",
+    "path": "/public/samples/udnb-hat-21.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats21.wav",
+    "sha256": "57a1545b6b3dbcd02765fe9de793aa8b77dee37ff3996b49a5a963744dca1f56"
+  },
+  {
+    "id": "udnb-hat-22",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 22",
+    "path": "/public/samples/udnb-hat-22.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats22.wav",
+    "sha256": "14aeacc41b0de85b81903dae460a75e235632fbd077e5edc7d07b801dcd9ce89"
+  },
+  {
+    "id": "udnb-hat-23",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 23",
+    "path": "/public/samples/udnb-hat-23.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats23.wav",
+    "sha256": "0ee335dea9c96842ec331b3362368769a40dfed9a0d544088e43889011efd9bf"
+  },
+  {
+    "id": "udnb-hat-24",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 24",
+    "path": "/public/samples/udnb-hat-24.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats24.wav",
+    "sha256": "3ac82bd4e25713a610ffaaeff0f0fcc865d7992e32e97be6932f3cffc196e40b"
+  },
+  {
+    "id": "udnb-hat-25",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 25",
+    "path": "/public/samples/udnb-hat-25.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats25.wav",
+    "sha256": "bdb4425d7023b774568f605e8dd30d93803d8acb4af1470bb4d1e86031eb73ba"
+  },
+  {
+    "id": "udnb-hat-26",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 26",
+    "path": "/public/samples/udnb-hat-26.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats26.wav",
+    "sha256": "3e1a1182d6f13f1fceb609c59f70382360d71dbf8c0ba238391631b68beb86cc"
+  },
+  {
+    "id": "udnb-hat-27",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 27",
+    "path": "/public/samples/udnb-hat-27.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats27.wav",
+    "sha256": "4fe0f5e6c46ae9ef24758cb6dbf1b2da9bf17ad0269a24e22f891c3dac607cd8"
+  },
+  {
+    "id": "udnb-hat-28",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 28",
+    "path": "/public/samples/udnb-hat-28.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats28.wav",
+    "sha256": "7ad476f27a84137e05bd97719acdb0b602f4a36cf356240ced44d6e31c452eb5"
+  },
+  {
+    "id": "udnb-hat-29",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 29",
+    "path": "/public/samples/udnb-hat-29.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats29.wav",
+    "sha256": "4702f19926bed3677b06a64da2442a7bff00836f01e55f5ffacce3acd9361523"
+  },
+  {
+    "id": "udnb-hat-30",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 30",
+    "path": "/public/samples/udnb-hat-30.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats30.wav",
+    "sha256": "e7de8b4101754df024d87b96eaf4fc5c346c07d69d8dd13f83033cd7a7209e76"
+  },
+  {
+    "id": "udnb-hat-31",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 31",
+    "path": "/public/samples/udnb-hat-31.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats31.wav",
+    "sha256": "f6de4c2406c3c3ca1f352694264d871f49d7ce7f0e3e6e71653fccc7b1e3e642"
+  },
+  {
+    "id": "udnb-hat-32",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 32",
+    "path": "/public/samples/udnb-hat-32.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats32.wav",
+    "sha256": "5d113b7f9351f68b584cf248b05b23aab72e55a37c58cf2fb1143c87cd2c8f92"
+  },
+  {
+    "id": "udnb-hat-33",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 33",
+    "path": "/public/samples/udnb-hat-33.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats33.wav",
+    "sha256": "ae40e8e669979baa8fbbb51d705685192a88eaa45c2eafeeb39c89246c6f3bd6"
+  },
+  {
+    "id": "udnb-hat-34",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 34",
+    "path": "/public/samples/udnb-hat-34.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats34.wav",
+    "sha256": "28f3b18733e774eb3bf2be021503ca203bf1e3b34132d91bbdbad9db3f91282b"
+  },
+  {
+    "id": "udnb-hat-35",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 35",
+    "path": "/public/samples/udnb-hat-35.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats35.wav",
+    "sha256": "c10235716c1582438a93981f4ac0e1f625fdf65355dbaf6cb457b716d5c6f737"
+  },
+  {
+    "id": "udnb-hat-36",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 36",
+    "path": "/public/samples/udnb-hat-36.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats36.wav",
+    "sha256": "c5f4e79f81972e521d4f87623405d8bacc990109f665f9d26465e8299c605aab"
+  },
+  {
+    "id": "udnb-hat-37",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 37",
+    "path": "/public/samples/udnb-hat-37.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats37.wav",
+    "sha256": "6c84a1c158e2970f2c1767fb27f2c7270368bf6238edbe5c287182d595c5eb2e"
+  },
+  {
+    "id": "udnb-hat-38",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 38",
+    "path": "/public/samples/udnb-hat-38.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats38.wav",
+    "sha256": "7c2f2746152f3208d740d5b7b291e1a735eaabc910c1690fa23cf2da80c8aa9a"
+  },
+  {
+    "id": "udnb-hat-39",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 39",
+    "path": "/public/samples/udnb-hat-39.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats39.wav",
+    "sha256": "12226c99d2c043deb2dc0c8f28f622f65214d7d5140b5b2388ecbfa295308b98"
+  },
+  {
+    "id": "udnb-hat-40",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 40",
+    "path": "/public/samples/udnb-hat-40.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats40.wav",
+    "sha256": "337814a244ea551d23360c043911ebf4583662a00917b742afca397039928a7a"
+  },
+  {
+    "id": "udnb-hat-41",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 41",
+    "path": "/public/samples/udnb-hat-41.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats41.wav",
+    "sha256": "7dcc109b9f733cf0ade7e32b24af3bc46d6b18e08a855f05e5efcd30a4101e30"
+  },
+  {
+    "id": "udnb-hat-42",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 42",
+    "path": "/public/samples/udnb-hat-42.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats42.wav",
+    "sha256": "f762380ab4b2b4fe4a4aaff71f35b4fe90dff2351dad360b01e1d54f301936c1"
+  },
+  {
+    "id": "udnb-hat-43",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 43",
+    "path": "/public/samples/udnb-hat-43.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats43.wav",
+    "sha256": "46d6f96f74c769f4f9803dca81f1b5ea41ab5bc8b5f7049d91c344bcd4943c6c"
+  },
+  {
+    "id": "udnb-hat-44",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 44",
+    "path": "/public/samples/udnb-hat-44.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats44.wav",
+    "sha256": "e0e1ae7a6e25f937dfa117cb4ae8743ac5c4e04a9c9f28026260d5bac26ae92c"
+  },
+  {
+    "id": "udnb-hat-45",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 45",
+    "path": "/public/samples/udnb-hat-45.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats45.wav",
+    "sha256": "da607de04310bf633ae5e14c0314fa8fba9aace547841dc30cb9339f890614bc"
+  },
+  {
+    "id": "udnb-hat-46",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 46",
+    "path": "/public/samples/udnb-hat-46.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats46.wav",
+    "sha256": "26419e119202be3ee61865be7813f4a51fe901586210a7a29ce14074792beab3"
+  },
+  {
+    "id": "udnb-hat-47",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 47",
+    "path": "/public/samples/udnb-hat-47.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats47.wav",
+    "sha256": "c8f4c705f13e83aac7a136c1c32309850b6d308cd3a59f5195146006db3bd72f"
+  },
+  {
+    "id": "udnb-hat-48",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 48",
+    "path": "/public/samples/udnb-hat-48.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats48.wav",
+    "sha256": "09b01f5605dc20fba5ac99886d19be0f23a6606118a4a9dcb7f223c4da15f5ce"
+  },
+  {
+    "id": "udnb-hat-49",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 49",
+    "path": "/public/samples/udnb-hat-49.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats49.wav",
+    "sha256": "1185d428ab432403f1d3aa0457c983622a3227d86e50d317e6365d8a72067d85"
+  },
+  {
+    "id": "udnb-hat-50",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 50",
+    "path": "/public/samples/udnb-hat-50.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats50.wav",
+    "sha256": "d9c4d9c9d26e0372d0f56aaf35edfab089eb3539ce54bef04767ca861ae4e12c"
+  },
+  {
+    "id": "udnb-hat-51",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 51",
+    "path": "/public/samples/udnb-hat-51.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats51.wav",
+    "sha256": "dabeed86d816371d30e95775824dda004bf6d412876617cf48696ba037c2259e"
+  },
+  {
+    "id": "udnb-hat-52",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 52",
+    "path": "/public/samples/udnb-hat-52.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats52.wav",
+    "sha256": "6a796528de3fee7a51a7463e9894255d1450a5dcd437f3da175c464004440a69"
+  },
+  {
+    "id": "udnb-hat-53",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 53",
+    "path": "/public/samples/udnb-hat-53.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats53.wav",
+    "sha256": "a7e99db863ccbda94e263bf186690a3d02101a704e42fd3a9c35839c945f38c4"
+  },
+  {
+    "id": "udnb-hat-54",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 54",
+    "path": "/public/samples/udnb-hat-54.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats54.wav",
+    "sha256": "2bfef8d0233abc6668f7a5a45b4cf028e590291095050fc6027492f53d277638"
+  },
+  {
+    "id": "udnb-hat-55",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 55",
+    "path": "/public/samples/udnb-hat-55.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Hats/UDNB_hats55.wav",
+    "sha256": "b4b9ffee30a5447a928419d693f04a8fddfa6a390b86a99a412fcf0c39dec581"
+  },
+  {
+    "id": "udnb-perc-01",
+    "role": "percussion",
+    "name": "UDNB Percussion 01",
+    "path": "/public/samples/udnb-perc-01.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc01.wav",
+    "sha256": "8b3732b132b573ce2f073a78a25e68ec8ba364fb751a921b8b4b3aa5d87009aa"
+  },
+  {
+    "id": "udnb-perc-02",
+    "role": "percussion",
+    "name": "UDNB Percussion 02",
+    "path": "/public/samples/udnb-perc-02.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc02.wav",
+    "sha256": "86e0aa77a852c265c379fc754307ee8d34c6c52978c45e4fbcb228a65932c9be"
+  },
+  {
+    "id": "udnb-perc-03",
+    "role": "percussion",
+    "name": "UDNB Percussion 03",
+    "path": "/public/samples/udnb-perc-03.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc03.wav",
+    "sha256": "c9d340d001537871d5f3bc8a7aa040a9f651f4ae393fb9e4ac3dd2554b56b13c"
+  },
+  {
+    "id": "udnb-perc-04",
+    "role": "percussion",
+    "name": "UDNB Percussion 04",
+    "path": "/public/samples/udnb-perc-04.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc04.wav",
+    "sha256": "205ce950e3bd9b9e927ec0b9ffbd92a0e4971148bbaf1581291b9bafe99da3a1"
+  },
+  {
+    "id": "udnb-perc-05",
+    "role": "percussion",
+    "name": "UDNB Percussion 05",
+    "path": "/public/samples/udnb-perc-05.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc05.wav",
+    "sha256": "a3eebe8b8b90fe94a14c395b064db35a590cb6e4a1afbf94454685c82cdaaa89"
+  },
+  {
+    "id": "udnb-perc-06",
+    "role": "percussion",
+    "name": "UDNB Percussion 06",
+    "path": "/public/samples/udnb-perc-06.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc06.wav",
+    "sha256": "40d19d0c0dcf9b8c47d22928f98ed0c22d6821372baa00668d31f909bd9ab2a5"
+  },
+  {
+    "id": "udnb-perc-07",
+    "role": "percussion",
+    "name": "UDNB Percussion 07",
+    "path": "/public/samples/udnb-perc-07.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc07.wav",
+    "sha256": "a2b7eafc30aa35c9a5234107833fef02c2f61b195a97a8ed08b867e1935bae8e"
+  },
+  {
+    "id": "udnb-perc-08",
+    "role": "percussion",
+    "name": "UDNB Percussion 08",
+    "path": "/public/samples/udnb-perc-08.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc08.wav",
+    "sha256": "e4ac297ac6d3eb0babe7dde79cf7e8ca3e4b4a9f8238b545fde447a92f3c3099"
+  },
+  {
+    "id": "udnb-perc-09",
+    "role": "percussion",
+    "name": "UDNB Percussion 09",
+    "path": "/public/samples/udnb-perc-09.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc09.wav",
+    "sha256": "cd884ed0c047fe086635c3f34b4ea506aea5d61fc5cd72cb998aa86b02094837"
+  },
+  {
+    "id": "udnb-perc-10",
+    "role": "percussion",
+    "name": "UDNB Percussion 10",
+    "path": "/public/samples/udnb-perc-10.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc10.wav",
+    "sha256": "1ed00a445ae26779ef86745231d5e6daa363ca01f47b80e3ebab7e09865ddf0f"
+  },
+  {
+    "id": "udnb-perc-11",
+    "role": "percussion",
+    "name": "UDNB Percussion 11",
+    "path": "/public/samples/udnb-perc-11.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc11.wav",
+    "sha256": "8e2d383769c0f7f734917bae3b89fdbf586e9291b0066bcd1cfb3218492190ed"
+  },
+  {
+    "id": "udnb-perc-12",
+    "role": "percussion",
+    "name": "UDNB Percussion 12",
+    "path": "/public/samples/udnb-perc-12.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc12.wav",
+    "sha256": "08914fc6ed57ab2976911d0d1ae1e7471084f7b0eb65fee1a7dc5f46f8ba8d4a"
+  },
+  {
+    "id": "udnb-perc-13",
+    "role": "percussion",
+    "name": "UDNB Percussion 13",
+    "path": "/public/samples/udnb-perc-13.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc13.wav",
+    "sha256": "27f3a81dfe26a99c768d9cd9024e3f89cda854caff88deddd21e11e75db4c9ac"
+  },
+  {
+    "id": "udnb-perc-14",
+    "role": "percussion",
+    "name": "UDNB Percussion 14",
+    "path": "/public/samples/udnb-perc-14.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc14.wav",
+    "sha256": "b788f31a334addccb67bc9aabd81d4cb8c682e6d1e9fe49b0a4dfa3db958379d"
+  },
+  {
+    "id": "udnb-perc-15",
+    "role": "percussion",
+    "name": "UDNB Percussion 15",
+    "path": "/public/samples/udnb-perc-15.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc15.wav",
+    "sha256": "b841d8f691e2eeeb6103dcdeee6a862e4e6ca5202220c662f0d4bbf6603871af"
+  },
+  {
+    "id": "udnb-perc-16",
+    "role": "percussion",
+    "name": "UDNB Percussion 16",
+    "path": "/public/samples/udnb-perc-16.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc16.wav",
+    "sha256": "d69beb9ac94877e7c06f692a47c851ea33a9cb340bc37e29e0770ede42bff242"
+  },
+  {
+    "id": "udnb-perc-17",
+    "role": "percussion",
+    "name": "UDNB Percussion 17",
+    "path": "/public/samples/udnb-perc-17.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc17.wav",
+    "sha256": "63c429f5de31360bbc9d2213e58305ac6d15d50a308a084eded08176095efff7"
+  },
+  {
+    "id": "udnb-perc-18",
+    "role": "percussion",
+    "name": "UDNB Percussion 18",
+    "path": "/public/samples/udnb-perc-18.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc18.wav",
+    "sha256": "b0bf0f392991234e2458af648cf03a04ff8e537eda6eca758897891791a6d81e"
+  },
+  {
+    "id": "udnb-perc-19",
+    "role": "percussion",
+    "name": "UDNB Percussion 19",
+    "path": "/public/samples/udnb-perc-19.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc19.wav",
+    "sha256": "31e2afa0f4969a47df4ce2218c825f6d5c99e4743d2ee32fe00fca52c61c8900"
+  },
+  {
+    "id": "udnb-perc-20",
+    "role": "percussion",
+    "name": "UDNB Percussion 20",
+    "path": "/public/samples/udnb-perc-20.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc20.wav",
+    "sha256": "1a4c2e1858ed901663eb9b7bf4aec0f4d8f1a4ba39513f47b52d71e76a73d7d1"
+  },
+  {
+    "id": "udnb-perc-21",
+    "role": "percussion",
+    "name": "UDNB Percussion 21",
+    "path": "/public/samples/udnb-perc-21.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc21.wav",
+    "sha256": "aa2bf2f119c5f2339da7ced392c7c39f8ac29343e2d6be87646f79c16c1f11a9"
+  },
+  {
+    "id": "udnb-perc-22",
+    "role": "percussion",
+    "name": "UDNB Percussion 22",
+    "path": "/public/samples/udnb-perc-22.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc22.wav",
+    "sha256": "0172f3bd71bc99caa77174f200c3fa5e347c5d49d54b514d36818965710d0e60"
+  },
+  {
+    "id": "udnb-perc-23",
+    "role": "percussion",
+    "name": "UDNB Percussion 23",
+    "path": "/public/samples/udnb-perc-23.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc23.wav",
+    "sha256": "b463d9c3e21caf1835bc5629fc4b969a107b827d29080642930ed2480698c8c8"
+  },
+  {
+    "id": "udnb-perc-24",
+    "role": "percussion",
+    "name": "UDNB Percussion 24",
+    "path": "/public/samples/udnb-perc-24.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc24.wav",
+    "sha256": "29ebfb617ae574b70ee3e9ce8012720249d3233ca608af15df1fe1656dcd7481"
+  },
+  {
+    "id": "udnb-perc-25",
+    "role": "percussion",
+    "name": "UDNB Percussion 25",
+    "path": "/public/samples/udnb-perc-25.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc25.wav",
+    "sha256": "7da70b1b08ad3ef3fd6202399a0d758feeb2ed9fbc72479a23c0f1a227170194"
+  },
+  {
+    "id": "udnb-perc-26",
+    "role": "percussion",
+    "name": "UDNB Percussion 26",
+    "path": "/public/samples/udnb-perc-26.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc26.wav",
+    "sha256": "476711203f71c0606e50ac9c13e46a36b1638d4f010d00728b0298837b10e287"
+  },
+  {
+    "id": "udnb-perc-27",
+    "role": "percussion",
+    "name": "UDNB Percussion 27",
+    "path": "/public/samples/udnb-perc-27.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc27.wav",
+    "sha256": "a650d3aa37e80b2f59e7e9782292a8b5c0f473d45af1fcfec38cb482ba1360dc"
+  },
+  {
+    "id": "udnb-perc-28",
+    "role": "percussion",
+    "name": "UDNB Percussion 28",
+    "path": "/public/samples/udnb-perc-28.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc28.wav",
+    "sha256": "f3d7baef654adcc9318a3d1a23c5b1713cfb16b9b4f7c7ac17f8187ea05fa5fa"
+  },
+  {
+    "id": "udnb-perc-29",
+    "role": "percussion",
+    "name": "UDNB Percussion 29",
+    "path": "/public/samples/udnb-perc-29.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc29.wav",
+    "sha256": "8df6e70b7173f585d5e9a44e9609a244c6126bc75bad494ef31d0204b0fd2153"
+  },
+  {
+    "id": "udnb-perc-30",
+    "role": "percussion",
+    "name": "UDNB Percussion 30",
+    "path": "/public/samples/udnb-perc-30.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc30.wav",
+    "sha256": "c0b9c1c58ff493f9de0742522bbd3ff9cc84d8b6edce03b463d0974688108e80"
+  },
+  {
+    "id": "udnb-perc-31",
+    "role": "percussion",
+    "name": "UDNB Percussion 31",
+    "path": "/public/samples/udnb-perc-31.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc31.wav",
+    "sha256": "f4df73cb066951ef7a3c4ec5d365dbd0b44267db7b06aa17eb1442442e224ba6"
+  },
+  {
+    "id": "udnb-perc-32",
+    "role": "percussion",
+    "name": "UDNB Percussion 32",
+    "path": "/public/samples/udnb-perc-32.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc32.wav",
+    "sha256": "87e0576c7c3fc70c5c73b4eebde95bc697a5c0b2b4515d887ed6927c97c6b153"
+  },
+  {
+    "id": "udnb-perc-33",
+    "role": "percussion",
+    "name": "UDNB Percussion 33",
+    "path": "/public/samples/udnb-perc-33.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc33.wav",
+    "sha256": "d58b74b13f6e752987d656dc69b4d957e6ccb7db08f07cdcda1d71d631d9df12"
+  },
+  {
+    "id": "udnb-perc-34",
+    "role": "percussion",
+    "name": "UDNB Percussion 34",
+    "path": "/public/samples/udnb-perc-34.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc34.wav",
+    "sha256": "1bc5b65ed136a53b8750b99c263283cb2adb51d67e56ff0436740e498e3e0aed"
+  },
+  {
+    "id": "udnb-perc-35",
+    "role": "percussion",
+    "name": "UDNB Percussion 35",
+    "path": "/public/samples/udnb-perc-35.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc35.wav",
+    "sha256": "078ad9f30e80424086716ad16e80188a08955de8616c49627e0340809deddeb7"
+  },
+  {
+    "id": "udnb-perc-36",
+    "role": "percussion",
+    "name": "UDNB Percussion 36",
+    "path": "/public/samples/udnb-perc-36.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc36.wav",
+    "sha256": "a212fb326b22d519c87f69684cca9eed7db02a50aef47385bd4323a0daff1881"
+  },
+  {
+    "id": "udnb-perc-37",
+    "role": "percussion",
+    "name": "UDNB Percussion 37",
+    "path": "/public/samples/udnb-perc-37.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc37.wav",
+    "sha256": "b298b31bba7a0da4ef04b1f0e8b46ee471649dc603733c440354fd5769df3b5e"
+  },
+  {
+    "id": "udnb-perc-38",
+    "role": "percussion",
+    "name": "UDNB Percussion 38",
+    "path": "/public/samples/udnb-perc-38.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc38.wav",
+    "sha256": "dbbc1dabbd02ae18f74b3e93f78912653a587d56486d64747bba0ed375d6582b"
+  },
+  {
+    "id": "udnb-perc-39",
+    "role": "percussion",
+    "name": "UDNB Percussion 39",
+    "path": "/public/samples/udnb-perc-39.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc39.wav",
+    "sha256": "d79aea94ac15448387f07d41903c0ba3fb224aae7edf017b79f018bdd5f061be"
+  },
+  {
+    "id": "udnb-perc-40",
+    "role": "percussion",
+    "name": "UDNB Percussion 40",
+    "path": "/public/samples/udnb-perc-40.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc40.wav",
+    "sha256": "e2f2ddaf6503dfb15ecb51bcf6e96bdc7f192ce42f7d75284a61782c50f581fb"
+  },
+  {
+    "id": "udnb-perc-41",
+    "role": "percussion",
+    "name": "UDNB Percussion 41",
+    "path": "/public/samples/udnb-perc-41.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc41.wav",
+    "sha256": "03d9f217d0c2b0f5faa068393f0f9ce11fad7a86cf5b4a56c69f40cca62c85dd"
+  },
+  {
+    "id": "udnb-perc-42",
+    "role": "percussion",
+    "name": "UDNB Percussion 42",
+    "path": "/public/samples/udnb-perc-42.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc42.wav",
+    "sha256": "27309a18f5f08fa8f66e7493bcdf9d271fd9effc56313fc568c695b44e2fe2a8"
+  },
+  {
+    "id": "udnb-perc-43",
+    "role": "percussion",
+    "name": "UDNB Percussion 43",
+    "path": "/public/samples/udnb-perc-43.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc43.wav",
+    "sha256": "e4bb050c600530989ce998efb9e73a363f3507cb09a4e44aeae276a6afe8f623"
+  },
+  {
+    "id": "udnb-perc-44",
+    "role": "percussion",
+    "name": "UDNB Percussion 44",
+    "path": "/public/samples/udnb-perc-44.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc44.wav",
+    "sha256": "afd907e34ceae04c11b4fc335c129632d973e2adab0a6254ce5160dde7ab6ce3"
+  },
+  {
+    "id": "udnb-perc-45",
+    "role": "percussion",
+    "name": "UDNB Percussion 45",
+    "path": "/public/samples/udnb-perc-45.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc45.wav",
+    "sha256": "baa081172f83fb3ad7b952d4790787ac17bd17ce55886b6f1e2cef0d6b612bf2"
+  },
+  {
+    "id": "udnb-perc-46",
+    "role": "percussion",
+    "name": "UDNB Percussion 46",
+    "path": "/public/samples/udnb-perc-46.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc46.wav",
+    "sha256": "7df22a568ac883d6e1f9169492d0388e328ab4d130686bb45af299f190ce992d"
+  },
+  {
+    "id": "udnb-perc-47",
+    "role": "percussion",
+    "name": "UDNB Percussion 47",
+    "path": "/public/samples/udnb-perc-47.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc47.wav",
+    "sha256": "4d1145c1b7bbbd75f032d203eed984bde1ea088dda2b09c48f8da27385e9e390"
+  },
+  {
+    "id": "udnb-perc-48",
+    "role": "percussion",
+    "name": "UDNB Percussion 48",
+    "path": "/public/samples/udnb-perc-48.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc48.wav",
+    "sha256": "d61616fd2679bbe4fca24fb776aebb8eba97c660a1522319a25acd6ad7821f32"
+  },
+  {
+    "id": "udnb-perc-49",
+    "role": "percussion",
+    "name": "UDNB Percussion 49",
+    "path": "/public/samples/udnb-perc-49.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc49.wav",
+    "sha256": "84a15040fa2fcdfc331e65972bb773c499018e07a2bb598f073348aa42bb0abc"
+  },
+  {
+    "id": "udnb-perc-50",
+    "role": "percussion",
+    "name": "UDNB Percussion 50",
+    "path": "/public/samples/udnb-perc-50.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc50.wav",
+    "sha256": "3876c90264d8ea035f12ac2ba1c66f58a4f7d36ce392b1a740ad2df96dd7ef3a"
+  },
+  {
+    "id": "udnb-perc-51",
+    "role": "percussion",
+    "name": "UDNB Percussion 51",
+    "path": "/public/samples/udnb-perc-51.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc51.wav",
+    "sha256": "e7647c39c64f35a0b85e8393014853d1e9623d102f846f09fc56fea31f97fef2"
+  },
+  {
+    "id": "udnb-perc-52",
+    "role": "percussion",
+    "name": "UDNB Percussion 52",
+    "path": "/public/samples/udnb-perc-52.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc52.wav",
+    "sha256": "8839c5a79b4a78c9bb7460412059a41b960b79827a769a4277daea602b266e5d"
+  },
+  {
+    "id": "udnb-perc-53",
+    "role": "percussion",
+    "name": "UDNB Percussion 53",
+    "path": "/public/samples/udnb-perc-53.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc53.wav",
+    "sha256": "452b8c5066a14bf3d5785f76db54c0fc00dd7dc6809977cc7013304a89c7d7f8"
+  },
+  {
+    "id": "udnb-perc-54",
+    "role": "percussion",
+    "name": "UDNB Percussion 54",
+    "path": "/public/samples/udnb-perc-54.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc54.wav",
+    "sha256": "b16a6490a621be1f80d712b4cc3f954495a2990c55100b4b4a313b064d7517a4"
+  },
+  {
+    "id": "udnb-perc-55",
+    "role": "percussion",
+    "name": "UDNB Percussion 55",
+    "path": "/public/samples/udnb-perc-55.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc55.wav",
+    "sha256": "1bd767a6e43311588fd3d00b974cb22a4575391959a43d60dfab581d61bf72d8"
+  },
+  {
+    "id": "udnb-perc-56",
+    "role": "percussion",
+    "name": "UDNB Percussion 56",
+    "path": "/public/samples/udnb-perc-56.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc56.wav",
+    "sha256": "4f2c79f1c924aaadcc31da3dd30c889e5682c27f65c3329ac15671863afa2969"
+  },
+  {
+    "id": "udnb-perc-57",
+    "role": "percussion",
+    "name": "UDNB Percussion 57",
+    "path": "/public/samples/udnb-perc-57.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc57.wav",
+    "sha256": "4447b1facdda3eab81eed776cad51e2e1ee4005d2d985229bc175c8752207257"
+  },
+  {
+    "id": "udnb-perc-58",
+    "role": "percussion",
+    "name": "UDNB Percussion 58",
+    "path": "/public/samples/udnb-perc-58.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc58.wav",
+    "sha256": "e3d3edbf31ecc8fbe1e3345e806d849cd106cd190881a087a2fed6bb9d7361b9"
+  },
+  {
+    "id": "udnb-perc-59",
+    "role": "percussion",
+    "name": "UDNB Percussion 59",
+    "path": "/public/samples/udnb-perc-59.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc59.wav",
+    "sha256": "99c923b9d8be8d812af5f9c5819a24cf8c9b2e91835afac5fdaf0f217e9b3f66"
+  },
+  {
+    "id": "udnb-perc-60",
+    "role": "percussion",
+    "name": "UDNB Percussion 60",
+    "path": "/public/samples/udnb-perc-60.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc60.wav",
+    "sha256": "600fb8a78b36b1aeca6251194d95d0320cf671ec40e2377674dd5eb8a99e9185"
+  },
+  {
+    "id": "udnb-perc-61",
+    "role": "percussion",
+    "name": "UDNB Percussion 61",
+    "path": "/public/samples/udnb-perc-61.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc61.wav",
+    "sha256": "072b1f7552bf6b9ac008542deb07b5fc6d867d44b2079eaae9448853e3bc0998"
+  },
+  {
+    "id": "udnb-perc-62",
+    "role": "percussion",
+    "name": "UDNB Percussion 62",
+    "path": "/public/samples/udnb-perc-62.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc62.wav",
+    "sha256": "0246e4df7476355d1c3384300c3838aae14d4ec01337915be54cbeafd381e339"
+  },
+  {
+    "id": "udnb-perc-63",
+    "role": "percussion",
+    "name": "UDNB Percussion 63",
+    "path": "/public/samples/udnb-perc-63.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc63.wav",
+    "sha256": "a80d935079ad79f9fbb63139151616e926ad75bbc8b7306d5b87b6e7c7f72944"
+  },
+  {
+    "id": "udnb-perc-64",
+    "role": "percussion",
+    "name": "UDNB Percussion 64",
+    "path": "/public/samples/udnb-perc-64.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc64.wav",
+    "sha256": "dd593ce81976bdb429524512b10c3a0d2b309409ce2fb5b4800c38b2ee3eedfe"
+  },
+  {
+    "id": "udnb-perc-65",
+    "role": "percussion",
+    "name": "UDNB Percussion 65",
+    "path": "/public/samples/udnb-perc-65.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc65.wav",
+    "sha256": "5f8c64f141f37cdac50610dc8b496d9c747bf7b33cad4d5ecc8e06e6a7e35895"
+  },
+  {
+    "id": "udnb-perc-66",
+    "role": "percussion",
+    "name": "UDNB Percussion 66",
+    "path": "/public/samples/udnb-perc-66.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc66.wav",
+    "sha256": "37d4575f8ac8ded48741ee6bda98d7b990cc36cd2c98caa827db4c46e2aab90d"
+  },
+  {
+    "id": "udnb-perc-67",
+    "role": "percussion",
+    "name": "UDNB Percussion 67",
+    "path": "/public/samples/udnb-perc-67.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc67.wav",
+    "sha256": "62bd0e4040addf8b72f39cdf08736fb8da3df3b4444b51e455909ac19921b143"
+  },
+  {
+    "id": "udnb-perc-68",
+    "role": "percussion",
+    "name": "UDNB Percussion 68",
+    "path": "/public/samples/udnb-perc-68.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc68.wav",
+    "sha256": "f638a7e15d78d04be4fd5b4060b168896b8c8bd978db35d14fdc4b3d64c63afe"
+  },
+  {
+    "id": "udnb-perc-69",
+    "role": "percussion",
+    "name": "UDNB Percussion 69",
+    "path": "/public/samples/udnb-perc-69.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc69.wav",
+    "sha256": "16dd991022a306f5f11f865653d44cacad714da1fe329709d3482499e4dc6d3f"
+  },
+  {
+    "id": "udnb-perc-70",
+    "role": "percussion",
+    "name": "UDNB Percussion 70",
+    "path": "/public/samples/udnb-perc-70.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc70.wav",
+    "sha256": "bb47d0f48b5785bfce47984e6d6bf070bbc2e6cc58806084d8993e20b1bd4df8"
+  },
+  {
+    "id": "udnb-perc-71",
+    "role": "percussion",
+    "name": "UDNB Percussion 71",
+    "path": "/public/samples/udnb-perc-71.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc71.wav",
+    "sha256": "5bfd59e01b699e354cbde574a9de647e79efbd39c792f5e5973ae0576a7b3ea2"
+  },
+  {
+    "id": "udnb-perc-72",
+    "role": "percussion",
+    "name": "UDNB Percussion 72",
+    "path": "/public/samples/udnb-perc-72.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc72.wav",
+    "sha256": "d033774f2bca62b2cdeb4c4178aa3c3aac84c270261b81117c037a90d11a9499"
+  },
+  {
+    "id": "udnb-perc-73",
+    "role": "percussion",
+    "name": "UDNB Percussion 73",
+    "path": "/public/samples/udnb-perc-73.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc73.wav",
+    "sha256": "df9233f470339810ead7ad157a9dfe7ab264e1d43be706c4d1e32ea0c2dd7a61"
+  },
+  {
+    "id": "udnb-perc-74",
+    "role": "percussion",
+    "name": "UDNB Percussion 74",
+    "path": "/public/samples/udnb-perc-74.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc74.wav",
+    "sha256": "5f734d42dec7881d0b95e65b4e242563060c1faade8769d9b635d2c9a93c1e51"
+  },
+  {
+    "id": "udnb-perc-75",
+    "role": "percussion",
+    "name": "UDNB Percussion 75",
+    "path": "/public/samples/udnb-perc-75.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc75.wav",
+    "sha256": "2386b2f433699707ceb0f2888e558a283c96d7079a50d50f226eb31b229f8642"
+  },
+  {
+    "id": "udnb-perc-76",
+    "role": "percussion",
+    "name": "UDNB Percussion 76",
+    "path": "/public/samples/udnb-perc-76.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc76.wav",
+    "sha256": "a9159e9d9b90cc4b00bded2b2dbb0e6ebb18c38f487e28a0f8ab1c18bc8a35e8"
+  },
+  {
+    "id": "udnb-perc-77",
+    "role": "percussion",
+    "name": "UDNB Percussion 77",
+    "path": "/public/samples/udnb-perc-77.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc77.wav",
+    "sha256": "8931e88d3c62400239aa2019d0fdbf897c478b5f241450abb375a0e4908fc228"
+  },
+  {
+    "id": "udnb-perc-78",
+    "role": "percussion",
+    "name": "UDNB Percussion 78",
+    "path": "/public/samples/udnb-perc-78.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc78.wav",
+    "sha256": "81fb7bf93d9826538f7dc18c735cd257e2627da63c8d8bb900d78f7fe3624a03"
+  },
+  {
+    "id": "udnb-perc-79",
+    "role": "percussion",
+    "name": "UDNB Percussion 79",
+    "path": "/public/samples/udnb-perc-79.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc79.wav",
+    "sha256": "c83eee98bc7a37ee0b55ca661737ff464ec852e0e663dc458ff1bf1d48d51817"
+  },
+  {
+    "id": "udnb-perc-80",
+    "role": "percussion",
+    "name": "UDNB Percussion 80",
+    "path": "/public/samples/udnb-perc-80.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc80.wav",
+    "sha256": "af8bde569f0fbb45c39a792d5b2fe72adfc8ff25de1e486427894c6d947cc7dd"
+  },
+  {
+    "id": "udnb-perc-81",
+    "role": "percussion",
+    "name": "UDNB Percussion 81",
+    "path": "/public/samples/udnb-perc-81.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc81.wav",
+    "sha256": "6c010c99f2f591f159e71324cb908131d44232485a0c2734345c47b91f9dd889"
+  },
+  {
+    "id": "udnb-perc-82",
+    "role": "percussion",
+    "name": "UDNB Percussion 82",
+    "path": "/public/samples/udnb-perc-82.wav",
+    "license": "CC0-1.0",
+    "author": "arthurDnB (Personal collection)",
+    "source": "Drums/Percs/UDNB_perc82.wav",
+    "sha256": "fd9109c4bdd67c510fb299ba9fa0089f9c245c06d759938061da291134491642"
   }
 ]

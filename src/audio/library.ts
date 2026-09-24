@@ -268,6 +268,1134 @@ export const LIBRARY = [
     "role": "percussion",
     "name": "Acoustic floor tom — 18\"",
     "path": "/public/samples/acoustic-tom-floor.wav"
+  },
+  {
+    "id": "udnb-kick-01",
+    "role": "kick",
+    "name": "UDNB Kick 01",
+    "path": "/public/samples/udnb-kick-01.wav"
+  },
+  {
+    "id": "udnb-kick-02",
+    "role": "kick",
+    "name": "UDNB Kick 02",
+    "path": "/public/samples/udnb-kick-02.wav"
+  },
+  {
+    "id": "udnb-kick-03",
+    "role": "kick",
+    "name": "UDNB Kick 03",
+    "path": "/public/samples/udnb-kick-03.wav"
+  },
+  {
+    "id": "udnb-kick-04",
+    "role": "kick",
+    "name": "UDNB Kick 04",
+    "path": "/public/samples/udnb-kick-04.wav"
+  },
+  {
+    "id": "udnb-kick-05",
+    "role": "kick",
+    "name": "UDNB Kick 05",
+    "path": "/public/samples/udnb-kick-05.wav"
+  },
+  {
+    "id": "udnb-kick-06",
+    "role": "kick",
+    "name": "UDNB Kick 06",
+    "path": "/public/samples/udnb-kick-06.wav"
+  },
+  {
+    "id": "udnb-kick-07",
+    "role": "kick",
+    "name": "UDNB Kick 07",
+    "path": "/public/samples/udnb-kick-07.wav"
+  },
+  {
+    "id": "udnb-kick-08",
+    "role": "kick",
+    "name": "UDNB Kick 08",
+    "path": "/public/samples/udnb-kick-08.wav"
+  },
+  {
+    "id": "udnb-kick-09",
+    "role": "kick",
+    "name": "UDNB Kick 09",
+    "path": "/public/samples/udnb-kick-09.wav"
+  },
+  {
+    "id": "udnb-kick-10",
+    "role": "kick",
+    "name": "UDNB Kick 10",
+    "path": "/public/samples/udnb-kick-10.wav"
+  },
+  {
+    "id": "udnb-kick-11",
+    "role": "kick",
+    "name": "UDNB Kick 11",
+    "path": "/public/samples/udnb-kick-11.wav"
+  },
+  {
+    "id": "udnb-kick-12",
+    "role": "kick",
+    "name": "UDNB Kick 12",
+    "path": "/public/samples/udnb-kick-12.wav"
+  },
+  {
+    "id": "udnb-kick-13",
+    "role": "kick",
+    "name": "UDNB Kick 13",
+    "path": "/public/samples/udnb-kick-13.wav"
+  },
+  {
+    "id": "udnb-kick-14",
+    "role": "kick",
+    "name": "UDNB Kick 14",
+    "path": "/public/samples/udnb-kick-14.wav"
+  },
+  {
+    "id": "udnb-kick-15",
+    "role": "kick",
+    "name": "UDNB Kick 15",
+    "path": "/public/samples/udnb-kick-15.wav"
+  },
+  {
+    "id": "udnb-kick-16",
+    "role": "kick",
+    "name": "UDNB Kick 16",
+    "path": "/public/samples/udnb-kick-16.wav"
+  },
+  {
+    "id": "udnb-kick-17",
+    "role": "kick",
+    "name": "UDNB Kick 17",
+    "path": "/public/samples/udnb-kick-17.wav"
+  },
+  {
+    "id": "udnb-kick-18",
+    "role": "kick",
+    "name": "UDNB Kick 18",
+    "path": "/public/samples/udnb-kick-18.wav"
+  },
+  {
+    "id": "udnb-kick-19",
+    "role": "kick",
+    "name": "UDNB Kick 19",
+    "path": "/public/samples/udnb-kick-19.wav"
+  },
+  {
+    "id": "udnb-kick-20",
+    "role": "kick",
+    "name": "UDNB Kick 20",
+    "path": "/public/samples/udnb-kick-20.wav"
+  },
+  {
+    "id": "udnb-kick-21",
+    "role": "kick",
+    "name": "UDNB Kick 21",
+    "path": "/public/samples/udnb-kick-21.wav"
+  },
+  {
+    "id": "udnb-kick-22",
+    "role": "kick",
+    "name": "UDNB Kick 22",
+    "path": "/public/samples/udnb-kick-22.wav"
+  },
+  {
+    "id": "udnb-kick-23",
+    "role": "kick",
+    "name": "UDNB Kick 23",
+    "path": "/public/samples/udnb-kick-23.wav"
+  },
+  {
+    "id": "udnb-kick-24",
+    "role": "kick",
+    "name": "UDNB Kick 24",
+    "path": "/public/samples/udnb-kick-24.wav"
+  },
+  {
+    "id": "udnb-snare-01",
+    "role": "snare",
+    "name": "UDNB Snare 01",
+    "path": "/public/samples/udnb-snare-01.wav"
+  },
+  {
+    "id": "udnb-snare-02",
+    "role": "snare",
+    "name": "UDNB Snare 02",
+    "path": "/public/samples/udnb-snare-02.wav"
+  },
+  {
+    "id": "udnb-snare-03",
+    "role": "snare",
+    "name": "UDNB Snare 03",
+    "path": "/public/samples/udnb-snare-03.wav"
+  },
+  {
+    "id": "udnb-snare-04",
+    "role": "snare",
+    "name": "UDNB Snare 04",
+    "path": "/public/samples/udnb-snare-04.wav"
+  },
+  {
+    "id": "udnb-snare-05",
+    "role": "snare",
+    "name": "UDNB Snare 05",
+    "path": "/public/samples/udnb-snare-05.wav"
+  },
+  {
+    "id": "udnb-snare-06",
+    "role": "snare",
+    "name": "UDNB Snare 06",
+    "path": "/public/samples/udnb-snare-06.wav"
+  },
+  {
+    "id": "udnb-snare-07",
+    "role": "snare",
+    "name": "UDNB Snare 07",
+    "path": "/public/samples/udnb-snare-07.wav"
+  },
+  {
+    "id": "udnb-snare-08",
+    "role": "snare",
+    "name": "UDNB Snare 08",
+    "path": "/public/samples/udnb-snare-08.wav"
+  },
+  {
+    "id": "udnb-snare-09",
+    "role": "snare",
+    "name": "UDNB Snare 09",
+    "path": "/public/samples/udnb-snare-09.wav"
+  },
+  {
+    "id": "udnb-snare-10",
+    "role": "snare",
+    "name": "UDNB Snare 10",
+    "path": "/public/samples/udnb-snare-10.wav"
+  },
+  {
+    "id": "udnb-snare-11",
+    "role": "snare",
+    "name": "UDNB Snare 11",
+    "path": "/public/samples/udnb-snare-11.wav"
+  },
+  {
+    "id": "udnb-snare-12",
+    "role": "snare",
+    "name": "UDNB Snare 12",
+    "path": "/public/samples/udnb-snare-12.wav"
+  },
+  {
+    "id": "udnb-snare-13",
+    "role": "snare",
+    "name": "UDNB Snare 13",
+    "path": "/public/samples/udnb-snare-13.wav"
+  },
+  {
+    "id": "udnb-snare-14",
+    "role": "snare",
+    "name": "UDNB Snare 14",
+    "path": "/public/samples/udnb-snare-14.wav"
+  },
+  {
+    "id": "udnb-snare-15",
+    "role": "snare",
+    "name": "UDNB Snare 15",
+    "path": "/public/samples/udnb-snare-15.wav"
+  },
+  {
+    "id": "udnb-snare-16",
+    "role": "snare",
+    "name": "UDNB Snare 16",
+    "path": "/public/samples/udnb-snare-16.wav"
+  },
+  {
+    "id": "udnb-snare-17",
+    "role": "snare",
+    "name": "UDNB Snare 17",
+    "path": "/public/samples/udnb-snare-17.wav"
+  },
+  {
+    "id": "udnb-snare-18",
+    "role": "snare",
+    "name": "UDNB Snare 18",
+    "path": "/public/samples/udnb-snare-18.wav"
+  },
+  {
+    "id": "udnb-snare-19",
+    "role": "snare",
+    "name": "UDNB Snare 19",
+    "path": "/public/samples/udnb-snare-19.wav"
+  },
+  {
+    "id": "udnb-snare-20",
+    "role": "snare",
+    "name": "UDNB Snare 20",
+    "path": "/public/samples/udnb-snare-20.wav"
+  },
+  {
+    "id": "udnb-snare-21",
+    "role": "snare",
+    "name": "UDNB Snare 21",
+    "path": "/public/samples/udnb-snare-21.wav"
+  },
+  {
+    "id": "udnb-snare-22",
+    "role": "snare",
+    "name": "UDNB Snare 22",
+    "path": "/public/samples/udnb-snare-22.wav"
+  },
+  {
+    "id": "udnb-snare-23",
+    "role": "snare",
+    "name": "UDNB Snare 23",
+    "path": "/public/samples/udnb-snare-23.wav"
+  },
+  {
+    "id": "udnb-snare-24",
+    "role": "snare",
+    "name": "UDNB Snare 24",
+    "path": "/public/samples/udnb-snare-24.wav"
+  },
+  {
+    "id": "udnb-snare-25",
+    "role": "snare",
+    "name": "UDNB Snare 25",
+    "path": "/public/samples/udnb-snare-25.wav"
+  },
+  {
+    "id": "udnb-snare-26",
+    "role": "snare",
+    "name": "UDNB Snare 26",
+    "path": "/public/samples/udnb-snare-26.wav"
+  },
+  {
+    "id": "udnb-snare-27",
+    "role": "snare",
+    "name": "UDNB Snare 27",
+    "path": "/public/samples/udnb-snare-27.wav"
+  },
+  {
+    "id": "udnb-hat-01",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 01",
+    "path": "/public/samples/udnb-hat-01.wav"
+  },
+  {
+    "id": "udnb-hat-02",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 02",
+    "path": "/public/samples/udnb-hat-02.wav"
+  },
+  {
+    "id": "udnb-hat-03",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 03",
+    "path": "/public/samples/udnb-hat-03.wav"
+  },
+  {
+    "id": "udnb-hat-04",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 04",
+    "path": "/public/samples/udnb-hat-04.wav"
+  },
+  {
+    "id": "udnb-hat-05",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 05",
+    "path": "/public/samples/udnb-hat-05.wav"
+  },
+  {
+    "id": "udnb-hat-06",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 06",
+    "path": "/public/samples/udnb-hat-06.wav"
+  },
+  {
+    "id": "udnb-hat-07",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 07",
+    "path": "/public/samples/udnb-hat-07.wav"
+  },
+  {
+    "id": "udnb-hat-08",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 08",
+    "path": "/public/samples/udnb-hat-08.wav"
+  },
+  {
+    "id": "udnb-hat-09",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 09",
+    "path": "/public/samples/udnb-hat-09.wav"
+  },
+  {
+    "id": "udnb-hat-10",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 10",
+    "path": "/public/samples/udnb-hat-10.wav"
+  },
+  {
+    "id": "udnb-hat-11",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 11",
+    "path": "/public/samples/udnb-hat-11.wav"
+  },
+  {
+    "id": "udnb-hat-12",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 12",
+    "path": "/public/samples/udnb-hat-12.wav"
+  },
+  {
+    "id": "udnb-hat-13",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 13",
+    "path": "/public/samples/udnb-hat-13.wav"
+  },
+  {
+    "id": "udnb-hat-14",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 14",
+    "path": "/public/samples/udnb-hat-14.wav"
+  },
+  {
+    "id": "udnb-hat-15",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 15",
+    "path": "/public/samples/udnb-hat-15.wav"
+  },
+  {
+    "id": "udnb-hat-16",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 16",
+    "path": "/public/samples/udnb-hat-16.wav"
+  },
+  {
+    "id": "udnb-hat-17",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 17",
+    "path": "/public/samples/udnb-hat-17.wav"
+  },
+  {
+    "id": "udnb-hat-18",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 18",
+    "path": "/public/samples/udnb-hat-18.wav"
+  },
+  {
+    "id": "udnb-hat-19",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 19",
+    "path": "/public/samples/udnb-hat-19.wav"
+  },
+  {
+    "id": "udnb-hat-20",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 20",
+    "path": "/public/samples/udnb-hat-20.wav"
+  },
+  {
+    "id": "udnb-hat-21",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 21",
+    "path": "/public/samples/udnb-hat-21.wav"
+  },
+  {
+    "id": "udnb-hat-22",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 22",
+    "path": "/public/samples/udnb-hat-22.wav"
+  },
+  {
+    "id": "udnb-hat-23",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 23",
+    "path": "/public/samples/udnb-hat-23.wav"
+  },
+  {
+    "id": "udnb-hat-24",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 24",
+    "path": "/public/samples/udnb-hat-24.wav"
+  },
+  {
+    "id": "udnb-hat-25",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 25",
+    "path": "/public/samples/udnb-hat-25.wav"
+  },
+  {
+    "id": "udnb-hat-26",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 26",
+    "path": "/public/samples/udnb-hat-26.wav"
+  },
+  {
+    "id": "udnb-hat-27",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 27",
+    "path": "/public/samples/udnb-hat-27.wav"
+  },
+  {
+    "id": "udnb-hat-28",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 28",
+    "path": "/public/samples/udnb-hat-28.wav"
+  },
+  {
+    "id": "udnb-hat-29",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 29",
+    "path": "/public/samples/udnb-hat-29.wav"
+  },
+  {
+    "id": "udnb-hat-30",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 30",
+    "path": "/public/samples/udnb-hat-30.wav"
+  },
+  {
+    "id": "udnb-hat-31",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 31",
+    "path": "/public/samples/udnb-hat-31.wav"
+  },
+  {
+    "id": "udnb-hat-32",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 32",
+    "path": "/public/samples/udnb-hat-32.wav"
+  },
+  {
+    "id": "udnb-hat-33",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 33",
+    "path": "/public/samples/udnb-hat-33.wav"
+  },
+  {
+    "id": "udnb-hat-34",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 34",
+    "path": "/public/samples/udnb-hat-34.wav"
+  },
+  {
+    "id": "udnb-hat-35",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 35",
+    "path": "/public/samples/udnb-hat-35.wav"
+  },
+  {
+    "id": "udnb-hat-36",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 36",
+    "path": "/public/samples/udnb-hat-36.wav"
+  },
+  {
+    "id": "udnb-hat-37",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 37",
+    "path": "/public/samples/udnb-hat-37.wav"
+  },
+  {
+    "id": "udnb-hat-38",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 38",
+    "path": "/public/samples/udnb-hat-38.wav"
+  },
+  {
+    "id": "udnb-hat-39",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 39",
+    "path": "/public/samples/udnb-hat-39.wav"
+  },
+  {
+    "id": "udnb-hat-40",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 40",
+    "path": "/public/samples/udnb-hat-40.wav"
+  },
+  {
+    "id": "udnb-hat-41",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 41",
+    "path": "/public/samples/udnb-hat-41.wav"
+  },
+  {
+    "id": "udnb-hat-42",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 42",
+    "path": "/public/samples/udnb-hat-42.wav"
+  },
+  {
+    "id": "udnb-hat-43",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 43",
+    "path": "/public/samples/udnb-hat-43.wav"
+  },
+  {
+    "id": "udnb-hat-44",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 44",
+    "path": "/public/samples/udnb-hat-44.wav"
+  },
+  {
+    "id": "udnb-hat-45",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 45",
+    "path": "/public/samples/udnb-hat-45.wav"
+  },
+  {
+    "id": "udnb-hat-46",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 46",
+    "path": "/public/samples/udnb-hat-46.wav"
+  },
+  {
+    "id": "udnb-hat-47",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 47",
+    "path": "/public/samples/udnb-hat-47.wav"
+  },
+  {
+    "id": "udnb-hat-48",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 48",
+    "path": "/public/samples/udnb-hat-48.wav"
+  },
+  {
+    "id": "udnb-hat-49",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 49",
+    "path": "/public/samples/udnb-hat-49.wav"
+  },
+  {
+    "id": "udnb-hat-50",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 50",
+    "path": "/public/samples/udnb-hat-50.wav"
+  },
+  {
+    "id": "udnb-hat-51",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 51",
+    "path": "/public/samples/udnb-hat-51.wav"
+  },
+  {
+    "id": "udnb-hat-52",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 52",
+    "path": "/public/samples/udnb-hat-52.wav"
+  },
+  {
+    "id": "udnb-hat-53",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 53",
+    "path": "/public/samples/udnb-hat-53.wav"
+  },
+  {
+    "id": "udnb-hat-54",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 54",
+    "path": "/public/samples/udnb-hat-54.wav"
+  },
+  {
+    "id": "udnb-hat-55",
+    "role": "hat",
+    "name": "UDNB Hi-Hat 55",
+    "path": "/public/samples/udnb-hat-55.wav"
+  },
+  {
+    "id": "udnb-perc-01",
+    "role": "percussion",
+    "name": "UDNB Percussion 01",
+    "path": "/public/samples/udnb-perc-01.wav"
+  },
+  {
+    "id": "udnb-perc-02",
+    "role": "percussion",
+    "name": "UDNB Percussion 02",
+    "path": "/public/samples/udnb-perc-02.wav"
+  },
+  {
+    "id": "udnb-perc-03",
+    "role": "percussion",
+    "name": "UDNB Percussion 03",
+    "path": "/public/samples/udnb-perc-03.wav"
+  },
+  {
+    "id": "udnb-perc-04",
+    "role": "percussion",
+    "name": "UDNB Percussion 04",
+    "path": "/public/samples/udnb-perc-04.wav"
+  },
+  {
+    "id": "udnb-perc-05",
+    "role": "percussion",
+    "name": "UDNB Percussion 05",
+    "path": "/public/samples/udnb-perc-05.wav"
+  },
+  {
+    "id": "udnb-perc-06",
+    "role": "percussion",
+    "name": "UDNB Percussion 06",
+    "path": "/public/samples/udnb-perc-06.wav"
+  },
+  {
+    "id": "udnb-perc-07",
+    "role": "percussion",
+    "name": "UDNB Percussion 07",
+    "path": "/public/samples/udnb-perc-07.wav"
+  },
+  {
+    "id": "udnb-perc-08",
+    "role": "percussion",
+    "name": "UDNB Percussion 08",
+    "path": "/public/samples/udnb-perc-08.wav"
+  },
+  {
+    "id": "udnb-perc-09",
+    "role": "percussion",
+    "name": "UDNB Percussion 09",
+    "path": "/public/samples/udnb-perc-09.wav"
+  },
+  {
+    "id": "udnb-perc-10",
+    "role": "percussion",
+    "name": "UDNB Percussion 10",
+    "path": "/public/samples/udnb-perc-10.wav"
+  },
+  {
+    "id": "udnb-perc-11",
+    "role": "percussion",
+    "name": "UDNB Percussion 11",
+    "path": "/public/samples/udnb-perc-11.wav"
+  },
+  {
+    "id": "udnb-perc-12",
+    "role": "percussion",
+    "name": "UDNB Percussion 12",
+    "path": "/public/samples/udnb-perc-12.wav"
+  },
+  {
+    "id": "udnb-perc-13",
+    "role": "percussion",
+    "name": "UDNB Percussion 13",
+    "path": "/public/samples/udnb-perc-13.wav"
+  },
+  {
+    "id": "udnb-perc-14",
+    "role": "percussion",
+    "name": "UDNB Percussion 14",
+    "path": "/public/samples/udnb-perc-14.wav"
+  },
+  {
+    "id": "udnb-perc-15",
+    "role": "percussion",
+    "name": "UDNB Percussion 15",
+    "path": "/public/samples/udnb-perc-15.wav"
+  },
+  {
+    "id": "udnb-perc-16",
+    "role": "percussion",
+    "name": "UDNB Percussion 16",
+    "path": "/public/samples/udnb-perc-16.wav"
+  },
+  {
+    "id": "udnb-perc-17",
+    "role": "percussion",
+    "name": "UDNB Percussion 17",
+    "path": "/public/samples/udnb-perc-17.wav"
+  },
+  {
+    "id": "udnb-perc-18",
+    "role": "percussion",
+    "name": "UDNB Percussion 18",
+    "path": "/public/samples/udnb-perc-18.wav"
+  },
+  {
+    "id": "udnb-perc-19",
+    "role": "percussion",
+    "name": "UDNB Percussion 19",
+    "path": "/public/samples/udnb-perc-19.wav"
+  },
+  {
+    "id": "udnb-perc-20",
+    "role": "percussion",
+    "name": "UDNB Percussion 20",
+    "path": "/public/samples/udnb-perc-20.wav"
+  },
+  {
+    "id": "udnb-perc-21",
+    "role": "percussion",
+    "name": "UDNB Percussion 21",
+    "path": "/public/samples/udnb-perc-21.wav"
+  },
+  {
+    "id": "udnb-perc-22",
+    "role": "percussion",
+    "name": "UDNB Percussion 22",
+    "path": "/public/samples/udnb-perc-22.wav"
+  },
+  {
+    "id": "udnb-perc-23",
+    "role": "percussion",
+    "name": "UDNB Percussion 23",
+    "path": "/public/samples/udnb-perc-23.wav"
+  },
+  {
+    "id": "udnb-perc-24",
+    "role": "percussion",
+    "name": "UDNB Percussion 24",
+    "path": "/public/samples/udnb-perc-24.wav"
+  },
+  {
+    "id": "udnb-perc-25",
+    "role": "percussion",
+    "name": "UDNB Percussion 25",
+    "path": "/public/samples/udnb-perc-25.wav"
+  },
+  {
+    "id": "udnb-perc-26",
+    "role": "percussion",
+    "name": "UDNB Percussion 26",
+    "path": "/public/samples/udnb-perc-26.wav"
+  },
+  {
+    "id": "udnb-perc-27",
+    "role": "percussion",
+    "name": "UDNB Percussion 27",
+    "path": "/public/samples/udnb-perc-27.wav"
+  },
+  {
+    "id": "udnb-perc-28",
+    "role": "percussion",
+    "name": "UDNB Percussion 28",
+    "path": "/public/samples/udnb-perc-28.wav"
+  },
+  {
+    "id": "udnb-perc-29",
+    "role": "percussion",
+    "name": "UDNB Percussion 29",
+    "path": "/public/samples/udnb-perc-29.wav"
+  },
+  {
+    "id": "udnb-perc-30",
+    "role": "percussion",
+    "name": "UDNB Percussion 30",
+    "path": "/public/samples/udnb-perc-30.wav"
+  },
+  {
+    "id": "udnb-perc-31",
+    "role": "percussion",
+    "name": "UDNB Percussion 31",
+    "path": "/public/samples/udnb-perc-31.wav"
+  },
+  {
+    "id": "udnb-perc-32",
+    "role": "percussion",
+    "name": "UDNB Percussion 32",
+    "path": "/public/samples/udnb-perc-32.wav"
+  },
+  {
+    "id": "udnb-perc-33",
+    "role": "percussion",
+    "name": "UDNB Percussion 33",
+    "path": "/public/samples/udnb-perc-33.wav"
+  },
+  {
+    "id": "udnb-perc-34",
+    "role": "percussion",
+    "name": "UDNB Percussion 34",
+    "path": "/public/samples/udnb-perc-34.wav"
+  },
+  {
+    "id": "udnb-perc-35",
+    "role": "percussion",
+    "name": "UDNB Percussion 35",
+    "path": "/public/samples/udnb-perc-35.wav"
+  },
+  {
+    "id": "udnb-perc-36",
+    "role": "percussion",
+    "name": "UDNB Percussion 36",
+    "path": "/public/samples/udnb-perc-36.wav"
+  },
+  {
+    "id": "udnb-perc-37",
+    "role": "percussion",
+    "name": "UDNB Percussion 37",
+    "path": "/public/samples/udnb-perc-37.wav"
+  },
+  {
+    "id": "udnb-perc-38",
+    "role": "percussion",
+    "name": "UDNB Percussion 38",
+    "path": "/public/samples/udnb-perc-38.wav"
+  },
+  {
+    "id": "udnb-perc-39",
+    "role": "percussion",
+    "name": "UDNB Percussion 39",
+    "path": "/public/samples/udnb-perc-39.wav"
+  },
+  {
+    "id": "udnb-perc-40",
+    "role": "percussion",
+    "name": "UDNB Percussion 40",
+    "path": "/public/samples/udnb-perc-40.wav"
+  },
+  {
+    "id": "udnb-perc-41",
+    "role": "percussion",
+    "name": "UDNB Percussion 41",
+    "path": "/public/samples/udnb-perc-41.wav"
+  },
+  {
+    "id": "udnb-perc-42",
+    "role": "percussion",
+    "name": "UDNB Percussion 42",
+    "path": "/public/samples/udnb-perc-42.wav"
+  },
+  {
+    "id": "udnb-perc-43",
+    "role": "percussion",
+    "name": "UDNB Percussion 43",
+    "path": "/public/samples/udnb-perc-43.wav"
+  },
+  {
+    "id": "udnb-perc-44",
+    "role": "percussion",
+    "name": "UDNB Percussion 44",
+    "path": "/public/samples/udnb-perc-44.wav"
+  },
+  {
+    "id": "udnb-perc-45",
+    "role": "percussion",
+    "name": "UDNB Percussion 45",
+    "path": "/public/samples/udnb-perc-45.wav"
+  },
+  {
+    "id": "udnb-perc-46",
+    "role": "percussion",
+    "name": "UDNB Percussion 46",
+    "path": "/public/samples/udnb-perc-46.wav"
+  },
+  {
+    "id": "udnb-perc-47",
+    "role": "percussion",
+    "name": "UDNB Percussion 47",
+    "path": "/public/samples/udnb-perc-47.wav"
+  },
+  {
+    "id": "udnb-perc-48",
+    "role": "percussion",
+    "name": "UDNB Percussion 48",
+    "path": "/public/samples/udnb-perc-48.wav"
+  },
+  {
+    "id": "udnb-perc-49",
+    "role": "percussion",
+    "name": "UDNB Percussion 49",
+    "path": "/public/samples/udnb-perc-49.wav"
+  },
+  {
+    "id": "udnb-perc-50",
+    "role": "percussion",
+    "name": "UDNB Percussion 50",
+    "path": "/public/samples/udnb-perc-50.wav"
+  },
+  {
+    "id": "udnb-perc-51",
+    "role": "percussion",
+    "name": "UDNB Percussion 51",
+    "path": "/public/samples/udnb-perc-51.wav"
+  },
+  {
+    "id": "udnb-perc-52",
+    "role": "percussion",
+    "name": "UDNB Percussion 52",
+    "path": "/public/samples/udnb-perc-52.wav"
+  },
+  {
+    "id": "udnb-perc-53",
+    "role": "percussion",
+    "name": "UDNB Percussion 53",
+    "path": "/public/samples/udnb-perc-53.wav"
+  },
+  {
+    "id": "udnb-perc-54",
+    "role": "percussion",
+    "name": "UDNB Percussion 54",
+    "path": "/public/samples/udnb-perc-54.wav"
+  },
+  {
+    "id": "udnb-perc-55",
+    "role": "percussion",
+    "name": "UDNB Percussion 55",
+    "path": "/public/samples/udnb-perc-55.wav"
+  },
+  {
+    "id": "udnb-perc-56",
+    "role": "percussion",
+    "name": "UDNB Percussion 56",
+    "path": "/public/samples/udnb-perc-56.wav"
+  },
+  {
+    "id": "udnb-perc-57",
+    "role": "percussion",
+    "name": "UDNB Percussion 57",
+    "path": "/public/samples/udnb-perc-57.wav"
+  },
+  {
+    "id": "udnb-perc-58",
+    "role": "percussion",
+    "name": "UDNB Percussion 58",
+    "path": "/public/samples/udnb-perc-58.wav"
+  },
+  {
+    "id": "udnb-perc-59",
+    "role": "percussion",
+    "name": "UDNB Percussion 59",
+    "path": "/public/samples/udnb-perc-59.wav"
+  },
+  {
+    "id": "udnb-perc-60",
+    "role": "percussion",
+    "name": "UDNB Percussion 60",
+    "path": "/public/samples/udnb-perc-60.wav"
+  },
+  {
+    "id": "udnb-perc-61",
+    "role": "percussion",
+    "name": "UDNB Percussion 61",
+    "path": "/public/samples/udnb-perc-61.wav"
+  },
+  {
+    "id": "udnb-perc-62",
+    "role": "percussion",
+    "name": "UDNB Percussion 62",
+    "path": "/public/samples/udnb-perc-62.wav"
+  },
+  {
+    "id": "udnb-perc-63",
+    "role": "percussion",
+    "name": "UDNB Percussion 63",
+    "path": "/public/samples/udnb-perc-63.wav"
+  },
+  {
+    "id": "udnb-perc-64",
+    "role": "percussion",
+    "name": "UDNB Percussion 64",
+    "path": "/public/samples/udnb-perc-64.wav"
+  },
+  {
+    "id": "udnb-perc-65",
+    "role": "percussion",
+    "name": "UDNB Percussion 65",
+    "path": "/public/samples/udnb-perc-65.wav"
+  },
+  {
+    "id": "udnb-perc-66",
+    "role": "percussion",
+    "name": "UDNB Percussion 66",
+    "path": "/public/samples/udnb-perc-66.wav"
+  },
+  {
+    "id": "udnb-perc-67",
+    "role": "percussion",
+    "name": "UDNB Percussion 67",
+    "path": "/public/samples/udnb-perc-67.wav"
+  },
+  {
+    "id": "udnb-perc-68",
+    "role": "percussion",
+    "name": "UDNB Percussion 68",
+    "path": "/public/samples/udnb-perc-68.wav"
+  },
+  {
+    "id": "udnb-perc-69",
+    "role": "percussion",
+    "name": "UDNB Percussion 69",
+    "path": "/public/samples/udnb-perc-69.wav"
+  },
+  {
+    "id": "udnb-perc-70",
+    "role": "percussion",
+    "name": "UDNB Percussion 70",
+    "path": "/public/samples/udnb-perc-70.wav"
+  },
+  {
+    "id": "udnb-perc-71",
+    "role": "percussion",
+    "name": "UDNB Percussion 71",
+    "path": "/public/samples/udnb-perc-71.wav"
+  },
+  {
+    "id": "udnb-perc-72",
+    "role": "percussion",
+    "name": "UDNB Percussion 72",
+    "path": "/public/samples/udnb-perc-72.wav"
+  },
+  {
+    "id": "udnb-perc-73",
+    "role": "percussion",
+    "name": "UDNB Percussion 73",
+    "path": "/public/samples/udnb-perc-73.wav"
+  },
+  {
+    "id": "udnb-perc-74",
+    "role": "percussion",
+    "name": "UDNB Percussion 74",
+    "path": "/public/samples/udnb-perc-74.wav"
+  },
+  {
+    "id": "udnb-perc-75",
+    "role": "percussion",
+    "name": "UDNB Percussion 75",
+    "path": "/public/samples/udnb-perc-75.wav"
+  },
+  {
+    "id": "udnb-perc-76",
+    "role": "percussion",
+    "name": "UDNB Percussion 76",
+    "path": "/public/samples/udnb-perc-76.wav"
+  },
+  {
+    "id": "udnb-perc-77",
+    "role": "percussion",
+    "name": "UDNB Percussion 77",
+    "path": "/public/samples/udnb-perc-77.wav"
+  },
+  {
+    "id": "udnb-perc-78",
+    "role": "percussion",
+    "name": "UDNB Percussion 78",
+    "path": "/public/samples/udnb-perc-78.wav"
+  },
+  {
+    "id": "udnb-perc-79",
+    "role": "percussion",
+    "name": "UDNB Percussion 79",
+    "path": "/public/samples/udnb-perc-79.wav"
+  },
+  {
+    "id": "udnb-perc-80",
+    "role": "percussion",
+    "name": "UDNB Percussion 80",
+    "path": "/public/samples/udnb-perc-80.wav"
+  },
+  {
+    "id": "udnb-perc-81",
+    "role": "percussion",
+    "name": "UDNB Percussion 81",
+    "path": "/public/samples/udnb-perc-81.wav"
+  },
+  {
+    "id": "udnb-perc-82",
+    "role": "percussion",
+    "name": "UDNB Percussion 82",
+    "path": "/public/samples/udnb-perc-82.wav"
   }
 ] as const;
 

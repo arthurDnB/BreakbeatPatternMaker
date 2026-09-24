@@ -1,7 +1,7 @@
 import {createServer} from 'node:http';import {readFile,readdir} from 'node:fs/promises';import {resolve,extname,sep} from 'node:path';import {chromium} from 'playwright';import assert from 'node:assert/strict';import {LIBRARY} from '../dist/audio/library.js';
 const root=resolve('site');
 async function files(dir){return (await Promise.all((await readdir(dir,{withFileTypes:true})).map(e=>e.isDirectory()?files(resolve(dir,e.name)):[resolve(dir,e.name)]))).flat();}
-const names=await files(root);assert.ok(!names.some(n=>/\.map$|\.d\.ts$|cli\.js$|node_modules|test-results/.test(n)));assert.equal(names.filter(n=>n.endsWith('.wav')).length,45);
+const names=await files(root);assert.ok(!names.some(n=>/\.map$|\.d\.ts$|cli\.js$|node_modules|test-results/.test(n)));assert.equal(names.filter(n=>n.endsWith('.wav')).length,233);
 const browser=await chromium.launch({headless:true,channel:process.env.BROWSER_CHANNEL??'msedge'});
 try{for(const prefix of ['/','/breakbeat-pattern-maker/']){
  const server=createServer(async(req,res)=>{try{const url=new URL(req.url,'http://local');if(!url.pathname.startsWith(prefix))throw Error('Outside mount');const suffix=decodeURIComponent(url.pathname.slice(prefix.length))||'index.html';const file=resolve(root,suffix);if(!file.startsWith(root+sep))throw Error('Outside site');const bytes=await readFile(file);res.writeHead(200,{'Content-Type':{'.html':'text/html','.js':'text/javascript','.css':'text/css','.wav':'audio/wav','.json':'application/json','.md':'text/plain'}[extname(file)]??'text/plain'});res.end(bytes);}catch{res.writeHead(404);res.end('Not found');}});
@@ -10,6 +10,6 @@ try{for(const prefix of ['/','/breakbeat-pattern-maker/']){
  await p.click('#kit-play-kick');await p.click('#play');await p.click('#play');const download=p.waitForEvent('download');await p.click('#export-wav');const wav=await readFile(await(await download).path());assert.equal(wav.toString('ascii',0,4),'RIFF');assert.ok(wav.length>44);
  const saved=p.waitForEvent('download');await p.click('#project-save');const project=await readFile(await(await saved).path());await p.setInputFiles('#project-open',{name:'test.bbproject',mimeType:'application/json',buffer:project});await p.waitForFunction(()=>document.querySelector('#status').textContent.includes('Project opened'));await p.waitForFunction(()=>document.querySelector('#save-status').textContent==='Saved locally');await p.reload();await p.waitForFunction(()=>document.querySelector('#save-status').textContent==='Restored local workspace');
  for(const href of ['./README.md','./public/samples/credits.html','./public/samples/VCSL-LICENSE.txt','./public/samples/TR808-LICENSE.txt','./public/samples/STARGATE-LICENSE.txt'])assert.equal((await p.request.get(origin+prefix+href.slice(2))).status(),200);
- assert.deepEqual(errors,[]);console.log(prefix+': CSS/modules, all 45 samples, preview/playback, WAV, project roundtrip, autosave and credits passed.');
+ assert.deepEqual(errors,[]);console.log(prefix+': CSS/modules, all 233 samples, preview/playback, WAV, project roundtrip, autosave and credits passed.');
  }finally{await context.close();await new Promise(r=>server.close(r));}
  }}finally{await browser.close();}
