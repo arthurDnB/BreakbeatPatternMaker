@@ -192,3 +192,89 @@ export const LIBRARY = [
     "path": "/public/samples/acoustic-shaker.wav"
   }
 ] as const;
+
+export interface KitPreset {
+  id: string;
+  name: string;
+  description: string;
+  slots: Record<'kick'|'snare'|'hat'|'percussion', string>;
+}
+
+export const KIT_PRESETS: KitPreset[] = [
+  {
+    id: 'acoustic-break',
+    name: '🥁 Acoustic Break (Jungle / DnB / Breaks)',
+    description: 'Crisp acoustic kick, firm snare, tight hat, tambourine',
+    slots: {
+      kick: 'acoustic-kick',
+      snare: 'acoustic-snare',
+      hat: 'acoustic-hat',
+      percussion: 'tambourine',
+    }
+  },
+  {
+    id: 'trap-808',
+    name: '🎛️ 808 Trap & Sub (Trap / Drill / Hip-Hop)',
+    description: 'Deep 808 long sub kick, tight 808 clap, 808 hat, cowbell',
+    slots: {
+      kick: '808-kick-long',
+      snare: '808-clap',
+      hat: '808-hat',
+      percussion: '808-cowbell',
+    }
+  },
+  {
+    id: 'electronic-dance',
+    name: '⚡ Electronic & Big Beat (Electro / Big Beat)',
+    description: 'Punchy acoustic-2 kick, 808 snare-75, short open hat, high tom',
+    slots: {
+      kick: 'acoustic-kick-2',
+      snare: '808-snare-75',
+      hat: '808-openhat-short',
+      percussion: '808-hightom',
+    }
+  },
+  {
+    id: 'hardcore-rave',
+    name: '💥 Hardcore Rave (Breakcore / Gabber)',
+    description: 'Raw 808 kick-00, marching snare, loose hat, conga',
+    slots: {
+      kick: '808-kick-00',
+      snare: 'marching-snare',
+      hat: 'acoustic-loosehat',
+      percussion: '808-conga',
+    }
+  },
+  {
+    id: 'lofi-soul',
+    name: '🍂 Lo-Fi Soul & BoomBap (Chill / Hip-Hop)',
+    description: 'Muted acoustic kick, soft snare, pedal hat, shaker',
+    slots: {
+      kick: 'acoustic-kick-muted',
+      snare: 'acoustic-snare-soft',
+      hat: 'acoustic-pedalhat',
+      percussion: 'acoustic-shaker',
+    }
+  },
+];
+
+export const GENRE_KITS: Record<string, string> = {
+  jungle: 'acoustic-break',
+  dnb: 'acoustic-break',
+  raggajungle: 'acoustic-break',
+  atmosphericjungle: 'acoustic-break',
+  footworkjungle: 'acoustic-break',
+  breaks: 'acoustic-break',
+  trap: 'trap-808',
+  drill: 'trap-808',
+  rap: 'trap-808',
+  hiphop: 'lofi-soul',
+  breakcore: 'hardcore-rave',
+  hardcore: 'hardcore-rave',
+  breakbeathardcore: 'hardcore-rave',
+  idm: 'lofi-soul',
+  experimental: 'lofi-soul',
+  bigbeat: 'electronic-dance',
+  electrobreaks: 'electronic-dance',
+  nuskoolbreaks: 'electronic-dance',
+};

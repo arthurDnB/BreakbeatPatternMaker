@@ -50,6 +50,30 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-24] - Sound Quality, Genre-Adaptive Kits, Spicy Slider & Tracker UI (Antigravity)
+- **Granular Sound & Effects (`src/audio/effects.ts`, `src/audio/drum-kit.ts`):**
+  - Added `resonance` (0 to 1) and `punch` (0 to 1) to channel effects engine.
+  - Implemented 2-pole resonant biquad lowpass/highpass filter with Q scaling up to 8.2 when `resonance > 0`, retaining exact legacy 1-pole calculations when `resonance === 0` for 100% backward compatibility.
+  - Implemented transient punch attack shaping to enhance drum snap and punchiness.
+  - Added resonance and punch sliders to per-channel effect drawers.
+- **Genre-Adaptive Drum Kits (`src/audio/library.ts`, `src/audio/drum-kit.ts`, `src/web.ts`):**
+  - Added 5 curated kit presets (`KIT_PRESETS`): *Acoustic Break*, *808 Trap & Sub*, *Electronic & Big Beat*, *Hardcore Rave*, *Lo-Fi Soul & BoomBap*.
+  - Added genre-to-kit mapping (`GENRE_KITS`) that automatically selects the appropriate kit when switching genres or restoring defaults.
+  - Added `#kit-preset-select` dropdown in the Instruments drawer for 1-click full-kit selection, and `#auto-kit` checkbox to enable/disable auto-switching.
+  - Retained full customization: modifying any individual slot displays *Custom Kit* and preserves custom WAV uploads and projects.
+- **"Spicy" 🌶️ Articulation Slider (`src/core/model.ts`, `src/core/generate.ts`, `src/web.ts`):**
+  - Added `spicy` (0 to 1) setting to rhythm generator for breakcore/IDM ratchets (up to 8x), tight gates, offbeat reverse hits, and micro-pitch shifting.
+  - Non-anchor hits are spiced while preserving core downbeats and snares.
+  - Added Spicy slider control with live visual status badge (Off, Mild, Spicy, Chaos).
+- **Authentic Integrated DAW Tracker UI (`public/index.html`, `public/workspace.css`, `src/web.ts`):**
+  - Overhauled pattern area to eliminate "iframe box" feel, introducing a sleek dark DAW chassis with custom scrollbars.
+  - Added DAW channel strip track headers with genre/role color accents (Kick Red, Snare Blue, Hat Yellow, Perc Green).
+  - Added channel-strip header mute toggles (`M`) that mute/unmute lanes directly from the tracker grid.
+  - Added bar start dividing lines (`.bar-start`), beat lines (`.beat`), and tracker dot notation for empty cells (`··· ·· ·· ··`).
+- **Verification:**
+  - 52/52 unit tests passing (`npm.cmd test`).
+  - Playwright site smoke tests passing on both root `/` and subpath `/breakbeat-pattern-maker/` (`npm.cmd run test:site`).
+
 ### [2026-09-24] - GitHub Setup & Automated Live Deployment (Antigravity)
 - **Initialized Git Repository:** Initialized local Git repository on `main` branch.
 - **Created GitHub Actions CI/CD Workflow (`.github/workflows/deploy.yml`):**

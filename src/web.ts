@@ -2,6 +2,7 @@ import {newBank,arrange,SLOT_IDS,type Bank} from './core/bank.js';
 import {makeProject,readProject,localProject} from './audio/project.js';
 import {defaultKitState} from './audio/drum-kit.js';
 import {setupDrumKit,withDrumKit} from './audio/drum-kit.js';
+import {KIT_PRESETS,GENRE_KITS} from './audio/library.js';
 import {setupSamplePanel} from './audio/sample-panel.js';
 import {downloadBytes} from './audio/render.js';
 import {renderPerformance,renderSequence} from './audio/performance.js';
@@ -37,6 +38,7 @@ function settings(){
   s.breakStyle=input('breakStyle').value as BreakStyle;
   s.seed=input('seed').value;s.bpm=Number(input('bpm').value);s.bars=Number(input('bars').value);
   s.resolution=Number(input('resolution').value) as typeof s.resolution;
+  s.spicy=Number(input('spicy').value);
   for(const name of ['complexity','syncopation','swing','humanizeMs','ghostAmount','fillAmount'] as const)s[name]=Number(input(name).value);
   return s;
 }
@@ -48,12 +50,35 @@ function render(){
   container.replaceChildren();
   const table=document.createElement('table');
   const head=document.createElement('thead'),header=document.createElement('tr');
-  for(const [i,label] of ['Row','Beat',...ROLES.map(role=>role==='percussion'?'Percussion':role[0]!.toUpperCase()+role.slice(1))].entries()){const th=document.createElement('th');if(i<2)th.textContent=label;else{const b=document.createElement('button');b.className='lane-settings';b.textContent=label;b.setAttribute('aria-label','Open '+label+' instrument settings');b.onclick=()=>{el<HTMLDetailsElement>('sounds-panel').open=true;el('kit-choice-'+ROLES[i-2]!).closest('.drum-slot')?.scrollIntoView({behavior:'smooth',block:'nearest'});el('kit-choice-'+ROLES[i-2]!).focus({preventScroll:true});};th.append(b);}header.append(th);}
+  for(const [i,label] of ['Row','Beat',...ROLES.map(role=>role==='percussion'?'Percussion':role[0]!.toUpperCase()+role.slice(1))].entries()){
+    const th=document.createElement('th');
+    if(i<2) th.textContent=label;
+    else{
+      const role=ROLES[i-2]!;
+      th.className='track-col-header track-'+role;
+      const strip=document.createElement('div');
+      strip.className='track-strip';
+      const b=document.createElement('button');
+      b.className='lane-settings';
+      b.textContent=label;
+      b.setAttribute('aria-label','Open '+label+' instrument settings');
+      b.onclick=()=>{el<HTMLDetailsElement>('sounds-panel').open=true;el('kit-choice-'+role).closest('.drum-slot')?.scrollIntoView({behavior:'smooth',block:'nearest'});el('kit-choice-'+role).focus({preventScroll:true});};
+      const muteBtn=document.createElement('button');
+      muteBtn.className='track-header-mute'+(kitPanel.mix[role].mute?' is-muted':'');
+      muteBtn.textContent='M';
+      muteBtn.title=(kitPanel.mix[role].mute?'Unmute ':'Mute ')+label;
+      muteBtn.onclick=(e)=>{e.stopPropagation();kitPanel.mix[role].mute=!kitPanel.mix[role].mute;const cb=input('kit-mute-'+role);if(cb)cb.checked=kitPanel.mix[role].mute;render();dirty();};
+      strip.append(b,muteBtn);
+      th.append(strip);
+    }
+    header.append(th);
+  }
   head.append(header);table.append(head);
   const body=document.createElement('tbody');
   const view=input('view').value;
   for(let row=0;row<transfer.timing.lines;row++){
-    const tr=document.createElement('tr');tr.className=row%transfer.timing.lpb===0?'beat':'';tr.dataset.playRow=String(row);
+    const isBar=row%(transfer.timing.lpb*4)===0,isBeat=row%transfer.timing.lpb===0;
+    const tr=document.createElement('tr');tr.className=(isBar?'bar-start ':'')+(isBeat?'beat':'');tr.dataset.playRow=String(row);
     const range=editor.state.selection.rows;
     if(range&&row>=range[0]&&row<=range[1])tr.classList.add('selected-row');
     const position=row/transfer.timing.lpb;
@@ -70,7 +95,14 @@ function render(){
     for(const lane of ROLES.map(id=>({id,name:id[0]!.toUpperCase()+id.slice(1)}))){
       const td=document.createElement('td');td.classList.toggle('cursor-cell',row===rowAnchor&&lane.id===cursorLane);
       const notes=transfer.notes.filter(n=>n.row===row&&n.lane===lane.id);
-      if(!notes.length){const empty=document.createElement('button');empty.className='empty-cell';empty.textContent='＋';empty.setAttribute('aria-label','Enter '+lane.id+' at row '+row);empty.onclick=()=>{showHitEditor();rowAnchor=row;cursorLane=lane.id;editor.state.selection=emptySelection();render();el('grid').focus();};td.append(empty);}
+      if(!notes.length){
+        const empty=document.createElement('button');
+        empty.className='empty-cell';
+        empty.textContent=view==='renoise'?'··· ·· ·· ··':view==='beginner'?'····':'··· ··';
+        empty.setAttribute('aria-label','Enter '+lane.id+' at row '+row);
+        empty.onclick=()=>{showHitEditor();rowAnchor=row;cursorLane=lane.id;editor.state.selection=emptySelection();render();el('grid').focus();};
+        td.append(empty);
+      }
       for(const n of notes){
         const hit=pattern.events.find(e=>e.id===n.id)!;
         const source=transfer.sources.find(s=>s.id===n.source)!;
@@ -81,9 +113,10 @@ function render(){
         const reverse=hit.reverse||kitPanel.mix[hit.role].reverse;
         const label=sound?(hit.ghost?'Ghost · ':'')+sound.label:hit.ghost?'Ghost snare':lane.name;
         const tracker=`${noteName(source.note+(hit.pitch??0))} ${hex(source.instrument)} ${hex(n.volume)} ${hex(n.pan)} ${hex(n.delay)}`;
-        const articulation=(hit.ratchets&&hit.ratchets>1?' ×'+hit.ratchets:'')+(hit.gate!==undefined?' · Gate '+Math.round(hit.gate*100)+'%':'');
-        button.textContent=articulation.trim()+(articulation?' · ':'')+(reverse?'↶ ':'')+(locked(editor.state,hit)?'🔒 ':'')+(view==='beginner'?label:view==='renoise'?tracker:`${label} · ${tracker}`);
-        button.title=`${label}, row ${row}, volume ${hex(n.volume)}, delay ${hex(n.delay)}`;
+        const articulation=(hit.ratchets&&hit.ratchets>1?' · ×'+hit.ratchets:'')+(hit.gate!==undefined?' · Gate '+Math.round(hit.gate*100)+'%':'');
+        const badge=(hit.ratchets&&hit.ratchets>1?'×'+hit.ratchets+' ':'')+(reverse?'↶ ':'')+(locked(editor.state,hit)?'🔒 ':'');
+        button.textContent=badge+(view==='beginner'?label:view==='renoise'?tracker:`${label} · ${tracker}`);
+        button.title=`${label}, row ${row}, volume ${hex(n.volume)}, delay ${hex(n.delay)}${articulation}`;
         button.onclick=e=>{
           showHitEditor();
           if(e.shiftKey){selectRows(rowAnchor,row,false);return;}
@@ -155,7 +188,15 @@ function download(){
   setTimeout(()=>URL.revokeObjectURL(url),1000);status('Pattern JSON downloaded. Use Export pattern WAV for playable audio.');
 }
 const samplePanel=setupSamplePanel(stop);
-const kitPanel=setupDrumKit(assets,()=>{stop();samplePanel.stop();if(editor)refresh();},async role=>{
+const kitPanel=setupDrumKit(assets,()=>{
+  stop();samplePanel.stop();
+  const ks=document.getElementById('kit-preset-select') as HTMLSelectElement | null;
+  if(ks){
+    const matching=KIT_PRESETS.find(p=>ROLES.every(r=>kitPanel.mix[r].choice===p.slots[r]));
+    ks.value=matching?matching.id:'custom';
+  }
+  if(editor)refresh();
+},async role=>{
   stop();samplePanel.stop();context??=new AudioContext();const token=playToken;await context.resume();if(token!==playToken)return;
   const one=generate({...defaults(),bars:1});one.events=[{id:'preview',role,sourceId:'kit.'+role,baseTick:0,offsetTick:0,gain:1,pan:0,anchor:false,ghost:false,reason:'Instrument preview.'}];
   const mix=kitPanel.snapshot();mix[role].mute=false;
@@ -202,6 +243,14 @@ function syncSliders(){
   input('bpm-slider').value=String(bpm);
   el('complexity-value').textContent=Math.round(Number(input('complexity').value)*100)+'%';
   input('complexity').setAttribute('aria-valuetext',el('complexity-value').textContent!);
+  const spicyVal=Number(input('spicy').value);
+  const spicyEl=document.getElementById('spicy-value');
+  if(spicyEl){
+    const pct=Math.round(spicyVal*100);
+    const tag=spicyVal>=0.7?' 🔥 Chaos':spicyVal>=0.35?' 🌶️ Spicy':spicyVal>0?' 🌶️ Mild':' Off';
+    spicyEl.textContent=pct+'%'+tag;
+    input('spicy').setAttribute('aria-valuetext',spicyEl.textContent);
+  }
 }
 function breakDescription(){
   const key=input('breakStyle').value as BreakStyle;
@@ -210,7 +259,8 @@ function breakDescription(){
 function presets(){
   breakDescription();
   syncSliders();
-  const p=PROFILES[input('genre').value as Genre];el('genre-description').textContent=p.description??'A seeded rhythm profile with its own kick motif, hat spacing and fills.';const container=el('presets');container.replaceChildren();
+  const genre=input('genre').value as Genre;
+  const p=PROFILES[genre];el('genre-description').textContent=p.description??'A seeded rhythm profile with its own kick motif, hat spacing and fills.';const container=el('presets');container.replaceChildren();
   for(const bpm of p.presets){const button=document.createElement('button');button.textContent=String(bpm);button.onclick=()=>{input('bpm').value=String(bpm);syncSliders();dirty();};container.append(button);}
 }
 function dirty(){scheduleSave();status('Settings changed. Press Generate to apply; the displayed pattern remains the export target.');}
@@ -246,11 +296,19 @@ el('copy').onclick=async()=>{
 input('bpm').addEventListener('input',()=>{syncSliders();});
 input('bpm-slider').addEventListener('input',()=>{input('bpm').value=input('bpm-slider').value;syncSliders();});
 input('complexity').addEventListener('input',syncSliders);
+input('spicy').addEventListener('input',syncSliders);
 
 el('breakStyle').onchange=()=>{breakDescription();dirty();};
 function restoreGenerationDefaults(){
  const genre=input('genre').value as Genre;
  for(const [key,value] of Object.entries(genreDefaults(genre)))input(key).value=String(value);
+ const autoKit=document.getElementById('auto-kit') as HTMLInputElement | null;
+ if(autoKit&&autoKit.checked){
+   const defaultKitId=GENRE_KITS[genre]||'acoustic-break';
+   void kitPanel.applyPreset(defaultKitId);
+   const ks=document.getElementById('kit-preset-select') as HTMLSelectElement | null;
+   if(ks) ks.value=defaultKitId;
+ }
  presets();scheduleSave();status(PROFILES[genre].name+' generation defaults loaded, including BPM and advanced settings. Press Generate to apply to the pattern.');
 }
 el('restore-defaults').onclick=restoreGenerationDefaults;
@@ -262,6 +320,26 @@ for(const [value,profile] of Object.entries(PROFILES)) {
 }
 for(const [value,preset] of Object.entries(BREAKS)){
   const option=document.createElement('option');option.value=value;option.textContent=preset.name;el('breakStyle').append(option);
+}
+const kitSelect=el<HTMLSelectElement>('kit-preset-select');
+if(kitSelect){
+  kitSelect.replaceChildren();
+  const customOpt=document.createElement('option');
+  customOpt.value='custom';
+  customOpt.textContent='Custom Kit';
+  kitSelect.append(customOpt);
+  for(const p of KIT_PRESETS){
+    const opt=document.createElement('option');
+    opt.value=p.id;
+    opt.textContent=p.name;
+    kitSelect.append(opt);
+  }
+  kitSelect.onchange=async()=>{
+    if(kitSelect.value!=='custom'){
+      await kitPanel.applyPreset(kitSelect.value);
+      dirty();
+    }
+  };
 }
 
 function patternJSON(){

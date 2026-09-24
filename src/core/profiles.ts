@@ -32,30 +32,30 @@ export function defaults(genre: Genre = 'jungle'): Settings {
   if (!Object.hasOwn(PROFILES, genre)) throw new Error(`Unsupported genre. Choose ${Object.keys(PROFILES).join(', ')}.`);
   return {genre, breakStyle:'genre', seed: 'break-042', bpm: PROFILES[genre].bpm, bars: 2, resolution: 16,
     complexity: .45, syncopation: .4, swing: PROFILES[genre].swing, humanizeMs: 0,
-    ghostAmount: .35, fillAmount: .4};
+    ghostAmount: .35, fillAmount: .4, spicy: 0};
 }
 
 // UI starting points; keep defaults() stable for existing seeds, CLI and projects.
 export function genreDefaults(genre:Genre):Settings {
   const base=defaults(genre),profile=PROFILES[genre];
   const overrides:Partial<Record<Genre,Partial<Settings>>>={
-    jungle:{},dnb:{complexity:.5,ghostAmount:.25,fillAmount:.25},
-    hiphop:{complexity:.3,syncopation:.3,ghostAmount:.2,fillAmount:.15,humanizeMs:2},
-    rap:{complexity:.25,syncopation:.25,ghostAmount:.15,fillAmount:.15,humanizeMs:2},
-    trap:{complexity:.6,resolution:32,syncopation:.45,ghostAmount:.15,fillAmount:.45},
-    drill:{complexity:.6,resolution:32,syncopation:.65,ghostAmount:.2,fillAmount:.4},
-    breakcore:{complexity:.85,resolution:64,syncopation:.7,ghostAmount:.6,fillAmount:.8},
-    idm:{complexity:.65,resolution:32,syncopation:.7,ghostAmount:.4,fillAmount:.5},
-    hardcore:{complexity:.55,syncopation:.2,ghostAmount:.15,fillAmount:.5},
-    experimental:{complexity:.75,resolution:32,syncopation:.8,ghostAmount:.45,fillAmount:.65},
-    breaks:{complexity:.4,syncopation:.45,ghostAmount:.25,fillAmount:.3},
-    bigbeat:{complexity:.4,syncopation:.35,ghostAmount:.2,fillAmount:.4},
-    nuskoolbreaks:{complexity:.6,resolution:32,syncopation:.6,ghostAmount:.3,fillAmount:.5},
-    electrobreaks:{complexity:.35,syncopation:.45,ghostAmount:.1,fillAmount:.2},
-    breakbeathardcore:{complexity:.7,resolution:32,syncopation:.5,ghostAmount:.4,fillAmount:.7},
-    raggajungle:{complexity:.65,resolution:32,syncopation:.6,ghostAmount:.55,fillAmount:.65},
-    atmosphericjungle:{complexity:.35,syncopation:.35,ghostAmount:.45,fillAmount:.2},
-    footworkjungle:{complexity:.7,resolution:32,syncopation:.7,ghostAmount:.35,fillAmount:.6}
+    jungle:{spicy:.35},dnb:{complexity:.5,ghostAmount:.25,fillAmount:.25,spicy:.25},
+    hiphop:{complexity:.3,syncopation:.3,ghostAmount:.2,fillAmount:.15,humanizeMs:2,spicy:.1},
+    rap:{complexity:.25,syncopation:.25,ghostAmount:.15,fillAmount:.15,humanizeMs:2,spicy:.1},
+    trap:{complexity:.6,resolution:32,syncopation:.45,ghostAmount:.15,fillAmount:.45,spicy:.4},
+    drill:{complexity:.6,resolution:32,syncopation:.65,ghostAmount:.2,fillAmount:.4,spicy:.45},
+    breakcore:{complexity:.85,resolution:64,syncopation:.7,ghostAmount:.6,fillAmount:.8,spicy:.85},
+    idm:{complexity:.65,resolution:32,syncopation:.7,ghostAmount:.4,fillAmount:.5,spicy:.65},
+    hardcore:{complexity:.55,syncopation:.2,ghostAmount:.15,fillAmount:.5,spicy:.4},
+    experimental:{complexity:.75,resolution:32,syncopation:.8,ghostAmount:.45,fillAmount:.65,spicy:.75},
+    breaks:{complexity:.4,syncopation:.45,ghostAmount:.25,fillAmount:.3,spicy:.2},
+    bigbeat:{complexity:.4,syncopation:.35,ghostAmount:.2,fillAmount:.4,spicy:.25},
+    nuskoolbreaks:{complexity:.6,resolution:32,syncopation:.6,ghostAmount:.3,fillAmount:.5,spicy:.4},
+    electrobreaks:{complexity:.35,syncopation:.45,ghostAmount:.1,fillAmount:.2,spicy:.2},
+    breakbeathardcore:{complexity:.7,resolution:32,syncopation:.5,ghostAmount:.4,fillAmount:.7,spicy:.6},
+    raggajungle:{complexity:.65,resolution:32,syncopation:.6,ghostAmount:.55,fillAmount:.65,spicy:.5},
+    atmosphericjungle:{complexity:.35,syncopation:.35,ghostAmount:.45,fillAmount:.2,spicy:.2},
+    footworkjungle:{complexity:.7,resolution:32,syncopation:.7,ghostAmount:.35,fillAmount:.6,spicy:.6}
   };
   return {...base,...overrides[genre],bpm:profile.bpm,swing:profile.swing};
 }

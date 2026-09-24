@@ -2,7 +2,7 @@ import {ROLES,type Pattern,type Role,type SliceRef} from '../core/model.js';
 import type {AudioAsset} from './slices.js';
 import {validateWav} from './wav.js';
 import {defaultEffects,validateEffects,type Effects} from './effects.js';
-import {LIBRARY} from './library.js';
+import {LIBRARY,KIT_PRESETS} from './library.js';
 
 export type DrumKit=Partial<Record<Role,SliceRef>>;
 export type KitSlot={choice:string;uploadId?:string;assetId?:string;include:boolean;mute:boolean;level:number;tune:number;reverse?:boolean;effects?:Effects};
@@ -18,6 +18,7 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:()=>void,audi
   const kit:DrumKit={},mix=defaultKitState(),root=document.getElementById('drum-slots')!;
   let context:AudioContext|undefined;
   const refreshers:(()=>void)[]=[],cancellers:(()=>void)[]=[];let pending=0;
+  const loaders=new Map<Role, (id:string)=>Promise<void>>();
   for(const role of ROLES){
     const card=document.createElement('div');card.className='drum-slot';card.dataset.role=role;
     const title=document.createElement('h3');title.textContent={kick:'Kick',snare:'Snare',hat:'Hi-hat',percussion:'Percussion'}[role];
@@ -44,7 +45,7 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:()=>void,audi
     const fx=document.createElement('details');fx.className='effects-panel';fx.id='effects-'+role;const summary=document.createElement('summary');summary.textContent='Effects';fx.append(summary);
     const bypass=checkbox('fx-bypass-'+role,'Bypass effects');fx.append(bypass.l);
     const effectInputs=new Map<keyof Effects,HTMLInputElement>();
-    for(const [key,name,min,max,step] of [['highpass','High-pass (Hz)',0,2000,10],['lowpass','Low-pass (Hz)',200,20000,100],['drive','Drive (0–1)',0,1,.05],['delayMs','Delay time (ms)',30,1000,10],['feedback','Feedback (0–0.75)',0,.75,.05],['mix','Delay mix (0–0.6)',0,.6,.05]] as const){
+    for(const [key,name,min,max,step] of [['highpass','High-pass (Hz)',0,2000,10],['lowpass','Low-pass (Hz)',200,20000,100],['resonance','Resonance / Q (0–1)',0,1,.05],['punch','Punch attack (0–1)',0,1,.05],['drive','Drive (0–1)',0,1,.05],['delayMs','Delay time (ms)',30,1000,10],['feedback','Feedback (0–0.75)',0,.75,.05],['mix','Delay mix (0–0.6)',0,.6,.05]] as const){
       const field=document.createElement('input');field.type='number';field.min=String(min);field.max=String(max);field.step=String(step);field.id='fx-'+key+'-'+role;effectInputs.set(key,field);fx.append(makeLabel(name,field));
       field.onchange=()=>{const next={...(mix[role].effects??defaultEffects()),[key]:Number(field.value)};try{validateEffects(next);mix[role].effects=next;update();changed();}catch(e){update();info.textContent=String(e);}};
     }
@@ -61,7 +62,7 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:()=>void,audi
       clear.disabled=!slot.uploadId;clear.hidden=!slot.uploadId;upload.textContent=slot.uploadId?'Replace WAV':'Upload WAV';
       (choice.querySelector('option[value="upload"]') as HTMLOptionElement).textContent=slot.uploadId?(assets.get(slot.uploadId)?.name??'My upload'):'Upload a WAV to use here';
       gainValue.textContent=Math.round(slot.level*100)+'%';
-      const active=[effects.highpass>0?'High-pass':'',effects.lowpass<20000?'Low-pass':'',effects.drive>0?'Drive':'',effects.mix>0?'Delay':''].filter(Boolean);
+      const active=[effects.highpass>0?'High-pass':'',effects.lowpass<20000?'Low-pass':'',(effects.resonance??0)>0?'Resonance':'',(effects.punch??0)>0?'Punch':'',effects.drive>0?'Drive':'',effects.mix>0?'Delay':''].filter(Boolean);
       summary.textContent=effects.bypass?'Effects · bypassed':active.length?'Effects · '+active.join(' + '):'Effects · off';
       badge.textContent=slot.mute?'Muted':effects.bypass?'FX bypassed':active.length?'FX on':'Dry';badge.classList.toggle('active',!slot.mute&&!effects.bypass&&active.length>0);badge.title=slot.mute?'Muted in playback and export':summary.textContent;
       shapeSummary.textContent='Pitch & playback'+(slot.tune?' · '+(slot.tune>0?'+':'')+slot.tune+' st':'')+(slot.reverse?' · Reverse':'');
@@ -110,6 +111,15 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:()=>void,audi
     };
     play.onclick=()=>{void audition(role).catch(e=>info.textContent=String(e));};
     clear.onclick=()=>{token++;loading=false;const slot=mix[role];slot.uploadId=undefined;if(slot.choice==='upload'){slot.choice='synth';slot.assetId=undefined;}update();changed();};
+    loaders.set(role, async(soundId:string)=>{choice.value=soundId;await choice.onchange!(new Event('change'));});
   }
-  return {kit,mix,get busy(){return pending>0;},snapshot:()=>structuredClone(mix),restore:(state:KitState)=>{cancellers.forEach(f=>f());for(const r of ROLES)mix[r]=structuredClone(state[r]);refreshers.forEach(f=>f());}};
+  return {
+    kit,mix,get busy(){return pending>0;},snapshot:()=>structuredClone(mix),
+    restore:(state:KitState)=>{cancellers.forEach(f=>f());for(const r of ROLES)mix[r]=structuredClone(state[r]);refreshers.forEach(f=>f());},
+    applyPreset: async(presetId:string)=>{
+      const preset=KIT_PRESETS.find(p=>p.id===presetId);
+      if(!preset) return;
+      for(const r of ROLES){const load=loaders.get(r);if(load)await load(preset.slots[r]);}
+    }
+  };
 }

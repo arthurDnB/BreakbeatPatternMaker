@@ -11,6 +11,7 @@ export function validateSettings(s: Settings): void {
   bounded(s.bpm, 32, 999, 'BPM'); bounded(s.bars, 1, 4, 'bars', true);
   if (![8,16,32,64].includes(s.resolution)) throw new Error('Resolution must be 8, 16, 32 or 64.');
   for (const k of ['complexity','syncopation','ghostAmount','fillAmount'] as const) bounded(s[k],0,1,k);
+  if(s.spicy!==undefined) bounded(s.spicy,0,1,'spicy');
   bounded(s.swing,.5,.67,'swing'); bounded(s.humanizeMs,0,10,'humanizeMs');
 }
 
@@ -90,6 +91,29 @@ export function generate(settings: Settings): Pattern {
     hit.offsetTick=hit.baseTick===0?0:Math.round(swingDelay+jitterTicks);
     if(s.humanizeMs>0) hit.gain=Math.min(1,hit.gain*(.95+jitter()*.1));
     hit.gain=Math.round(hit.gain*10000)/10000;
+  }
+  if (s.spicy && s.spicy > 0) {
+    const spicyDice = random(s.seed, 'spicy');
+    for (const hit of events) {
+      if (hit.anchor) continue;
+      if (spicyDice() < s.spicy * 0.45) {
+        const pool = s.spicy > 0.75 ? [2, 3, 4, 6, 8] : s.spicy > 0.4 ? [2, 3, 4] : [2];
+        hit.ratchets = pool[Math.floor(spicyDice() * pool.length)];
+        hit.gate = s.spicy > 0.6 ? (spicyDice() > 0.5 ? 0.5 : 0.75) : 0.8;
+        hit.reason += ` (Spicy ×${hit.ratchets} ratchet)`;
+      }
+      if ((hit.role === 'percussion' || hit.ghost || hit.role === 'hat') && spicyDice() < s.spicy * 0.3) {
+        hit.reverse = true;
+        hit.reason += ' (Spicy reverse)';
+      }
+      if ((hit.role === 'hat' || hit.role === 'percussion' || hit.ghost) && spicyDice() < s.spicy * 0.35) {
+        const shift = Math.floor(spicyDice() * 14) - 7;
+        if (shift !== 0) {
+          hit.pitch = shift;
+          hit.reason += ` (Spicy pitch ${shift > 0 ? '+' : ''}${shift})`;
+        }
+      }
+    }
   }
   return {engineVersion:ENGINE_VERSION,settings:s,ppq:PPQ,events:events.filter(h=>!s.enabledRoles||s.enabledRoles.includes(h.role))};
 }
