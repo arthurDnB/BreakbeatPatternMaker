@@ -63,6 +63,15 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-25] - Liquid DnB Master Anchoring (Antigravity)
+- **Audio Engine Updates (`src/core/groove-v3-profiles.ts`):**
+  - Following deep reference analysis of `dracodraco - freefall.mp3` (~161 BPM), updated the `liquiddnb` profile for maximum genre authenticity.
+  - Set the core kick anchor exclusively to the classic syncopated `[0, 10]` and `[0, 7, 10]` steps.
+  - Injected continuous 16th-note hat details (`[1, 3, 5, 7, 9, 11, 13, 15]`) and aggressive ghost note density (`[3, 7, 9, 14, 15]`) to simulate the classic rolling "Think Break" shaker/ghost texture beneath the main backbeat.
+  - Tightened snare drag to `1.5ms` for a sharper, modern pocket.
+- **Verification:**
+  - `npm.cmd test`: 90/90 passing (determinism unbroken).
+
 ### [2026-09-25] - Genre-aware phrase development and musical Spicy refinement (Codex)
 - Synced origin/main and reviewed the v3 kick-overlap fix before editing. The audio choke implementation is unchanged.
 - Added `docs/GROOVE-V3-RESEARCH.md`: primary Strudel documentation, producer tutorials and first-person production discussions, with explicit source-to-rule mapping and limitations. Numeric timing/gain recipes are tunable choices rather than invented universal genre specifications.
