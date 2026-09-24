@@ -318,5 +318,135 @@
     "author": "Versilian Studios / VCSL contributors",
     "source": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Idiophones/Struck%20Idiophones/Shaker%2C%20Large/LShaker_Shake1U_rr1_Mid.wav",
     "sha256": "f6bbd4b897a18af5d567cf7925d402a8b854a8f31c1cf3c706f91bf96815b7c7"
+  },
+  {
+    "id": "acoustic-kick-punch",
+    "role": "kick",
+    "name": "Acoustic bass drum — 24\" dampened",
+    "path": "/public/samples/acoustic-kick-punch.wav",
+    "license": "CC0-1.0",
+    "author": "Karoryfer Samples / Stargate DAW contributors",
+    "source": "https://raw.githubusercontent.com/stargatedaw/stargate-sample-pack/main/stargate-sample-pack/karoryfer/kicks/kick_Szpaderski_24_dampened.wav",
+    "sha256": "ac4da8e7ac947578637264b561152a99b2bab05fdd6a2aa824d279b65a0d6d05"
+  },
+  {
+    "id": "acoustic-kick-clean",
+    "role": "kick",
+    "name": "Acoustic bass drum — 20\" clean",
+    "path": "/public/samples/acoustic-kick-clean.wav",
+    "license": "CC0-1.0",
+    "author": "Karoryfer Samples / Stargate DAW contributors",
+    "source": "https://raw.githubusercontent.com/stargatedaw/stargate-sample-pack/main/stargate-sample-pack/karoryfer/kicks/kick_Polmuz_mod_20_clean.wav",
+    "sha256": "614b23455ee9400ef62996f192b7966a70e12f7a1be2d5978a621b16cf85240f"
+  },
+  {
+    "id": "acoustic-snare-pearl",
+    "role": "snare",
+    "name": "Pearl aluminum snare — 14x8",
+    "path": "/public/samples/acoustic-snare-pearl.wav",
+    "license": "CC0-1.0",
+    "author": "Karoryfer Samples / Stargate DAW contributors",
+    "source": "https://raw.githubusercontent.com/stargatedaw/stargate-sample-pack/main/stargate-sample-pack/karoryfer/snares/snare_Pearl_alumunum_14x8.wav",
+    "sha256": "1cca8e26a75168b3abcd3bee740c0e57d444fa6ead0be411aed5fa799ef1cdcf"
+  },
+  {
+    "id": "acoustic-snare-piccolo",
+    "role": "snare",
+    "name": "Acoustic piccolo snare — 12x5",
+    "path": "/public/samples/acoustic-snare-piccolo.wav",
+    "license": "CC0-1.0",
+    "author": "Karoryfer Samples / Stargate DAW contributors",
+    "source": "https://raw.githubusercontent.com/stargatedaw/stargate-sample-pack/main/stargate-sample-pack/karoryfer/snares/snare_12x5.wav",
+    "sha256": "9a1d89f5ed76891fe35c76b76eed510626667e47d4277ca81dafcec954d2ecf2"
+  },
+  {
+    "id": "acoustic-snare-fat",
+    "role": "snare",
+    "name": "Acoustic deep snare — 16x7",
+    "path": "/public/samples/acoustic-snare-fat.wav",
+    "license": "CC0-1.0",
+    "author": "Karoryfer Samples / Stargate DAW contributors",
+    "source": "https://raw.githubusercontent.com/stargatedaw/stargate-sample-pack/main/stargate-sample-pack/karoryfer/snares/snare_16x7.wav",
+    "sha256": "2fd7dadf9ec09560a164c89ac019648778ec99f4e6d1510aa36d943902025806"
+  },
+  {
+    "id": "acoustic-snare-crack",
+    "role": "snare",
+    "name": "Acoustic snappy snare — 10x6",
+    "path": "/public/samples/acoustic-snare-crack.wav",
+    "license": "CC0-1.0",
+    "author": "Karoryfer Samples / Stargate DAW contributors",
+    "source": "https://raw.githubusercontent.com/stargatedaw/stargate-sample-pack/main/stargate-sample-pack/karoryfer/snares/snare_10x6.wav",
+    "sha256": "c75dfff0c8bf61474e7bef45ecab8f0107a8364b71d47f2f8b1c001b34f3cfe5"
+  },
+  {
+    "id": "acoustic-hat-tight",
+    "role": "hat",
+    "name": "Acoustic tight hat",
+    "path": "/public/samples/acoustic-hat-tight.wav",
+    "license": "CC0-1.0",
+    "author": "Karoryfer Samples / Stargate DAW contributors",
+    "source": "https://raw.githubusercontent.com/stargatedaw/stargate-sample-pack/main/stargate-sample-pack/karoryfer/hihats/hihat_BRD_tight.wav",
+    "sha256": "e41a734cf0b8994c9202e7839fc2d7f8f57799395e7a2b235518bc6f3225b1d8"
+  },
+  {
+    "id": "acoustic-hat-closed",
+    "role": "hat",
+    "name": "Acoustic natural closed hat",
+    "path": "/public/samples/acoustic-hat-closed.wav",
+    "license": "CC0-1.0",
+    "author": "Karoryfer Samples / Stargate DAW contributors",
+    "source": "https://raw.githubusercontent.com/stargatedaw/stargate-sample-pack/main/stargate-sample-pack/karoryfer/hihats/hihat_BRD_closed.wav",
+    "sha256": "8799002f30442ededcdb90094170e7617083b037d1c21cd24b1566bcb2a2f934"
+  },
+  {
+    "id": "acoustic-hat-open-brd",
+    "role": "hat",
+    "name": "Acoustic open hat — natural decay",
+    "path": "/public/samples/acoustic-hat-open-brd.wav",
+    "license": "CC0-1.0",
+    "author": "Karoryfer Samples / Stargate DAW contributors",
+    "source": "https://raw.githubusercontent.com/stargatedaw/stargate-sample-pack/main/stargate-sample-pack/karoryfer/hihats/hihat_BRD_open.wav",
+    "sha256": "0a36e768b9161cea7f2fcb89ffc1792f7676d75469bf03b71ef92b15d4b68298"
+  },
+  {
+    "id": "acoustic-crash-17",
+    "role": "percussion",
+    "name": "Acoustic crash cymbal — 17\"",
+    "path": "/public/samples/acoustic-crash-17.wav",
+    "license": "CC0-1.0",
+    "author": "Karoryfer Samples / Stargate DAW contributors",
+    "source": "https://raw.githubusercontent.com/stargatedaw/stargate-sample-pack/main/stargate-sample-pack/karoryfer/cymbals/crash_BRD_17.wav",
+    "sha256": "f340dd22abee9369379e94f662a4aa897e15822f1572a082c127b47dacf70496"
+  },
+  {
+    "id": "acoustic-ride-22",
+    "role": "percussion",
+    "name": "Acoustic ride cymbal — 22\"",
+    "path": "/public/samples/acoustic-ride-22.wav",
+    "license": "CC0-1.0",
+    "author": "Karoryfer Samples / Stargate DAW contributors",
+    "source": "https://raw.githubusercontent.com/stargatedaw/stargate-sample-pack/main/stargate-sample-pack/karoryfer/cymbals/ride_BRD_22.wav",
+    "sha256": "e272f70a76ec3ce7ad90168fa068fe2bfb112862edcd793bed8a0fc5196bb3ba"
+  },
+  {
+    "id": "acoustic-tom-rack",
+    "role": "percussion",
+    "name": "Acoustic rack tom — 14\"",
+    "path": "/public/samples/acoustic-tom-rack.wav",
+    "license": "CC0-1.0",
+    "author": "Karoryfer Samples / Stargate DAW contributors",
+    "source": "https://raw.githubusercontent.com/stargatedaw/stargate-sample-pack/main/stargate-sample-pack/karoryfer/toms/tom_Szpaderski_14.wav",
+    "sha256": "3bb45ccd337301f66314953b27879088283cc620ddb7790cb17cbbbdced55402"
+  },
+  {
+    "id": "acoustic-tom-floor",
+    "role": "percussion",
+    "name": "Acoustic floor tom — 18\"",
+    "path": "/public/samples/acoustic-tom-floor.wav",
+    "license": "CC0-1.0",
+    "author": "Karoryfer Samples / Stargate DAW contributors",
+    "source": "https://raw.githubusercontent.com/stargatedaw/stargate-sample-pack/main/stargate-sample-pack/karoryfer/toms/tom_Szpaderski_18.wav",
+    "sha256": "0024c36a41232c73d510dad817bb461840fd7a9fca726721d0ad158dd1176b9a"
   }
 ]

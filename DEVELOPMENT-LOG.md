@@ -50,6 +50,24 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-24] - Sketch Sample UI Overhaul, In-Place Tracker Entry & Layout Polish (Antigravity)
+- **Sketch Sample Aesthetic & Chrome (`public/workspace.css`, `public/index.html`):**
+  - Revamped the styling to match the reference DAW ("Sketch Sample"): deep obsidian/slate background (`#10161e`), macOS window controls (`#ff5f56`, `#ffbd2e`, `#27c93f`), and glowing brand badge.
+  - Added workstation view tabs (`Tracker`, `Drum Kit`, `Arrangement`) with illuminated indicators and active states.
+  - Implemented hardware HUD capsules with glowing cyan digits (`#00f5d4`), tap tempo, and real-time beat counter.
+  - Styled MPC-style pattern bank cards with colored role top stripes (Kick, Snare, Hat, Percussion) and active neon border glow.
+  - Removed confusing non-functional footer buttons, converting the footer into an informative DAW status bar with keyboard shortcuts and live engine indicators.
+- **In-Place Tracker Note Insertion (`src/web.ts`, `public/workspace.css`):**
+  - Implemented authentic tracker note entry: clicking empty cells directly positions the cursor and auditions the instrument without popup modal windows; double-clicking enters a note immediately.
+  - Added two-octave keyboard mapping (`Z..M` lower octave, `Q..U` upper octave), instant velocity mapping (`1..9`), semitone transposing (`+`/`-`), and quick cut (`Delete`/`Backspace`).
+  - Added `.tracker-live-bar` toolbar with step advance selection (`1`, `2`, `4`, `0`), quick hit entry, delete, ghost toggle, roll ratchets (`×2`, `×4`), and pitch transposition.
+  - Rendered Renoise-style obsidian tracker grid with high-contrast colored track headers, beat-row highlighting, and a 2px glowing cyan cursor box.
+- **Instruments Panel & Button Layout Fixes (`public/workspace.css`, `public/index.html`):**
+  - Fixed drum slots in the context panel from cramped 4-column layout into a spacious single-column channel strip layout with role-colored left borders and proper padding.
+  - Completely hid the raw browser file input (`Choose File No file chosen`) in favor of styled buttons.
+  - Fixed `Export WAV ↓` button text overflow by adding `white-space: nowrap !important`, flex centering, and proper padding.
+  - Ensured all 52 unit tests and modern layout browser smoke tests pass cleanly.
+
 ### [2026-09-24] - Punchy Sample Assignments, Master Bus Glue & Audio Quality (Antigravity)
 - **Master Bus Glue & Soft Saturation (`src/audio/performance.ts`):**
   - Implemented an analog-style tape soft saturation transfer curve on the master performance bus for peaks above 0.7 threshold.

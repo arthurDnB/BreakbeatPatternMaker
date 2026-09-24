@@ -15,7 +15,7 @@ async function module(path){const name=inside(path);if(files.has(name))return;if
 
 }
 await module(resolve(root,'dist/web.js'));
-for(const name of ['public/style.css','public/workspace.css','README.md','public/samples/credits.html','public/samples/catalog.json','public/samples/VCSL-LICENSE.txt','public/samples/TR808-LICENSE.txt'])files.set(name,await readFile(resolve(root,name)));
+for(const name of ['public/style.css','public/workspace.css','README.md','public/samples/credits.html','public/samples/catalog.json','public/samples/VCSL-LICENSE.txt','public/samples/TR808-LICENSE.txt','public/samples/STARGATE-LICENSE.txt'])files.set(name,await readFile(resolve(root,name)));
 files.set('index.html',await readFile(resolve(root,'public/index.html')));files.set('.nojekyll','');
 const catalog=JSON.parse(await readFile(resolve(root,'public/samples/catalog.json'),'utf8'));
 for(const sound of catalog){if(sound.license!=='CC0-1.0'||!/^\/public\/samples\/[a-z0-9-]+\.wav$/.test(sound.path))throw Error('Unapproved sample '+sound.id);const name=sound.path.slice(1),bytes=await readFile(resolve(root,name));if(createHash('sha256').update(bytes).digest('hex')!==sound.sha256)throw Error('Sample hash mismatch: '+sound.id);files.set(name,bytes);}

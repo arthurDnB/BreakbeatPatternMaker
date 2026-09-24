@@ -16,6 +16,7 @@ export interface SliceRef {assetId:string; startFrame:number; endFrame:number; s
 export interface Hit {
   reverse?:boolean;
   ratchets?:number; gate?:number; // Repeats within one row; gate is a fraction of each repeat interval.
+  decay?:number; // Sample envelope decay ratio (0.02 to 1.0; < 1 tightens sound and removes room reverb)
   slice?:SliceRef; pitch?:number; fineOffset?:number;
   id: string; role: Role; sourceId: string; baseTick: number; offsetTick: number;
   gain: number; pan: number; anchor: boolean; ghost: boolean; reason: string;

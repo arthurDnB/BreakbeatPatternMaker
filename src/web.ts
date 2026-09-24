@@ -32,6 +32,40 @@ let context:AudioContext|undefined,timer:ReturnType<typeof setInterval>|undefine
 const playingSources=new Set<AudioBufferSourceNode>();
 function showHitEditor(){el<HTMLDetailsElement>('hit-editor').open=true;el('inspector-hint').hidden=true;if(matchMedia('(max-width:800px)').matches)requestAnimationFrame(()=>el('hit-editor').scrollIntoView({behavior:'smooth',block:'start'}));}
 function status(message:string,error=false){el('status').textContent=message;el('status').classList.toggle('error',error);}
+function syncHud() {
+  const bpmVal = document.getElementById('hud-bpm-val');
+  if (bpmVal && Number.isFinite(Number(input('bpm').value))) {
+    bpmVal.textContent = Number(input('bpm').value).toFixed(1);
+  }
+  const barsVal = document.getElementById('hud-bars-val');
+  if (barsVal && pattern?.settings?.bars) {
+    barsVal.textContent = `${pattern.settings.bars} BAR${pattern.settings.bars > 1 ? 'S' : ''}`;
+  }
+}
+function updateHudPosition(row: number) {
+  const posVal = document.getElementById('hud-pos-val');
+  if (posVal && transfer?.timing?.lpb) {
+    const position = row / transfer.timing.lpb;
+    const bar = Math.floor(position / 4) + 1;
+    const beat = Math.floor(position % 4) + 1;
+    posVal.textContent = `${String(bar).padStart(2, '0')}.${beat}`;
+  }
+}
+function resetHud() {
+  const posVal = document.getElementById('hud-pos-val');
+  if (posVal) posVal.textContent = '01.1';
+}
+function getTrackerStep(): number {
+  const select = document.getElementById('tracker-step-select') as HTMLSelectElement | null;
+  if (select && Number.isInteger(Number(select.value))) {
+    return Number(select.value);
+  }
+  const editStep = input('edit-step');
+  if (editStep && Number.isInteger(Number(editStep.value))) {
+    return Number(editStep.value);
+  }
+  return 1;
+}
 function settings(){
   const s=defaults(input('genre').value as Genre);
   s.enabledRoles=ROLES.filter(r=>kitPanel.mix[r].include);
@@ -100,7 +134,23 @@ function render(){
         empty.className='empty-cell';
         empty.textContent=view==='renoise'?'··· ·· ·· ··':view==='beginner'?'····':'··· ··';
         empty.setAttribute('aria-label','Enter '+lane.id+' at row '+row);
-        empty.onclick=()=>{showHitEditor();rowAnchor=row;cursorLane=lane.id;editor.state.selection=emptySelection();render();el('grid').focus();};
+        empty.onclick=()=>{
+          rowAnchor=row;cursorLane=lane.id;
+          editor.state.selection=emptySelection();
+          updateEntry();
+          render();
+          el('grid').focus();
+          void auditionRole(lane.id);
+        };
+        empty.ondblclick=()=>{
+          rowAnchor=row;cursorLane=lane.id;
+          editor.state.selection=emptySelection();
+          updateEntry();
+          writeEntry(false);
+          render();
+          el('grid').focus();
+          void auditionRole(lane.id);
+        };
         td.append(empty);
       }
       for(const n of notes){
@@ -113,9 +163,9 @@ function render(){
         const reverse=hit.reverse||kitPanel.mix[hit.role].reverse;
         const label=sound?(hit.ghost?'Ghost · ':'')+sound.label:hit.ghost?'Ghost snare':lane.name;
         const tracker=`${noteName(source.note+(hit.pitch??0))} ${hex(source.instrument)} ${hex(n.volume)} ${hex(n.pan)} ${hex(n.delay)}`;
-        const articulation=(hit.ratchets&&hit.ratchets>1?' · ×'+hit.ratchets:'')+(hit.gate!==undefined?' · Gate '+Math.round(hit.gate*100)+'%':'');
-        const badge=(hit.ratchets&&hit.ratchets>1?'×'+hit.ratchets+' ':'')+(reverse?'↶ ':'')+(locked(editor.state,hit)?'🔒 ':'');
-        button.textContent=badge+(view==='beginner'?label:view==='renoise'?tracker:`${label} · ${tracker}`);
+        const articulation=(hit.ratchets&&hit.ratchets>1?'×'+hit.ratchets:'')+(hit.gate!==undefined?(hit.ratchets&&hit.ratchets>1?' · ':'')+'Gate '+Math.round(hit.gate*100)+'%':'');
+        const badge=(articulation?articulation+' ':'')+(reverse?'↶ ':'')+(locked(editor.state,hit)?'🔒 ':'');
+        button.textContent=badge+(view==='beginner'?(hit.ghost?'Ghost':lane.name):view==='renoise'?tracker:`${label} · ${tracker}`);
         button.title=`${label}, row ${row}, volume ${hex(n.volume)}, delay ${hex(n.delay)}${articulation}`;
         button.onclick=e=>{
           showHitEditor();
@@ -152,6 +202,7 @@ function render(){
   const note=chosen&&transfer.notes.find(n=>n.id===chosen.id),source=note&&transfer.sources.find(s=>s.id===note.source);
   updateEntry(chosen);
   el('explanation').textContent=chosen&&note&&source?`${chosen.reason} Row ${note.row}, instrument ${hex(source.instrument)}, ${noteName(source.note)}, volume ${hex(note.volume)}, pan ${hex(note.pan)}, delay ${hex(note.delay)}.${locked(editor.state,chosen)?' Locked: editing will preserve this hit.':''} ${note.delay?`The delay is ${(note.delay/256*60000/transfer.timing.bpm/transfer.timing.lpb).toFixed(2)} ms into this row.`:''}`:range?'This row range is the target for mutation and fills. Locked hits and main anchors remain intact.':'Select a hit to inspect it. Ctrl/Cmd-click adds hits; Shift-click a row number selects a range.';
+  syncHud();
 }
 function selectRows(start:number,end:number,anchor=true){
   if(!Number.isInteger(start)||!Number.isInteger(end)||Math.min(start,end)<0||Math.max(start,end)>=transfer.timing.lines){status('Choose row numbers within this pattern.',true);return;}
@@ -174,6 +225,7 @@ function stop(){
   for(const source of playingSources){try{source.stop();}catch{}source.disconnect();}playingSources.clear();
   mode=undefined;pendingSlot=undefined;el('transport-state').textContent='Stopped';el('play-arrangement').textContent='Play arrangement';el('bank-status').textContent='';document.querySelectorAll('.playing-step').forEach(e=>e.classList.remove('playing-step'));
   playToken++;el('play').textContent='Play pattern';document.querySelector('.playing-row')?.classList.remove('playing-row');
+  resetHud();
 }
 function build(){
   if(pendingCount()){status('Apply or Revert pending hit edits before generating a new pattern.',true);return;}
@@ -188,6 +240,14 @@ function download(){
   setTimeout(()=>URL.revokeObjectURL(url),1000);status('Pattern JSON downloaded. Use Export pattern WAV for playable audio.');
 }
 const samplePanel=setupSamplePanel(stop);
+async function auditionRole(role: Role) {
+  stop();samplePanel.stop();context??=new AudioContext();const token=playToken;await context.resume();if(token!==playToken)return;
+  const one=generate({...defaults(),bars:1});one.events=[{id:'preview',role,sourceId:'kit.'+role,baseTick:0,offsetTick:0,gain:1,pan:0,anchor:false,ghost:false,reason:'Instrument preview.'}];
+  const mix=kitPanel.snapshot();mix[role].mute=false;
+  const audio=renderPerformance(withDrumKit(one,drumKit,mix),assets,context.sampleRate,effectMap());
+  const b=context.createBuffer(2,audio.channels[0]!.length,audio.sampleRate);audio.channels.forEach((c,i)=>b.copyToChannel(new Float32Array(c),i));
+  const source=context.createBufferSource();source.buffer=b;source.connect(context.destination);playingSources.add(source);source.onended=()=>{playingSources.delete(source);source.disconnect();};source.start();
+}
 const kitPanel=setupDrumKit(assets,()=>{
   stop();samplePanel.stop();
   const ks=document.getElementById('kit-preset-select') as HTMLSelectElement | null;
@@ -196,14 +256,7 @@ const kitPanel=setupDrumKit(assets,()=>{
     ks.value=matching?matching.id:'custom';
   }
   if(editor)refresh();
-},async role=>{
-  stop();samplePanel.stop();context??=new AudioContext();const token=playToken;await context.resume();if(token!==playToken)return;
-  const one=generate({...defaults(),bars:1});one.events=[{id:'preview',role,sourceId:'kit.'+role,baseTick:0,offsetTick:0,gain:1,pan:0,anchor:false,ghost:false,reason:'Instrument preview.'}];
-  const mix=kitPanel.snapshot();mix[role].mute=false;
-  const audio=renderPerformance(withDrumKit(one,drumKit,mix),assets,context.sampleRate,effectMap());
-  const b=context.createBuffer(2,audio.channels[0]!.length,audio.sampleRate);audio.channels.forEach((c,i)=>b.copyToChannel(new Float32Array(c),i));
-  const source=context.createBufferSource();source.buffer=b;source.connect(context.destination);playingSources.add(source);source.onended=()=>{playingSources.delete(source);source.disconnect();};source.start();
-});
+},auditionRole);
 const drumKit=kitPanel.kit;
 function effectMap(){return Object.fromEntries(ROLES.map(r=>[r,kitPanel.mix[r].effects]));}
 function audioBuffer(audio:ReturnType<typeof renderPerformance>){const b=context!.createBuffer(2,audio.channels[0]!.length,audio.sampleRate);audio.channels.forEach((c,i)=>b.copyToChannel(new Float32Array(c),i));return b;}
@@ -216,7 +269,7 @@ async function play(){
  const schedule=()=>{const now=context!.currentTime;
   if(boundary&&now>=boundary.at){const b=boundary;boundary=undefined;activateSlot(b.slot);start=b.at;duration=b.duration;el('bank-status').textContent='Playing '+bank!.slots[b.slot]!.name;}
   if(next<=now+.12){if(pendingSlot!==undefined){const slot=pendingSlot;pendingSlot=undefined;audio=renderPerformance(withDrumKit(bank!.slots[slot]!.editor!.pattern,drumKit,kitPanel.mix),assets,context!.sampleRate,effectMap());buffer=audioBuffer(audio);boundary={at:next,slot,duration:audio.duration};}startSource(buffer,Math.max(next,now));next+=audio.duration;}
-  const row=Math.floor((Math.max(0,now-start)%duration)/duration*transfer.timing.lines);document.querySelector('.playing-row')?.classList.remove('playing-row');document.querySelector('[data-play-row="'+row+'"]')?.classList.add('playing-row');
+  const row=Math.floor((Math.max(0,now-start)%duration)/duration*transfer.timing.lines);document.querySelector('.playing-row')?.classList.remove('playing-row');document.querySelector('[data-play-row="'+row+'"]')?.classList.add('playing-row');updateHudPosition(row);
  };schedule();timer=setInterval(schedule,25);
 }
 function stashSlot(){if(!editor)return;bank??=newBank(editor.state.pattern);bank.slots[bank.active]!.editor=structuredClone(editor.state);slotEditors.set(bank.active,editor);}
@@ -251,6 +304,7 @@ function syncSliders(){
     spicyEl.textContent=pct+'%'+tag;
     input('spicy').setAttribute('aria-valuetext',spicyEl.textContent);
   }
+  syncHud();
 }
 function breakDescription(){
   const key=input('breakStyle').value as BreakStyle;
@@ -284,7 +338,23 @@ document.addEventListener('keydown',event=>{
 });
 el('regenerate').onclick=()=>{input('seed').value=`break-${crypto.getRandomValues(new Uint32Array(1))[0]!.toString(16)}`;build();};
 el('export-wav').onclick=()=>{
-  try{const audio=renderPerformance(withDrumKit(pattern,drumKit,kitPanel.mix),assets,44100,effectMap());downloadBytes(encodeWav(audio.channels,audio.sampleRate),transfer.genre+'-pattern.wav');status('Pattern WAV exported with the selected instruments, mute, levels, tuning and timing.');}
+  try{
+    const modeEl=document.getElementById('export-mode') as HTMLSelectElement | null;
+    const isLoop=modeEl?.value!=='tail';
+    const audio=renderPerformance(
+      withDrumKit(pattern,drumKit,kitPanel.mix),
+      assets,
+      44100,
+      effectMap(),
+      isLoop ? {loop:true} : {trimSilence:true,maxTailSeconds:3}
+    );
+    const filename=isLoop?transfer.genre+'-pattern.wav':transfer.genre+'-pattern-tail.wav';
+    downloadBytes(encodeWav(audio.channels,audio.sampleRate),filename);
+    status(isLoop
+      ? `Seamless loop WAV exported (${pattern.settings.bars} bars, ${(audio.channels[0]!.length/audio.sampleRate).toFixed(2)}s) with wrapped tails.`
+      : `Pattern WAV exported with natural decay tail (${(audio.channels[0]!.length/audio.sampleRate).toFixed(2)}s).`
+    );
+  }
   catch(e){status((e as Error).message,true);}
 };
 el('export').onclick=download;el('play').onclick=()=>{play().catch(e=>status(String(e),true));};
@@ -344,7 +414,7 @@ if(kitSelect){
 
 function patternJSON(){
   const pattern=withDrumKit(editor.state.pattern,drumKit,kitPanel.mix);
-  if(!pattern.events.length||ROLES.some(r=>kitPanel.mix[r].level!==1||kitPanel.mix[r].tune!==0||kitPanel.mix[r].mute||kitPanel.mix[r].reverse||(kitPanel.mix[r].effects&&!kitPanel.mix[r].effects!.bypass&&(kitPanel.mix[r].effects!.highpass>0||kitPanel.mix[r].effects!.lowpass<20000||kitPanel.mix[r].effects!.drive>0||kitPanel.mix[r].effects!.mix>0)))||pattern.events.some(h=>h.slice||h.pitch||h.fineOffset||h.reverse||h.ratchets&&h.ratchets>1||h.gate!==undefined))return JSON.stringify({format:'breakbeat-notes',version:1,pattern,effects:effectMap(),audioAssets:[...new Set(pattern.events.flatMap(h=>h.slice?[h.slice.assetId]:[]))].map(id=>{const a=assets.get(id);return {id,name:a?.name,sampleRate:a?.sampleRate};}),notice:'Audio assets are not included. Export WAV to preserve the sound.'},null,2);
+  if(!pattern.events.length||ROLES.some(r=>kitPanel.mix[r].level!==1||kitPanel.mix[r].tune!==0||kitPanel.mix[r].mute||kitPanel.mix[r].reverse||(kitPanel.mix[r].effects&&!kitPanel.mix[r].effects!.bypass&&(kitPanel.mix[r].effects!.highpass>0||kitPanel.mix[r].effects!.lowpass<20000||kitPanel.mix[r].effects!.drive>0||kitPanel.mix[r].effects!.mix>0)))||pattern.events.some(h=>h.slice||h.pitch||h.fineOffset||h.reverse||h.ratchets&&h.ratchets>1||h.gate!==undefined))return JSON.stringify({...JSON.parse(serialize(transfer)),format:'breakbeat-notes',version:1,pattern,effects:effectMap(),audioAssets:[...new Set(pattern.events.flatMap(h=>h.slice?[h.slice.assetId]:[]))].map(id=>{const a=assets.get(id);return {id,name:a?.name,sampleRate:a?.sampleRate};}),notice:'Audio assets are not included. Export WAV to preserve the sound.'},null,2);
   return serialize(transfer);
 }
 function currentAsset(){
@@ -449,23 +519,142 @@ el('hit-preview').onclick=async()=>{
 el('hit-insert').onclick=()=>edit(()=>writeEntry(false),'Inserted tracker hit.');
 el('hit-apply').onclick=()=>edit(()=>writeEntry(true),'Updated tracker hit.');
 el('hit-delete').onclick=()=>edit(()=>editor.deleteSelected(),'Deleted unlocked selected hits.');
-el('grid').addEventListener('keydown',event=>{
-  if(event.ctrlKey||event.metaKey||event.altKey)return;
-  if(event.key===' '){event.preventDefault();void play().catch(e=>status(String(e),true));return;}
-  if(event.key.startsWith('Arrow')){
-    event.preventDefault();rowAnchor=Math.max(0,Math.min(transfer.timing.lines-1,rowAnchor+(event.key==='ArrowDown'?1:event.key==='ArrowUp'?-1:0)));
-    cursorLane=ROLES[Math.max(0,Math.min(3,ROLES.indexOf(cursorLane)+(event.key==='ArrowRight'?1:event.key==='ArrowLeft'?-1:0)))]!;
-    editor.state.selection=emptySelection();render();el('grid').focus();return;
+el('grid').addEventListener('keydown', event => {
+  if (event.ctrlKey || event.metaKey || event.altKey) return;
+  if (event.key === ' ') {
+    event.preventDefault();
+    void play().catch(e => status(String(e), true));
+    return;
   }
-  if(!input('keyboard-entry').checked||event.repeat)return;
-  if(event.key==='Delete'||event.key==='Backspace'){event.preventDefault();edit(()=>editor.deleteSelected(),'Deleted unlocked hits.');el('grid').focus();return;}
-  const semitone=['z','s','x','d','c','v','g','b','h','n','j','m'].indexOf(event.key.toLowerCase());if(semitone<0)return;
+  if (event.key === 'Tab') {
+    event.preventDefault();
+    const curIdx = ROLES.indexOf(cursorLane);
+    const nextIdx = event.shiftKey ? (curIdx + 3) % 4 : (curIdx + 1) % 4;
+    cursorLane = ROLES[nextIdx]!;
+    editor.state.selection = emptySelection();
+    updateEntry();
+    render();
+    el('grid').focus();
+    return;
+  }
+  if (event.key.startsWith('Arrow')) {
+    event.preventDefault();
+    rowAnchor = Math.max(0, Math.min(transfer.timing.lines - 1, rowAnchor + (event.key === 'ArrowDown' ? 1 : event.key === 'ArrowUp' ? -1 : 0)));
+    cursorLane = ROLES[Math.max(0, Math.min(3, ROLES.indexOf(cursorLane) + (event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0)))]!;
+    editor.state.selection = emptySelection();
+    updateEntry();
+    render();
+    el('grid').focus();
+    return;
+  }
+  if (!input('keyboard-entry').checked || event.repeat) return;
+  if (event.key === 'Delete' || event.key === 'Backspace') {
+    event.preventDefault();
+    if (editor.state.selection.ids.length === 0) {
+      const hitAtCursor = pattern.events.find(e => {
+        const n = transfer.notes.find(note => note.id === e.id);
+        return n && n.row === rowAnchor && n.lane === cursorLane;
+      });
+      if (hitAtCursor) {
+        editor.state.selection = {ids: [hitAtCursor.id], rows: null}; edit(() => editor.deleteSelected(), 'Deleted hit at row ' + rowAnchor + '.');
+        el('grid').focus();
+        return;
+      }
+    }
+    edit(() => editor.deleteSelected(), 'Deleted unlocked hits.');
+    el('grid').focus();
+    return;
+  }
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    const step = getTrackerStep();
+    const hitAtCursor = pattern.events.find(e => {
+      const n = transfer.notes.find(note => note.id === e.id);
+      return n && n.row === rowAnchor && n.lane === cursorLane;
+    });
+    try {
+      stop();
+      const changed = writeEntry(!!hitAtCursor);
+      if (changed) {
+        void auditionRole(cursorLane);
+        rowAnchor = Math.min(transfer.timing.lines - 1, rowAnchor + step);
+        editor.state.selection = emptySelection();
+      }
+      refresh();
+      el('grid').focus();
+      status(changed ? 'Note entered.' : 'The target is locked.');
+    } catch (e) { status((e as Error).message, true); }
+    return;
+  }
+  const velMap: Record<string, number> = {'1': 16, '2': 32, '3': 48, '4': 64, '5': 80, '6': 96, '7': 112, '8': 120, '9': 128};
+  if (velMap[event.key]) {
+    const hitAtCursor = pattern.events.find(e => {
+      const n = transfer.notes.find(note => note.id === e.id);
+      return n && n.row === rowAnchor && n.lane === cursorLane;
+    });
+    if (hitAtCursor && !locked(editor.state, hitAtCursor)) {
+      event.preventDefault();
+      const gain = velMap[event.key]! / 128;
+      editor.write({ ...hitAtCursor, gain }, hitAtCursor.id);
+      void auditionRole(cursorLane);
+      refresh();
+      el('grid').focus();
+      status(`Velocity set to ${velMap[event.key]} (0x${hex(velMap[event.key]!)}).`);
+      return;
+    }
+  }
+  if (event.key === '+' || event.key === '=' || event.key === '-' || event.key === '_') {
+    const hitAtCursor = pattern.events.find(e => {
+      const n = transfer.notes.find(note => note.id === e.id);
+      return n && n.row === rowAnchor && n.lane === cursorLane;
+    });
+    if (hitAtCursor && !locked(editor.state, hitAtCursor)) {
+      event.preventDefault();
+      const delta = (event.key === '+' || event.key === '=') ? 1 : -1;
+      const pitch = (hitAtCursor.pitch ?? 0) + delta;
+      if (pitch >= -48 && pitch <= 48) {
+        editor.write({ ...hitAtCursor, pitch }, hitAtCursor.id);
+        void auditionRole(cursorLane);
+        refresh();
+        el('grid').focus();
+        status(`Pitch transposed to ${pitch > 0 ? '+' : ''}${pitch} st.`);
+        return;
+      }
+    }
+  }
+  const lowerNotes = ['z', 's', 'x', 'd', 'c', 'v', 'g', 'b', 'h', 'n', 'j', 'm'];
+  const upperNotes = ['q', '2', 'w', '3', 'e', 'r', '5', 't', '6', 'y', '7', 'u'];
+  const keyLower = event.key.toLowerCase();
+  let semitone = -1;
+  const lowIdx = lowerNotes.indexOf(keyLower);
+  if (lowIdx >= 0) semitone = lowIdx;
+  else {
+    const upIdx = upperNotes.indexOf(keyLower);
+    if (upIdx >= 0) semitone = 12 + upIdx;
+  }
+  if (semitone < 0) return;
   event.preventDefault();
-  const basePitch=Number(input('edit-pitch').value),step=Number(input('edit-step').value),sound=input('edit-sound').value;
-  if(!Number.isInteger(step)||step<0||step>16){status('Entry step must be 0–16 rows.',true);return;}
-  try{stop();const changed=writeEntry(editor.state.selection.ids.length===1,basePitch+semitone);if(changed){rowAnchor=Math.min(transfer.timing.lines-1,Number(input('edit-row').value)+step);editor.state.selection=emptySelection();}refresh();input('edit-pitch').value=String(basePitch);syncHitPitch();input('edit-sound').value=sound;el('grid').focus();status(changed?'Keyboard note entered.':'The target is locked.');}catch(e){status((e as Error).message,true);}
+  const basePitch = Number(input('edit-pitch').value), step = getTrackerStep(), sound = input('edit-sound').value;
+  try {
+    stop();
+    const hitAtCursor = pattern.events.find(e => {
+      const n = transfer.notes.find(note => note.id === e.id);
+      return n && n.row === rowAnchor && n.lane === cursorLane;
+    });
+    const changed = writeEntry(!!hitAtCursor, basePitch + semitone);
+    if (changed) {
+      void auditionRole(cursorLane);
+      rowAnchor = Math.min(transfer.timing.lines - 1, rowAnchor + step);
+      editor.state.selection = emptySelection();
+    }
+    refresh();
+    input('edit-pitch').value = String(basePitch);
+    syncHitPitch();
+    input('edit-sound').value = sound;
+    el('grid').focus();
+    status(changed ? 'Keyboard note entered.' : 'The target is locked.');
+  } catch (e) { status((e as Error).message, true); }
 });
-
 
 function snapshot(){
   if(kitPanel.busy)throw Error('Wait for the sample to finish loading.');
@@ -520,3 +709,213 @@ el('show-arrangement').onclick=()=>{el<HTMLDetailsElement>('arranger').open=true
 el('back-to-pattern').onclick=()=>{el('grid').scrollIntoView({behavior:'smooth',block:'start'});el('grid').focus({preventScroll:true});};
 
 document.querySelector('.tracker-edit')!.addEventListener('keydown',event=>{const e=event as KeyboardEvent;if((e.target as HTMLElement).id==='edit-pitch-slider')return;if(e.key==='Escape'){e.preventDefault();revertHitDraft();}else if(e.key==='Enter'&&(e.target as HTMLElement).matches('input[type=number]')&&!input('hit-apply').disabled){e.preventDefault();el('hit-apply').click();}});
+
+// ============================================================================
+// IN-PLACE TRACKER CONTROLLER & LIVE WORKFLOW
+// Quick toolbar actions, step-advance, tactile transposition & rolls
+// ============================================================================
+
+function initTrackerLiveBar() {
+  const stepSelect = document.getElementById('tracker-step-select') as HTMLSelectElement | null;
+  if (stepSelect) {
+    stepSelect.addEventListener('change', () => {
+      input('edit-step').value = stepSelect.value;
+      el('grid').focus();
+    });
+    input('edit-step').addEventListener('input', () => {
+      stepSelect.value = input('edit-step').value;
+    });
+  }
+
+  const quickInsert = document.getElementById('quick-insert-hit');
+  if (quickInsert) {
+    quickInsert.onclick = () => {
+      const step = getTrackerStep();
+      const hitAtCursor = pattern.events.find(e => {
+        const n = transfer.notes.find(note => note.id === e.id);
+        return n && n.row === rowAnchor && n.lane === cursorLane;
+      });
+      try {
+        stop();
+        const changed = writeEntry(!!hitAtCursor);
+        if (changed) {
+          void auditionRole(cursorLane);
+          rowAnchor = Math.min(transfer.timing.lines - 1, rowAnchor + step);
+          editor.state.selection = emptySelection();
+        }
+        refresh();
+        el('grid').focus();
+        status(changed ? 'Inserted note at cursor.' : 'The target is locked.');
+      } catch (e) {
+        status((e as Error).message, true);
+      }
+    };
+  }
+
+  const quickDelete = document.getElementById('quick-delete-hit');
+  if (quickDelete) {
+    quickDelete.onclick = () => {
+      if (editor.state.selection.ids.length === 0) {
+        const hitAtCursor = pattern.events.find(e => {
+          const n = transfer.notes.find(note => note.id === e.id);
+          return n && n.row === rowAnchor && n.lane === cursorLane;
+        });
+        if (hitAtCursor) {
+          editor.state.selection = {ids: [hitAtCursor.id], rows: null}; edit(() => editor.deleteSelected(), 'Deleted hit at row ' + rowAnchor + '.');
+          el('grid').focus();
+          return;
+        }
+      }
+      edit(() => editor.deleteSelected(), 'Deleted unlocked hits.');
+      el('grid').focus();
+    };
+  }
+
+  const quickGhost = document.getElementById('quick-ghost-hit');
+  if (quickGhost) {
+    quickGhost.onclick = () => {
+      const hitAtCursor = pattern.events.find(e => {
+        const n = transfer.notes.find(note => note.id === e.id);
+        return n && n.row === rowAnchor && n.lane === cursorLane;
+      });
+      if (hitAtCursor && !locked(editor.state, hitAtCursor)) {
+        editor.write({ ...hitAtCursor, ghost: !hitAtCursor.ghost }, hitAtCursor.id);
+        refresh();
+        el('grid').focus();
+        status(hitAtCursor.ghost ? 'Removed ghost flag.' : 'Converted to ghost note.');
+      } else {
+        status('Move cursor to an editable hit to toggle ghost.', true);
+      }
+    };
+  }
+
+  const quickRoll2 = document.getElementById('quick-roll-2');
+  if (quickRoll2) {
+    quickRoll2.onclick = () => {
+      const hitAtCursor = pattern.events.find(e => {
+        const n = transfer.notes.find(note => note.id === e.id);
+        return n && n.row === rowAnchor && n.lane === cursorLane;
+      });
+      if (hitAtCursor && !locked(editor.state, hitAtCursor)) {
+        const nextRatchets = hitAtCursor.ratchets === 2 ? 1 : 2;
+        editor.write({ ...hitAtCursor, ratchets: nextRatchets }, hitAtCursor.id);
+        refresh();
+        el('grid').focus();
+        status(nextRatchets === 2 ? 'Set 2 ratchets (roll ×2).' : 'Cleared roll ratchets.');
+      } else {
+        status('Move cursor to an editable hit to set ratchets.', true);
+      }
+    };
+  }
+
+  const quickRoll4 = document.getElementById('quick-roll-4');
+  if (quickRoll4) {
+    quickRoll4.onclick = () => {
+      const hitAtCursor = pattern.events.find(e => {
+        const n = transfer.notes.find(note => note.id === e.id);
+        return n && n.row === rowAnchor && n.lane === cursorLane;
+      });
+      if (hitAtCursor && !locked(editor.state, hitAtCursor)) {
+        const nextRatchets = hitAtCursor.ratchets === 4 ? 1 : 4;
+        editor.write({ ...hitAtCursor, ratchets: nextRatchets }, hitAtCursor.id);
+        refresh();
+        el('grid').focus();
+        status(nextRatchets === 4 ? 'Set 4 ratchets (roll ×4).' : 'Cleared roll ratchets.');
+      } else {
+        status('Move cursor to an editable hit to set ratchets.', true);
+      }
+    };
+  }
+
+  const shiftPitch = (delta: number) => {
+    const hitAtCursor = pattern.events.find(e => {
+      const n = transfer.notes.find(note => note.id === e.id);
+      return n && n.row === rowAnchor && n.lane === cursorLane;
+    });
+    if (hitAtCursor && !locked(editor.state, hitAtCursor)) {
+      const pitch = (hitAtCursor.pitch ?? 0) + delta;
+      if (pitch >= -48 && pitch <= 48) {
+        editor.write({ ...hitAtCursor, pitch }, hitAtCursor.id);
+        void auditionRole(cursorLane);
+        refresh();
+        el('grid').focus();
+        status(`Pitch transposed to ${pitch > 0 ? '+' : ''}${pitch} st.`);
+      }
+    } else {
+      status('Move cursor to an editable hit to transpose pitch.', true);
+    }
+  };
+
+  const quickPitchUp = document.getElementById('quick-pitch-up');
+  if (quickPitchUp) quickPitchUp.onclick = () => shiftPitch(1);
+  const quickPitchDown = document.getElementById('quick-pitch-down');
+  if (quickPitchDown) quickPitchDown.onclick = () => shiftPitch(-1);
+
+  // Setup tap tempo
+  const tapBtn = document.getElementById('hud-bpm-tap');
+  if (tapBtn) {
+    let tapTimes: number[] = [];
+    tapBtn.addEventListener('click', () => {
+      const now = performance.now();
+      tapTimes = tapTimes.filter(t => now - t < 2500);
+      tapTimes.push(now);
+      if (tapTimes.length >= 2) {
+        let intervalSum = 0;
+        for (let i = 1; i < tapTimes.length; i++) {
+          intervalSum += tapTimes[i]! - tapTimes[i - 1]!;
+        }
+        const avgInterval = intervalSum / (tapTimes.length - 1);
+        if (avgInterval > 0) {
+          const calculatedBpm = Math.max(32, Math.min(300, Math.round((60000 / avgInterval) * 10) / 10));
+          input('bpm').value = calculatedBpm.toFixed(1);
+          input('bpm-slider').value = calculatedBpm.toFixed(1);
+          pattern.settings.bpm = calculatedBpm;
+          syncHud();
+          refresh();
+        }
+      }
+      tapBtn.classList.add('flash');
+      setTimeout(() => tapBtn.classList.remove('flash'), 120);
+    });
+  }
+}
+
+initTrackerLiveBar();
+
+function initSubnavTabs() {
+  const tabTracker = document.getElementById('tab-tracker');
+  const tabSounds = document.getElementById('tab-sounds');
+  const tabArranger = document.getElementById('tab-arranger');
+
+  const setTabActive = (activeBtn: HTMLElement | null) => {
+    [tabTracker, tabSounds, tabArranger].forEach(btn => {
+      if (btn) btn.classList.toggle('active', btn === activeBtn);
+    });
+  };
+
+  if (tabTracker) {
+    tabTracker.onclick = () => {
+      setTabActive(tabTracker);
+      el('grid').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      el('grid').focus();
+    };
+  }
+
+  if (tabSounds) {
+    tabSounds.onclick = () => {
+      setTabActive(tabSounds);
+      el<HTMLDetailsElement>('sounds-panel').open = true;
+      el('sounds-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    };
+  }
+
+  if (tabArranger) {
+    tabArranger.onclick = () => {
+      setTabActive(tabArranger);
+      el<HTMLDetailsElement>('arranger').open = true;
+      el('arranger').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    };
+  }
+}
+
+initSubnavTabs();

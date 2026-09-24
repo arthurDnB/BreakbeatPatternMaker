@@ -190,6 +190,84 @@ export const LIBRARY = [
     "role": "percussion",
     "name": "Acoustic shaker",
     "path": "/public/samples/acoustic-shaker.wav"
+  },
+  {
+    "id": "acoustic-kick-punch",
+    "role": "kick",
+    "name": "Acoustic bass drum — 24\" dampened",
+    "path": "/public/samples/acoustic-kick-punch.wav"
+  },
+  {
+    "id": "acoustic-kick-clean",
+    "role": "kick",
+    "name": "Acoustic bass drum — 20\" clean",
+    "path": "/public/samples/acoustic-kick-clean.wav"
+  },
+  {
+    "id": "acoustic-snare-pearl",
+    "role": "snare",
+    "name": "Pearl aluminum snare — 14x8",
+    "path": "/public/samples/acoustic-snare-pearl.wav"
+  },
+  {
+    "id": "acoustic-snare-piccolo",
+    "role": "snare",
+    "name": "Acoustic piccolo snare — 12x5",
+    "path": "/public/samples/acoustic-snare-piccolo.wav"
+  },
+  {
+    "id": "acoustic-snare-fat",
+    "role": "snare",
+    "name": "Acoustic deep snare — 16x7",
+    "path": "/public/samples/acoustic-snare-fat.wav"
+  },
+  {
+    "id": "acoustic-snare-crack",
+    "role": "snare",
+    "name": "Acoustic snappy snare — 10x6",
+    "path": "/public/samples/acoustic-snare-crack.wav"
+  },
+  {
+    "id": "acoustic-hat-tight",
+    "role": "hat",
+    "name": "Acoustic tight hat",
+    "path": "/public/samples/acoustic-hat-tight.wav"
+  },
+  {
+    "id": "acoustic-hat-closed",
+    "role": "hat",
+    "name": "Acoustic natural closed hat",
+    "path": "/public/samples/acoustic-hat-closed.wav"
+  },
+  {
+    "id": "acoustic-hat-open-brd",
+    "role": "hat",
+    "name": "Acoustic open hat — natural decay",
+    "path": "/public/samples/acoustic-hat-open-brd.wav"
+  },
+  {
+    "id": "acoustic-crash-17",
+    "role": "percussion",
+    "name": "Acoustic crash cymbal — 17\"",
+    "path": "/public/samples/acoustic-crash-17.wav"
+  },
+  {
+    "id": "acoustic-ride-22",
+    "role": "percussion",
+    "name": "Acoustic ride cymbal — 22\"",
+    "path": "/public/samples/acoustic-ride-22.wav"
+  },
+  {
+    "id": "acoustic-tom-rack",
+    "role": "percussion",
+    "name": "Acoustic rack tom — 14\"",
+    "path": "/public/samples/acoustic-tom-rack.wav"
+  },
+  {
+    "id": "acoustic-tom-floor",
+    "role": "percussion",
+    "name": "Acoustic floor tom — 18\"",
+    "path": "/public/samples/acoustic-tom-floor.wav"
   }
 ] as const;
 
@@ -198,19 +276,62 @@ export interface KitPreset {
   name: string;
   description: string;
   slots: Record<'kick'|'snare'|'hat'|'percussion', string>;
+  levels?: Partial<Record<'kick'|'snare'|'hat'|'percussion', number>>;
+  decays?: Partial<Record<'kick'|'snare'|'hat'|'percussion', number>>;
 }
 
 export const KIT_PRESETS: KitPreset[] = [
   {
-    id: 'acoustic-break',
-    name: '🥁 Acoustic Break (Jungle / DnB / Breaks)',
-    description: 'Punchy acoustic kick, crisp rimshot crack, tight hat, rolling shaker',
+    id: 'studio-acoustic',
+    name: '🥁 Studio Drum Kit (Pearl & Vintage Acoustic)',
+    description: '24" dampened punch kick, Pearl 14x8 aluminum snare, tight hi-hat, 17" crash cymbal',
     slots: {
-      kick: 'acoustic-kick-2',
-      snare: 'acoustic-rimshot',
-      hat: 'acoustic-hat',
-      percussion: 'acoustic-shaker',
-    }
+      kick: 'acoustic-kick-punch',
+      snare: 'acoustic-snare-pearl',
+      hat: 'acoustic-hat-tight',
+      percussion: 'acoustic-crash-17',
+    },
+    levels: {snare: 0.85, percussion: 0.70},
+    decays: {snare: 0.75, percussion: 0.20},
+  },
+  {
+    id: 'acoustic-break',
+    name: '⚡ Jungle & Breakbeat (Piccolo Snare & Ride)',
+    description: 'Punchy 24" kick, crisp 12x5 piccolo jungle snare, tight hat, 22" vintage ride cymbal',
+    slots: {
+      kick: 'acoustic-kick-punch',
+      snare: 'acoustic-snare-piccolo',
+      hat: 'acoustic-hat-tight',
+      percussion: 'acoustic-ride-22',
+    },
+    levels: {snare: 0.80, percussion: 0.65},
+    decays: {snare: 0.50, percussion: 0.15},
+  },
+  {
+    id: 'lofi-soul',
+    name: '🍂 Boom Bap & Lo-Fi (Deep 16x7 Snare & 18" Tom)',
+    description: 'Warm 20" clean kick, 16x7 deep wood snare crack, natural closed hat, 18" floor tom',
+    slots: {
+      kick: 'acoustic-kick-clean',
+      snare: 'acoustic-snare-fat',
+      hat: 'acoustic-hat-closed',
+      percussion: 'acoustic-tom-floor',
+    },
+    levels: {snare: 0.82},
+    decays: {snare: 0.60},
+  },
+  {
+    id: 'uk-garage',
+    name: '🏙️ UK Garage & 2-Step (Crack Snare & Rim)',
+    description: 'Punchy acoustic kick, crisp 10x6 crack snare, tight hat, 808 rim',
+    slots: {
+      kick: 'acoustic-kick-punch',
+      snare: 'acoustic-snare-crack',
+      hat: 'acoustic-hat-tight',
+      percussion: '808-rim',
+    },
+    levels: {snare: 0.78},
+    decays: {snare: 0.40},
   },
   {
     id: 'trap-808',
@@ -245,28 +366,6 @@ export const KIT_PRESETS: KitPreset[] = [
       percussion: '808-rim',
     }
   },
-  {
-    id: 'lofi-soul',
-    name: '🍂 Lo-Fi Soul & BoomBap (Chill / Hip-Hop)',
-    description: 'Warm acoustic kick-2, tight rimshot crack, pedal hat, shaker',
-    slots: {
-      kick: 'acoustic-kick-2',
-      snare: 'acoustic-rimshot',
-      hat: 'acoustic-pedalhat',
-      percussion: 'acoustic-shaker',
-    }
-  },
-  {
-    id: 'uk-garage',
-    name: '🏙️ UK Garage & 2-Step (Garage / Dubstep)',
-    description: 'Punchy acoustic kick, crisp firm snare, short open hat, 808 rim',
-    slots: {
-      kick: 'acoustic-kick-2',
-      snare: 'acoustic-snare',
-      hat: '808-openhat-short',
-      percussion: '808-rim',
-    }
-  },
 ];
 
 export const GENRE_KITS: Record<string, string> = {
@@ -275,7 +374,7 @@ export const GENRE_KITS: Record<string, string> = {
   raggajungle: 'acoustic-break',
   atmosphericjungle: 'acoustic-break',
   footworkjungle: 'acoustic-break',
-  breaks: 'acoustic-break',
+  breaks: 'studio-acoustic',
   trap: 'trap-808',
   drill: 'trap-808',
   rap: 'trap-808',
@@ -284,7 +383,7 @@ export const GENRE_KITS: Record<string, string> = {
   hardcore: 'hardcore-rave',
   breakbeathardcore: 'hardcore-rave',
   idm: 'lofi-soul',
-  experimental: 'lofi-soul',
+  experimental: 'studio-acoustic',
   bigbeat: 'electronic-dance',
   electrobreaks: 'electronic-dance',
   nuskoolbreaks: 'electronic-dance',

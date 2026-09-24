@@ -20,5 +20,5 @@ try{
  await page.selectOption('#kit-choice-kick','synth');await page.setInputFiles('#project-open',{name:'restored.bbproject',mimeType:'application/json',buffer:project});await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('Project opened'));assert.deepEqual(await download('#export-wav'),audio);
  await page.setInputFiles('#project-open',{name:'bad.bbproject',mimeType:'application/json',buffer:Buffer.from('{}')});await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('Could not open'));assert.deepEqual(await download('#export-wav'),audio);
  await page.screenshot({path:'test-results/single-shot-workspace.png',fullPage:true});await page.setViewportSize({width:390,height:900});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
- assert.deepEqual(errors,[]);console.log('Workspace: all 32 library decodes, filters/locks/fills, mute, audition, embedded audio project roundtrip, autosave reload, invalid-project recovery and mobile layout passed.');
+ assert.deepEqual(errors,[]);console.log('Workspace: all 45 library decodes, filters/locks/fills, mute, audition, embedded audio project roundtrip, autosave reload, invalid-project recovery and mobile layout passed.');
 }finally{await browser.close();}

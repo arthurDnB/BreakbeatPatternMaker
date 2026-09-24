@@ -5,13 +5,22 @@ import {defaultEffects,validateEffects,type Effects} from './effects.js';
 import {LIBRARY,KIT_PRESETS} from './library.js';
 
 export type DrumKit=Partial<Record<Role,SliceRef>>;
-export type KitSlot={choice:string;uploadId?:string;assetId?:string;include:boolean;mute:boolean;level:number;tune:number;reverse?:boolean;effects?:Effects};
+export type KitSlot={choice:string;uploadId?:string;assetId?:string;include:boolean;mute:boolean;level:number;tune:number;decay?:number;reverse?:boolean;effects?:Effects};
 export type KitState=Record<Role,KitSlot>;
 export function defaultKitState():KitState{return Object.fromEntries(ROLES.map(r=>[r,{choice:'synth',include:true,mute:false,level:1,tune:0,reverse:false,effects:defaultEffects()}])) as KitState;}
 export function withDrumKit(pattern:Pattern,kit:DrumKit,mix?:KitState):Pattern{
   return {...pattern,events:pattern.events.filter(h=>!mix?.[h.role].mute).map(hit=>{
     const result=hit.slice||!kit[hit.role]?{...hit}:{...hit,slice:{...kit[hit.role]!}};
-    if(mix){result.reverse=!!hit.reverse||!!mix[hit.role].reverse;result.gain*=mix[hit.role].level;result.pitch=Math.max(-48,Math.min(48,(hit.pitch??0)+mix[hit.role].tune));}return result;
+    if(mix){
+      result.reverse=!!hit.reverse||!!mix[hit.role].reverse;
+      result.gain*=mix[hit.role].level;
+      result.pitch=Math.max(-48,Math.min(48,(hit.pitch??0)+mix[hit.role].tune));
+      const slotDecay=mix[hit.role].decay;
+      if(slotDecay!==undefined&&slotDecay<1&&hit.decay===undefined){
+        result.decay=slotDecay;
+      }
+    }
+    return result;
   })};
 }
 export function setupDrumKit(assets:Map<string,AudioAsset>,changed:()=>void,audition:(role:Role)=>Promise<void>){
@@ -40,7 +49,10 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:()=>void,audi
     const routing=document.createElement('div');routing.className='sound-routing';routing.append(include.l,mute.l);
     const gainLabel=makeLabel('Level',level),gainValue=document.createElement('output');gainValue.id='kit-level-value-'+role;gainValue.htmlFor=level.id;gainLabel.prepend(gainValue);
     const shape=document.createElement('details');shape.className='tone-panel';shape.id='kit-shape-'+role;const shapeSummary=document.createElement('summary');shapeSummary.textContent='Pitch & playback';shape.append(shapeSummary);
-    const reverse=checkbox('kit-reverse-'+role,'Reverse all hits in this lane');shape.append(makeLabel('Lane pitch (semitones)',tune),reverse.l);
+    const reverse=checkbox('kit-reverse-'+role,'Reverse all hits in this lane');
+    const decay=document.createElement('input');decay.type='range';decay.min='0.05';decay.max='1';decay.step='0.01';decay.id='kit-decay-'+role;
+    const decayLabel=makeLabel('Decay / Tightness',decay),decayValue=document.createElement('output');decayValue.id='kit-decay-value-'+role;decayValue.htmlFor=decay.id;decayLabel.prepend(decayValue);
+    shape.append(makeLabel('Lane pitch (semitones)',tune),decayLabel,reverse.l);
     card.append(heading,makeLabel('Sound',choice),info,actions,routing,gainLabel,shape);root.append(card);
     const fx=document.createElement('details');fx.className='effects-panel';fx.id='effects-'+role;const summary=document.createElement('summary');summary.textContent='Effects';fx.append(summary);
     const bypass=checkbox('fx-bypass-'+role,'Bypass effects');fx.append(bypass.l);
@@ -50,6 +62,7 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:()=>void,audi
       field.onchange=()=>{const next={...(mix[role].effects??defaultEffects()),[key]:Number(field.value)};try{validateEffects(next);mix[role].effects=next;update();changed();}catch(e){update();info.textContent=String(e);}};
     }
     card.append(fx);reverse.i.onchange=()=>{mix[role].reverse=reverse.i.checked;update();changed();};
+    decay.oninput=()=>{mix[role].decay=Number(decay.value);update();changed();};
     bypass.i.onchange=()=>{mix[role].effects={...(mix[role].effects??defaultEffects()),bypass:bypass.i.checked};update();changed();};
     let token=0,loading=false;
     const update=()=>{
@@ -58,6 +71,7 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:()=>void,audi
       if(asset)kit[role]={assetId:asset.id,startFrame:0,endFrame:asset.channels[0]!.length,sampleRate:asset.sampleRate,label:asset.name};else delete kit[role];
       reverse.i.checked=!!slot.reverse;const effects=slot.effects??defaultEffects();bypass.i.checked=effects.bypass;for(const [key,field] of effectInputs)field.value=String(effects[key]);
       choice.value=slot.choice;include.i.checked=slot.include;mute.i.checked=slot.mute;level.value=String(slot.level);tune.value=String(slot.tune);
+      decay.value=String(slot.decay??1);decayValue.textContent=(slot.decay!==undefined&&slot.decay<1)?Math.round(slot.decay*100)+'% (Tight)':'100% (Natural)';
       (choice.querySelector('option[value="upload"]') as HTMLOptionElement).disabled=!slot.uploadId;
       clear.disabled=!slot.uploadId;clear.hidden=!slot.uploadId;upload.textContent=slot.uploadId?'Replace WAV':'Upload WAV';
       (choice.querySelector('option[value="upload"]') as HTMLOptionElement).textContent=slot.uploadId?(assets.get(slot.uploadId)?.name??'My upload'):'Upload a WAV to use here';
@@ -65,9 +79,9 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:()=>void,audi
       const active=[effects.highpass>0?'High-pass':'',effects.lowpass<20000?'Low-pass':'',(effects.resonance??0)>0?'Resonance':'',(effects.punch??0)>0?'Punch':'',effects.drive>0?'Drive':'',effects.mix>0?'Delay':''].filter(Boolean);
       summary.textContent=effects.bypass?'Effects · bypassed':active.length?'Effects · '+active.join(' + '):'Effects · off';
       badge.textContent=slot.mute?'Muted':effects.bypass?'FX bypassed':active.length?'FX on':'Dry';badge.classList.toggle('active',!slot.mute&&!effects.bypass&&active.length>0);badge.title=slot.mute?'Muted in playback and export':summary.textContent;
-      shapeSummary.textContent='Pitch & playback'+(slot.tune?' · '+(slot.tune>0?'+':'')+slot.tune+' st':'')+(slot.reverse?' · Reverse':'');
+      shapeSummary.textContent='Pitch & playback'+(slot.tune?' · '+(slot.tune>0?'+':'')+slot.tune+' st':'')+((slot.decay??1)<1?' · Decay '+Math.round((slot.decay??1)*100)+'%':'')+(slot.reverse?' · Reverse':'');
       card.classList.toggle('audio-muted',slot.mute);card.classList.toggle('generation-off',!slot.include);
-      info.textContent=(asset?asset.name:'Synthesized '+role)+' · '+Math.round(slot.level*100)+'%'+(slot.reverse?' · Reverse':'')+(slot.mute?' · Muted':'');
+      info.textContent=(asset?asset.name:'Synthesized '+role)+' · '+Math.round(slot.level*100)+'%'+((slot.decay??1)<1?' · Decay '+Math.round((slot.decay??1)*100)+'%':'')+(slot.reverse?' · Reverse':'')+(slot.mute?' · Muted':'');
     };
     refreshers.push(update);cancellers.push(()=>{token++;loading=false;});update();
     include.i.onchange=()=>{mix[role].include=include.i.checked;update();changed();};
@@ -75,19 +89,27 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:()=>void,audi
     level.oninput=()=>{mix[role].level=Number(level.value);update();changed();};
     tune.onchange=()=>{const v=Number(tune.value);if(!Number.isInteger(v)||v< -24||v>24){update();return;}mix[role].tune=v;update();changed();};
     async function decode(bytes:ArrayBuffer,name:string,id:string,library=false){
-      const meta=validateWav(bytes);if(meta.duration>10)throw Error('Single hits must be 10 seconds or shorter.');
+      const meta=validateWav(bytes);if(meta.duration>20)throw Error('Single hits must be 20 seconds or shorter.');
       context??=new AudioContext();const decoded=await context.decodeAudioData(bytes);
       let channels=Array.from({length:decoded.numberOfChannels},(_,i)=>decoded.getChannelData(i));
       if(library){
         let peak=0;for(const c of channels)for(const v of c)peak=Math.max(peak,Math.abs(v));
         let first=0;while(first<decoded.length-1&&channels.every(c=>Math.abs(c[first]!)<peak*.005))first++;
         first=Math.max(0,first-Math.round(decoded.sampleRate*.002));
-        const target={kick:.9,snare:.8,hat:.4,percussion:.65}[role],scale=peak?Math.min(4,target/peak):1;
+        const target={kick:.9,snare:.68,hat:.4,percussion:.65}[role],scale=peak?Math.min(4,target/peak):1;
         channels=channels.map(c=>Float32Array.from(c.subarray(first),v=>v*scale));
       }
       const used=[...assets.values()].reduce((n,a)=>n+a.channels.reduce((v,c)=>v+c.byteLength,0),0);
       if(used+channels.reduce((n,c)=>n+c.byteLength,0)>256*1024*1024)throw Error('Session audio limit reached. Save project before refreshing.');
       return {id,name,sampleRate:decoded.sampleRate,channels};
+    }
+    async function fetchSampleBytes(path:string):Promise<ArrayBuffer>{
+      const rel=path.replace(/^\//,'');
+      const urls=[new URL('../../'+rel,import.meta.url).href,'./'+rel,'/'+rel];
+      for(const url of urls){
+        try{const res=await fetch(url);if(res.ok)return await res.arrayBuffer();}catch{}
+      }
+      throw Error('Cannot reach server for sample. Ensure local server is running (npm start).');
     }
     choice.onchange=async()=>{
       const value=choice.value,request=++token;pending++;loading=true;update();info.textContent='Loading sound…';
@@ -96,10 +118,10 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:()=>void,audi
         if(value==='upload'){id=mix[role].uploadId;if(!id||!assets.has(id))throw Error('Upload a WAV first.');}
         else if(value!=='synth'){
           const entry=LIBRARY.find(s=>s.id===value&&s.role===role);if(!entry)throw Error('Unknown library sound.');id='library-'+entry.id;
-          if(!assets.has(id)){const response=await fetch(new URL('../../'+entry.path.replace(/^\//,''),import.meta.url));if(!response.ok)throw Error('Library file unavailable.');const a=await decode(await response.arrayBuffer(),entry.name,id,true);if(request!==token)return;assets.set(id,a);}
+          if(!assets.has(id)){const bytes=await fetchSampleBytes(entry.path);const a=await decode(bytes,entry.name,id,true);if(request!==token)return;assets.set(id,a);}
         }
         if(request!==token)return;mix[role].choice=value;mix[role].assetId=id;update();changed();
-      }catch(e){if(request===token){update();info.textContent=String(e)+' Previous sound kept.';}}finally{pending--;if(request===token){loading=false;play.disabled=false;upload.disabled=false;card.setAttribute('aria-busy','false');}}
+      }catch(e){if(request===token){update();const msg=e instanceof TypeError&&e.message.includes('fetch')?'Server unreachable. Ensure local server is running.':String(e);info.textContent=msg+' Previous sound kept.';}}finally{pending--;if(request===token){loading=false;play.disabled=false;upload.disabled=false;card.setAttribute('aria-busy','false');}}
     };
     file.onchange=async()=>{
       const next=file.files?.[0];file.value='';if(!next)return;const request=++token;pending++;loading=true;update();info.textContent='Loading locally…';
@@ -119,7 +141,11 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:()=>void,audi
     applyPreset: async(presetId:string)=>{
       const preset=KIT_PRESETS.find(p=>p.id===presetId);
       if(!preset) return;
-      for(const r of ROLES){const load=loaders.get(r);if(load)await load(preset.slots[r]);}
+      for(const r of ROLES){
+        if(preset.levels?.[r]!==undefined)mix[r].level=preset.levels[r]!;
+        if(preset.decays?.[r]!==undefined)mix[r].decay=preset.decays[r]!;
+        const load=loaders.get(r);if(load)await load(preset.slots[r]);
+      }
     }
   };
 }
