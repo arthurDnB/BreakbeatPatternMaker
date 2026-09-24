@@ -63,6 +63,14 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-25] - Atmospheric Breakcore Master Anchoring (Antigravity)
+- **Audio Engine Updates (`src/core/groove-v3-profiles.ts`):**
+  - Following deep reference analysis of the uploaded breakcore track (~200 BPM equivalent), completely revamped the `atmosphericbreakcore` genre profile.
+  - Set the core kick anchor to dense Amen-style syncopations: `[0, 6, 10]`, `[0, 3, 10, 14]`, and `[0, 7, 10]`.
+  - Scaled up the default intensity in `src/core/profiles.ts` (`complexity: .85`, `spicy: .8`, `resolution: 64`) to give an immediate chaotic stutter effect out of the box, while retaining `spaciousCall` so it still drops into atmospheric pads occasionally.
+- **Verification:**
+  - `npm.cmd test`: 90/90 passing (determinism unbroken).
+
 ### [2026-09-25] - Default to Audio Engine 3 (Antigravity)
 - **UI and Core Defaults:** Set `groove-v3` as the default engine in `src/core/profiles.ts` and `public/index.html`. 
 - **Tests Updated:** Updated V2-specific determinism tests in `tests/groove.test.mjs` to explicitly request `groove-v2` so they don't break when checking the old output.
