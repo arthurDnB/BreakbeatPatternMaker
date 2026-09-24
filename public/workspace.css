@@ -966,6 +966,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 6px;
 }
 .pattern-bank .grid-heading h2 {
   font-size: 11px;
@@ -973,6 +974,52 @@ input[type=range]::-webkit-slider-thumb:hover {
   letter-spacing: 0.8px;
   color: var(--text-muted);
   margin: 0;
+}
+
+.bank-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.bank-tool-btn {
+  background: #141e2e;
+  border: 1px solid var(--border-card);
+  color: var(--accent-cyan);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  cursor: pointer;
+  height: 20px;
+  line-height: 16px;
+  transition: all 0.12s;
+}
+.bank-tool-btn:hover {
+  background: var(--accent-cyan);
+  color: #05141f;
+}
+
+.slot-del-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-dim);
+  font-size: 10px;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  cursor: pointer;
+  padding: 0;
+  margin-left: auto;
+  transition: all 0.1s;
+}
+.slot-del-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: var(--accent-red);
+  color: var(--accent-red);
 }
 
 .bank-slots {
