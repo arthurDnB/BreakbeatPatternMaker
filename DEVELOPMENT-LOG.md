@@ -63,6 +63,18 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-25] - Spicy Slider Scaling & Articulation Fix (Antigravity)
+* **Rationale & Problem Addressed:**
+  - The "Spicy" slider was not producing the intended musical variations (ratchets, rolls, micro-chops, pitch flutters) at higher values (e.g., 100%) for genres like Liquid DnB.
+  - The budget constraints and location filters in `spice()` were too restrictive, capping the events strictly regardless of the `spicy` percentage and restricting them primarily to beat 4 of specific bars.
+* **Core Changes:**
+  - **`src/core/groove-v3.ts`:**
+    - Redesigned the `spicy` logic in the `spice()` function.
+    - Scaled the `budget` constraints dynamically with the `spicy` slider (from `burstBudget` to `burstBudget * 4`), allowing far more articulations at 100%.
+    - Relaxed location constraints progressively: high `spicy` values now allow gestures anywhere in the phrase rather than strictly on `phraseEnding` or `halfTimePickup`.
+    - Made `chopped` effects available to all genres at very high `spicy` settings (> 0.8), while prioritizing the `experimental` family.
+  - **`tests/ab-spicy.mjs`:** Added a diagnostic A/B test script to verify that a Liquid DnB pattern correctly generates significantly more ratchets and gates at 100% spicy compared to 15%.
+
 ### [2026-09-25] - Audio Engine 3 (Groove v3) Architecture, Strudel Primitives, & Expressive Articulation (Codex & Antigravity)
 * **Rationale & Problem Addressed:**
   - Fast-tempo genres (170–220+ BPM like Atmospheric D&B, Jungle, Breakcore) previously suffered from drum hits being truncated at tracker row edges, making one-shots sound clicky or thin.

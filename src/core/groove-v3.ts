@@ -160,9 +160,27 @@ function spice(events:Hit[],s:Settings,rule:V3Rule,end:number,protectedHits:Hit[
  for(const hit of ranked){
   const bar=Math.floor(hit.baseTick/BAR),local=hit.baseTick%BAR,onset=actual(hit);
   const phraseEnding=local>=PPQ*3,halfTimePickup=(s.genre==='trap'||s.genre==='drill')&&local>=PPQ&&local<PPQ*2;
-  if((!phraseEnding&&!halfTimePickup)||!isResponse(s,bar)||onset<start)continue;
-  if((budget.get(bar)??0)>=Math.max(1,Math.ceil(rule.burstBudget*spicy)))continue;
+  const isResp = isResponse(s, bar);
+  
+  let validLocation = false;
+  if (spicy > 0.8) {
+      validLocation = true; // High spicy: allow anywhere
+  } else if (spicy > 0.5) {
+      validLocation = isResp || phraseEnding || halfTimePickup; 
+  } else if (spicy > 0.2) {
+      validLocation = phraseEnding || halfTimePickup;
+  } else {
+      validLocation = isResp && (phraseEnding || halfTimePickup);
+  }
+
+  if(!validLocation||onset<start)continue;
+  
+  // Budget scales from burstBudget at 0 to ~burstBudget*4 at 1.0
+  const maxBudget = rule.burstBudget + Math.floor(spicy * Math.max(2, rule.burstBudget * 3));
+  if((budget.get(bar)??0)>=maxBudget)continue;
+  
   if(v3Chance(s,'gesture-enabled',hit.id)>.15+spicy*.85)continue;
+  
   const nextEvent=Math.min(end,...events.filter(h=>h.id!==hit.id&&h.role===hit.role&&actual(h)>onset).map(actual));
   const nextAnchor=Math.min(end,...protectedHits.filter(h=>h.anchor&&actual(h)>onset).map(actual));
   const available=Math.floor(Math.min(nextEvent,nextAnchor,end)-onset);
@@ -170,13 +188,13 @@ function spice(events:Hit[],s:Settings,rule:V3Rule,end:number,protectedHits:Hit[
   const duration=Math.min(wanted,available);
   // An ornament needs at least a 1/32-note span; do not generate unresolved click clusters.
   if(duration<PPQ/8)continue;
-  const choices=(spicy<.3?[2]:spicy<.65?[2,3]:[2,3,4,...(rule.maxRepeats>=6?[6]:[])]).filter(x=>x<=rule.maxRepeats);
+  const choices=(spicy<.3?[2]:spicy<.65?[2,3]:[2,3,4,...(rule.maxRepeats>=6||spicy>0.85?[6]:[])]).filter(x=>x<=rule.maxRepeats || (spicy>0.85 && x<=6));
   const count=v3Pick(choices,s,'gesture-count',hit.id);
   const rising=v3Chance(s,'gesture-curve',hit.id)>.48;
   const pitched=spicy>.4&&v3Chance(s,'gesture-pitch',hit.id)<spicy*.6;
   const pitch=pitched?v3Pick(rule.pitchSteps,s,'gesture-interval',hit.id):0;
-  const reverse=spicy>.5&&v3Chance(s,'gesture-reverse',hit.id)<rule.reverseChance*spicy;
-  const chopped=spicy>.7&&rule.family==='experimental'&&v3Chance(s,'gesture-chop',hit.id)<.35;
+  const reverse=spicy>.5&&v3Chance(s,'gesture-reverse',hit.id)<Math.max(rule.reverseChance, 0.1)*spicy;
+  const chopped=spicy>.7&&(rule.family==='experimental'||spicy>0.8)&&v3Chance(s,'gesture-chop',hit.id)<(spicy>0.9?.45:.25);
   hit.ratchets=count;
   hit.articulation={durationTicks:duration,mode:chopped?'chop':'natural',...(hit.role==='hat'?{chokeGroup:'hat' as const}:{}),
    repeats:Array.from({length:count},(_,i)=>({gain:rounded(rising?.55+.45*i/(count-1):1-.55*i/(count-1)),
