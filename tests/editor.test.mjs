@@ -79,3 +79,20 @@ test('scramble shuffles timing/slices while strictly preserving anchors and lock
  assert.deepEqual(e.state.pattern, before);
  assert.ok(e.redo());
 });
+
+test('cell selections include empty positions while mutation stays limited to selected hits',()=>{
+ const e=create(),hit=e.state.pattern.events.find(h=>!h.anchor);assert.ok(hit);
+ const n=compile(e.state.pattern).notes.find(note=>note.id===hit.id);
+ e.state.selection={ids:[],rows:null,cells:[{row:n.row,lane:n.lane},{row:n.row+1,lane:'hat'}]};
+ const chosen=selectedIds(e.state);assert.deepEqual([...chosen],[hit.id]);
+ const before=structuredClone(e.state.pattern);assert.ok(e.mutate());
+ for(const old of before.events)if(old.id!==hit.id)assert.deepEqual(e.state.pattern.events.find(next=>next.id===old.id),old);
+ assert.doesNotThrow(()=>compile(e.state.pattern));
+});
+
+test('top transport tempo changes are undoable and validated',()=>{
+ const e=create(),before=e.state.pattern.settings.bpm;
+ assert.ok(e.setTempo(132.5));assert.equal(e.state.pattern.settings.bpm,132.5);assert.equal(e.undoLabel,'Change BPM');
+ assert.ok(e.undo());assert.equal(e.state.pattern.settings.bpm,before);assert.ok(e.redo());assert.equal(e.state.pattern.settings.bpm,132.5);
+ assert.throws(()=>e.setTempo(31),/Tempo/);assert.throws(()=>e.setTempo(NaN),/Tempo/);
+});

@@ -124,6 +124,7 @@ export function validateEditor(e: EditorState) {
   if (rows !== null && (!Array.isArray(rows) || rows.length !== 2 || rows.some(x => !Number.isInteger(x) || x < 0) || rows[0] > rows[1] || rows[1] >= e.pattern.settings.bars * e.pattern.settings.resolution)) {
     throw Error('Invalid slot selection.');
   }
+  if (e.selection.cells !== undefined && (!Array.isArray(e.selection.cells) || e.selection.cells.some(c => !c || !Number.isInteger(c.row) || c.row < 0 || c.row >= e.pattern.settings.bars * e.pattern.settings.resolution || !['kick','snare','hat','percussion'].includes(c.lane)))) throw Error('Invalid cell selection.');
 }
 
 export function arrange(bank: Bank, bpm: number = bank.songBpm) {

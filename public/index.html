@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Breakbeat Pattern Maker</title><link rel="stylesheet" href="./public/style.css?v=0.3.1-oled"><link rel="stylesheet" href="./public/workspace.css?v=0.3.1-oled"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Breakbeat Pattern Maker</title><link rel="stylesheet" href="./public/style.css?v=0.3.2-tracker"><link rel="stylesheet" href="./public/workspace.css?v=0.3.2-tracker"></head>
 <body><main class="daw-chassis">
 
 <!-- Coherent Modern Studio Title Bar -->
@@ -56,7 +56,7 @@
   <div class="toolbar-group hud-display">
     <div class="hud-item hud-bpm-box">
       <span class="hud-tag">TEMPO</span>
-      <span id="hud-bpm-val" class="hud-digits">165.0</span>
+      <input id="hud-bpm-val" class="hud-digits hud-bpm-input" type="number" min="32" max="999" step="0.1" value="165" aria-label="Tempo BPM" title="Edit tempo">
       <span class="hud-unit">BPM</span>
       <button id="hud-bpm-tap" class="hud-tap-btn" title="Tap tempo">TAP</button>
     </div>
@@ -389,4 +389,4 @@
   </div>
   <p class="footer-note" hidden>Single-shot tracker · Audio stays local. Save project includes your samples and settings; autosave restores your latest workspace on this browser. WAV includes tails; muted lanes are excluded. Pitch repitches the sound. MP3 export remains planned.</p>
 </footer>
-</main><script type="module" src="./dist/web.js?v=0.3.1-oled"></script></body></html>
+</main><script type="module" src="./dist/web.js?v=0.3.2-tracker"></script></body></html>

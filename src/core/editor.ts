@@ -7,7 +7,8 @@ import {compile} from './compile.js';
 import {random} from './random.js';
 import {PPQ, ROLES, type Pattern, type Role, type Hit} from './model.js';
 
-export interface Selection {ids: string[]; rows: [number, number] | null}
+export interface CellPosition {row:number;lane:Role}
+export interface Selection {ids: string[]; rows: [number, number] | null; cells?:CellPosition[]}
 export interface EditorState {pattern: Pattern; lockedIds: string[]; lockedRoles: Role[]; selection: Selection; revision: number}
 const copy = <T>(v:T):T => structuredClone(v);
 export const emptySelection = ():Selection => ({ids:[],rows:null});
@@ -15,6 +16,7 @@ export function locked(state:EditorState, hit:Pattern['events'][number]):boolean
   return state.lockedIds.includes(hit.id)||state.lockedRoles.includes(hit.role);
 }
 export function selectedIds(state:EditorState):Set<string> {
+  if(state.selection.cells?.length){const cells=new Set(state.selection.cells.map(c=>`${c.row}:${c.lane}`));return new Set(compile(state.pattern).notes.filter(n=>cells.has(`${n.row}:${n.lane}`)).map(n=>n.id));}
   if(!state.selection.rows)return new Set(state.selection.ids);
   const [start,end]=state.selection.rows;
   return new Set(compile(state.pattern).notes.filter(n=>n.row>=start&&n.row<=end).map(n=>n.id));
@@ -34,6 +36,7 @@ export class Editor {
   }
   undo(){const item=this.past.pop();if(!item)return false;this.future.push({state:copy(this.state),label:item.label});this.state=item.state;return true;}
   redo(){const item=this.future.pop();if(!item)return false;this.past.push({state:copy(this.state),label:item.label});this.state=item.state;return true;}
+  setTempo(bpm:number){if(!Number.isFinite(bpm)||bpm<32||bpm>999)throw Error('Tempo must be between 32 and 999 BPM.');const next=copy(this.state);next.pattern.settings.bpm=bpm;next.revision++;return this.commit(next,'Change BPM');}
   restore(saved:EditorState){const next=copy(saved);next.selection=emptySelection();return this.commit(next,'Restore pattern history');}
   unlockHit(id:string){const next=copy(this.state),hit=next.pattern.events.find(h=>h.id===id);if(!hit)return false;next.lockedIds=next.lockedIds.filter(x=>x!==id);next.lockedRoles=next.lockedRoles.filter(r=>r!==hit.role);return this.commit(next,'Unlock hit and lane');}
   toggleRole(role:Role){const next=copy(this.state);next.lockedRoles=next.lockedRoles.includes(role)?next.lockedRoles.filter(r=>r!==role):[...next.lockedRoles,role];return this.commit(next,`Toggle ${role} lock`);}
@@ -80,7 +83,7 @@ export class Editor {
   }
   mutate(){
     const next=copy(this.state),scope=selectedIds(next);
-    const scoped=next.selection.rows!==null||next.selection.ids.length>0;
+    const scoped=next.selection.rows!==null||next.selection.ids.length>0||!!next.selection.cells?.length;
     const eligible=next.pattern.events.filter(h=>!h.anchor&&!locked(next,h)&&(!scoped||scope.has(h.id)));
     if(!eligible.length)return false;
     const rng=random(next.pattern.settings.seed,`mutate:${next.revision}`);
@@ -111,7 +114,7 @@ export class Editor {
   }
   scramble(){
     const next=copy(this.state),scope=selectedIds(next);
-    const scoped=next.selection.rows!==null||next.selection.ids.length>0;
+    const scoped=next.selection.rows!==null||next.selection.ids.length>0||!!next.selection.cells?.length;
     const eligible=next.pattern.events.filter(h=>!h.anchor&&!locked(next,h)&&(!scoped||scope.has(h.id)));
     if(eligible.length<2)return false;
     const rng=random(next.pattern.settings.seed,`scramble:${next.revision}`);

@@ -26,7 +26,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.3.0-alpha`
-* **Test Status:** 121 / 121 unit tests passing (`npm.cmd test`).
+* **Test Status:** 123 / 123 unit tests passing (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -67,6 +67,11 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-09-25] - Tracker Cell Navigation, Audition and Editable Tempo (Codex)
+- **Tracker editing (`src/core/editor.ts`, `src/core/bank.ts`, `src/web.ts`):** Added validated cell-coordinate selection across populated and empty cells, precise selected-hit targeting for delete/lock/mutate/scramble, arrow movement, Shift range extension and Ctrl/Cmd cell toggles. Populated-cell clicks audition the selected hit through the active kit/effects; empty cells continue auditioning their lane sound.
+- **Transport tempo (`public/index.html`, `public/workspace.css`, `src/web.ts`):** Made the top BPM display editable. Pattern target changes use editor history; Song target changes use arrangement history. Tap tempo now follows the same undoable song tempo path.
+- **Documentation and verification (`README.md`, `PROJECT-SCOPE.md`, `scripts/site-browser-smoke.mjs`, `tests/editor.test.mjs`):** `npm.cmd test` passes 123/123. `npm.cmd run test:site` covers mixed cell selection, audition, arrow navigation, pattern/song tempo edits and Undo/Redo on both root and GitHub Pages paths.
 
 ### [2026-09-25] - OLED Black Theme and Animated Play Control (Codex)
 - **Theme (`public/style.css`, `public/workspace.css`):** Changed the canvas to pure black and recolored major panels, fields, and tracker surfaces to near-black layers with neutral borders.
