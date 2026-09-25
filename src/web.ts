@@ -18,6 +18,7 @@ import {compile,serialize} from './core/compile.js';
 import {ROLES,hex,noteName,type Hit,type Role,type Genre,type BreakStyle,type Pattern,type Transfer} from './core/model.js';
 import {Editor,emptySelection,locked,selectedIds} from './core/editor.js';
 import {defaultEffects,type Effects} from './audio/effects.js';
+import {ArrangementHistory} from './core/arrangement-history.js';
 
 
 const el=<T extends HTMLElement>(id:string)=>document.getElementById(id) as T;
@@ -25,6 +26,7 @@ const input=(id:string)=>el<HTMLInputElement>(id);
 let pattern:Pattern,transfer:Transfer;
 let editor:Editor;
 let bank:Bank|undefined,pendingSlot:number|undefined;
+let arrangementHistory:ArrangementHistory|undefined;
 let draggedStep:number|undefined;
 let mode:'pattern'|'arrangement'|undefined;
 const slotEditors=new Map<number,Editor>();
@@ -398,7 +400,10 @@ async function play(){
   }
  };schedule();timer=setInterval(schedule,25);
 }
-function stashSlot(){if(!editor)return;bank??=newBank(editor.state.pattern);bank.slots[bank.active]!.editor=structuredClone(editor.state);slotEditors.set(bank.active,editor);}
+function ensureArrangementHistory(){if(!bank&&editor)bank=newBank(editor.state.pattern);if(bank&&!arrangementHistory)arrangementHistory=new ArrangementHistory(bank);if(arrangementHistory)bank=arrangementHistory.bank;return arrangementHistory;}
+function stashSlot(){if(!editor)return;const history=ensureArrangementHistory();if(!history||!bank)return;bank.slots[bank.active]!.editor=structuredClone(editor.state);slotEditors.set(bank.active,editor);}
+function arrangementMutation(label:string,mutate:(b:Bank)=>void){const history=ensureArrangementHistory();if(!history)return false;stashSlot();const changed=history.execute(mutate,label);bank=history.bank;if(changed)slotEditors.clear();return changed;}
+function arrangementHistorySync(message:string){if(!bank)return;slotEditors.clear();const index=bank.active;editor=new Editor(bank.slots[index]!.editor!.pattern);editor.state=structuredClone(bank.slots[index]!.editor!);syncControls();refresh();renderBank();scheduleSave();status(message);}
 function activateSlot(index:number){stashSlot();bank!.active=index;editor=slotEditors.get(index)??new Editor(bank!.slots[index]!.editor!.pattern);if(!slotEditors.has(index))editor.state=structuredClone(bank!.slots[index]!.editor!);rowAnchor=0;syncControls();refresh();}
 function chooseSlot(index:number){if(index===bank!.active){pendingSlot=undefined;return;}if(mode==='pattern'){stashSlot();pendingSlot=index;el('bank-status').textContent='Queued '+bank!.slots[index]!.name+' - next pattern boundary';return;}stop();activateSlot(index);}
 function renderBank(){if(!bank)return;const host=el('bank-slots');host.replaceChildren();
@@ -406,20 +411,20 @@ function renderBank(){if(!bank)return;const host=el('bank-slots');host.replaceCh
  if(heading && !document.getElementById('bank-toolbar')){
   const tb=document.createElement('div');tb.id='bank-toolbar';tb.className='bank-toolbar';
   const addBtn=document.createElement('button');addBtn.id='bank-add-slot';addBtn.className='bank-tool-btn';addBtn.textContent='+ New';addBtn.title='Add blank pattern slot';
-  addBtn.onclick=()=>{stop();stashSlot();const newIdx=addPatternSlot(bank!,undefined,null);slotEditors.delete(newIdx);renderBank();scheduleSave();status('Added new pattern slot.');};
+  addBtn.onclick=()=>{stop();if(arrangementMutation('Add pattern',b=>addPatternSlot(b))){renderBank();scheduleSave();status('Added new pattern slot.');}};
   const dupBtn=document.createElement('button');dupBtn.id='bank-dup-slot';dupBtn.className='bank-tool-btn';dupBtn.textContent='⧉ Dup';dupBtn.title='Duplicate active pattern';
-  dupBtn.onclick=()=>{stop();stashSlot();const newIdx=duplicatePatternSlot(bank!,bank!.active);slotEditors.delete(newIdx);activateSlot(newIdx);renderBank();scheduleSave();status('Duplicated active pattern.');};
+  dupBtn.onclick=()=>{stop();const source=bank!.active;if(arrangementMutation('Duplicate pattern',b=>duplicatePatternSlot(b,source))){bank=arrangementHistory!.bank;activateSlot(bank.slots.length-1);renderBank();scheduleSave();status('Duplicated active pattern.');}};
   tb.append(addBtn,dupBtn);heading.append(tb);
  }
  bank.slots.forEach((slot,i)=>{const card=document.createElement('div');card.className='bank-slot'+(bank!.active===i?' active':'');
   const label=slotLabel(i);
   const title=document.createElement('strong');title.textContent=label+(bank!.active===i?' - Editing':'');card.append(title);
-  const name=document.createElement('input');name.value=slot.name;name.maxLength=40;name.setAttribute('aria-label','Slot '+label+' name');name.onchange=()=>{slot.name=name.value.trim()||label;renderBank();scheduleSave();};card.append(name);
+  const name=document.createElement('input');name.value=slot.name;name.maxLength=40;name.setAttribute('aria-label','Slot '+label+' name');name.onchange=()=>{const value=name.value.trim()||label;arrangementMutation('Rename pattern',b=>{b.slots[i]!.name=value;});renderBank();scheduleSave();};card.append(name);
   const rename=document.createElement('button');rename.textContent='⋯';rename.setAttribute('aria-label','Rename '+label);rename.onclick=()=>{name.style.display='block';name.focus();name.select();};card.append(rename);
   title.title='Double-click to rename';title.ondblclick=()=>{name.style.display='block';name.focus();name.select();};
-  const b=document.createElement('button');b.id='slot-'+i;b.setAttribute('aria-pressed',String(bank!.active===i));b.title=slot.editor?'Edit '+slot.name+'; queues during playback':'Copy current pattern into '+slot.name;b.textContent=slot.editor?slot.name:'+ '+slot.name;b.onclick=()=>{if(!slot.editor){stop();stashSlot();slot.editor=structuredClone(editor.state);slotEditors.delete(i);activateSlot(i);status('Copied pattern. Generate a variation or edit this slot.');}else chooseSlot(i);};card.append(b);
+  const b=document.createElement('button');b.id='slot-'+i;b.setAttribute('aria-pressed',String(bank!.active===i));b.title=slot.editor?'Edit '+slot.name+'; queues during playback':'Copy current pattern into '+slot.name;b.textContent=slot.editor?slot.name:'+ '+slot.name;b.onclick=()=>{if(!slot.editor){stop();const source=structuredClone(editor.state);if(arrangementMutation('Copy pattern to slot',next=>{next.slots[i]!.editor=source;})){bank=arrangementHistory!.bank;activateSlot(i);status('Copied pattern. Generate a variation or edit this slot.');}}else chooseSlot(i);};card.append(b);
   if(slot.editor){const preview=document.createElement('button');preview.id='slot-preview-'+i;preview.textContent='▶';preview.setAttribute('aria-label','Preview '+slot.name);preview.onclick=()=>{if(mode==='pattern'&&i!==bank!.active){chooseSlot(i);return;}stop();input('transport-target').value='pattern';syncHud();activateSlot(i);void play().catch(e=>status(String(e),true));};card.append(preview);}
-  if(bank!.slots.length>1){const del=document.createElement('button');del.className='slot-del-btn';del.textContent='✕';del.title='Delete '+slot.name;del.setAttribute('aria-label','Delete '+slot.name);del.onclick=(e)=>{e.stopPropagation();stop();stashSlot();deletePatternSlot(bank!,i);slotEditors.clear();activateSlot(bank!.active);renderBank();scheduleSave();status('Deleted pattern.');};card.append(del);}
+  if(bank!.slots.length>1){const del=document.createElement('button');del.className='slot-del-btn';del.textContent='✕';del.title='Delete '+slot.name;del.setAttribute('aria-label','Delete '+slot.name);del.onclick=(e)=>{e.stopPropagation();stop();if(arrangementMutation('Delete pattern',b=>deletePatternSlot(b,i))){bank=arrangementHistory!.bank;activateSlot(bank.active);renderBank();scheduleSave();status('Deleted pattern.');}};card.append(del);}
   host.append(card);});
  input('song-bpm').value=String(bank.songBpm);syncHud();
  let firstBar=1;
@@ -431,14 +436,14 @@ function renderBank(){if(!bank)return;const host=el('bank-slots');host.replaceCh
  row.ondragover=e=>{if(draggedStep!==undefined){e.preventDefault();row.classList.add('drop-target');}};
  row.ondragleave=()=>row.classList.remove('drop-target');
  row.ondragend=()=>{draggedStep=undefined;document.querySelectorAll('.drop-target').forEach(e=>e.classList.remove('drop-target'));};
- row.ondrop=e=>{e.preventDefault();if(draggedStep===undefined)return;stop();moveSequenceStep(bank!,draggedStep,i);draggedStep=undefined;renderBank();scheduleSave();};
- const label=document.createElement('label');label.textContent='Repeats ';const count=document.createElement('input');count.type='number';count.min='1';count.max='16';count.value=String(step.repeats);count.setAttribute('aria-label','Repeats for step '+(i+1));count.onchange=()=>{const v=Number(count.value);if(!Number.isInteger(v)||v<1||v>16){count.value=String(step.repeats);return;}stop();step.repeats=v;renderBank();scheduleSave();};label.append(count);row.append(label);
- for(const [text,delta] of [['Move up',-1],['Move down',1],['Remove',0]] as const){const b=document.createElement('button');b.textContent=text;b.disabled=delta!==0&&(i+delta<0||i+delta>=bank!.sequence.length);b.onclick=()=>{stop();if(delta===0)bank!.sequence.splice(i,1);else moveSequenceStep(bank!,i,i+delta);renderBank();scheduleSave();const focusStep=Math.min(delta===0?i:i+delta,bank!.sequence.length-1);el('sequence').querySelector<HTMLElement>('[data-step="'+focusStep+'"] button:not(:disabled)')?.focus();};row.append(b);}seq.append(row);});
+ row.ondrop=e=>{e.preventDefault();if(draggedStep===undefined)return;stop();const from=draggedStep;draggedStep=undefined;if(arrangementMutation('Reorder arrangement',b=>moveSequenceStep(b,from,i))){renderBank();scheduleSave();}};
+ const label=document.createElement('label');label.textContent='Repeats ';const count=document.createElement('input');count.type='number';count.min='1';count.max='16';count.value=String(step.repeats);count.setAttribute('aria-label','Repeats for step '+(i+1));count.onchange=()=>{const v=Number(count.value);if(!Number.isInteger(v)||v<1||v>16){count.value=String(step.repeats);return;}stop();if(arrangementMutation('Change repeats',b=>{b.sequence[i]!.repeats=v;})){renderBank();scheduleSave();}};label.append(count);row.append(label);
+ for(const [text,delta] of [['Move up',-1],['Move down',1],['Remove',0]] as const){const b=document.createElement('button');b.textContent=text;b.disabled=delta!==0&&(i+delta<0||i+delta>=bank!.sequence.length);b.onclick=()=>{stop();const changed=arrangementMutation(delta===0?'Remove arrangement step':'Reorder arrangement',next=>delta===0?next.sequence.splice(i,1):moveSequenceStep(next,i,i+delta));if(changed){renderBank();scheduleSave();const focusStep=Math.min(delta===0?i:i+delta,bank!.sequence.length-1);el('sequence').querySelector<HTMLElement>('[data-step="'+focusStep+'"] button:not(:disabled)')?.focus();}};row.append(b);}seq.append(row);});
  const select=el<HTMLSelectElement>('append-slot'),value=select.value;select.replaceChildren();bank.slots.forEach((s,i)=>{if(s.editor){const o=document.createElement('option');o.value=String(i);o.textContent=s.name;select.append(o);}});if(Array.from(select.options).some(o=>o.value===value))select.value=value;
- const bars=bank.sequence.reduce((n,s)=>n+bank!.slots[s.slot]!.editor!.pattern.settings.bars*s.repeats,0);el('arrangement-info').textContent=bars+' bars - '+(bars*240/bank.songBpm).toFixed(1)+' seconds - '+bank.songBpm+' BPM · max 170s';input('play-arrangement').disabled=!bars;input('export-arrangement').disabled=!bars;input('append-step').disabled=bank.sequence.length>=64;
+ const bars=bank.sequence.reduce((n,s)=>n+bank!.slots[s.slot]!.editor!.pattern.settings.bars*s.repeats,0);el('arrangement-info').textContent=bars+' bars - '+(bars*240/bank.songBpm).toFixed(1)+' seconds - '+bank.songBpm+' BPM · max 170s';input('play-arrangement').disabled=!bars;input('export-arrangement').disabled=!bars;input('append-step').disabled=bank.sequence.length>=64;const undo=input('arr-undo'),redo=input('arr-redo');if(arrangementHistory&&undo&&redo){undo.disabled=!arrangementHistory.undoLabel;redo.disabled=!arrangementHistory.redoLabel;undo.title=arrangementHistory.undoLabel?`Undo ${arrangementHistory.undoLabel}`:'Nothing to undo';redo.title=arrangementHistory.redoLabel?`Redo ${arrangementHistory.redoLabel}`:'Nothing to redo';}
 }
 function arrangementAudio(rate:number){stashSlot();return renderSequence(arrange(bank!).map(p=>withDrumKit(p,drumKit,kitPanel.mix)),assets,rate,effectMap());}
-el('append-step').onclick=()=>{stop();if(bank!.sequence.length>=64)return;bank!.sequence.push({slot:Number(input('append-slot').value),repeats:1});renderBank();scheduleSave();};
+el('append-step').onclick=()=>{stop();if(bank!.sequence.length>=64)return;if(arrangementMutation('Append to arrangement',b=>b.sequence.push({slot:Number(input('append-slot').value),repeats:1}))){renderBank();scheduleSave();}};
 function revealPlaybackItem(container:HTMLElement, item:Element|null, inset=0){
  if(!item||!container.clientHeight)return;
  const bounds=container.getBoundingClientRect(),target=item.getBoundingClientRect();
@@ -493,7 +498,7 @@ el('export-target').onchange=()=>{input('export-mode').disabled=input('export-ta
 el('song-bpm').onchange=()=>{
  const bpm=Number(input('song-bpm').value);
  if(!Number.isFinite(bpm)||bpm<32||bpm>999){input('song-bpm').value=String(bank!.songBpm);status('Song tempo must be between 32 and 999 BPM.',true);return;}
- stop();bank!.songBpm=bpm;renderBank();scheduleSave();status('Song tempo updated. Pattern tempos are unchanged.');
+ stop();if(arrangementMutation('Change song tempo',b=>{b.songBpm=bpm;})){renderBank();scheduleSave();status('Song tempo updated. Pattern tempos are unchanged.');}
 };
 function syncSliders(){
   const bpm=Number(input('bpm').value);
@@ -559,10 +564,13 @@ function history(direction:'undo'|'redo'){
   stop();if(editor[direction]()){syncControls();refresh();status(direction==='undo'?'Undid the last edit.':'Redid the last edit.');}
 }
 el('undo').onclick=()=>history('undo');el('redo').onclick=()=>history('redo');
+el('arr-undo').onclick=()=>{stop();if(arrangementHistory?.undo()){bank=arrangementHistory.bank;arrangementHistorySync('Undid arrangement change.');}};
+el('arr-redo').onclick=()=>{stop();if(arrangementHistory?.redo()){bank=arrangementHistory.bank;arrangementHistorySync('Redid arrangement change.');}};
 document.addEventListener('keydown',event=>{
   if((event.target as HTMLElement).closest('input,select,textarea,[contenteditable="true"]'))return;
-  if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='z'){event.preventDefault();history(event.shiftKey?'redo':'undo');}
-  else if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='y'){event.preventDefault();history('redo');}
+  const inArranger=Boolean(document.activeElement?.closest('#arranger, #bank-slots, #song-bpm, .pattern-bank'));
+  if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='z'){event.preventDefault();if(inArranger){if(arrangementHistory?.undo()){bank=arrangementHistory.bank;arrangementHistorySync('Undid arrangement change.');}}else history(event.shiftKey?'redo':'undo');}
+  else if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='y'){event.preventDefault();if(inArranger){if(arrangementHistory?.redo()){bank=arrangementHistory.bank;arrangementHistorySync('Redid arrangement change.');}}else history('redo');}
   else if(!event.ctrlKey&&!event.metaKey&&!event.altKey&&event.key.toLowerCase()==='f'){event.preventDefault();followPlayhead=!followPlayhead;syncFollowPlayhead();status(`Follow playhead ${followPlayhead?'enabled':'disabled'}.`);}
 });
 el('regenerate').onclick=()=>{if(pendingCount()){status('Apply or Revert pending hit edits before generating a variation.',true);return;}edit(()=>editor.variation(),'Related variation generated. Seed, core motif, anchors and locks are retained.');syncControls();};
@@ -951,7 +959,7 @@ function scheduleSave(){
 function applyProject(raw:unknown){
   const {project:p,assets:loaded}=readProject(raw);if(pendingCount()&&!confirm('Opening this project discards pending hit edits. Continue?'))return false;hitDrafts.clear();stop();samplePanel.stop();
   assets.clear();loaded.forEach((a,id)=>assets.set(id,a));kitPanel.restore(p.kit);
-  bank=p.bank?structuredClone(p.bank):newBank(p.editor.pattern);slotEditors.clear();
+  bank=p.bank?structuredClone(p.bank):newBank(p.editor.pattern);arrangementHistory=new ArrangementHistory(bank);bank=arrangementHistory.bank;slotEditors.clear();
   editor=new Editor(p.editor.pattern);editor.state=structuredClone(p.editor);rowAnchor=0;
   input('phraseLength').value=String(p.draft.phraseLength??0);syncPhraseControls(p.draft.phraseOffset??0);
   input('algorithm').value=p.draft.algorithm??'legacy-v1';input('variation').value=String(p.draft.variation??0);
@@ -964,7 +972,7 @@ el('project-open').onchange=async e=>{const field=e.target as HTMLInputElement,f
 };
 el('project-new').onclick=()=>{
   if(!confirm('Start a new project? Save project first to keep your current work.'))return;
-  hitDrafts.clear();stop();samplePanel.stop();assets.clear();bank=undefined;slotEditors.clear();kitPanel.restore(defaultKitState());editor=new Editor(generate(genreDefaults('jungle')));syncControls();
+  hitDrafts.clear();stop();samplePanel.stop();assets.clear();bank=undefined;arrangementHistory=undefined;slotEditors.clear();kitPanel.restore(defaultKitState());editor=new Editor(generate(genreDefaults('jungle')));ensureArrangementHistory();syncControls();
   const genre=input('genre').value as Genre,defaultKitId=GENRE_KITS[genre]||'acoustic-break';
   void kitPanel.applyPreset(defaultKitId);
   const ks=document.getElementById('kit-preset-select') as HTMLSelectElement | null;if(ks)ks.value=defaultKitId;const gks=document.getElementById('generator-kit-select') as HTMLSelectElement | null;if(gks)gks.value=defaultKitId;

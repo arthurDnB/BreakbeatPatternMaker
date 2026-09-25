@@ -63,6 +63,12 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-25] - Arrangement Undo/Redo State Engine (Codex)
+- **Arrangement state (`src/core/arrangement-history.ts`):** Added bounded, validated Memento history for pattern slots, sequence steps, repeats, names and song tempo. Pattern editor history remains separate.
+- **Arrangement UI (`src/web.ts`, `public/index.html`):** Routed bank and song mutations through the history engine, added arrangement Undo/Redo buttons, and made Ctrl/Cmd+Z/Y context-aware between the arranger and tracker.
+- **Persistence:** Project loading and new-workspace reset now initialize a clean arrangement history; autosave and project export continue to use the current canonical bank.
+- **Verification:** `npm.cmd test` passes 114/114 tests, including 17 arrangement-history tests. `npm.cmd run test:site` passes with all 344 licensed samples and project/autosave checks.
+
 ### [2026-09-25] - Per-Instrument FX Wet/Dry Crossfader & DSP Rack Polish (Antigravity)
 - **Audio DSP Engine (`src/audio/effects.ts`):**
   - Added optional `wet?: number` (range 0.0 to 1.0, default 1.0) to `Effects` interface, defaults, and validator.
