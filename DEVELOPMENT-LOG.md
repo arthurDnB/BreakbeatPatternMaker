@@ -76,6 +76,7 @@ This document maintains the running project state and change log so that multipl
   - Added `FX Wet / Dry` slider (`dsp-wet`) to Dynamics & Color rack in the bottom Master DSP strip, creating a balanced 3x3 layout (3 filter, 3 dynamics/mix, 3 delay controls).
   - Renamed `dsp-mix` label from ambiguous "Wet mix" to "Delay mix" for professional DAW clarity.
   - Wired real-time two-way synchronization between Master DSP strip and per-instrument rack sliders.
+  - Added bottom tray responsive height rule in public/workspace.css (max-height: 310px when Master DSP is active) so all 3 columns and rows of controls are comfortably visible without internal clipping.
 - **Verification & Testing (`tests/effects.test.mjs`):**
   - Added unit tests verifying 0% wet is strictly identical to raw dry buffer, 100% wet is fully processed, 50% wet blends exact linear midpoint, and invalid/out-of-bounds inputs throw validation errors.
   - All 97 unit tests passing (`npm.cmd test`).

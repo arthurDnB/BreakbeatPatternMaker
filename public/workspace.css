@@ -1210,6 +1210,9 @@ input[type=range]::-webkit-slider-thumb:hover {
   max-height: 180px;
   overflow-y: auto;
 }
+.daw-tray-bottom:has(.quick-fx-panel:not([hidden])) .tray-body {
+  max-height: 310px;
+}
 .daw-tray-bottom #controls.daw-controls {
   margin: 0 !important;
   border: none !important;
