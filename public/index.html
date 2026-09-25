@@ -275,7 +275,14 @@
       <label>Swing ratio <output id="swing-val">0.50</output><input id="swing" type="range" min=".5" max=".67" step=".01" value=".50" oninput="document.getElementById('swing-val').textContent=this.value"><small>.50 = straight; .60 = swung 16ths</small></label>
       <label>Humanize (ms) <output id="humanizeMs-val">0</output><input id="humanizeMs" type="range" min="0" max="10" step=".5" value="0" oninput="document.getElementById('humanizeMs-val').textContent=this.value"></label>
       <label>Ghost amount <output id="ghostAmount-val">0.35</output><input id="ghostAmount" type="range" min="0" max="1" step=".05" value=".35" oninput="document.getElementById('ghostAmount-val').textContent=this.value"></label>
-      <label>Fill amount <output id="fillAmount-val">0.4</output><input id="fillAmount" type="range" min="0" max="1" step=".05" value=".4" oninput="document.getElementById('fillAmount-val').textContent=this.value"></label>
+      <label>Pattern structure<select id="patternStructure">
+  <option value="auto" selected>Auto-Fills (Probability-based)</option>
+  <option value="groove">Standard Groove (No fills)</option>
+  <option value="fill">Beat + Fill Drop</option>
+  <option value="roll">Beat + Snare Roll</option>
+  <option value="build">100% Snare Roll Build-up</option>
+</select></label>
+<label>Fill amount <output id="fillAmount-val">0.4</output><input id="fillAmount" type="range" min="0" max="1" step=".05" value=".4" oninput="document.getElementById('fillAmount-val').textContent=this.value"></label>
       </div></details>
       <div class="generation-toolbar"><button id="generate" class="accent">Generate</button><button id="regenerate">Variation</button><button id="restore-defaults" title="Reset all generation controls to the selected genre’s defaults">Restore defaults</button><p id="generation-summary" class="generation-summary"></p></div>
     </section>

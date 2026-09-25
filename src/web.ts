@@ -106,6 +106,7 @@ function settings(){
   s.seed=input('seed').value;s.bpm=Number(input('bpm').value);s.bars=Number(input('bars').value);
   s.resolution=Number(input('resolution').value) as typeof s.resolution;
   s.spicy=Number(input('spicy').value);
+  const ps=input('patternStructure').value; if(['groove','auto','fill','roll','build'].includes(ps)) s.patternStructure = ps as any;
   for(const name of ['complexity','syncopation','swing','humanizeMs','ghostAmount','fillAmount'] as const)s[name]=Number(input(name).value);
   return s;
 }

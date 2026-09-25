@@ -78,6 +78,16 @@ This document maintains the running project state and change log so that multipl
   - **Grid Compactness:** Restricted the Tracker Grid to `max-height: 400px` on mobile.
   - **Generator Expansion:** Removed the hardcoded `max-height: 180px` on the Generator's tray body on mobile, allowing the full generation toolbar and "Generate" button to be visible without awkward nested scrolling.
 
+### [2026-09-25] - Mobile-First Fills & Rolls (Antigravity)
+- **UI Enhancements (`public/index.html`, `src/web.ts`):**
+  - Replaced the abstract "Fill Amount" slider with a highly visible **"Pattern Structure"** dropdown right in the Advanced Generation rack.
+  - Options include: *Auto-Fills (Probability-based)*, *Standard Groove (No fills)*, *Beat + Fill Drop*, *Beat + Snare Roll*, and *100% Snare Roll Build-up*.
+  - This eliminates the need for manual row selection (shift-clicking) on mobile devices, providing powerful, instantaneous structural generation.
+- **V3 Audio Engine (`src/core/groove-v3.ts`, `src/core/model.ts`):**
+  - Designed and implemented a dedicated `grooveV3Roll` algorithm that generates escalating, tension-building snare risers.
+  - The roll generator is completely genre-aware: Jungle/Breakcore gets hyper-fast 64th-note ratchets and Amiga pitch shifts; Liquid gets smooth pocket rolls; House/Rave gets classic 8th-to-32nd machine-gun volume risers.
+  - Wired `generateGrooveV3` to slice out the end of the phrase (or the entire phrase) and surgically inject the generated fills and rolls based on the user's dropdown selection.
+
 ### [2026-09-25] - Jungle Mastering & UI Faders (Antigravity)
 - **UI Enhancements (`public/index.html`, `src/audio/drum-kit.ts`):**
   - Converted all input boxes on the Advanced Generation rack (Syncopation, Swing, Humanize, Ghost, Fill) to range sliders with live numeric readouts.

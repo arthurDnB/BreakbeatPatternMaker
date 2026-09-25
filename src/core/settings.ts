@@ -17,6 +17,7 @@ export function validateSettings(s: Settings): void {
   if (![8,16,32,64].includes(s.resolution)) throw new Error('Resolution must be 8, 16, 32 or 64.');
   for (const k of ['complexity','syncopation','ghostAmount','fillAmount'] as const) bounded(s[k],0,1,k);
   if(s.spicy!==undefined) bounded(s.spicy,0,1,'spicy');
+  if(s.patternStructure!==undefined&&!['groove','auto','fill','roll','build'].includes(s.patternStructure))throw Error('Invalid pattern structure.');
   bounded(s.swing,.5,.67,'swing'); bounded(s.humanizeMs,0,10,'humanizeMs');
 }
 
