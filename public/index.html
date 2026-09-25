@@ -246,6 +246,7 @@
       <button type="button" id="action-variation" class="hw-action-btn hw-btn-variation" title="Generate a related variation"><svg class="tool-icon"><use href="#icon-variation"/></svg> VARIATION</button>
     </div>
     <p id="status" role="status" aria-live="polite"></p>
+    <p id="generation-summary" class="generation-summary"></p>
   </div>
   <div class="tray-collapsed-bar" id="bar-tray-bottom" title="Click to expand Bottom tray">
     <button class="bar-expand-btn" aria-label="Expand Beat Generator" type="button">▲ BEAT GENERATOR</button>
@@ -280,11 +281,12 @@
         <label>Genre<select id="genre"></select><small id="genre-description"></small></label>
         <label>Drum Kit<select id="generator-kit-select"><option value="custom">Custom Kit</option></select><small id="generator-kit-desc">Kit sounds</small></label>
         <label class="control-bars">Bars<select id="bars"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label>
+        <label class="control-engine">Engine<select id="algorithm" title="Groove v3 adds musical rolls and genre-specific phrasing. Saved patterns keep their recorded engine."><option value="groove-v3" selected>Groove v3</option><option value="groove-v2">Groove v2</option><option value="legacy-v1">Legacy v1 (older seeds)</option></select></label>
         <div class="tempo-control"><label for="bpm-slider">BPM</label><input id="bpm-slider" aria-label="BPM slider" type="range" min="32" max="300" step=".1" value="165"><input aria-label="Exact BPM" id="bpm" type="number" min="32" max="999" step=".1" value="165"><span id="presets" class="presets"></span></div>
         <label>Complexity <output id="complexity-value" for="complexity">45%</output><input id="complexity" type="range" min="0" max="1" step=".01" value=".45"><small>Simple to detailed</small></label>
         <label>Spicy <output id="spicy-value" for="spicy">0%</output><input id="spicy" type="range" min="0" max="1" step=".01" value="0"><small>Rolls &amp; variation</small></label>
       </div>
-      <details id="advanced-generation"><summary>Advanced generation</summary><div class="advanced"><label>Break<select id="breakStyle"><option value="genre">Genre default</option></select><small id="break-description">Use the selected genre’s rhythm.</small><small>Rhythm presets – synthesized kit, not original recordings</small></label><label>Resolution<select id="resolution"><option value="8">1/8</option><option value="16" selected>1/16</option><option value="32">1/32</option><option value="64">1/64</option></select></label><label>Engine<select id="algorithm" title="Groove v3 adds musical rolls and genre-specific phrasing. Saved patterns keep their recorded engine."><option value="groove-v3" selected>Groove v3</option><option value="groove-v2">Groove v2</option><option value="legacy-v1">Legacy v1 (older seeds)</option></select></label><input id="variation" type="hidden" value="0"><label id="phrase-length-field" hidden>Phrase<select id="phraseLength" title="Generate a section of a longer musical phrase; saved patterns repeat exactly as written."><option value="0">This pattern</option><option value="4">4 bars</option><option value="8">8 bars</option><option value="16">16 bars</option></select></label><label id="phrase-offset-field" hidden>Starting bar<select id="phraseOffset"></select></label>
+      <details id="advanced-generation"><summary>Advanced generation</summary><div class="advanced"><label>Break<select id="breakStyle"><option value="genre">Genre default</option></select><small id="break-description">Use the selected genre’s rhythm.</small><small>Rhythm presets – synthesized kit, not original recordings</small></label><label>Resolution<select id="resolution"><option value="8">1/8</option><option value="16" selected>1/16</option><option value="32">1/32</option><option value="64">1/64</option></select></label><input id="variation" type="hidden" value="0"><label id="phrase-length-field" hidden>Phrase<select id="phraseLength" title="Generate a section of a longer musical phrase; saved patterns repeat exactly as written."><option value="0">This pattern</option><option value="4">4 bars</option><option value="8">8 bars</option><option value="16">16 bars</option></select></label><label id="phrase-offset-field" hidden>Starting bar<select id="phraseOffset"></select></label>
       <label>Seed<input id="seed" type="text" value="break-042" maxlength="80"></label>
 
       <label>Syncopation <output id="syncopation-val">0.4</output><input id="syncopation" type="range" min="0" max="1" step=".05" value=".4" oninput="document.getElementById('syncopation-val').textContent=this.value"></label>
@@ -300,7 +302,7 @@
 </select></label>
 <label>Fill amount <output id="fillAmount-val">0.4</output><input id="fillAmount" type="range" min="0" max="1" step=".05" value=".4" oninput="document.getElementById('fillAmount-val').textContent=this.value"></label>
       </div></details>
-      <div class="generation-toolbar"><button id="generate" class="accent">Generate</button><button id="regenerate">Variation</button><button id="restore-defaults" title="Reset all generation controls to the selected genre’s defaults">Restore defaults</button><p id="generation-summary" class="generation-summary"></p></div>
+      <div class="generation-toolbar"><button id="generate" class="accent">Generate</button><button id="regenerate">Variation</button><button id="restore-defaults" title="Reset all generation controls to the selected genre’s defaults">Restore defaults</button></div>
     </section>
 
     <!-- Master DSP Strip -->

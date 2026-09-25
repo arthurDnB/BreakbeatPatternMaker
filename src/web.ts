@@ -28,7 +28,7 @@ el('tray-bottom').prepend(el('transport'));
 el('master-dsp-host').append(el('quick-fx-panel'));
 el('quick-fx-panel').hidden=false;
 const advancedGrid=el('advanced-generation').querySelector<HTMLElement>('.advanced')!;
-for(const [name,ids] of [['Pattern',['breakStyle','resolution','algorithm','phraseLength','phraseOffset','seed']],['Groove',['syncopation','swing','humanizeMs','ghostAmount']],['Structure',['patternStructure','fillAmount']]] as const){
+for(const [name,ids] of [['Pattern',['breakStyle','resolution','phraseLength','phraseOffset']],['Groove',['syncopation','swing','humanizeMs','ghostAmount']],['Structure',['patternStructure','fillAmount','seed']]] as const){
  const group=document.createElement('fieldset');group.className='generator-group';const legend=document.createElement('legend');legend.textContent=name;group.append(legend);
  for(const id of ids){const label=el(id).closest('label');if(label)group.append(label);}advancedGrid.append(group);
 }
