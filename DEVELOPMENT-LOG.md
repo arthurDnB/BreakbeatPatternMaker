@@ -76,6 +76,7 @@ This document maintains the running project state and change log so that multipl
   - **Generator Ordering:** Implemented a Flexbox layout on `<main>` with `.studio-layout` set to `display: contents` for mobile screens (`max-width: 800px`). This completely reorders the mobile UI, pulling the Bottom Rack (Beat Generator) up to position `order: 4` right below the Pattern Bank.
   - **Instrument Carousel:** Converted the `#drum-slots` container from a vertical stack to a swipeable horizontal carousel (`overflow-x: auto; scroll-snap-type: x mandatory`). Each instrument now takes 85% width, saving massive vertical scrolling space.
   - **Grid Compactness:** Restricted the Tracker Grid to `max-height: 400px` on mobile.
+  - **Generator Expansion:** Removed the hardcoded `max-height: 180px` on the Generator's tray body on mobile, allowing the full generation toolbar and "Generate" button to be visible without awkward nested scrolling.
 
 ### [2026-09-25] - Jungle Mastering & UI Faders (Antigravity)
 - **UI Enhancements (`public/index.html`, `src/audio/drum-kit.ts`):**

@@ -2731,4 +2731,13 @@ tr.bar-start .row-select { color: var(--accent-cyan); font-weight: 700; }
   #grid {
     max-height: 400px !important;
   }
+  .daw-tray-bottom .tray-body {
+    max-height: none !important;
+    overflow-y: visible !important;
+  }
+  .daw-tray-bottom {
+    max-height: none !important;
+    overflow: visible !important;
+  }
 }
+
