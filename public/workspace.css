@@ -1076,6 +1076,13 @@ input[type=range]::-webkit-slider-thumb:hover {
 .pattern-history-item small { color:#b4c4d7; font-size:10px; overflow-wrap:anywhere; }
 .pattern-history-item button { align-self:flex-start; padding:3px 8px; font-size:10px; }
 .pattern-history-item.current { border-left:3px solid var(--accent-cyan); }
+.pattern-history-actions, .compare-actions { display:flex; flex-wrap:wrap; gap:4px; }
+.pattern-history-item .pattern-history-actions button { align-self:auto; }
+.pattern-history-actions button[aria-pressed="true"], .compare-actions button[aria-pressed="true"] { border-color:var(--accent-cyan); color:var(--accent-cyan); }
+.pattern-compare { margin-top:8px; padding-top:8px; border-top:1px solid var(--border-card); }
+.pattern-compare strong { color:#edf4fb; font-size:11px; }
+.pattern-compare p { margin:5px 0 7px; color:#b4c4d7; font-size:10px; line-height:1.4; overflow-wrap:anywhere; }
+.compare-actions button { padding:4px 7px; font-size:10px; }
 
 /* Session HUD at bottom of Left Tray */
 .tray-session-hud {

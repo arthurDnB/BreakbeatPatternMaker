@@ -110,8 +110,19 @@
       </section>
 
       <details id="pattern-history-panel"><summary>Recent patterns <span id="pattern-history-count"></span></summary>
-        <p class="history-help">Restore an earlier beat from this pattern slot. The current beat stays available through Undo.</p>
+        <p class="history-help">Restore an earlier beat, or set two beats as A and B to compare them. The current beat stays available through Undo.</p>
         <div id="pattern-history-list"></div>
+        <div id="pattern-compare" class="pattern-compare" aria-label="A/B pattern comparison">
+          <strong>A/B compare</strong>
+          <p id="compare-status" role="status">Set A and B from the beats above.</p>
+          <div class="compare-actions">
+            <button id="compare-preview-a" type="button" disabled>Preview A</button>
+            <button id="compare-preview-b" type="button" disabled>Preview B</button>
+            <button id="compare-keep-a" type="button" disabled>Keep A</button>
+            <button id="compare-keep-b" type="button" disabled>Keep B</button>
+            <button id="compare-clear" type="button" disabled>Clear</button>
+          </div>
+        </div>
       </details>
 
       <details id="arranger"><summary>Song arrangement</summary>

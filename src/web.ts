@@ -16,7 +16,7 @@ import {defaults,genreDefaults,PROFILES} from './core/profiles.js';
 import {generate} from './core/generate.js';
 import {compile,serialize} from './core/compile.js';
 import {ROLES,hex,noteName,type Hit,type Role,type Genre,type BreakStyle,type Pattern,type Transfer} from './core/model.js';
-import {Editor,emptySelection,locked,selectedIds} from './core/editor.js';
+import {Editor,emptySelection,locked,selectedIds,type EditorState} from './core/editor.js';
 import {defaultEffects,type Effects} from './audio/effects.js';
 import {ArrangementHistory} from './core/arrangement-history.js';
 
@@ -29,7 +29,10 @@ let bank:Bank|undefined,pendingSlot:number|undefined;
 let arrangementHistory:ArrangementHistory|undefined;
 let draggedStep:number|undefined;
 let selectedArrangementStep:number|undefined;
-let mode:'pattern'|'arrangement'|undefined;
+let mode:'pattern'|'arrangement'|'comparison'|undefined;
+type CompareSide = 'A'|'B';
+let comparison: {slot:number; A?:{state:EditorState;label:string}; B?:{state:EditorState;label:string}}|undefined;
+let comparisonPlaying:CompareSide|undefined;
 const slotEditors=new Map<number,Editor>();
 let persistenceReady=false,saveTimer:ReturnType<typeof setTimeout>|undefined;
 let saveQueue:Promise<unknown>=Promise.resolve();
@@ -306,9 +309,9 @@ function edit(action:()=>boolean,message:string,historyLabel?:string){
 function stop(){
   if(timer)clearInterval(timer);timer=undefined;
   for(const source of playingSources){try{source.stop();}catch{}source.disconnect();}playingSources.clear();
-  mode=undefined;pendingSlot=undefined;el('transport-state').textContent='Stopped';el('play-arrangement').textContent='Play arrangement';el('bank-status').textContent='';document.querySelectorAll('.playing-step').forEach(e=>e.classList.remove('playing-step'));
+  mode=undefined;comparisonPlaying=undefined;pendingSlot=undefined;el('transport-state').textContent='Stopped';el('play-arrangement').textContent='Play arrangement';el('bank-status').textContent='';document.querySelectorAll('.playing-step').forEach(e=>e.classList.remove('playing-step'));
   playToken++;el('play').textContent=input('transport-target').value==='song'?'Play song':'Play pattern';el('song-position').textContent='Song stopped';document.querySelector('.playing-row')?.classList.remove('playing-row');
-  resetHud();
+  resetHud();renderComparisonControls();
 }
 function build(){
   if(pendingCount()){status('Apply or Revert pending hit edits before generating a new pattern.',true);return;}
@@ -404,14 +407,43 @@ async function play(){
 function ensureArrangementHistory(){if(!bank&&editor)bank=newBank(editor.state.pattern);if(bank&&!arrangementHistory)arrangementHistory=new ArrangementHistory(bank);if(arrangementHistory)bank=arrangementHistory.bank;return arrangementHistory;}
 function stashSlot(){if(!editor)return;const history=ensureArrangementHistory();if(!history||!bank)return;bank.slots[bank.active]!.editor=structuredClone(editor.state);slotEditors.set(bank.active,editor);}
 function arrangementMutation(label:string,mutate:(b:Bank)=>void){const history=ensureArrangementHistory();if(!history)return false;stashSlot();const changed=history.execute(mutate,label);bank=history.bank;if(changed)slotEditors.clear();return changed;}
-function arrangementHistorySync(message:string){if(!bank)return;selectedArrangementStep=undefined;slotEditors.clear();const index=bank.active;editor=new Editor(bank.slots[index]!.editor!.pattern);editor.state=structuredClone(bank.slots[index]!.editor!);syncControls();refresh();renderBank();scheduleSave();status(message);}
-function activateSlot(index:number){stashSlot();bank!.active=index;editor=slotEditors.get(index)??new Editor(bank!.slots[index]!.editor!.pattern);if(!slotEditors.has(index))editor.state=structuredClone(bank!.slots[index]!.editor!);rowAnchor=0;syncControls();refresh();}
+function arrangementHistorySync(message:string){if(!bank)return;comparison=undefined;selectedArrangementStep=undefined;slotEditors.clear();const index=bank.active;editor=new Editor(bank.slots[index]!.editor!.pattern);editor.state=structuredClone(bank.slots[index]!.editor!);syncControls();refresh();renderBank();scheduleSave();status(message);}
+function activateSlot(index:number){stashSlot();if(comparison&&comparison.slot!==index)comparison=undefined;bank!.active=index;editor=slotEditors.get(index)??new Editor(bank!.slots[index]!.editor!.pattern);if(!slotEditors.has(index))editor.state=structuredClone(bank!.slots[index]!.editor!);rowAnchor=0;syncControls();refresh();}
 function chooseSlot(index:number){if(index===bank!.active){pendingSlot=undefined;return;}if(mode==='pattern'){stashSlot();pendingSlot=index;el('bank-status').textContent='Queued '+bank!.slots[index]!.name+' - next pattern boundary';return;}stop();activateSlot(index);}
 function rememberActivePattern(state:Editor['state'],label:string){if(!bank)return;if(rememberPattern(bank.slots[bank.active]!,state,label)){renderPatternHistory();scheduleSave();}}
-function renderPatternHistory(){if(!bank)return;const slot=bank.slots[bank.active]!,list=el('pattern-history-list'),entries=slot.patternHistory??[];list.replaceChildren();el('pattern-history-count').textContent=entries.length?`(${entries.length})`:'';
- const addCard=(label:string,state:Editor['state'],capturedAt?:number,restoreIndex?:number)=>{const card=document.createElement('div');card.className='pattern-history-item'+(restoreIndex===undefined?' current':'');const title=document.createElement('strong');title.textContent=label;const settings=state.pattern.settings,meta=document.createElement('small');meta.textContent=`${settings.genre.replaceAll('-',' ')} · ${settings.bpm} BPM · ${settings.bars} bars · seed ${settings.seed}`;meta.title=meta.textContent;card.append(title,meta);if(capturedAt!==undefined){const time=document.createElement('small');time.textContent=new Date(capturedAt).toLocaleString();card.append(time);}if(restoreIndex!==undefined){const button=document.createElement('button');button.type='button';button.textContent='Restore';button.setAttribute('aria-label',`Restore ${label}, seed ${settings.seed}`);button.onclick=()=>{if(pendingCount()){status('Apply or Revert pending hit edits before restoring a pattern.',true);return;}const saved=bank!.slots[bank!.active]!.patternHistory?.[restoreIndex];if(!saved)return;stop();const before=structuredClone(editor.state);if(editor.restore(saved.editor)){syncControls();refresh();rememberActivePattern(before,'Before restore');status(`Restored ${saved.label}. Undo returns to the previous beat.`);}};card.append(button);}list.append(card);};
- addCard('Current beat',editor.state);for(let i=entries.length-1;i>=0;i--)addCard(entries[i]!.label,entries[i]!.editor,entries[i]!.capturedAt,i);
+function renderComparisonControls(){
+ const statusEl=document.getElementById('compare-status');if(!statusEl)return;
+ const selected=comparison&&bank&&comparison.slot===bank.active?comparison:undefined;
+ const describe=(side:CompareSide)=>{const item=selected?.[side];return item?`${side}: ${item.label} · ${item.state.pattern.settings.bpm} BPM · ${item.state.pattern.events.length} hits`:`${side}: not set`;};
+ statusEl.textContent=`${describe('A')} | ${describe('B')}${comparisonPlaying?` · Previewing ${comparisonPlaying}`:''}`;
+ for(const side of ['A','B'] as const){const has=Boolean(selected?.[side]);input(`compare-preview-${side.toLowerCase()}`).disabled=!has;input(`compare-keep-${side.toLowerCase()}`).disabled=!has;input(`compare-preview-${side.toLowerCase()}`).setAttribute('aria-pressed',String(comparisonPlaying===side));}
+ input('compare-clear').disabled=!selected?.A&&!selected?.B;
 }
+function selectComparison(side:CompareSide,state:EditorState,label:string){
+ if(!bank)return;if(!comparison||comparison.slot!==bank.active)comparison={slot:bank.active};
+ comparison[side]={state:structuredClone(state),label};renderPatternHistory();status(`Captured ${label} as ${side}. Preview A or B to compare.`);
+}
+async function previewComparison(side:CompareSide){
+ const selected=comparison&&bank&&comparison.slot===bank.active?comparison[side]:undefined;if(!selected)return;
+ if(mode==='comparison'&&comparisonPlaying===side){stop();return;}
+ stop();samplePanel.stop();context??=new AudioContext();const token=playToken;await context.resume();if(token!==playToken)return;
+ const audio=renderPerformance(withDrumKit(selected.state.pattern,drumKit,kitPanel.mix),assets,context.sampleRate,effectMap(),{loop:true});
+ startSource(audioBuffer(audio),context.currentTime+.08,true);mode='comparison';comparisonPlaying=side;
+ el('transport-state').textContent=`Comparing ${side}`;el('play').textContent='Stop';renderComparisonControls();status(`Previewing ${side}: ${selected.label}. The tracker remains unchanged.`);
+}
+function keepComparison(side:CompareSide){
+ const selected=comparison&&bank&&comparison.slot===bank.active?comparison[side]:undefined;if(!selected)return;
+ if(pendingCount()){status('Apply or Revert pending hit edits before keeping a comparison beat.',true);return;}
+ stop();try{const before=structuredClone(editor.state);if(editor.restore(selected.state)){syncControls();refresh();rememberActivePattern(before,`Before keeping ${side}`);status(`Kept ${side}: ${selected.label}. Undo returns to the previous beat.`);}else status(`${side} already matches the current beat.`);}
+ catch(e){status((e as Error).message,true);}
+}
+function renderPatternHistory(){if(!bank)return;const slot=bank.slots[bank.active]!,list=el('pattern-history-list'),entries=slot.patternHistory??[];list.replaceChildren();el('pattern-history-count').textContent=entries.length?`(${entries.length})`:'';
+ const addCard=(label:string,state:Editor['state'],capturedAt?:number,restoreIndex?:number)=>{const card=document.createElement('div');card.className='pattern-history-item'+(restoreIndex===undefined?' current':'');const title=document.createElement('strong');title.textContent=label;const settings=state.pattern.settings,meta=document.createElement('small');meta.textContent=`${settings.genre.replaceAll('-',' ')} · ${settings.bpm} BPM · ${settings.bars} bars · seed ${settings.seed}`;meta.title=meta.textContent;card.append(title,meta);if(capturedAt!==undefined){const time=document.createElement('small');time.textContent=new Date(capturedAt).toLocaleString();card.append(time);}const actions=document.createElement('div');actions.className='pattern-history-actions';for(const side of ['A','B'] as const){const button=document.createElement('button');button.type='button';button.textContent=`Set ${side}`;button.setAttribute('aria-label',`Set ${side} to ${label}, seed ${settings.seed}`);button.setAttribute('aria-pressed',String(comparison?.slot===bank!.active&&JSON.stringify(comparison[side]?.state.pattern)===JSON.stringify(state.pattern)));button.onclick=()=>selectComparison(side,state,label);actions.append(button);}if(restoreIndex!==undefined){const button=document.createElement('button');button.type='button';button.textContent='Restore';button.setAttribute('aria-label',`Restore ${label}, seed ${settings.seed}`);button.onclick=()=>{if(pendingCount()){status('Apply or Revert pending hit edits before restoring a pattern.',true);return;}const saved=bank!.slots[bank!.active]!.patternHistory?.[restoreIndex];if(!saved)return;stop();const before=structuredClone(editor.state);if(editor.restore(saved.editor)){syncControls();refresh();rememberActivePattern(before,'Before restore');status(`Restored ${saved.label}. Undo returns to the previous beat.`);}};actions.append(button);}card.append(actions);list.append(card);};
+ addCard('Current beat',editor.state);for(let i=entries.length-1;i>=0;i--)addCard(entries[i]!.label,entries[i]!.editor,entries[i]!.capturedAt,i);
+ renderComparisonControls();
+}
+for(const side of ['A','B'] as const){el(`compare-preview-${side.toLowerCase()}`).onclick=()=>{void previewComparison(side).catch(e=>status(String(e),true));};el(`compare-keep-${side.toLowerCase()}`).onclick=()=>keepComparison(side);}
+el('compare-clear').onclick=()=>{stop();comparison=undefined;renderPatternHistory();status('A/B comparison cleared.');};
 function renderBank(){if(!bank)return;const host=el('bank-slots');host.replaceChildren();
  const heading = document.querySelector('.pattern-bank .grid-heading');
  if(heading && !document.getElementById('bank-toolbar')){
@@ -430,7 +462,7 @@ function renderBank(){if(!bank)return;const host=el('bank-slots');host.replaceCh
   title.title='Double-click to rename';title.ondblclick=()=>{name.style.display='block';name.focus();name.select();};
   const b=document.createElement('button');b.id='slot-'+i;b.setAttribute('aria-pressed',String(bank!.active===i));b.title=slot.editor?'Edit '+slot.name+'; queues during playback':'Copy current pattern into '+slot.name;b.textContent=slot.editor?slot.name:'+ '+slot.name;b.onclick=()=>{if(!slot.editor){stop();const source=structuredClone(editor.state);if(arrangementMutation('Copy pattern to slot',next=>{next.slots[i]!.editor=source;})){bank=arrangementHistory!.bank;activateSlot(i);status('Copied pattern. Generate a variation or edit this slot.');}}else chooseSlot(i);};card.append(b);
   if(slot.editor){const preview=document.createElement('button');preview.id='slot-preview-'+i;preview.textContent='▶';preview.setAttribute('aria-label','Preview '+slot.name);preview.onclick=()=>{if(mode==='pattern'&&i!==bank!.active){chooseSlot(i);return;}stop();input('transport-target').value='pattern';syncHud();activateSlot(i);void play().catch(e=>status(String(e),true));};card.append(preview);}
-  if(bank!.slots.length>1){const del=document.createElement('button');del.className='slot-del-btn';del.textContent='✕';del.title='Delete '+slot.name;del.setAttribute('aria-label','Delete '+slot.name);del.onclick=(e)=>{e.stopPropagation();stop();if(arrangementMutation('Delete pattern',b=>deletePatternSlot(b,i))){bank=arrangementHistory!.bank;selectedArrangementStep=undefined;activateSlot(bank.active);renderBank();scheduleSave();status('Deleted pattern.');}};card.append(del);}
+  if(bank!.slots.length>1){const del=document.createElement('button');del.className='slot-del-btn';del.textContent='✕';del.title='Delete '+slot.name;del.setAttribute('aria-label','Delete '+slot.name);del.onclick=(e)=>{e.stopPropagation();stop();if(arrangementMutation('Delete pattern',b=>deletePatternSlot(b,i))){comparison=undefined;bank=arrangementHistory!.bank;selectedArrangementStep=undefined;activateSlot(bank.active);renderBank();scheduleSave();status('Deleted pattern.');}};card.append(del);}
   host.append(card);});
  renderPatternHistory();input('song-bpm').value=String(bank.songBpm);syncHud();
  let firstBar=1;
@@ -984,6 +1016,7 @@ function scheduleSave(){
 }
 function applyProject(raw:unknown){
   const {project:p,assets:loaded}=readProject(raw);if(pendingCount()&&!confirm('Opening this project discards pending hit edits. Continue?'))return false;hitDrafts.clear();stop();samplePanel.stop();
+  comparison=undefined;
   assets.clear();loaded.forEach((a,id)=>assets.set(id,a));kitPanel.restore(p.kit);
   bank=p.bank?structuredClone(p.bank):newBank(p.editor.pattern);arrangementHistory=new ArrangementHistory(bank);bank=arrangementHistory.bank;selectedArrangementStep=undefined;slotEditors.clear();
   editor=new Editor(p.editor.pattern);editor.state=structuredClone(p.editor);rowAnchor=0;
@@ -998,7 +1031,7 @@ el('project-open').onchange=async e=>{const field=e.target as HTMLInputElement,f
 };
 el('project-new').onclick=()=>{
   if(!confirm('Start a new project? Save project first to keep your current work.'))return;
-  hitDrafts.clear();stop();samplePanel.stop();assets.clear();bank=undefined;arrangementHistory=undefined;selectedArrangementStep=undefined;slotEditors.clear();kitPanel.restore(defaultKitState());editor=new Editor(generate(genreDefaults('jungle')));ensureArrangementHistory();syncControls();
+  hitDrafts.clear();stop();samplePanel.stop();comparison=undefined;assets.clear();bank=undefined;arrangementHistory=undefined;selectedArrangementStep=undefined;slotEditors.clear();kitPanel.restore(defaultKitState());editor=new Editor(generate(genreDefaults('jungle')));ensureArrangementHistory();syncControls();
   const genre=input('genre').value as Genre,defaultKitId=GENRE_KITS[genre]||'acoustic-break';
   void kitPanel.applyPreset(defaultKitId);
   const ks=document.getElementById('kit-preset-select') as HTMLSelectElement | null;if(ks)ks.value=defaultKitId;const gks=document.getElementById('generator-kit-select') as HTMLSelectElement | null;if(gks)gks.value=defaultKitId;

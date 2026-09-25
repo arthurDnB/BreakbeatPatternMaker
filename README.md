@@ -37,6 +37,8 @@ Select instruments, genre, BPM, length and detail. Generate applies pending sett
 
 Open **Recent patterns** in the left tray to revisit the last 12 generated, varied, mutated, filled or scrambled beats for the active pattern slot. Each entry shows its genre, BPM, length and seed. **Restore** loads that beat into the tracker; Undo returns to the beat you had just before restoring. The list is separate for each slot and survives project save/open and local autosave.
 
+To compare two versions, press **Set A** and **Set B** on any current or recent beats, then use **Preview A/B** to hear each through the current kit and effects. Switching previews starts the chosen beat from its first bar. **Keep A/B** loads the preferred beat into the tracker, where it can be edited, exported or undone. A/B choices are temporary and clear when you change slots or projects; the underlying recent beats remain saved.
+
 Click a hit or empty cell for direct tracker entry. Change its row, lane, pitch, volume, pan or delay. Enable Keyboard entry and focus the grid: Z S X D C V G B H N J M enter chromatic notes, arrows move the cursor, Delete removes selected unlocked hits, Space plays/stops. Typing into a form field never records notes. Manual insertion can use a lane excluded from generation; exclusion applies to automatic generation, not composition.
 
 ## Save and restore

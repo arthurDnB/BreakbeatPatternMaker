@@ -60,12 +60,18 @@ This document maintains the running project state and change log so that multipl
 * [x] **Visual song timeline:** Colored section blocks, playhead following, insertion gaps, drag reorder and pattern selection with arrangement undo/redo.
 * [x] **Quick Start guide:** First-run Generate → Preview → Edit → Export orientation, with persistent dismiss/reopen controls.
 * [x] **Recent patterns:** Per-slot snapshots of the last 12 generated, varied or mutated beats, with restore, project persistence and Undo recovery.
+* [x] **A/B pattern comparison:** Capture current or recent beats as A and B, preview either with the current kit, and keep a winner with Undo support.
 * [ ] **Future Audio Roadmaps:** Procedural vinyl texture rack, MP3 export, velocity-layered drum kits, sample-browser filtering.
 * [ ] *Note: Renoise integration has been retired in favor of the standalone in-browser instrument.*
 
 ---
 
 ## 📝 Change Log
+
+### [2026-09-25] - A/B Pattern Comparison (Codex)
+- **Comparison UI (`public/index.html`, `public/workspace.css`, `src/web.ts`):** Added Set A/B to each current or recent beat, compact preview/keep/clear controls, and metadata showing both choices. Captures are frozen for the active slot and clear on slot or project changes.
+- **Playback and editing (`src/web.ts`):** Both previews use the existing pattern renderer, kit, samples and effects without changing the tracker; Keep restores a choice through the editor so Undo/Redo and recent history remain available.
+- **Verification (`scripts/site-browser-smoke.mjs`):** `npm.cmd test` passes 121/121. The static site build and browser smoke pass on both root and GitHub Pages subpaths, covering A/B selection, audio preview switching, Keep B, Undo/Redo, project save/open and autosave.
 
 ### [2026-09-25] - Recent Pattern History (Codex)
 - **History engine (`src/core/bank.ts`, `src/core/editor.ts`):** Added bounded, validated per-slot pattern snapshots and a restore operation that participates in ordinary editor Undo/Redo.
