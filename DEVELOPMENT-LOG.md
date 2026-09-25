@@ -26,7 +26,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.3.0-alpha`
-* **Test Status:** 126 / 126 unit tests passing (`npm.cmd test`).
+* **Test Status:** 128 / 128 unit tests passing (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -67,6 +67,12 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-09-26] - Tracker FX Commands and Mobile Workspace Repair (Codex)
+- **Tracker model and editing (`src/core/model.ts`, `src/core/compile.ts`, `src/core/editor.ts`, `src/web.ts`):** Added an optional validated per-hit FX command, sixth tracker value, keyboard entry of command plus two hex digits, field-only clearing, and one-step Undo/Redo. Full pattern JSON and portable projects preserve FX; the older strict Lua transfer stays unchanged and warns when it cannot represent FX. Older v1/v2/v3 projects still load.
+- **Shared audio renderer (`src/audio/performance.ts`, `src/audio/voice-v3.ts`, `src/audio/project.ts`):** Added sub-row sample offset, forward/reverse direction, pitch slide, note cut, and retrigger playback for all generator engines. Preview, pattern/song playback, and WAV export use this same renderer. The old `09`, `01`, and `02` spellings are accepted as aliases for the current Renoise `0S`, `0U`, and `0D` commands; `0B` retains its current reverse meaning.
+- **Workspace (`public/workspace.css`, `public/index.html`, `src/web.ts`):** Repaired the collapsed pattern rail despite a saved inline width, combined summary and legend, moved selection/lock tools into a compact menu, and reduced the open hit inspector to a single desktop strip. On mobile, restored header-first ordering, contained horizontal tracker scrolling, fixed offscreen instrument panels, wrapped transport and kit controls, and kept the page within the viewport.
+- **Verification (`tests/tracker-fx.test.mjs`, `scripts/site-browser-smoke.mjs`, `README.md`):** Added rendered-audio and persistence checks for FX, plus root/subpath browser checks for FX typing, sidebar collapse, and phone layout. See README for the supported command subset and keyboard syntax.
 
 ### [2026-09-26] - Beat Generator Vertical Narrowing & Consolidation (Antigravity)
 - **Engine selector moved to primary row (`public/index.html`, `public/workspace.css`, `src/web.ts`):** Relocated the generation engine selector (`#algorithm`: Groove v3, Groove v2, Legacy v1) from the nested `Advanced Generation` drawer up into the primary controls bar (`.primary`), sitting directly in the open slot next to `Bars` (`#bars`). Formatted with dedicated `.control-engine` styles matching the other primary DAW controls.

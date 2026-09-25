@@ -12,7 +12,7 @@ function base64(data:Float32Array){let s='';const bytes=new Uint8Array(data.buff
 export function makeProject(editor:EditorState,draft:Settings,kit:KitState,assets:Map<string,AudioAsset>,bank?:Bank):Project{
   const patterns=[editor.pattern,...(bank?.slots.flatMap(s=>[...(s.editor?[s.editor.pattern]:[]),...(s.patternHistory?.map(h=>h.editor.pattern)??[])])??[])];
   const ids=new Set(patterns.flatMap(p=>p.events).flatMap(h=>h.slice?[h.slice.assetId]:[]));for(const r of ROLES){if(kit[r].assetId)ids.add(kit[r].assetId!);if(kit[r].uploadId)ids.add(kit[r].uploadId!);}
-  const v3=draft.algorithm==='groove-v3'||patterns.some(p=>p.settings.algorithm==='groove-v3'||p.events.some(h=>h.articulation));
+  const v3=draft.algorithm==='groove-v3'||patterns.some(p=>p.settings.algorithm==='groove-v3'||p.events.some(h=>h.articulation||h.effect));
   return {format:'breakbeat-project',version:v3?3:2,...(bank?{bank:structuredClone(bank)}:{}),editor:structuredClone(editor),draft:structuredClone(draft),kit:structuredClone(kit),assets:[...ids].map(id=>{const a=assets.get(id);if(!a)throw Error('Missing project audio.');return {id,name:a.name,sampleRate:a.sampleRate,channels:a.channels.map(base64)};})};
 }
 export function readProject(raw:unknown){

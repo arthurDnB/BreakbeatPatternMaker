@@ -5,7 +5,7 @@ import {V3_RULES} from './groove-v3-profiles.js';
 import {GROOVES} from './groove-profiles.js';
 import {compile} from './compile.js';
 import {random} from './random.js';
-import {PPQ, ROLES, type Pattern, type Role, type Hit} from './model.js';
+import {PPQ, ROLES, type Pattern, type Role, type Hit, type EffectCommand} from './model.js';
 
 export interface CellPosition {row:number;lane:Role}
 export interface TrackerClipCell extends CellPosition {hits:Hit[]}
@@ -161,6 +161,14 @@ export class Editor {
     else {if(value<0||value>255)throw Error('Delay must be 00–FF hex.');const tick=(note.row+value/256)*PPQ*4/next.pattern.settings.resolution;hit.baseTick=Math.floor(tick);hit.fineOffset=tick-Math.floor(tick);hit.offsetTick=0;}
     next.selection={ids:[id],rows:null,cells:[{row:note.row,lane:note.lane}]};next.revision++;
     return this.commit(next,`Edit tracker ${field}`);
+  }
+  editTrackerEffect(id:string,effect?:EffectCommand):boolean {
+    const next=copy(this.state),hit=next.pattern.events.find(h=>h.id===id);
+    if(!hit)throw Error('Select a hit to edit.');
+    if(locked(next,hit))throw Error('Unlock this hit before editing.');
+    if(effect)hit.effect=copy(effect);else delete hit.effect;
+    next.revision++;
+    return this.commit(next,effect?'Edit tracker FX':'Clear tracker FX');
   }
   mutate(){
     const next=copy(this.state),scope=selectedIds(next);

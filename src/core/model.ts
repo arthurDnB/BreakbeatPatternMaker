@@ -25,7 +25,11 @@ export interface Articulation {
   durationTicks:number; mode:'natural'|'gate'|'chop';
   repeats?:RepeatArticulation[]; chokeGroup?:'hat';
 }
+// Tracker FX are local to one hit. Commands use Renoise's current letter names;
+// 09/01/02 are accepted aliases for familiar older tracker notation.
+export interface EffectCommand {command:'0S'|'09'|'0B'|'0U'|'01'|'0D'|'02'|'0C'|'0R';param:number}
 export interface Hit {
+  effect?:EffectCommand;
   sourceKind?:'oneShot'|'slice';
   articulation?:Articulation;
   reverse?:boolean;

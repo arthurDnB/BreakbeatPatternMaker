@@ -45,6 +45,28 @@ export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,
         channels=asset.channels;sourceRate=asset.sampleRate;from=hit.slice.startFrame;to=hit.slice.endFrame;
       }
     }else{if(!kit.has(hit.role))kit.set(hit.role,synthesize(hit.role,rate));channels=[kit.get(hit.role)!];to=channels[0]!.length;}
+    if(hit.effect){
+      const command=hit.effect.command,param=hit.effect.param,fxHit={...hit,ratchets:1,articulation:undefined};
+      const effectVoices=planV3Voices(pattern,fxHit,channels,sourceRate,from,to,origin,options.loop ? Infinity : position,rate);
+      if(command==='0C'){
+        const ticks=param&15,level=(param>>4)/15;
+        for(const voice of effectVoices){voice.volumeCutAtFrames=Math.round(60/pattern.settings.bpm/pattern.settings.resolution*4*rate*ticks/12);voice.volumeAfterCut=level;}
+      }
+      if(command==='0R'){
+        const tickInterval=param&15;if(!tickInterval)return effectVoices;
+        const tickSeconds=60/pattern.settings.bpm/pattern.settings.resolution*4/12;
+        const span=Math.round(tickInterval*tickSeconds*rate);
+        const mode=param>>4;
+        const factor=[1,.97,.94,.88,.75,.5,2/3,.5,1,1.03,1.06,1.12,1.25,1.5,1.5,2][mode]!;
+        const repeats=[] as RenderVoice[];
+        for(let tick=0;tick<12;tick+=tickInterval){
+          const voice={...effectVoices[0]!,start:start+tick*tickSeconds,repeatGain:Math.min(2,Math.max(0,factor**(tick/tickInterval))),length:Math.min(effectVoices[0]!.length,span),gated:true,edgeFade:true};
+          if(voice.start<position)repeats.push(voice);
+        }
+        return repeats;
+      }
+      return effectVoices;
+    }
     if(pattern.settings.algorithm==='groove-v3')return planV3Voices(pattern,hit,channels,sourceRate,from,to,origin,options.loop ? Infinity : position,rate);
     const count=hit.ratchets??1,interval=240/pattern.settings.bpm/pattern.settings.resolution/count;
     const naturalLength=Math.ceil((to-from)/sourceRate/ratio*rate),decayActive=hit.decay!==undefined&&hit.decay<1;

@@ -26,6 +26,12 @@ export function compile(pattern: Pattern, sources: Source[] = DEFAULT_SOURCES, l
   const usedSources=new Set<string>(), counts=new Map<string,number>(), columns=new Map<string,number>(), ids=new Set<string>();
   const notes=pattern.events.map(hit=>{
     validateArticulation(hit);
+    if(hit.effect){
+      if(!['0S','09','0B','0U','01','0D','02','0C','0R'].includes(hit.effect.command))throw Error('Unsupported tracker FX command.');
+      bounded(hit.effect.param,0,255,'tracker FX parameter',true);
+      if(hit.effect.command==='0B'&&hit.effect.param>1)throw Error('0B direction must be 00 (reverse) or 01 (forward).');
+      out.warnings.push(`${hit.id}: tracker FX is available in the full pattern/project file, not the legacy Renoise transfer.`);
+    }
     if(hit.reverse!==undefined&&typeof hit.reverse!=='boolean')throw Error('Invalid reverse flag.');
     if(hit.ratchets!==undefined)bounded(hit.ratchets,1,8,'ratchets',true);
     if(hit.gate!==undefined)bounded(hit.gate,.05,1,'gate');

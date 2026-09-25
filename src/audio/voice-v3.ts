@@ -6,6 +6,7 @@ export interface RenderVoice {
   start:number; step:number; length:number; gated:boolean; envelopeLength?:number;
   v3?:true; repeatGain?:number; reverse?:boolean; sourceOffset?:number;
   glide?:number; glideFrames?:number; chokeGroup?:'hat'; edgeFade?:boolean;
+  volumeCutAtFrames?:number; volumeAfterCut?:number;
 }
 
 // Source distance travelled over n output frames by a continuous pitch ramp.
@@ -35,8 +36,11 @@ export function planV3Voices(pattern:Pattern,hit:Hit,channels:Float32Array[],sou
   return Array.from({length:count},(_,repeat)=>{
     const expression=art?.repeats?.[repeat],onset=start+repeat*interval;
     const pitch=(hit.pitch??0)+(expression?.pitch??0),step=sourceRate/rate*2**(pitch/12);
-    const sourceOffset=Math.min(to-from-1,(expression?.sourceOffset??0)*(to-from));
-    const glide=expression?.glide??0,glideFrames=Math.max(1,Math.round(interval*rate));
+    const fx=hit.effect;
+    const sourceOffset=Math.min(to-from-1,(fx&&['0S','09'].includes(fx.command)?fx.param/256:expression?.sourceOffset??0)*(to-from));
+    const fxGlide=fx&&['0U','01','0D','02'].includes(fx.command)?(fx.command==='0U'||fx.command==='01'?1:-1)*fx.param*12/16:0;
+    const glide=(expression?.glide??0)+fxGlide,glideFrames=Math.max(1,Math.round(interval*rate));
+    const reverse=fx?.command==='0B'?fx.param===0:expression?.reverse??hit.reverse??false;
     const natural=naturalFrames(to-from-sourceOffset,step,glide,glideFrames,rate);
     // Decay shapes the source body, never the display row. This also applies to
     // uploaded and library one-shots, whose source happens to be a SliceRef.
@@ -48,8 +52,8 @@ export function planV3Voices(pattern:Pattern,hit:Hit,channels:Float32Array[],sou
     const window=Math.min(Math.round(interval*(hit.gate??1)*rate),Math.max(0,Math.round(end*rate)-Math.round(onset*rate)));
     const length=gated?Math.min(decayLength,window):decayLength;
     return {v3:true as const,hit,channels,from,to,start:onset,step,length,gated,envelopeLength:length,
-      repeatGain:expression?.gain??1,reverse:expression?.reverse??hit.reverse??false,
-      sourceOffset,glide,glideFrames,edgeFade:!!(expression?.reverse??hit.reverse)||sourceOffset>0,chokeGroup:art?.chokeGroup??(hit.role==='hat'?'hat':undefined)};
+      repeatGain:expression?.gain??1,reverse,
+      sourceOffset,glide,glideFrames,edgeFade:reverse||sourceOffset>0,chokeGroup:art?.chokeGroup??(hit.role==='hat'?'hat':undefined)};
   }).filter(voice=>voice.length>0&&voice.start<end);
 }
 
@@ -101,6 +105,10 @@ export function renderV3Voice(v:RenderVoice,bus:Float32Array[],rate:number):void
     if(index<v.from||index>=v.to)break;
     let envelope=v.edgeFade?Math.max(0,Math.min(1,i/fade,(v.length-1-i)/fade)):v.gated?Math.max(0,Math.min(1,(v.length-1-i)/fade)):1;
     if(v.hit.decay!==undefined&&v.hit.decay<1)envelope*=(1-i/(v.envelopeLength??v.length))**2;
+    if(v.volumeCutAtFrames!==undefined&&i>=v.volumeCutAtFrames){
+      const blend=Math.min(1,(i-v.volumeCutAtFrames)/Math.max(1,Math.round(rate*.002)));
+      envelope*=1+(v.volumeAfterCut!-1)*blend;
+    }
     for(let c=0;c<2;c++){
       const data=v.channels[Math.min(c,v.channels.length-1)]!;
       const value=data[index]!*(1-fraction)+data[Math.min(v.to-1,index+1)]!*fraction;
