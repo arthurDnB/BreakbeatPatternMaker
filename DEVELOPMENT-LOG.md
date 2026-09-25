@@ -26,7 +26,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.3.0-alpha`
-* **Test Status:** 118 / 118 unit tests passing (`npm.cmd test`).
+* **Test Status:** 121 / 121 unit tests passing (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -59,12 +59,19 @@ This document maintains the running project state and change log so that multipl
 * [x] **Named song sections:** Optional per-step section labels are preserved in project data, shown in the arranger and transport, and included in history.
 * [x] **Visual song timeline:** Colored section blocks, playhead following, insertion gaps, drag reorder and pattern selection with arrangement undo/redo.
 * [x] **Quick Start guide:** First-run Generate → Preview → Edit → Export orientation, with persistent dismiss/reopen controls.
+* [x] **Recent patterns:** Per-slot snapshots of the last 12 generated, varied or mutated beats, with restore, project persistence and Undo recovery.
 * [ ] **Future Audio Roadmaps:** Procedural vinyl texture rack, MP3 export, velocity-layered drum kits, sample-browser filtering.
 * [ ] *Note: Renoise integration has been retired in favor of the standalone in-browser instrument.*
 
 ---
 
 ## 📝 Change Log
+
+### [2026-09-25] - Recent Pattern History (Codex)
+- **History engine (`src/core/bank.ts`, `src/core/editor.ts`):** Added bounded, validated per-slot pattern snapshots and a restore operation that participates in ordinary editor Undo/Redo.
+- **Workspace (`src/web.ts`, `public/index.html`, `public/workspace.css`):** Added a collapsible left-tray history with current-beat context, genre/BPM/seed metadata, and Restore controls; Generate, Variation, Mutate, Fill and Scramble capture the previous beat when they change it.
+- **Persistence (`src/audio/project.ts`):** Project files and autosave retain recent patterns and include audio referenced only by historical slices, so restored beats remain playable after reopening.
+- **Verification (`tests/pattern-history.test.mjs`, `scripts/site-browser-smoke.mjs`):** `npm.cmd test` passes 121/121; `npm.cmd run test:site` passes history restore, project roundtrip and autosave on both root and GitHub Pages subpath builds.
 
 ### [2026-09-25] - First-Run Quick Start Guide (Codex)
 - **Onboarding (`public/index.html`, `public/workspace.css`, `src/web.ts`):** Added a compact four-step Generate → Preview → Edit → Export guide, responsive cards, and a header toggle that remembers visibility in local storage.

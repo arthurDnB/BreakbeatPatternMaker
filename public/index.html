@@ -109,6 +109,11 @@
         <div id="bank-slots" class="bank-slots"></div>
       </section>
 
+      <details id="pattern-history-panel"><summary>Recent patterns <span id="pattern-history-count"></span></summary>
+        <p class="history-help">Restore an earlier beat from this pattern slot. The current beat stays available through Undo.</p>
+        <div id="pattern-history-list"></div>
+      </details>
+
       <details id="arranger"><summary>Song arrangement</summary>
         <label class="song-tempo">Song tempo <input id="song-bpm" type="number" min="32" max="999" step="0.1" value="165"> BPM</label>
         <p class="song-help">Select a pattern in the timeline, drag blocks into gaps, or use Move buttons below. Song tempo is independent.</p>

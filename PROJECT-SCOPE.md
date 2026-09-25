@@ -10,7 +10,7 @@ Next candidates: MP3 export, velocity-layered kits and stronger sample-browser f
 
 Implemented polish: simplified generator toolbar and advanced disclosure; Preview naming; per-lane high/low-pass, drive and delay with bypass; lane/per-hit reverse; shared DSP for preview and WAV; backward-compatible project persistence.
 
-Quality-of-life: a dismissible, persistent Quick Start guide explains Generate → Preview → Edit → Export and can be reopened from the header.
+Quality-of-life: a dismissible, persistent Quick Start guide explains Generate → Preview → Edit → Export and can be reopened from the header. A per-slot Recent patterns panel holds up to 12 previous generated or mutated beats, restores them through the editor, and persists in project files and local autosave.
 
 ## Implemented: pattern bank and arrangement
 - Dynamic bank of 1–256 named slots (starting with A, B, C, Fill), copy into empty slots, automatic edit retention, and per-slot in-memory undo history.

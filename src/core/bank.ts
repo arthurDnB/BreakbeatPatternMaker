@@ -12,6 +12,21 @@ export function slotLabel(i: number): string {
 export interface PatternSlot {
   name: string;
   editor: EditorState | null;
+  patternHistory?: PatternHistoryEntry[];
+}
+
+export interface PatternHistoryEntry {label: string; capturedAt: number; editor: EditorState}
+export const PATTERN_HISTORY_LIMIT = 12;
+
+export function rememberPattern(slot: PatternSlot, state: EditorState, label: string, capturedAt = Date.now()): boolean {
+  if (!slot.editor || !label.trim() || label.length > 48 || !Number.isSafeInteger(capturedAt) || capturedAt < 0) throw Error('Invalid pattern history entry.');
+  const existing = slot.patternHistory ?? [];
+  if (existing.at(-1) && JSON.stringify(existing.at(-1)!.editor.pattern) === JSON.stringify(state.pattern)) return false;
+  const editor = structuredClone(state);
+  editor.selection = {ids: [], rows: null};
+  validateEditor(editor);
+  slot.patternHistory = [...existing, {label, capturedAt, editor}].slice(-PATTERN_HISTORY_LIMIT);
+  return true;
 }
 
 export interface Bank {
@@ -84,6 +99,13 @@ export function validateBank(bank: Bank) {
   for (const s of bank.slots) {
     if (!s || typeof s.name !== 'string' || !s.name.trim() || s.name.length > 40) throw Error('Invalid slot name.');
     if (s.editor) validateEditor(s.editor);
+    if (s.patternHistory !== undefined) {
+      if (!Array.isArray(s.patternHistory) || s.patternHistory.length > PATTERN_HISTORY_LIMIT || !s.editor) throw Error('Invalid pattern history.');
+      for (const entry of s.patternHistory) {
+        if (!entry || typeof entry.label !== 'string' || !entry.label.trim() || entry.label.length > 48 || !Number.isSafeInteger(entry.capturedAt) || entry.capturedAt < 0 || !entry.editor) throw Error('Invalid pattern history entry.');
+        validateEditor(entry.editor);
+      }
+    }
   }
   if (!bank.slots[bank.active]!.editor) throw Error('Active slot is empty.');
   for (const step of bank.sequence) {

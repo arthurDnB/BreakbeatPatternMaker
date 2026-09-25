@@ -34,6 +34,7 @@ export class Editor {
   }
   undo(){const item=this.past.pop();if(!item)return false;this.future.push({state:copy(this.state),label:item.label});this.state=item.state;return true;}
   redo(){const item=this.future.pop();if(!item)return false;this.past.push({state:copy(this.state),label:item.label});this.state=item.state;return true;}
+  restore(saved:EditorState){const next=copy(saved);next.selection=emptySelection();return this.commit(next,'Restore pattern history');}
   unlockHit(id:string){const next=copy(this.state),hit=next.pattern.events.find(h=>h.id===id);if(!hit)return false;next.lockedIds=next.lockedIds.filter(x=>x!==id);next.lockedRoles=next.lockedRoles.filter(r=>r!==hit.role);return this.commit(next,'Unlock hit and lane');}
   toggleRole(role:Role){const next=copy(this.state);next.lockedRoles=next.lockedRoles.includes(role)?next.lockedRoles.filter(r=>r!==role):[...next.lockedRoles,role];return this.commit(next,`Toggle ${role} lock`);}
   toggleSelectedLocks(){

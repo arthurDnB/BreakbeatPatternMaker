@@ -1,7 +1,7 @@
 import {setRatchets,articulationLabel} from './core/articulation.js';
 import {GROOVES} from './core/groove-profiles.js';
 import {NEW_GENRES} from './core/new-genres.js';
-import {newBank,arrange,songTimeline,songBlocks,songPosition,moveSequenceStep,moveSequenceStepToInsertion,insertSequenceStep,slotLabel,addPatternSlot,duplicatePatternSlot,deletePatternSlot,type Bank} from './core/bank.js';
+import {newBank,arrange,songTimeline,songBlocks,songPosition,moveSequenceStep,moveSequenceStepToInsertion,insertSequenceStep,slotLabel,addPatternSlot,duplicatePatternSlot,deletePatternSlot,rememberPattern,type Bank} from './core/bank.js';
 import {makeProject,readProject,localProject} from './audio/project.js';
 import {defaultKitState} from './audio/drum-kit.js';
 import {setupDrumKit,withDrumKit} from './audio/drum-kit.js';
@@ -299,8 +299,8 @@ function syncControls(){
   presets();
 }
 function refresh(){for(const [owner,drafts] of hitDrafts)for(const id of drafts.keys())if(!owner.state.pattern.events.some(h=>h.id===id))drafts.delete(id);pattern=editor.state.pattern;transfer=compile(pattern);render();stashSlot();renderBank();scheduleSave();}
-function edit(action:()=>boolean,message:string){
-  try{stop();const changed=action();refresh();status(changed?message:'No editable change: selected hits may be locked or protected anchors.');}
+function edit(action:()=>boolean,message:string,historyLabel?:string){
+  try{stop();const before=historyLabel?structuredClone(editor.state):undefined;const changed=action();refresh();if(changed&&before)rememberActivePattern(before,historyLabel!);status(changed?message:'No editable change: selected hits may be locked or protected anchors.');}
   catch(e){status((e as Error).message,true);}
 }
 function stop(){
@@ -313,7 +313,7 @@ function stop(){
 function build(){
   if(pendingCount()){status('Apply or Revert pending hit edits before generating a new pattern.',true);return;}
   stop();
-  try{const requested=settings();if(!requested.enabledRoles?.length)throw Error('Include at least one instrument before generating.');const next=generate(requested);if(editor)editor.replace(next);else editor=new Editor(next);refresh();status(`Generated seed “${pattern.settings.seed}”. Locked hits and lanes were preserved. Undo restores the previous pattern.`);}
+  try{const requested=settings();if(!requested.enabledRoles?.length)throw Error('Include at least one instrument before generating.');const next=generate(requested),before=editor?structuredClone(editor.state):undefined;const changed=editor?editor.replace(next):true;if(!editor)editor=new Editor(next);refresh();if(changed&&before)rememberActivePattern(before,'Before Generate');status(`Generated seed “${pattern.settings.seed}”. Locked hits and lanes were preserved. Undo restores the previous pattern.`);}
   catch(e){status((e as Error).message,true);}
 }
 function download(){
@@ -407,6 +407,11 @@ function arrangementMutation(label:string,mutate:(b:Bank)=>void){const history=e
 function arrangementHistorySync(message:string){if(!bank)return;selectedArrangementStep=undefined;slotEditors.clear();const index=bank.active;editor=new Editor(bank.slots[index]!.editor!.pattern);editor.state=structuredClone(bank.slots[index]!.editor!);syncControls();refresh();renderBank();scheduleSave();status(message);}
 function activateSlot(index:number){stashSlot();bank!.active=index;editor=slotEditors.get(index)??new Editor(bank!.slots[index]!.editor!.pattern);if(!slotEditors.has(index))editor.state=structuredClone(bank!.slots[index]!.editor!);rowAnchor=0;syncControls();refresh();}
 function chooseSlot(index:number){if(index===bank!.active){pendingSlot=undefined;return;}if(mode==='pattern'){stashSlot();pendingSlot=index;el('bank-status').textContent='Queued '+bank!.slots[index]!.name+' - next pattern boundary';return;}stop();activateSlot(index);}
+function rememberActivePattern(state:Editor['state'],label:string){if(!bank)return;if(rememberPattern(bank.slots[bank.active]!,state,label)){renderPatternHistory();scheduleSave();}}
+function renderPatternHistory(){if(!bank)return;const slot=bank.slots[bank.active]!,list=el('pattern-history-list'),entries=slot.patternHistory??[];list.replaceChildren();el('pattern-history-count').textContent=entries.length?`(${entries.length})`:'';
+ const addCard=(label:string,state:Editor['state'],capturedAt?:number,restoreIndex?:number)=>{const card=document.createElement('div');card.className='pattern-history-item'+(restoreIndex===undefined?' current':'');const title=document.createElement('strong');title.textContent=label;const settings=state.pattern.settings,meta=document.createElement('small');meta.textContent=`${settings.genre.replaceAll('-',' ')} · ${settings.bpm} BPM · ${settings.bars} bars · seed ${settings.seed}`;meta.title=meta.textContent;card.append(title,meta);if(capturedAt!==undefined){const time=document.createElement('small');time.textContent=new Date(capturedAt).toLocaleString();card.append(time);}if(restoreIndex!==undefined){const button=document.createElement('button');button.type='button';button.textContent='Restore';button.setAttribute('aria-label',`Restore ${label}, seed ${settings.seed}`);button.onclick=()=>{if(pendingCount()){status('Apply or Revert pending hit edits before restoring a pattern.',true);return;}const saved=bank!.slots[bank!.active]!.patternHistory?.[restoreIndex];if(!saved)return;stop();const before=structuredClone(editor.state);if(editor.restore(saved.editor)){syncControls();refresh();rememberActivePattern(before,'Before restore');status(`Restored ${saved.label}. Undo returns to the previous beat.`);}};card.append(button);}list.append(card);};
+ addCard('Current beat',editor.state);for(let i=entries.length-1;i>=0;i--)addCard(entries[i]!.label,entries[i]!.editor,entries[i]!.capturedAt,i);
+}
 function renderBank(){if(!bank)return;const host=el('bank-slots');host.replaceChildren();
  const heading = document.querySelector('.pattern-bank .grid-heading');
  if(heading && !document.getElementById('bank-toolbar')){
@@ -427,7 +432,7 @@ function renderBank(){if(!bank)return;const host=el('bank-slots');host.replaceCh
   if(slot.editor){const preview=document.createElement('button');preview.id='slot-preview-'+i;preview.textContent='▶';preview.setAttribute('aria-label','Preview '+slot.name);preview.onclick=()=>{if(mode==='pattern'&&i!==bank!.active){chooseSlot(i);return;}stop();input('transport-target').value='pattern';syncHud();activateSlot(i);void play().catch(e=>status(String(e),true));};card.append(preview);}
   if(bank!.slots.length>1){const del=document.createElement('button');del.className='slot-del-btn';del.textContent='✕';del.title='Delete '+slot.name;del.setAttribute('aria-label','Delete '+slot.name);del.onclick=(e)=>{e.stopPropagation();stop();if(arrangementMutation('Delete pattern',b=>deletePatternSlot(b,i))){bank=arrangementHistory!.bank;selectedArrangementStep=undefined;activateSlot(bank.active);renderBank();scheduleSave();status('Deleted pattern.');}};card.append(del);}
   host.append(card);});
- input('song-bpm').value=String(bank.songBpm);syncHud();
+ renderPatternHistory();input('song-bpm').value=String(bank.songBpm);syncHud();
  let firstBar=1;
  const seq=el('sequence');seq.replaceChildren();bank.sequence.forEach((step,i)=>{const row=document.createElement('div');row.className='sequence-step';row.dataset.step=String(i);row.classList.toggle('selected-step',selectedArrangementStep===i);const title=document.createElement('span');title.textContent=String(i+1)+'. '+bank!.slots[step.slot]!.name;row.append(title);
  const barCount=bank!.slots[step.slot]!.editor!.pattern.settings.bars*step.repeats;
@@ -563,8 +568,8 @@ el('select-range').onclick=()=>selectRows(Number(input('row-start').value),Numbe
 el('select-ending').onclick=()=>selectRows(transfer.timing.lines-transfer.timing.lpb,transfer.timing.lines-1);
 el('lock-selected').onclick=()=>edit(()=>editor.toggleSelectedLocks(),'Selected hit locks updated. Drum-lane locks still take precedence.');
 for(const role of ['kick','snare','hat','percussion'] as const)el(`lock-${role}`).onchange=()=>edit(()=>editor.toggleRole(role),`${role} lane lock updated.`);
-el('mutate').onclick=()=>edit(()=>editor.mutate(),'Variation applied. Locked hits and main anchors are unchanged. Preview and export now use this edit.');
-el('fill').onclick=()=>edit(()=>editor.fill(),'Fill applied to the selected rows. Locked hits and main anchors are unchanged.');
+el('mutate').onclick=()=>edit(()=>editor.mutate(),'Variation applied. Locked hits and main anchors are unchanged. Preview and export now use this edit.','Before mutation');
+el('fill').onclick=()=>edit(()=>editor.fill(),'Fill applied to the selected rows. Locked hits and main anchors are unchanged.','Before fill');
 function history(direction:'undo'|'redo'){
   stop();if(editor[direction]()){syncControls();refresh();status(direction==='undo'?'Undid the last edit.':'Redid the last edit.');}
 }
@@ -594,7 +599,7 @@ document.addEventListener('keydown',event=>{
   else if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='y'){event.preventDefault();if(inArranger){if(arrangementHistory?.redo()){bank=arrangementHistory.bank;arrangementHistorySync('Redid arrangement change.');}}else history('redo');}
   else if(!event.ctrlKey&&!event.metaKey&&!event.altKey&&event.key.toLowerCase()==='f'){event.preventDefault();followPlayhead=!followPlayhead;syncFollowPlayhead();status(`Follow playhead ${followPlayhead?'enabled':'disabled'}.`);}
 });
-el('regenerate').onclick=()=>{if(pendingCount()){status('Apply or Revert pending hit edits before generating a variation.',true);return;}edit(()=>editor.variation(),'Related variation generated. Seed, core motif, anchors and locks are retained.');syncControls();};
+el('regenerate').onclick=()=>{if(pendingCount()){status('Apply or Revert pending hit edits before generating a variation.',true);return;}edit(()=>editor.variation(),'Related variation generated. Seed, core motif, anchors and locks are retained.','Before variation');syncControls();};
 el('export-wav').onclick=()=>{
   try{
     if(input('export-target').value==='song'){exportArrangement();return;}
@@ -1331,10 +1336,10 @@ function initWorkspaceTrays() {
 
 function initBottomRack(){
   const doScramble = () => {
-    edit(() => editor.scramble(), 'Scrambled breakbeat chops! Anchors and locks preserved. Use Undo to revert.');
+    edit(() => editor.scramble(), 'Scrambled breakbeat chops! Anchors and locks preserved. Use Undo to revert.','Before scramble');
   };
   const doMutate = () => {
-    edit(() => editor.mutate(), 'Variation applied. Locked hits and main anchors are unchanged. Preview and export now use this edit.');
+    edit(() => editor.mutate(), 'Variation applied. Locked hits and main anchors are unchanged. Preview and export now use this edit.','Before mutation');
   };
   const doVariation = () => {
     el('regenerate').click();

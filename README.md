@@ -35,11 +35,13 @@ These are not original Amen, Think or Apache recordings. Research did not establ
 
 Select instruments, genre, BPM, length and detail. Generate applies pending settings; Generate variation chooses another seed while keeping your kit and instrument choices. Generation can be repeated deterministically with the same seed and settings. Select hits or rows, lock them, mutate, generate fills and Undo/Redo.
 
+Open **Recent patterns** in the left tray to revisit the last 12 generated, varied, mutated, filled or scrambled beats for the active pattern slot. Each entry shows its genre, BPM, length and seed. **Restore** loads that beat into the tracker; Undo returns to the beat you had just before restoring. The list is separate for each slot and survives project save/open and local autosave.
+
 Click a hit or empty cell for direct tracker entry. Change its row, lane, pitch, volume, pan or delay. Enable Keyboard entry and focus the grid: Z S X D C V G B H N J M enter chromatic notes, arrows move the cursor, Delete removes selected unlocked hits, Space plays/stops. Typing into a form field never records notes. Manual insertion can use a lane excluded from generation; exclusion applies to automatic generation, not composition.
 
 ## Save and restore
 
-- **Save project + samples:** downloads `.bbproject`, containing note data, locks, settings, instrument selection, uploaded audio and used library audio. Audio is embedded as decoded Float32 PCM, so a project is self-contained and can reopen without downloading library files. Note Undo/Redo history is not included.
+- **Save project + samples:** downloads `.bbproject`, containing note data, locks, settings, recent pattern snapshots, instrument selection, uploaded audio and used library audio. Audio used only by a recent pattern is embedded too, so restoring it after reopening works. Ordinary note Undo/Redo stacks are not included.
 - **Open project:** validates the complete file before replacing the workspace. Invalid files leave the current project intact.
 - **Local autosave:** saves the latest workspace to IndexedDB after a brief pause in edits. Reload restores it on this browser and origin. Check the status indicator; browser storage can be cleared or fail. Use a project file for a durable backup or another computer.
 - **New project:** starts over after a confirmation. Save first to retain the current work.
