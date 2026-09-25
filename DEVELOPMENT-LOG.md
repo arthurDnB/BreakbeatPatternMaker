@@ -63,6 +63,16 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-25] - AmenScience Break Chop Mastering (Antigravity)
+- **Audio Engine Updates (`src/core/groove-v3-profiles.ts`):**
+  - Analyzed the AmenScience reference track to capture the authentic, surgical tracker-style beat splicing.
+  - Overhauled the `amenscience` core kick anchors to strictly feature Amen-break placements `[0, 6, 10]`, `[0, 3, 10, 14]`, and `[0, 6, 10, 15]`.
+  - Maxed out `burstBudget: 4`, `maxRepeats: 8`, and increased `reverseChance` to `0.3` for intense, glitched 64th-note rolls.
+  - Added extreme repitching `pitchSteps: [0, 7, 12, -12, -5]` to simulate classic sampler abuse.
+- **UI and Core Defaults:** Cranked `amenscience` defaults in `src/core/profiles.ts` (`complexity: .95`, `spicy: .95`, `resolution: 64`) to unleash maximum surgical chaos out of the box.
+- **Verification:**
+  - `npm.cmd test`: 90/90 passing (determinism unbroken).
+
 ### [2026-09-25] - Atmospheric Breakcore Master Anchoring (Antigravity)
 - **Audio Engine Updates (`src/core/groove-v3-profiles.ts`):**
   - Following deep reference analysis of the uploaded breakcore track (~200 BPM equivalent), completely revamped the `atmosphericbreakcore` genre profile.

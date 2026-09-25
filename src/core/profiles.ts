@@ -72,7 +72,7 @@ export function genreDefaults(genre:Genre):Settings {
     brostep:{complexity:.6,syncopation:.45,ghostAmount:.15,fillAmount:.65,spicy:.65,resolution:32},
     postdubstep:{complexity:.4,syncopation:.7,ghostAmount:.2,fillAmount:.25,humanizeMs:3},
     drumfunk:{complexity:.7,syncopation:.65,ghostAmount:.7,fillAmount:.65,spicy:.35,resolution:32},
-    amenscience:{complexity:.75,syncopation:.7,ghostAmount:.65,fillAmount:.7,spicy:.65,resolution:32},
+    amenscience:{complexity:.95,syncopation:.85,ghostAmount:.85,fillAmount:.95,spicy:.95,resolution:64},
     atmosphericbreakcore:{complexity:.85,syncopation:.7,ghostAmount:.7,fillAmount:.85,spicy:.8,resolution:64},
     triphop:{complexity:.35,syncopation:.4,ghostAmount:.2,fillAmount:.25,humanizeMs:3},
     halftimednb:{complexity:.4,syncopation:.6,ghostAmount:.2,fillAmount:.35,spicy:.25},
