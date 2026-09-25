@@ -5,7 +5,7 @@ import {V3_BAR as BAR,V3_SIXTEENTH as STEP,euclideanSteps,v3Chance,v3LayerEnable
 
 import {developmentFor,phrasePosition,SUPPORT,musicalSpans} from './groove-v3-development.js';
 
-export const GROOVE_V3_VERSION='0.3.0-groove.2';
+export const GROOVE_V3_VERSION='0.3.0-groove.3';
 const rounded=(n:number)=>Math.round(n*10000)/10000;
 const actual=(h:Hit)=>h.baseTick+h.offsetTick;
 const compare=(a:Hit,b:Hit)=>a.baseTick-b.baseTick||ROLES.indexOf(a.role)-ROLES.indexOf(b.role);
@@ -38,6 +38,7 @@ function context(s:Settings):Context {
  const rule=V3_RULES[s.genre],hits=new Map<string,Hit>();
  const add=(hit:Hit)=>{
   if(!enabled(s,hit.role)||hit.baseTick<0||hit.baseTick>=s.bars*BAR||hits.has(hit.id))return false;
+  if([...hits.values()].some(h=>h.role===hit.role&&(h.baseTick===hit.baseTick||actual(h)===actual(hit))))return false;
   // Linear funk support uses one hand/foot voice per moment, retaining deliberate main accents.
   if(rule.linear&&!hit.anchor&&hit.role!=='hat'&&[...hits.values()].some(h=>h.baseTick===hit.baseTick&&h.role!=='hat'))return false;
   hits.set(hit.id,hit);return true;
@@ -248,31 +249,36 @@ function cadence(c:Context):void {
 
 export function grooveV3Roll(s:Settings,startTick:number,endTick:number):Hit[] {
  const start=Math.max(0,Math.ceil(startTick)),end=Math.min(s.bars*BAR,Math.floor(endTick));
- if(end-start<PPQ/2)return [];
+ if(end-start<PPQ/2||!enabled(s,'snare'))return [];
  const dev=developmentFor(s.genre),span=end-start;
  const hits:Hit[]=[];
  const hyper = dev.chop;
- const liquid = s.genre === 'liquiddnb' || dev.style === 'pocket';
- const machineGun = !hyper && !liquid;
- 
+
  const steps = Math.floor(span / (PPQ/2));
  for(let i=0; i<steps; i++) {
   const hitStart = start + i*(PPQ/2);
   const progress = i / Math.max(1, steps - 1);
   const gain = 0.3 + 0.7 * progress;
-  const count = hyper ? (i === steps-1 ? 8 : 4) : machineGun ? (i < steps/2 ? 2 : 4) : 4;
-  
   const hit=createHit(s,'snare',hitStart,gain,false,false,'Tension-building snare roll riser.');
+  const nextStart=i+1<steps?actual(createHit(s,'snare',hitStart+PPQ/2,gain,false,false,'')):end;
+  const room=nextStart-actual(hit),minTicks=dev.minGapMs*s.bpm*PPQ/60000;
+  const desired = s.complexity<.3?2:s.complexity<.7?4:hyper&&progress>.7?8:4;
+  const maxCount=Math.min(V3_RULES[s.genre].maxRepeats,desired);
+  const count=[1,2,3,4,6,8].filter(n=>n<=maxCount&&PPQ/2/n>=minTicks&&room-PPQ/2*(n-1)/n>=minTicks).at(-1);
+  if(count===undefined)continue;
+
   hit.ratchets = count;
-  hit.gate = 0.8;
+  hit.gate = .95-.15*(s.spicy??0);
   hit.articulation = {
     durationTicks: PPQ/2,
     mode: hyper ? 'chop' : 'gate',
     repeats: Array.from({length:count},(_,j)=>({
-      gain: rounded(0.6 + 0.4*j/(count-1)),
-      ...(hyper && progress>0.5 ? {pitch: 1+j%3} : machineGun ? {pitch: Math.floor(progress*4)} : {})
+      gain: rounded(count===1?1:0.6 + 0.4*j/(count-1)),
+      ...((s.spicy??0)>.4&&progress>.5 ? {pitch:j%2?v3Pick(V3_RULES[s.genre].pitchSteps,s,'roll-pitch',String(i)):0} : {})
     }))
   };
+  const energy=Math.sqrt(hit.articulation.repeats!.reduce((n,r)=>n+r.gain*r.gain,0));
+  for(const r of hit.articulation.repeats!)r.gain=rounded(r.gain/Math.max(1,energy));
   hits.push(hit);
  }
  return hits;
@@ -282,10 +288,10 @@ export function grooveV3Roll(s:Settings,startTick:number,endTick:number):Hit[] {
 
 export function generateGrooveV3(settings:Settings):Pattern {
  const s:Settings={...settings,algorithm:'groove-v3'},c=context(s);
- anchors(c);layers(c);interaction(c);cadence(c);
+ anchors(c);layers(c);interaction(c);
+ if(!s.patternStructure||s.patternStructure==='auto')cadence(c);
  const events=[...c.hits.values()].sort(compare);
- spice(events,s,c.rule,s.bars*BAR);
- 
+
  if(s.patternStructure === 'groove') {
   const toRemove = new Set();
   for(const e of events) if(e.id.includes('-drop')) toRemove.add(e.id);
@@ -294,17 +300,23 @@ export function generateGrooveV3(settings:Settings):Pattern {
   const start = s.bars*BAR - (s.bars*BAR >= PPQ*4 ? PPQ*2 : PPQ);
   const fillNotes = grooveV3Fill(s, start, s.bars*BAR);
   const toRemove = new Set();
-  for(const e of events) if(actual(e) >= start) toRemove.add(e.id);
+  for(const e of events) if(e.baseTick >= start || actual(e) >= start) toRemove.add(e.id);
   events.splice(0, events.length, ...events.filter(e => !toRemove.has(e.id)));
   for(const note of fillNotes) { note.id += '-drop'; events.push(note); }
  } else if (s.patternStructure === 'roll' || s.patternStructure === 'build') {
   const start = s.patternStructure === 'build' ? 0 : s.bars*BAR - (s.bars*BAR >= PPQ*4 ? PPQ*2 : PPQ);
   const rollNotes = grooveV3Roll(s, start, s.bars*BAR);
   const toRemove = new Set();
-  for(const e of events) if(actual(e) >= start) toRemove.add(e.id);
+  for(const e of events) if(e.baseTick >= start || actual(e) >= start) toRemove.add(e.id);
   events.splice(0, events.length, ...events.filter(e => !toRemove.has(e.id)));
   for(const note of rollNotes) { note.id += '-roll'; events.push(note); }
  }
+
+ // Articulate the retained groove only after replacement boundaries are known.
+ // Otherwise a preceding burst can spill into the new roll and choke its attacks.
+ const spiceEnd=s.patternStructure==='build'?0:
+  s.patternStructure==='roll'||s.patternStructure==='fill'?s.bars*BAR-PPQ*2:s.bars*BAR;
+ spice(events.filter(h=>actual(h)<spiceEnd),s,c.rule,spiceEnd,events);
 
  for(const hit of events){
   if(!hit.anchor){hit.gain=rounded(Math.min(1,hit.gain*(.96+.08*v3Chance(s,'velocity',hit.id,false))));}

@@ -3,7 +3,7 @@ import {PPQ,type Hit,type Pattern} from '../core/model.js';
 // V1/V2 voices use the same shape; their sample loop remains in performance.ts.
 export interface RenderVoice {
   hit:Hit; channels:Float32Array[]; from:number; to:number;
-  start:number; step:number; length:number; gated:boolean;
+  start:number; step:number; length:number; gated:boolean; envelopeLength?:number;
   v3?:true; repeatGain?:number; reverse?:boolean; sourceOffset?:number;
   glide?:number; glideFrames?:number; chokeGroup?:'hat'; edgeFade?:boolean;
 }
@@ -47,7 +47,7 @@ export function planV3Voices(pattern:Pattern,hit:Hit,channels:Float32Array[],sou
     const gated=mode!=='natural';
     const window=Math.min(Math.round(interval*(hit.gate??1)*rate),Math.max(0,Math.round(end*rate)-Math.round(onset*rate)));
     const length=gated?Math.min(decayLength,window):decayLength;
-    return {v3:true as const,hit,channels,from,to,start:onset,step,length,gated,
+    return {v3:true as const,hit,channels,from,to,start:onset,step,length,gated,envelopeLength:length,
       repeatGain:expression?.gain??1,reverse:expression?.reverse??hit.reverse??false,
       sourceOffset,glide,glideFrames,edgeFade:!!(expression?.reverse??hit.reverse)||sourceOffset>0,chokeGroup:art?.chokeGroup??(hit.role==='hat'?'hat':undefined)};
   }).filter(voice=>voice.length>0&&voice.start<end);
@@ -100,7 +100,7 @@ export function renderV3Voice(v:RenderVoice,bus:Float32Array[],rate:number):void
     const pos=v.reverse?v.to-1-phase:v.from+phase,index=Math.floor(pos),fraction=pos-index;
     if(index<v.from||index>=v.to)break;
     let envelope=v.edgeFade?Math.max(0,Math.min(1,i/fade,(v.length-1-i)/fade)):v.gated?Math.max(0,Math.min(1,(v.length-1-i)/fade)):1;
-    if(v.hit.decay!==undefined&&v.hit.decay<1)envelope*=(1-i/v.length)**2;
+    if(v.hit.decay!==undefined&&v.hit.decay<1)envelope*=(1-i/(v.envelopeLength??v.length))**2;
     for(let c=0;c<2;c++){
       const data=v.channels[Math.min(c,v.channels.length-1)]!;
       const value=data[index]!*(1-fraction)+data[Math.min(v.to-1,index+1)]!*fraction;
