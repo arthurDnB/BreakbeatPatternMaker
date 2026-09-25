@@ -3069,6 +3069,7 @@ tr.playing-row td { background:#0b1c18; }
 .tracker-value:first-child { min-width:38px; color:#ecf0ed !important; }
 .tracker-value:nth-child(2) { min-width:30px; }
 .tracker-value:hover,.tracker-value:focus-visible { background:#18352e !important; border-color:#69caae !important; color:#fff !important; outline:none; }
+.tracker-value.is-cursor-field { position:relative; z-index:1; background:#123d34 !important; border-color:#00f5d4 !important; color:#fff !important; box-shadow:0 0 0 1px rgba(0,245,212,.35),0 0 8px rgba(0,245,212,.22) !important; }
 .tracker-values.is-empty .tracker-value { color:#48605a !important; }
 #grid td.tracker-drop-target { background:#12372e !important; box-shadow:inset 0 0 0 2px #5de6bd !important; }
 .tracker-dialog { color:#e6f1ed; background:#0c1412; border:1px solid #3c8774; border-radius:8px; width:min(420px,90vw); box-shadow:0 25px 90px #000e; }

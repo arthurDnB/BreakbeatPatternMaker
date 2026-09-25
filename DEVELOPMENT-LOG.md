@@ -68,6 +68,11 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-26] - Tracker Cursor Highlight and Boundary Navigation (Codex)
+- **Tracker cursor (`src/web.ts`, `public/workspace.css`):** Added a persistent, high contrast outline and accessible current-location marker for the active tracker value, so the selected subfield is easy to find while editing.
+- **Keyboard movement:** Arrow keys now move continuously through tracker fields and lanes, wrapping cleanly from the first to last row (and back) within the active pattern. Numeric field auto-advance follows the configured step and wraps at the pattern edge.
+- **Verification (`scripts/tracker-navigation-smoke.mjs`):** TypeScript build and all 128 unit tests pass; a focused Playwright smoke test verifies the cursor indicator and row/lane wrapping.
+
 ### [2026-09-26] - Tracker FX Commands and Mobile Workspace Repair (Codex)
 - **Tracker model and editing (`src/core/model.ts`, `src/core/compile.ts`, `src/core/editor.ts`, `src/web.ts`):** Added an optional validated per-hit FX command, sixth tracker value, keyboard entry of command plus two hex digits, field-only clearing, and one-step Undo/Redo. Full pattern JSON and portable projects preserve FX; the older strict Lua transfer stays unchanged and warns when it cannot represent FX. Older v1/v2/v3 projects still load.
 - **Shared audio renderer (`src/audio/performance.ts`, `src/audio/voice-v3.ts`, `src/audio/project.ts`):** Added sub-row sample offset, forward/reverse direction, pitch slide, note cut, and retrigger playback for all generator engines. Preview, pattern/song playback, and WAV export use this same renderer. The old `09`, `01`, and `02` spellings are accepted as aliases for the current Renoise `0S`, `0U`, and `0D` commands; `0B` retains its current reverse meaning.
