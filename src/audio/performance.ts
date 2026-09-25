@@ -29,9 +29,21 @@ export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,
     const ratio=2**((hit.pitch??0)/12),start=origin+Math.max(0,(hit.baseTick+hit.offsetTick+(hit.fineOffset??0))*secondsPerTick);
     let channels:Float32Array[],sourceRate=rate,from=0,to=0;
     if(hit.slice){
-      const asset=assets.get(hit.slice.assetId);if(!asset)throw Error('The audio for a slice is missing. Re-import and reassign the slice.');
-      if(asset.sampleRate!==hit.slice.sampleRate||hit.slice.endFrame>asset.channels[0]!.length)throw Error('Slice audio does not match its saved boundaries.');
-      channels=asset.channels;sourceRate=asset.sampleRate;from=hit.slice.startFrame;to=hit.slice.endFrame;
+      let asset=assets.get(hit.slice.assetId);
+      if(!asset||(hit.slice.assetId==='synth-scratch'&&asset.sampleRate!==rate)){
+        if(hit.slice.assetId==='synth-scratch'){
+          const ch=[synthesize('scratch',rate)];
+          asset={id:'synth-scratch',name:'Vinyl Scratch (Synth)',sampleRate:rate,channels:ch};
+          assets.set(asset.id,asset);
+        }
+      }
+      if(!asset)throw Error('The audio for a slice is missing. Re-import and reassign the slice.');
+      if(hit.slice.assetId==='synth-scratch'){
+        channels=asset.channels;sourceRate=rate;from=0;to=channels[0]!.length;
+      }else{
+        if(asset.sampleRate!==hit.slice.sampleRate||hit.slice.endFrame>asset.channels[0]!.length)throw Error('Slice audio does not match its saved boundaries.');
+        channels=asset.channels;sourceRate=asset.sampleRate;from=hit.slice.startFrame;to=hit.slice.endFrame;
+      }
     }else{if(!kit.has(hit.role))kit.set(hit.role,synthesize(hit.role,rate));channels=[kit.get(hit.role)!];to=channels[0]!.length;}
     if(pattern.settings.algorithm==='groove-v3')return planV3Voices(pattern,hit,channels,sourceRate,from,to,origin,options.loop ? Infinity : position,rate);
     const count=hit.ratchets??1,interval=240/pattern.settings.bpm/pattern.settings.resolution/count;

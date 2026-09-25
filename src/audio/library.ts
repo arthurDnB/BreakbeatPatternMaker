@@ -1437,7 +1437,20 @@ export const KIT_PRESETS: KitPreset[] = [
   },
   {
     id: 'lofi-soul',
-    name: '🍂 Boom Bap & Lo-Fi (Deep 16x7 Snare & 18" Tom)',
+    name: '🍂 Lo-Fi Hip-Hop (Vinyl Scratch & Soul Snare)',
+    description: 'Warm 20" clean kick, 16x7 deep wood snare crack, natural closed hat, generative vinyl scratch',
+    slots: {
+      kick: 'acoustic-kick-clean',
+      snare: 'acoustic-snare-fat',
+      hat: 'acoustic-hat-closed',
+      percussion: 'synth-scratch',
+    },
+    levels: {snare: 0.82, percussion: 0.95},
+    decays: {snare: 0.60},
+  },
+  {
+    id: 'boombap-acoustic',
+    name: '🪵 Boom Bap & Soul (Deep 16x7 Snare & 18" Tom)',
     description: 'Warm 20" clean kick, 16x7 deep wood snare crack, natural closed hat, 18" floor tom',
     slots: {
       kick: 'acoustic-kick-clean',

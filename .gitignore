@@ -6,3 +6,7 @@ test-results/
 
 # Generated static deployment artifact
 site/
+
+# Local sample packs & scratch files
+/LoFi Drum Kit Vol. 2/
+*.py

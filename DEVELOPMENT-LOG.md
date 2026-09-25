@@ -63,7 +63,21 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
-### [2026-09-25] - Audio Engine Seamless Looping & Transient Fix (Antigravity)
+### [2026-09-25] - Vinyl Scratch Synthesizer for Lo-Fi Hip-Hop (Antigravity)
+- **Sound Generation (`public/synth.js`, `src/audio/performance.ts`):**
+  - Integrated a dedicated `'scratch'` synthesizer mode using FM phase modulation and filtered noise with a realistic forward-stroke turntable chirp curve.
+  - Added dynamic synthesis support at render sample rate in `renderSequence` in `src/audio/performance.ts`.
+- **Drum Kit & UI Integration (`src/audio/drum-kit.ts`, `src/web.ts`):**
+  - Added `Vinyl Scratch (Synth)` to the **Built-in** sound dropdown on the Percussion track in the Instruments panel.
+  - Automatically synthesizes and stores the asset into `assets` in `update()` and `choice.onchange`, ensuring seamless audition, pattern playback, arrangement playback, and WAV export.
+  - Synchronized `generator-kit-desc` readouts across the Generator strip and Instruments tray.
+- **Preset Upgrades (`src/audio/library.ts`):**
+  - Updated the default `lofi-soul` kit preset (`🍂 Lo-Fi Hip-Hop (Vinyl Scratch & Soul Snare)`) to default its percussion slot to `synth-scratch`.
+  - Added `🪵 Boom Bap & Soul (Deep 16x7 Snare & 18" Tom)` as an acoustic boom-bap kit option.
+  - Linked `lofihiphop` in `GENRE_KITS` to automatically load the vinyl scratch kit.
+- **Verification:**
+  - `npm.cmd test`: All 96 tests passed.
+  - `node scripts/site-browser-smoke.mjs`: Playwright browser smoke test passed across all modules and audio assets.
 - **Audio Engine Updates (`src/audio/voice-v3.ts`):**
   - Addressed a user-reported audio "stutter" near the end of patterns (especially in Jungle and Liquid DnB).
   - The recent snare polyphony-1 choke update unintentionally applied a fade-in envelope to all choked hits. This destroyed the transient (attack) of dense 16th-note ratchets and ghost snare rolls near the loop boundary, creating a clicking/stuttering sound instead of punchy drums.

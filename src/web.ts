@@ -344,6 +344,8 @@ const kitPanel=setupDrumKit(assets,()=>{
   const matchedId=matching?matching.id:'custom';
   if(ks) ks.value=matchedId;
   if(gks) gks.value=matchedId;
+  const desc = document.getElementById('generator-kit-desc');
+  if(desc) desc.textContent = matching ? matching.description : 'Custom kit configuration';
   if(editor)refresh();
 },auditionRole);
 const drumKit=kitPanel.kit;
@@ -614,6 +616,9 @@ function restoreGenerationDefaults(){
    if(ks) ks.value=defaultKitId;
    const gks=document.getElementById('generator-kit-select') as HTMLSelectElement | null;
    if(gks) gks.value=defaultKitId;
+   const desc = document.getElementById('generator-kit-desc');
+   const p = KIT_PRESETS.find(k => k.id === defaultKitId);
+   if(desc) desc.textContent = p ? p.description : 'Kit sounds';
  }
  presets();scheduleSave();status(PROFILES[genre].name+' generation defaults loaded, including BPM and advanced settings. Press Generate to apply to the pattern.');
 }
@@ -653,6 +658,9 @@ function initKitPresetSelect(selectId: string){
       const otherId=selectId==='kit-preset-select'?'generator-kit-select':'kit-preset-select';
       const other=document.getElementById(otherId) as HTMLSelectElement | null;
       if(other) other.value=kitSelect.value;
+      const desc = document.getElementById('generator-kit-desc');
+      const p = KIT_PRESETS.find(k => k.id === kitSelect.value);
+      if(desc) desc.textContent = p ? p.description : 'Kit sounds';
       dirty();
     }
   };

@@ -49,7 +49,9 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:()=>void,audi
     const choice=document.createElement('select');choice.id='kit-choice-'+role;
     const udnbList=LIBRARY.filter(s=>s.role===role&&s.id.startsWith('udnb-')).map(s=>[s.id,s.name]);
     const libList=LIBRARY.filter(s=>s.role===role&&!s.id.startsWith('udnb-')).map(s=>[s.id,s.name]);
-    for(const [label,entries] of [['Built-in',[['synth','Synthesized '+title.textContent]]],['UDNB Collection (Personal)',udnbList],['Sample library',libList],['Your sample',[['upload','My upload']]]] as [string,string[][]][]){if(!entries.length)continue;const group=document.createElement('optgroup');group.label=label;for(const [value,text] of entries){const o=document.createElement('option');o.value=value!;o.textContent=text!;group.append(o);}choice.append(group);}
+    const builtInList: [string, string][] = [['synth','Synthesized '+title.textContent]];
+    if(role==='percussion') builtInList.push(['synth-scratch','Vinyl Scratch (Synth)']);
+    for(const [label,entries] of [['Built-in',builtInList],['UDNB Collection (Personal)',udnbList],['Sample library',libList],['Your sample',[['upload','My upload']]]] as [string,string[][]][]){if(!entries.length)continue;const group=document.createElement('optgroup');group.label=label;for(const [value,text] of entries){const o=document.createElement('option');o.value=value!;o.textContent=text!;group.append(o);}choice.append(group);}
     const file=document.createElement('input');file.type='file';file.accept='.wav,audio/wav';file.id='kit-file-'+role;file.className='sample-file-input';file.setAttribute('aria-label','Upload '+title.textContent+' WAV');
     const upload=document.createElement('button');upload.id='kit-upload-'+role;upload.textContent='Upload WAV';upload.onclick=()=>file.click();
     const level=document.createElement('input');level.type='range';level.min='0';level.max='1';level.step='.01';level.id='kit-level-'+role;
@@ -82,7 +84,16 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:()=>void,audi
     let token=0,loading=false;
     const update=()=>{
       play.disabled=loading;upload.disabled=loading;card.setAttribute('aria-busy',String(loading));
-      const slot=mix[role],asset=slot.assetId?assets.get(slot.assetId):undefined;
+      const slot=mix[role];
+      if(slot.choice==='synth-scratch'){
+        slot.assetId='synth-scratch';
+        if(!assets.has('synth-scratch')){
+          const rate=44100;
+          const ch=[synthesize('scratch',rate)];
+          assets.set('synth-scratch',{id:'synth-scratch',name:'Vinyl Scratch (Synth)',sampleRate:rate,channels:ch});
+        }
+      }
+      const asset=slot.assetId?assets.get(slot.assetId):undefined;
       if(asset)kit[role]={assetId:asset.id,startFrame:0,endFrame:asset.channels[0]!.length,sampleRate:asset.sampleRate,label:asset.name};else delete kit[role];
       reverse.i.checked=!!slot.reverse;const effects=slot.effects??defaultEffects();bypass.i.checked=effects.bypass;for(const [key,field] of effectInputs){field.value=String(effects[key]);const out=document.getElementById('fx-'+key+'-val-'+role);if(out)out.textContent=field.value;}
       choice.value=slot.choice;include.i.checked=slot.include;mute.i.checked=slot.mute;solo.i.checked=!!slot.solo;level.value=String(slot.level);tune.value=String(slot.tune);
@@ -132,6 +143,14 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:()=>void,audi
       try{
         let id:string|undefined;
         if(value==='upload'){id=mix[role].uploadId;if(!id||!assets.has(id))throw Error('Upload a WAV first.');}
+        else if(value==='synth-scratch'){
+          id='synth-scratch';
+          if(!assets.has(id)){
+            const rate=44100;
+            const ch=[synthesize('scratch',rate)];
+            assets.set(id,{id,name:'Vinyl Scratch (Synth)',sampleRate:rate,channels:ch});
+          }
+        }
         else if(value!=='synth'){
           const entry=LIBRARY.find(s=>s.id===value&&s.role===role);if(!entry)throw Error('Unknown library sound.');id='library-'+entry.id;
           if(!assets.has(id)){const bytes=await fetchSampleBytes(entry.path);const a=await decode(bytes,entry.name,id,true);if(request!==token)return;assets.set(id,a);}
