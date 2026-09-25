@@ -68,6 +68,11 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-25] - OLED Black Theme and Animated Play Control (Codex)
+- **Theme (`public/style.css`, `public/workspace.css`):** Changed the canvas to pure black and recolored major panels, fields, and tracker surfaces to near-black layers with neutral borders.
+- **Transport (`public/index.html`, `public/workspace.css`, `src/web.ts`):** Replaced the text Play button with a round icon control, animated its halo during playback, changed it to a stop glyph while playing, and kept accessible labels in sync. Respects reduced-motion preferences.
+- **Cache and verification:** Bumped static asset versions; `npm.cmd test` passes 121/121 and `npm.cmd run test:site` passes on root and GitHub Pages paths. Browser checks cover black canvas, round button geometry, and Play/Stop accessibility states.
+
 ### [2026-09-25] - A/B Pattern Comparison (Codex)
 - **Comparison UI (`public/index.html`, `public/workspace.css`, `src/web.ts`):** Added Set A/B to each current or recent beat, compact preview/keep/clear controls, and metadata showing both choices. Captures are frozen for the active slot and clear on slot or project changes.
 - **Playback and editing (`src/web.ts`):** Both previews use the existing pattern renderer, kit, samples and effects without changing the tracker; Keep restores a choice through the editor so Undo/Redo and recent history remain available.

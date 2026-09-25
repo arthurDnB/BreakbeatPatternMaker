@@ -7,16 +7,16 @@
    1. Root Variables & Reset
    -------------------------------------------------------------------------- */
 :root {
-  --bg-deep: #10161e; /* Required: rgb(16, 22, 30) for site-browser-smoke */
-  --bg-chassis: #0c1018;
-  --bg-card: #131926;
-  --bg-card-hover: #182030;
-  --bg-inset: #080c14;
-  --bg-surface: #161e2e;
+  --bg-deep: #000000;
+  --bg-chassis: #020202;
+  --bg-card: #080808;
+  --bg-card-hover: #101010;
+  --bg-inset: #030303;
+  --bg-surface: #0b0b0b;
   
-  --border-card: #202b3f;
-  --border-subtle: #172133;
-  --border-highlight: #2c3c58;
+  --border-card: #272727;
+  --border-subtle: #191919;
+  --border-highlight: #414141;
   --border-focus: #00f5d4;
 
   --text-main: #f8fafc;
@@ -375,27 +375,62 @@ main.daw-chassis {
 }
 
 .daw-btn-play, #play {
-  background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
-  border: 1px solid #34d399 !important;
-  color: #022c22 !important;
-  font-weight: 800 !important;
-  font-size: 12px !important;
-  padding: 4px 16px !important;
-  min-height: 30px !important;
-  height: 30px !important;
+  position: relative;
+  isolation: isolate;
+  background: radial-gradient(circle at 35% 28%, #66ffd5 0%, #10b981 52%, #047857 100%) !important;
+  border: 1px solid #6fffd3 !important;
+  color: #00130e !important;
+  font-weight: 900 !important;
+  font-size: 17px !important;
+  padding: 0 !important;
+  width: 42px !important;
+  min-width: 42px !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  flex: 0 0 42px !important;
   border-radius: 6px !important;
   cursor: pointer !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 6px !important;
+  display: inline-grid !important;
+  place-items: center !important;
   box-shadow: 0 0 12px rgba(16, 185, 129, 0.4) !important;
-  transition: all 0.15s ease !important;
+  transition: transform 0.16s ease, box-shadow 0.2s ease, filter 0.2s ease !important;
+  overflow: visible;
+}
+
+.daw-btn-play, #play {
+  border-radius: 50% !important;
+}
+
+#play .play-icon {
+  display: block;
+  line-height: 1;
+  transform: translateX(1px);
+  transition: transform .18s ease;
+}
+
+#play.is-playing .play-icon {
+  transform: translateX(0) scale(.92);
+}
+
+#play.is-playing::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -5px;
+  border: 1px solid rgba(0, 245, 212, .7);
+  border-radius: 50%;
+  animation: oled-play-pulse 1.45s ease-out infinite;
 }
 
 .daw-btn-play:hover:not(:disabled), #play:hover:not(:disabled) {
-  background: linear-gradient(135deg, #047857 0%, #059669 100%) !important;
-  color: #fff !important;
-  box-shadow: 0 0 18px rgba(16, 185, 129, 0.6) !important;
+  filter: brightness(1.14);
+  transform: scale(1.06);
+  box-shadow: 0 0 20px rgba(0, 245, 212, 0.42) !important;
+}
+
+#play.is-playing {
+  background: radial-gradient(circle at 35% 28%, #b4fff1 0%, #12d6b2 50%, #047b70 100%) !important;
+  box-shadow: 0 0 17px rgba(0, 245, 212, .55) !important;
 }
 
 #play:disabled {
@@ -1063,6 +1098,16 @@ input[type=range]::-webkit-slider-thumb:hover {
 }
 .daw-tray-left #arranger summary:hover {
   color: var(--accent-purple);
+}
+
+@keyframes oled-play-pulse {
+  0% { transform: scale(.82); opacity: .75; }
+  100% { transform: scale(1.38); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #play, #play .play-icon { transition: none !important; }
+  #play.is-playing::before { animation: none; }
 }
 
 #pattern-history-panel { background:var(--bg-inset); border:1px solid var(--border-card); border-radius:6px; padding:8px; }
@@ -2855,3 +2900,30 @@ tr.bar-start .row-select { color: var(--accent-cyan); font-weight: 700; }
   }
 }
 
+
+/* OLED black workstation palette: pure-black canvas with near-black layers. */
+html, body, main.daw-chassis { background:#000 !important; }
+.transport.daw-transport { background:rgba(0,0,0,.96) !important; border-color:#242424; }
+.app-header, .daw-window-bar, .daw-subnav-tabs,
+.daw-tray, .daw-tray .tray-header, .daw-tray .tray-body,
+.daw-stage-center, .tracker-workspace, .pattern-bank, #controls,
+.quick-start, .quick-start-steps li, .sample-panel, .drum-slot,
+.tracker-edit, .pattern-history-item, .pattern-compare,
+.sequence-step, .bank-slot, .hud-item, .more-menu {
+  background-color:#050505;
+}
+.bank-slot.active { background-color:#07130f; }
+input:not([type=range]):not([type=checkbox]):not([type=radio]),
+select, textarea, .export-mode-select, .quick-start-toggle {
+  background-color:#090909 !important;
+  border-color:#292929;
+}
+button:not(.daw-btn-play):not(.hit):not(.accent),
+#more-actions>summary {
+  background-color:#080808;
+  border-color:#292929;
+}
+th { background:#070707; }
+td { border-bottom-color:#191919; }
+tr.playing-row td { background:#0b1c18; }
+:focus-visible { outline-color:#00f5d4; }

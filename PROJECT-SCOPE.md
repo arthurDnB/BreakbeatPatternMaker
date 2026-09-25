@@ -8,7 +8,7 @@ Authentic commercial-break one-shots were not bundled because redistribution per
 
 Next candidates: MP3 export, velocity-layered kits and stronger sample-browser filtering. Renoise integration is retired. Original long project documents are historical and superseded by this scope and README.md.
 
-Implemented polish: simplified generator toolbar and advanced disclosure; Preview naming; per-lane high/low-pass, drive and delay with bypass; lane/per-hit reverse; shared DSP for preview and WAV; backward-compatible project persistence.
+Implemented polish: simplified generator toolbar and advanced disclosure; Preview naming; per-lane high/low-pass, drive and delay with bypass; lane/per-hit reverse; shared DSP for preview and WAV; backward-compatible project persistence; OLED black theme and animated round transport control.
 
 Quality-of-life: a dismissible, persistent Quick Start guide explains Generate → Preview → Edit → Export and can be reopened from the header. A per-slot Recent patterns panel holds up to 12 previous generated or mutated beats, restores them through the editor, and persists in project files and local autosave. Temporary A/B choices let users preview two frozen beats with the shared audio renderer and keep either choice with Undo support.
 

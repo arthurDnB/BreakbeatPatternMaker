@@ -92,6 +92,13 @@ function resetHud() {
   const posVal = document.getElementById('hud-pos-val');
   if (posVal) posVal.textContent = '01.1';
 }
+function setPlayButton(playing:boolean){
+  const button=el<HTMLButtonElement>('play'),icon=button.querySelector<HTMLElement>('.play-icon');
+  button.classList.toggle('is-playing',playing);
+  if(icon)icon.textContent=playing?'■':'▶';
+  const label=playing?'Stop playback':`Play ${input('transport-target').value==='song'?'song':'pattern'}`;
+  button.setAttribute('aria-label',label);button.title=label;
+}
 function getTrackerStep(): number {
   const select = document.getElementById('tracker-step-select') as HTMLSelectElement | null;
   if (select && Number.isInteger(Number(select.value))) {
@@ -310,7 +317,7 @@ function stop(){
   if(timer)clearInterval(timer);timer=undefined;
   for(const source of playingSources){try{source.stop();}catch{}source.disconnect();}playingSources.clear();
   mode=undefined;comparisonPlaying=undefined;pendingSlot=undefined;el('transport-state').textContent='Stopped';el('play-arrangement').textContent='Play arrangement';el('bank-status').textContent='';document.querySelectorAll('.playing-step').forEach(e=>e.classList.remove('playing-step'));
-  playToken++;el('play').textContent=input('transport-target').value==='song'?'Play song':'Play pattern';el('song-position').textContent='Song stopped';document.querySelector('.playing-row')?.classList.remove('playing-row');
+  playToken++;setPlayButton(false);el('song-position').textContent='Song stopped';document.querySelector('.playing-row')?.classList.remove('playing-row');
   resetHud();renderComparisonControls();
 }
 function build(){
@@ -364,7 +371,7 @@ async function play(){
  let start=context.currentTime+.08,duration=buffer.duration;
  let source=startSource(buffer,start,true),prepared:{slot:number;buffer:AudioBuffer;mix:string}|undefined;
  let boundary:{at:number;slot:number;duration:number}|undefined;
- mode='pattern';el('transport-state').textContent='Pattern playing';el('play').textContent='Stop';
+ mode='pattern';el('transport-state').textContent='Pattern playing';setPlayButton(true);
  let lastMeterRow = -1;
  const schedule=()=>{
   let now=context!.currentTime;
@@ -429,7 +436,7 @@ async function previewComparison(side:CompareSide){
  stop();samplePanel.stop();context??=new AudioContext();const token=playToken;await context.resume();if(token!==playToken)return;
  const audio=renderPerformance(withDrumKit(selected.state.pattern,drumKit,kitPanel.mix),assets,context.sampleRate,effectMap(),{loop:true});
  startSource(audioBuffer(audio),context.currentTime+.08,true);mode='comparison';comparisonPlaying=side;
- el('transport-state').textContent=`Comparing ${side}`;el('play').textContent='Stop';renderComparisonControls();status(`Previewing ${side}: ${selected.label}. The tracker remains unchanged.`);
+ el('transport-state').textContent=`Comparing ${side}`;setPlayButton(true);renderComparisonControls();status(`Previewing ${side}: ${selected.label}. The tracker remains unchanged.`);
 }
 function keepComparison(side:CompareSide){
  const selected=comparison&&bank&&comparison.slot===bank.active?comparison[side]:undefined;if(!selected)return;
@@ -498,7 +505,7 @@ async function playArrangement(){
  await context.resume();if(token!==playToken)return;
  const audio=arrangementAudio(context.sampleRate),timeline=songTimeline(bank!),buffer=audioBuffer(audio),start=context.currentTime+.05;
  input('transport-target').value='song';syncHud();
- startSource(buffer,start);mode='arrangement';el('transport-state').textContent='Song playing';el('play-arrangement').textContent='Stop arrangement';el('play').textContent='Stop';
+ startSource(buffer,start);mode='arrangement';el('transport-state').textContent='Song playing';el('play-arrangement').textContent='Stop arrangement';setPlayButton(true);
  let lastPosition='';
  timer=setInterval(()=>{
   const elapsed=context!.currentTime-start,position=songPosition(timeline,Math.max(0,elapsed));

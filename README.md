@@ -6,7 +6,7 @@ A standalone single-shot beat generator and tracker. The chopper is hidden, with
 
 Node 22+: `npm install`, then `npm start`. Open http://127.0.0.1:4173.
 
-The app opens with a **Quick Start** guide for Generate → Preview → Edit → Export. Hide it with **Hide guide**; use **Quick start** in the header to reopen it later.
+The app opens with a **Quick Start** guide for Generate → Preview → Edit → Export. Hide it with **Hide guide**; use **Quick start** in the header to reopen it later. The workstation uses an OLED black canvas with near-black control surfaces. The round transport button pulses while playback is running and becomes a stop control.
 
 ## Choose your instruments
 
