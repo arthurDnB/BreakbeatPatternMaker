@@ -26,7 +26,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.3.0-alpha`
-* **Test Status:** 90 / 90 unit tests passing (`npm.cmd test`).
+* **Test Status:** 97 / 97 unit tests passing (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -62,6 +62,24 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-09-25] - Per-Instrument FX Wet/Dry Crossfader & DSP Rack Polish (Antigravity)
+- **Audio DSP Engine (`src/audio/effects.ts`):**
+  - Added optional `wet?: number` (range 0.0 to 1.0, default 1.0) to `Effects` interface, defaults, and validator.
+  - Implemented non-destructive dry/wet signal blending in `processEffects`: clones input channels when `wet < 1`, applies effects chain, and crossfades linearly `output = dry * (1 - wet) + wetData * wet`. If `wet === 0`, skips DSP entirely for instant dry bypass with zero CPU overhead.
+  - Updated `effectTail()` to return 0 when `wet <= 0`.
+- **Instrument Cards & UI (`src/audio/drum-kit.ts`):**
+  - Added `FX Wet / Dry (0–1)` slider to the Effects rack of each drum instrument slot.
+  - Formatted live readout to display percentage (`100%`, `50%`, `0%`).
+  - Added active state indicator badge reflecting wet status (`Drive + 50% Wet`).
+- **Master DSP Strip (`public/index.html`, `src/web.ts`):**
+  - Added `FX Wet / Dry` slider (`dsp-wet`) to Dynamics & Color rack in the bottom Master DSP strip, creating a balanced 3x3 layout (3 filter, 3 dynamics/mix, 3 delay controls).
+  - Renamed `dsp-mix` label from ambiguous "Wet mix" to "Delay mix" for professional DAW clarity.
+  - Wired real-time two-way synchronization between Master DSP strip and per-instrument rack sliders.
+- **Verification & Testing (`tests/effects.test.mjs`):**
+  - Added unit tests verifying 0% wet is strictly identical to raw dry buffer, 100% wet is fully processed, 50% wet blends exact linear midpoint, and invalid/out-of-bounds inputs throw validation errors.
+  - All 97 unit tests passing (`npm.cmd test`).
+  - Playwright browser smoke test passing on `/` and `/breakbeat-pattern-maker/` with all 344 samples (`npm.cmd run test:site`).
 
 ### [2026-09-25] - Lo-Fi Drum Kit Vol. 2 Soundbank, Curated Kits & Navigation Stepper (Antigravity)
 - **Soundbank Expansion (111 New Samples):**

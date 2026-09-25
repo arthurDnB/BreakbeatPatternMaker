@@ -1399,9 +1399,11 @@ function initBottomRack(){
     const def = defaultEffects();
     for(const r of rolesToUpdate){
       kitPanel.mix[r].effects = { ...def };
-      for(const key of ['highpass','lowpass','resonance','drive','punch','delayMs','feedback','mix'] as const){
+      for(const key of ['highpass','lowpass','resonance','drive','punch','wet','delayMs','feedback','mix'] as const){
         const rackInput = document.getElementById('fx-' + key + '-' + r) as HTMLInputElement | null;
         if(rackInput) rackInput.value = String(def[key]);
+        const rackOutput = document.getElementById('fx-' + key + '-val-' + r);
+        if(rackOutput) rackOutput.textContent = key === 'wet' ? Math.round(Number(def[key]) * 100) + '%' : String(def[key]);
       }
       const bypassInput = document.getElementById('fx-bypass-' + r) as HTMLInputElement | null;
       if(bypassInput) bypassInput.checked = false;
@@ -1445,6 +1447,12 @@ function initBottomRack(){
     const punchOut = document.getElementById('dsp-punch-val');
     if(punchOut) punchOut.textContent = (fx.punch ?? 0).toFixed(2);
 
+    const wetEl = document.getElementById('dsp-wet') as HTMLInputElement | null;
+    const wetVal = fx.wet ?? 1;
+    if(wetEl) wetEl.value = String(wetVal);
+    const wetOut = document.getElementById('dsp-wet-val');
+    if(wetOut) wetOut.textContent = Math.round(wetVal * 100) + '%';
+
     setVal('dsp-delay', 'dsp-delay-val', fx.delayMs, ' ms');
     const fbEl = document.getElementById('dsp-feedback') as HTMLInputElement | null;
     if(fbEl) fbEl.value = String(fx.feedback);
@@ -1466,6 +1474,8 @@ function initBottomRack(){
       kitPanel.mix[r].effects = { ...cur, [key]: val };
       const rackInput = document.getElementById('fx-' + key + '-' + r) as HTMLInputElement | null;
       if(rackInput) rackInput.value = String(val);
+      const rackOutput = document.getElementById('fx-' + key + '-val-' + r);
+      if(rackOutput) rackOutput.textContent = key === 'wet' ? Math.round(Number(val) * 100) + '%' : String(val);
     }
     syncDspControls();
     dirty();
@@ -1486,6 +1496,7 @@ function initBottomRack(){
   bindSlider('dsp-res', 'resonance');
   bindSlider('dsp-drive', 'drive');
   bindSlider('dsp-punch', 'punch');
+  bindSlider('dsp-wet', 'wet');
   bindSlider('dsp-delay', 'delayMs');
   bindSlider('dsp-feedback', 'feedback');
   bindSlider('dsp-mix', 'mix');

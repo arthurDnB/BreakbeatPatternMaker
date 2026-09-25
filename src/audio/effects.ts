@@ -8,6 +8,7 @@ export interface Effects {
   delayMs: number;
   feedback: number;
   mix: number;
+  wet?: number;
 }
 export const defaultEffects = (): Effects => ({
   bypass: false,
@@ -18,7 +19,8 @@ export const defaultEffects = (): Effects => ({
   drive: 0,
   delayMs: 250,
   feedback: .3,
-  mix: 0
+  mix: 0,
+  wet: 1
 });
 export function validateEffects(f: Effects) {
   if (!f || typeof f.bypass !== 'boolean') throw Error('Invalid effects.');
@@ -32,16 +34,20 @@ export function validateEffects(f: Effects) {
   ] as const) if (!Number.isFinite(f[key]) || f[key] < min || f[key] > max) throw Error('Invalid effect ' + key);
   if (f.resonance !== undefined && (!Number.isFinite(f.resonance) || f.resonance < 0 || f.resonance > 1)) throw Error('Invalid effect resonance');
   if (f.punch !== undefined && (!Number.isFinite(f.punch) || f.punch < 0 || f.punch > 1)) throw Error('Invalid effect punch');
+  if (f.wet !== undefined && (!Number.isFinite(f.wet) || f.wet < 0 || f.wet > 1)) throw Error('Invalid effect wet');
   if (f.highpass >= f.lowpass) throw Error('High-pass must be below low-pass.');
 }
 export function effectTail(f?: Effects) {
-  if (!f || f.bypass || !f.mix) return 0;
+  if (!f || f.bypass || !f.mix || (f.wet !== undefined && f.wet <= 0)) return 0;
   return Math.min(8, f.delayMs / 1000 * (f.feedback ? Math.ceil(Math.log(.001) / Math.log(f.feedback)) + 1 : 1));
 }
 export function processEffects(channels: Float32Array[], rate: number, f?: Effects) {
   if (!f) return;
   validateEffects(f);
   if (f.bypass) return;
+  const wet = f.wet ?? 1;
+  if (wet <= 0) return;
+  const dryChannels = wet < 1 ? channels.map(c => new Float32Array(c)) : null;
   const useResonance = (f.resonance ?? 0) > 0;
   const hp = Math.exp(-2 * Math.PI * f.highpass / rate);
   const lp = 1 - Math.exp(-2 * Math.PI * Math.min(f.lowpass, rate * .45) / rate);
@@ -68,7 +74,9 @@ export function processEffects(channels: Float32Array[], rate: number, f?: Effec
     }
   }
 
-  for (const data of channels) {
+  for (let c = 0; c < channels.length; c++) {
+    const data = channels[c]!;
+    const dry = dryChannels ? dryChannels[c]! : null;
     // Transient punch attack boost
     if ((f.punch ?? 0) > 0) {
       const punchLen = Math.min(data.length, Math.round(rate * .035));
@@ -125,6 +133,13 @@ export function processEffects(channels: Float32Array[], rate: number, f?: Effec
       }
 
       data[i] = x;
+    }
+
+    // Blend dry and wet signals if wet < 1
+    if (dry) {
+      for (let i = 0; i < data.length; i++) {
+        data[i] = dry[i]! * (1 - wet) + data[i]! * wet;
+      }
     }
 
     // Taper only a non-negligible residual at the render boundary.
