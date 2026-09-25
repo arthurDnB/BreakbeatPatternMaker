@@ -239,21 +239,75 @@ function cadence(c:Context):void {
    delete hit.ratchets;delete hit.gate;
    hit.articulation={durationTicks:PPQ,mode:'natural',...(hit.role==='hat'?{chokeGroup:'hat' as const}:{})};
    hit.reason+=` Bar ${phase.position+1} of ${phase.length}: ${phase.ending?'phrase resolution':'small turnaround'}.`;
+   hit.id += '-drop';
    add(hit);
   }
  }
 }
 
+
+export function grooveV3Roll(s:Settings,startTick:number,endTick:number):Hit[] {
+ const start=Math.max(0,Math.ceil(startTick)),end=Math.min(s.bars*BAR,Math.floor(endTick));
+ if(end-start<PPQ/2)return [];
+ const dev=developmentFor(s.genre),span=end-start;
+ const hits:Hit[]=[];
+ const hyper = dev.chop;
+ const liquid = s.genre === 'liquiddnb' || dev.style === 'pocket';
+ const machineGun = !hyper && !liquid;
+ 
+ const steps = Math.floor(span / (PPQ/2));
+ for(let i=0; i<steps; i++) {
+  const hitStart = start + i*(PPQ/2);
+  const progress = i / Math.max(1, steps - 1);
+  const gain = 0.3 + 0.7 * progress;
+  const count = hyper ? (i === steps-1 ? 8 : 4) : machineGun ? (i < steps/2 ? 2 : 4) : 4;
+  
+  const hit=createHit(s,'snare',hitStart,gain,false,false,'Tension-building snare roll riser.');
+  hit.ratchets = count;
+  hit.gate = 0.8;
+  hit.articulation = {
+    durationTicks: PPQ/2,
+    mode: hyper ? 'chop' : 'gate',
+    repeats: Array.from({length:count},(_,j)=>({
+      gain: rounded(0.6 + 0.4*j/(count-1)),
+      ...(hyper && progress>0.5 ? {pitch: 1+j%3} : machineGun ? {pitch: Math.floor(progress*4)} : {})
+    }))
+  };
+  hits.push(hit);
+ }
+ return hits;
+}
+
 /** V3 leaves old-engine RNG streams, profiles and serialization untouched. */
+
 export function generateGrooveV3(settings:Settings):Pattern {
  const s:Settings={...settings,algorithm:'groove-v3'},c=context(s);
  anchors(c);layers(c);interaction(c);cadence(c);
  const events=[...c.hits.values()].sort(compare);
  spice(events,s,c.rule,s.bars*BAR);
+ 
+ if(s.patternStructure === 'groove') {
+  const toRemove = new Set();
+  for(const e of events) if(e.id.includes('-drop')) toRemove.add(e.id);
+  events.splice(0, events.length, ...events.filter(e => !toRemove.has(e.id)));
+ } else if (s.patternStructure === 'fill') {
+  const start = s.bars*BAR - (s.bars*BAR >= PPQ*4 ? PPQ*2 : PPQ);
+  const fillNotes = grooveV3Fill(s, start, s.bars*BAR);
+  const toRemove = new Set();
+  for(const e of events) if(actual(e) >= start) toRemove.add(e.id);
+  events.splice(0, events.length, ...events.filter(e => !toRemove.has(e.id)));
+  for(const note of fillNotes) { note.id += '-drop'; events.push(note); }
+ } else if (s.patternStructure === 'roll' || s.patternStructure === 'build') {
+  const start = s.patternStructure === 'build' ? 0 : s.bars*BAR - (s.bars*BAR >= PPQ*4 ? PPQ*2 : PPQ);
+  const rollNotes = grooveV3Roll(s, start, s.bars*BAR);
+  const toRemove = new Set();
+  for(const e of events) if(actual(e) >= start) toRemove.add(e.id);
+  events.splice(0, events.length, ...events.filter(e => !toRemove.has(e.id)));
+  for(const note of rollNotes) { note.id += '-roll'; events.push(note); }
+ }
+
  for(const hit of events){
   if(!hit.anchor){hit.gain=rounded(Math.min(1,hit.gain*(.96+.08*v3Chance(s,'velocity',hit.id,false))));}
-  // This field bounds repeat onsets, not the duration of a natural sample tail.
-  if(hit.articulation)hit.articulation.durationTicks=Math.min(hit.articulation.durationTicks,s.bars*BAR-actual(hit));
   if(s.breakStyle&&s.breakStyle!=='genre')hit.reason=BREAKS[s.breakStyle].name+' rhythm interpretation: '+hit.reason;
  }
  return {engineVersion:GROOVE_V3_VERSION,ppq:PPQ,settings:s,events};
