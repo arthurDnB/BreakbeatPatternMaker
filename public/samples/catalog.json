@@ -2328,5 +2328,893 @@
     "author": "arthurDnB (Personal collection)",
     "source": "Drums/Percs/UDNB_perc82.wav",
     "sha256": "fd9109c4bdd67c510fb299ba9fa0089f9c245c06d759938061da291134491642"
+  },
+  {
+    "id": "lofi2-kick-01",
+    "name": "Lo-Fi Kick 01",
+    "role": "kick",
+    "path": "/public/samples/lofi2-kick-01.wav",
+    "sha256": "f6cfdf5200ded1d62aae64522e258da5ad06f96fdb73416976ecbc9cb261b491",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-kick-02",
+    "name": "Lo-Fi Kick 02",
+    "role": "kick",
+    "path": "/public/samples/lofi2-kick-02.wav",
+    "sha256": "c66ee330848fac541873bb2fc9ede7e97db7849039191b41a0621f1ea3128551",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-kick-03",
+    "name": "Lo-Fi Kick 03",
+    "role": "kick",
+    "path": "/public/samples/lofi2-kick-03.wav",
+    "sha256": "1e68e8b74296f7be317922a9f9e0b5d55d750a3c13ff87ffc9098747312d3598",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-kick-04",
+    "name": "Lo-Fi Kick 04",
+    "role": "kick",
+    "path": "/public/samples/lofi2-kick-04.wav",
+    "sha256": "678b9261947f3e2930c37eb819f6fd0cebda7e593ce0a6db5aa6addd5ef0f643",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-kick-05",
+    "name": "Lo-Fi Kick 05",
+    "role": "kick",
+    "path": "/public/samples/lofi2-kick-05.wav",
+    "sha256": "8267e652ae6106eee3555db68c527339fe5b3ee539077f347bbab1886e875e6e",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-kick-06",
+    "name": "Lo-Fi Kick 06",
+    "role": "kick",
+    "path": "/public/samples/lofi2-kick-06.wav",
+    "sha256": "07cca87a4da9d5f79f6371f8d7e825809715409a67f44da818fa72921227975b",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-kick-07",
+    "name": "Lo-Fi Kick 07",
+    "role": "kick",
+    "path": "/public/samples/lofi2-kick-07.wav",
+    "sha256": "69d8da30ad3a6ae4e552c84f1a89ef9d6492471a5dc316e499328a62aebaa7e3",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-kick-08",
+    "name": "Lo-Fi Kick 08",
+    "role": "kick",
+    "path": "/public/samples/lofi2-kick-08.wav",
+    "sha256": "b6f00db8adffbb5b7bd2e0da1f4a97410e5a226e2f1254e7db268b595603fe78",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-kick-09",
+    "name": "Lo-Fi Kick 09",
+    "role": "kick",
+    "path": "/public/samples/lofi2-kick-09.wav",
+    "sha256": "36378831e0d9796c2fb053b6dcc95581c649a0d74557ffc3cee8fffbf1c78c50",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-kick-10",
+    "name": "Lo-Fi Kick 10",
+    "role": "kick",
+    "path": "/public/samples/lofi2-kick-10.wav",
+    "sha256": "b2b12708808071bb17a35102ea10ec62973f431d9343a78441f252f0a33091a6",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-kick-11",
+    "name": "Lo-Fi Kick 11",
+    "role": "kick",
+    "path": "/public/samples/lofi2-kick-11.wav",
+    "sha256": "b2cf373bcc85cd33e8b056c2d9c64fde2ace8ef30e9b2cfe94e6267d47bed548",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-kick-12",
+    "name": "Lo-Fi Kick 12",
+    "role": "kick",
+    "path": "/public/samples/lofi2-kick-12.wav",
+    "sha256": "19148a12bf49e3e3660bc989aeb3f04dbefd60da710ff5986b2b288fb764b8f8",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-kick-13",
+    "name": "Lo-Fi Kick 13",
+    "role": "kick",
+    "path": "/public/samples/lofi2-kick-13.wav",
+    "sha256": "ea3cdb5af3dd8c5edd9dc3617551d859b0d7574a0d0b004c128a0e8529040a38",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-kick-14",
+    "name": "Lo-Fi Kick 14",
+    "role": "kick",
+    "path": "/public/samples/lofi2-kick-14.wav",
+    "sha256": "1705dc6fb868c2f8d1768a2f84f09e95882126e80f6518c2f8e17eb1ad2d77d6",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-kick-15",
+    "name": "Lo-Fi Kick 15",
+    "role": "kick",
+    "path": "/public/samples/lofi2-kick-15.wav",
+    "sha256": "a783cb3032a8f0a126b86a3be475708decb46d6425095ccea4c78243256539a7",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-kick-16",
+    "name": "Lo-Fi Kick 16",
+    "role": "kick",
+    "path": "/public/samples/lofi2-kick-16.wav",
+    "sha256": "8998f63af462d1ed55eff96171559504bf1faa693a9f3b2cbfb8a403c7b14288",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-kick-17",
+    "name": "Lo-Fi Kick 17",
+    "role": "kick",
+    "path": "/public/samples/lofi2-kick-17.wav",
+    "sha256": "3e134cbd12c590b762bb564410f166c97db500c425bc27e04508cf773529aec9",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-snare-01",
+    "name": "Lo-Fi Snare 01",
+    "role": "snare",
+    "path": "/public/samples/lofi2-snare-01.wav",
+    "sha256": "d59e7fcda524b8e597d23a0c9f0c0affa7187c7d8b6d4e111587dc00fc92ec8b",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-snare-02",
+    "name": "Lo-Fi Snare 02",
+    "role": "snare",
+    "path": "/public/samples/lofi2-snare-02.wav",
+    "sha256": "bddc39913a4d4619be57a07995e3a510dad68d135c31543dbbc64f82706a0620",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-snare-03",
+    "name": "Lo-Fi Snare 03",
+    "role": "snare",
+    "path": "/public/samples/lofi2-snare-03.wav",
+    "sha256": "6fce64024e81e502f111ebd49ab6c519852d4700a6293f289acffb94ac8460ab",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-snare-04",
+    "name": "Lo-Fi Snare 04",
+    "role": "snare",
+    "path": "/public/samples/lofi2-snare-04.wav",
+    "sha256": "c7b64dffbb3f94cc5a11864ebcdebedc5538b11599e7febeb8511b50e5900a46",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-snare-05",
+    "name": "Lo-Fi Snare 05",
+    "role": "snare",
+    "path": "/public/samples/lofi2-snare-05.wav",
+    "sha256": "c22d26c71f471442c3cd4efb4a119469ce8fcb93f2da2926e1d47e3660bccc76",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-snare-06",
+    "name": "Lo-Fi Snare 06",
+    "role": "snare",
+    "path": "/public/samples/lofi2-snare-06.wav",
+    "sha256": "6d2694e35b26bbb70c24f33bb9f8b2364e5e8699e2cefed98b7d60ea2480eeff",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-snare-07",
+    "name": "Lo-Fi Snare 07",
+    "role": "snare",
+    "path": "/public/samples/lofi2-snare-07.wav",
+    "sha256": "45251a2952345161ef2e9091a6d1c6af8dbc46dafdb5fbcb8544c5ab3ca1a6f4",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-snare-08",
+    "name": "Lo-Fi Snare 08",
+    "role": "snare",
+    "path": "/public/samples/lofi2-snare-08.wav",
+    "sha256": "b69e27b7dd9fdfdbe4b7f62a0eaa70742aa35e589bd8245f1faeb787d8ae2038",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-snare-09",
+    "name": "Lo-Fi Snare 09",
+    "role": "snare",
+    "path": "/public/samples/lofi2-snare-09.wav",
+    "sha256": "f09177a6b372bd4cb66f197c9876686344c02fd324bf60de24b8e2ea73d64bb3",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-snare-10",
+    "name": "Lo-Fi Snare 10",
+    "role": "snare",
+    "path": "/public/samples/lofi2-snare-10.wav",
+    "sha256": "371764c8c0f8c17684b25181e0d150c8ea94cb0a9d6147fbf71f2bdbd8a7a8ee",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-snare-11",
+    "name": "Lo-Fi Snare 11",
+    "role": "snare",
+    "path": "/public/samples/lofi2-snare-11.wav",
+    "sha256": "061f4110d3410a7596ec73c5c2c806527357bdc3cdc2f2ef0ffbbda89daabd2e",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-snare-12",
+    "name": "Lo-Fi Snare 12",
+    "role": "snare",
+    "path": "/public/samples/lofi2-snare-12.wav",
+    "sha256": "effbf93e0f4e4f08125a70759c490abd5bd68838c20beb4ba2c71744e59a0bf3",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-snare-13",
+    "name": "Lo-Fi Snare 13",
+    "role": "snare",
+    "path": "/public/samples/lofi2-snare-13.wav",
+    "sha256": "b46355cf8c7a177b05b6c718595e817fe44b7ebac5f572f7c36dae736e1f2646",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-snare-14",
+    "name": "Lo-Fi Snare 14",
+    "role": "snare",
+    "path": "/public/samples/lofi2-snare-14.wav",
+    "sha256": "a16a3aa648693a3f67a42644b67ce01f6a9688165070986cc544e9cb35090579",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-snare-15",
+    "name": "Lo-Fi Snare 15",
+    "role": "snare",
+    "path": "/public/samples/lofi2-snare-15.wav",
+    "sha256": "b6bfac1272a0041a554eef947b6d3a4c84783fb6e90370cfe0734d0734e8513f",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-snare-16",
+    "name": "Lo-Fi Snare 16",
+    "role": "snare",
+    "path": "/public/samples/lofi2-snare-16.wav",
+    "sha256": "56d2bde3666bfd938e841fb32a28b8a9a745f644e59e4c9e6e8fe8c38a63aa5f",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-snare-17",
+    "name": "Lo-Fi Snare 17",
+    "role": "snare",
+    "path": "/public/samples/lofi2-snare-17.wav",
+    "sha256": "87eb21928da510e0d918606a22a5a1c061c3544a9bc2e1bc9d49b98cb2e71197",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-snare-18",
+    "name": "Lo-Fi Snare 18",
+    "role": "snare",
+    "path": "/public/samples/lofi2-snare-18.wav",
+    "sha256": "35671e4c10a22795a8ff40df157f4e4de11611926e9ec666c3253645e9f478da",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-snare-19",
+    "name": "Lo-Fi Snare 19",
+    "role": "snare",
+    "path": "/public/samples/lofi2-snare-19.wav",
+    "sha256": "80d9a09bb31e1cf3ec8bee0a6f5b26c2e70aa3d9e85290717cf4177d46724674",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-snare-20",
+    "name": "Lo-Fi Snare 20",
+    "role": "snare",
+    "path": "/public/samples/lofi2-snare-20.wav",
+    "sha256": "9332d7ddd8ff519dfce547a1ee0e5d3bfee6537c5ac9f7c50a53af45f9878e3e",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-closed-01",
+    "name": "Lo-Fi Closed Hat 01",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-closed-01.wav",
+    "sha256": "0e8a2ace88a9f7ee1eca61f650d7d8440604cbbbb028ebe3cd044e13561256fe",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-closed-02",
+    "name": "Lo-Fi Closed Hat 02",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-closed-02.wav",
+    "sha256": "04cecdf978ef9f13e1fc7b60235bc17facfcd4bef8a00e3128b906083834d71d",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-closed-03",
+    "name": "Lo-Fi Closed Hat 03",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-closed-03.wav",
+    "sha256": "2de26adc3411665b02893639a2cbf40f69cee53702215de0267032655c374d42",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-closed-04",
+    "name": "Lo-Fi Closed Hat 04",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-closed-04.wav",
+    "sha256": "4fd7f88d55a53e52c78a745e23db428a0553b896f726843eb522aaf1fa8fc604",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-closed-05",
+    "name": "Lo-Fi Closed Hat 05",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-closed-05.wav",
+    "sha256": "d2cbb939a5228263df5e44ff8c4c5fd7e18c1aad7bd5256e615b4fc1d41a5654",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-closed-06",
+    "name": "Lo-Fi Closed Hat 06",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-closed-06.wav",
+    "sha256": "91b8decfdf17836631a510032817ba03a85986ed6338348ac6558f9bc62506a5",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-closed-07",
+    "name": "Lo-Fi Closed Hat 07",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-closed-07.wav",
+    "sha256": "d2d2d87d16415db73b8fa1d51cd4aaac5c2911ccfbf3a787e91b414e13dbf6dd",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-closed-08",
+    "name": "Lo-Fi Closed Hat 08",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-closed-08.wav",
+    "sha256": "7761d39aba0fa36668002d82ca6713ee21a4e967a1cd1277e83cebb8bb8fd18c",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-closed-09",
+    "name": "Lo-Fi Closed Hat 09",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-closed-09.wav",
+    "sha256": "a32772a4cfb16544973cdd896dabecbac97fb2e0f045865bcb8bc07a3e9b6b62",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-closed-10",
+    "name": "Lo-Fi Closed Hat 10",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-closed-10.wav",
+    "sha256": "ac2b970c98db79f8168c14853bc56c4f26466c16a2b2956a693cde845c952dd7",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-closed-11",
+    "name": "Lo-Fi Closed Hat 11",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-closed-11.wav",
+    "sha256": "f275547b58627ad6f1d0440a5ff4847f4452e7961e12e61d1cd47d12cf23f792",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-closed-12",
+    "name": "Lo-Fi Closed Hat 12",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-closed-12.wav",
+    "sha256": "0cd209b71e1dc5216db8204e505612d139c6ef2333bf24a7acb396666d35a35b",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-closed-13",
+    "name": "Lo-Fi Closed Hat 13",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-closed-13.wav",
+    "sha256": "f27b244162b7dcbe8b65b7c212284e37102071f93801aabf4944207762b799b3",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-closed-14",
+    "name": "Lo-Fi Closed Hat 14",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-closed-14.wav",
+    "sha256": "8988f64e0e964c3dee7f3694fe85905b90de38d852427439a76df90918d4081c",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-closed-15",
+    "name": "Lo-Fi Closed Hat 15",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-closed-15.wav",
+    "sha256": "37d0360f90b1876fb70e09ebc93d74146e635266ebe0bcabb3ab1634f4b86f59",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-closed-16",
+    "name": "Lo-Fi Closed Hat 16",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-closed-16.wav",
+    "sha256": "10689ae972f9ceae9a935ddc572607ca5b1cfbc981f8f5d43dcb7804896f5c75",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-closed-17",
+    "name": "Lo-Fi Closed Hat 17",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-closed-17.wav",
+    "sha256": "cbb0e28c6d787222cda4d4acc79dfb352200c5d32c3b2c67b9f2717c479f517d",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-closed-18",
+    "name": "Lo-Fi Closed Hat 18",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-closed-18.wav",
+    "sha256": "2f12eaf3715d4a2ec817a1d37cb69f9c7897cd6f4ab039727ac450c262a4e6b3",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-closed-19",
+    "name": "Lo-Fi Closed Hat 19",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-closed-19.wav",
+    "sha256": "7ac07622da3e6ab44fedad8a7cd9e126f9edcdb4572c7880713d52c69b7b0e72",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-closed-20",
+    "name": "Lo-Fi Closed Hat 20",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-closed-20.wav",
+    "sha256": "5381cebd91c11a1c1537262514e1968075f430c9120b30c6caea3026a2788369",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-closed-21",
+    "name": "Lo-Fi Closed Hat 21",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-closed-21.wav",
+    "sha256": "ca1ba2a5b250567be51b1d09246b001cf8b32df921d542e444fd8b38c8f945f1",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-closed-22",
+    "name": "Lo-Fi Closed Hat 22",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-closed-22.wav",
+    "sha256": "17ca19f3b2e46967e6e07004962a363da33273bf8930630d5461fdc14f6c4577",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-closed-23",
+    "name": "Lo-Fi Closed Hat 23",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-closed-23.wav",
+    "sha256": "23e6fa1c2a6d3ec9ed8842fb0d529d54727c0ab51a5f9a5f81b87e4beebcbc44",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-closed-24",
+    "name": "Lo-Fi Closed Hat 24",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-closed-24.wav",
+    "sha256": "f84ec6f31b92ca1b703e8f6dcbbdd76987a5e3cc700f2289e155456d09711e95",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-closed-25",
+    "name": "Lo-Fi Closed Hat 25",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-closed-25.wav",
+    "sha256": "53dfda07d8a50acbed22425deba846171b0548221b3e2e3972469b2e78caed90",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-closed-26",
+    "name": "Lo-Fi Closed Hat 26",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-closed-26.wav",
+    "sha256": "d6948d1bc1145d8c6ebc466fe8e18c056dc7ce622022eb26df2cd4d5060282f0",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-open-01",
+    "name": "Lo-Fi Open Hat 01",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-open-01.wav",
+    "sha256": "1a6cbc8c06beb877089f9d8153b930560290d0e90b9e8ca6bf00d0caa8df109f",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-open-02",
+    "name": "Lo-Fi Open Hat 02",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-open-02.wav",
+    "sha256": "7e2735c1b6845a6c4a7ff5feddcfb1a1fdc627bcf8c1fd7536d8d8b0cecdbee9",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-open-03",
+    "name": "Lo-Fi Open Hat 03",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-open-03.wav",
+    "sha256": "7ed1cc2df166eef3fc35bd9b18d95ded9a8fea5099157b3710ab838726a9a590",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-open-04",
+    "name": "Lo-Fi Open Hat 04",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-open-04.wav",
+    "sha256": "083d733990af13f5968a395c553099c0ea0bffb99472a455b5bc2007319d916e",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-open-05",
+    "name": "Lo-Fi Open Hat 05",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-open-05.wav",
+    "sha256": "b1df40e3928db3548a3d79bbbd794e99a93f5660819fa2946475edeeb452c9db",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-open-06",
+    "name": "Lo-Fi Open Hat 06",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-open-06.wav",
+    "sha256": "05522ed119bbdffbf728dc5eef81bbb05ee6b59d3ef32024655b392ac52161a4",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-open-07",
+    "name": "Lo-Fi Open Hat 07",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-open-07.wav",
+    "sha256": "50bde525d6fb5da7365c718accf448264da4a2620ee534afd60b37eb7dc97898",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-open-08",
+    "name": "Lo-Fi Open Hat 08",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-open-08.wav",
+    "sha256": "d705d2a82b56c91743da6228f28e23424ea67b1f2b92acdc6e35c0dd9a4c68b0",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-open-09",
+    "name": "Lo-Fi Open Hat 09",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-open-09.wav",
+    "sha256": "eccc89ed34fce901c9d5595c31509ee01d79211c04965addba8a92b14cd3f018",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-open-10",
+    "name": "Lo-Fi Open Hat 10",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-open-10.wav",
+    "sha256": "7c566144aa28eb6c87ee8c58f03312d8e162caa26c35496e058a7ec1f3dca6f4",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-open-11",
+    "name": "Lo-Fi Open Hat 11",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-open-11.wav",
+    "sha256": "b1df40e3928db3548a3d79bbbd794e99a93f5660819fa2946475edeeb452c9db",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-open-12",
+    "name": "Lo-Fi Open Hat 12",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-open-12.wav",
+    "sha256": "0e8a2ace88a9f7ee1eca61f650d7d8440604cbbbb028ebe3cd044e13561256fe",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-open-13",
+    "name": "Lo-Fi Open Hat 13",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-open-13.wav",
+    "sha256": "30b902929555e67b081c4791777db6f1529d4e342d7970f7943c9107e4cb1ead",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-open-14",
+    "name": "Lo-Fi Open Hat 14",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-open-14.wav",
+    "sha256": "04d61210f50759088ae6ec4d4e3952c92b73dd904b165bf6e64b6d80a4baefd5",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-open-15",
+    "name": "Lo-Fi Open Hat 15",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-open-15.wav",
+    "sha256": "2de26adc3411665b02893639a2cbf40f69cee53702215de0267032655c374d42",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-open-16",
+    "name": "Lo-Fi Open Hat 16",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-open-16.wav",
+    "sha256": "5d38b5bac0a219e9f15a46c8bd8834846922d56f79eb5e2babf0c589a7532ac6",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-open-17",
+    "name": "Lo-Fi Open Hat 17",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-open-17.wav",
+    "sha256": "df1376197b61375ec35939e34be8b0765ca34a87ee9537089b9f8e94cd3cfa3f",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-open-18",
+    "name": "Lo-Fi Open Hat 18",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-open-18.wav",
+    "sha256": "62248c0aeec8c31dcc7e6ef664682c84e4a7ab46074dea2a79b5ef349a305f32",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-open-19",
+    "name": "Lo-Fi Open Hat 19",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-open-19.wav",
+    "sha256": "0380ef0fc53e56ab251e163c0228f738180596859221cd66a20a53776f3de6de",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-open-20",
+    "name": "Lo-Fi Open Hat 20",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-open-20.wav",
+    "sha256": "e42699095fed5bc51ebc9ae23ece26a8ea2394a236569e1b370a7682a069ae8c",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-hat-open-21",
+    "name": "Lo-Fi Open Hat 21",
+    "role": "hat",
+    "path": "/public/samples/lofi2-hat-open-21.wav",
+    "sha256": "11b0848c52e70796cf6f64b85a2cdf8b169069e24f4b3348fc1837fc7aaff8e6",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-perc-01",
+    "name": "Lo-Fi Perc 01",
+    "role": "percussion",
+    "path": "/public/samples/lofi2-perc-01.wav",
+    "sha256": "2865bc54dd0fa5e6f55534a2035e8bc6dc117c3df7bdb9c6c04ac0eba2b666f8",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-perc-02",
+    "name": "Lo-Fi Perc 02",
+    "role": "percussion",
+    "path": "/public/samples/lofi2-perc-02.wav",
+    "sha256": "c6fe678fd3c73df94842f66476f319ef06cb472d1f86742cd0411ad16b10c1cc",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-perc-03",
+    "name": "Lo-Fi Perc 03",
+    "role": "percussion",
+    "path": "/public/samples/lofi2-perc-03.wav",
+    "sha256": "6236c9b1fa8ebace73ddbfc75cc102f902f989c75761872a80b4c00b0536cdef",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-perc-04",
+    "name": "Lo-Fi Perc 04",
+    "role": "percussion",
+    "path": "/public/samples/lofi2-perc-04.wav",
+    "sha256": "e0ac00f4347769e5c42fdbfe6f2cd1de525af0e7c351e5c0383b555c1f547f6d",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-perc-05",
+    "name": "Lo-Fi Perc 05",
+    "role": "percussion",
+    "path": "/public/samples/lofi2-perc-05.wav",
+    "sha256": "08a1d0e722e7ffef6e2c08e84b777c843d3d65c0ef867b15820f01748aee58cf",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-perc-06",
+    "name": "Lo-Fi Perc 06",
+    "role": "percussion",
+    "path": "/public/samples/lofi2-perc-06.wav",
+    "sha256": "27fafce17a4410f1341257d5d677bb02ad6c5cfb2bab9e7f1008636b00b3ff3f",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-perc-07",
+    "name": "Lo-Fi Perc 07",
+    "role": "percussion",
+    "path": "/public/samples/lofi2-perc-07.wav",
+    "sha256": "153653ac6fa3a07c2798468748c9b948fa48adace046ac6f7cd3df1d24a982bd",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-perc-08",
+    "name": "Lo-Fi Perc 08",
+    "role": "percussion",
+    "path": "/public/samples/lofi2-perc-08.wav",
+    "sha256": "ca30e79012d9fffba35695b82f21efdc44ffc7a568a8667333a0891aea4d245e",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-perc-09",
+    "name": "Lo-Fi Perc 09",
+    "role": "percussion",
+    "path": "/public/samples/lofi2-perc-09.wav",
+    "sha256": "8c167fda90116da623bfa1fb3d0ddc3063fb388913201c70981c69b85b135e83",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-perc-10",
+    "name": "Lo-Fi Perc 10",
+    "role": "percussion",
+    "path": "/public/samples/lofi2-perc-10.wav",
+    "sha256": "c87c6334a0011f56427a55683355cae8a8a4483480ccb90f04f52cb1ee8ecc72",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-perc-11",
+    "name": "Lo-Fi Perc 11",
+    "role": "percussion",
+    "path": "/public/samples/lofi2-perc-11.wav",
+    "sha256": "78ac1bbafafa62abb5d6cd088e7d3f2421eb4c6679caa26d8676491ee182ca8f",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-perc-12",
+    "name": "Lo-Fi Perc 12",
+    "role": "percussion",
+    "path": "/public/samples/lofi2-perc-12.wav",
+    "sha256": "97fc7e0427af626764892f3fa2c88fccf4df21a620876e6dcc72dea62d0a27fc",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-perc-13",
+    "name": "Lo-Fi Perc 13",
+    "role": "percussion",
+    "path": "/public/samples/lofi2-perc-13.wav",
+    "sha256": "f8578bfbb581ca052038f2d26b429f1d201b00febaefa3db497c46d06958ad17",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-perc-14",
+    "name": "Lo-Fi Perc 14",
+    "role": "percussion",
+    "path": "/public/samples/lofi2-perc-14.wav",
+    "sha256": "db9986c3750a9110d1a67bf8ed85cd0d3ca7570b06f8be982fd83d709b8e6ae3",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-perc-15",
+    "name": "Lo-Fi Perc 15",
+    "role": "percussion",
+    "path": "/public/samples/lofi2-perc-15.wav",
+    "sha256": "de5374e2bc3d73e9da5a3db9105c913697a20986b0b2bc0992b6b50456cc923e",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-perc-16",
+    "name": "Lo-Fi Perc 16",
+    "role": "percussion",
+    "path": "/public/samples/lofi2-perc-16.wav",
+    "sha256": "bb11f47288dce81e8f35f71443139798df01b8cd1cd30bcde5813239496aa44d",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-perc-17",
+    "name": "Lo-Fi Perc 17",
+    "role": "percussion",
+    "path": "/public/samples/lofi2-perc-17.wav",
+    "sha256": "762193daddc7924ef696ead063d90009cd805bac9013df5efec020e73260847d",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-perc-18",
+    "name": "Lo-Fi Perc 18",
+    "role": "percussion",
+    "path": "/public/samples/lofi2-perc-18.wav",
+    "sha256": "3d4d9f99255c843cb0b6972a015a2340ecb2890de94924ae470f98951639944f",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-vinyl-01",
+    "name": "Lo-Fi Vinyl Texture 01",
+    "role": "percussion",
+    "path": "/public/samples/lofi2-vinyl-01.wav",
+    "sha256": "7498787d7ad8eb6e1e4c3839e449d323cc167413451bd75b44c8dfc8dacc4d29",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-vinyl-02",
+    "name": "Lo-Fi Vinyl Texture 02",
+    "role": "percussion",
+    "path": "/public/samples/lofi2-vinyl-02.wav",
+    "sha256": "6a47bb48c17ee844c392f2a776f604cd66fe47148d78cb6d162451878aa9718f",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-vinyl-03",
+    "name": "Lo-Fi Vinyl Texture 03",
+    "role": "percussion",
+    "path": "/public/samples/lofi2-vinyl-03.wav",
+    "sha256": "3a2e015541856b0f98b620fc8ce67ab622ac080e236a182fa7b162a02e1f0e09",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-vinyl-04",
+    "name": "Lo-Fi Vinyl Texture 04",
+    "role": "percussion",
+    "path": "/public/samples/lofi2-vinyl-04.wav",
+    "sha256": "c8c34955372a158e8af5595affb28649d33388d447fc2f3faf6d7706ed1f088e",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-vinyl-05",
+    "name": "Lo-Fi Vinyl Texture 05",
+    "role": "percussion",
+    "path": "/public/samples/lofi2-vinyl-05.wav",
+    "sha256": "1a9df5addeb632dcf10ae6f234e4411bff0653da4f2a3ac8066f070f29b78439",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-vinyl-06",
+    "name": "Lo-Fi Vinyl Texture 06",
+    "role": "percussion",
+    "path": "/public/samples/lofi2-vinyl-06.wav",
+    "sha256": "c49310db4ac49491ff4d43e806eeb4912f8c6d77d8a1d66b763d5da4cc415e7d",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-vinyl-07",
+    "name": "Lo-Fi Vinyl Texture 07",
+    "role": "percussion",
+    "path": "/public/samples/lofi2-vinyl-07.wav",
+    "sha256": "e2a94ad3a345af54f260b56459f4c11357ad88a9e24e524db494758d131a14b0",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-vinyl-08",
+    "name": "Lo-Fi Vinyl Texture 08",
+    "role": "percussion",
+    "path": "/public/samples/lofi2-vinyl-08.wav",
+    "sha256": "43858a5e706a671b9ad3b2cfcac476817b3b66e16ea44eac4535d2d0c727188d",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "lofi2-vinyl-09",
+    "name": "Lo-Fi Vinyl Texture 09",
+    "role": "percussion",
+    "path": "/public/samples/lofi2-vinyl-09.wav",
+    "sha256": "0813b236b7dadf50edb410789d35b94c3c2d1f9a6e0b5ddbe0436711a38ff190",
+    "license": "CC0-1.0"
   }
 ]

@@ -63,6 +63,25 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-25] - Lo-Fi Drum Kit Vol. 2 Soundbank, Curated Kits & Navigation Stepper (Antigravity)
+- **Soundbank Expansion (111 New Samples):**
+  - Converted and integrated 111 authentic Lo-Fi Hip-Hop one-shot hits from 'LoFi Drum Kit Vol. 2': 17 kicks, 20 snares, 26 closed hats, 21 open hats, 18 percs, and 9 vinyl noise textures.
+  - Standardized all samples to 16-bit 44.1kHz stereo PCM WAVs in `public/samples/` with SHA-256 integrity checksums in `public/samples/catalog.json`.
+  - Registered all 111 samples into `LIBRARY` in `src/audio/library.ts`, bringing total sample library from 233 to 344 sounds.
+- **Categorized & Grouped Sample Selection UI (`src/audio/drum-kit.ts`):**
+  - Organized the Sound selector into logical optgroups: *Built-in Synthesizers*, *Lo-Fi Hip-Hop Vol. 2*, *Acoustic & Studio Classics*, *Roland TR-808 Vintage*, and *UDNB Collection (Jungle / DnB)*.
+- **Sample Navigation Stepper Arrows (`src/audio/drum-kit.ts`, `public/style.css`, `public/workspace.css`):**
+  - Added ◀ (Prev) and ▶ (Next) buttons directly beside the Sound dropdown on every drum slot.
+  - Clicking arrows cycles to the previous or next sound and triggers instant audible preview auditioning for rapid workflow.
+- **5 Curated Lo-Fi Kit Presets (`src/audio/library.ts`):**
+  - Added `📻 Lo-Fi Dusty Vinyl (Sub Kick & Crackle)`, `☕ Chillhop Study Beats (Organic & Clean)`, `📼 Late Night Tape Beats (Saturated Boom Bap)`, `🎛️ SP-404 Gritty Lo-Fi (Crunch & Sizzle)`, and `🛋️ Mellow Jazzhop & Shaker (Warm & Gentle)`.
+  - Mapped default kits for hip-hop and downtempo genre profiles.
+- **Verification:**
+  - All 96 unit tests passing (`npm.cmd test`).
+  - Full Playwright browser smoke test passing across all 344 samples on both root and subpath (`node scripts/site-browser-smoke.mjs`).
+  - Static site generated and verified with 344 licensed WAVs (`npm.cmd run build:site`).
+
+
 ### [2026-09-25] - Vinyl Scratch Synthesizer for Lo-Fi Hip-Hop (Antigravity)
 - **Sound Generation (`public/synth.js`, `src/audio/performance.ts`):**
   - Integrated a dedicated `'scratch'` synthesizer mode using FM phase modulation and filtered noise with a realistic forward-stroke turntable chirp curve.

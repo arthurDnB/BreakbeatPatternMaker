@@ -16,6 +16,6 @@ test('project embeds PCM and restores kit, draft, locks without rounding audio',
  const mixed=withDrumKit(e.state.pattern,{}, {...kit,snare:{...kit.snare,mute:true}});assert.ok(mixed.events.every(h=>h.role!=='snare'));
 });
 test('bundled audio matches recorded provenance hashes and CC0 license records',()=>{
- const catalog=JSON.parse(readFileSync('public/samples/catalog.json','utf8'));assert.equal(catalog.length,233);
+ const catalog=JSON.parse(readFileSync('public/samples/catalog.json','utf8'));assert.equal(catalog.length,344);
  for(const sound of catalog){const data=readFileSync('.'+sound.path);assert.equal(createHash('sha256').update(data).digest('hex'),sound.sha256);assert.equal(sound.license,'CC0-1.0');assert.equal(data.toString('ascii',0,4),'RIFF');}
 });

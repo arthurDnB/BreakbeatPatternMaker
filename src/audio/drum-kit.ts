@@ -47,11 +47,31 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:()=>void,audi
     const include=checkbox('kit-include-'+role,'Generate notes'),mute=checkbox('kit-mute-'+role,'Mute audio'),solo=checkbox('kit-solo-'+role,'Solo audio');
     include.i.title='Use this lane when generating a new pattern. Existing notes stay unchanged.';mute.i.title='Silence this lane in pattern/song playback and WAV exports. Instrument Preview still lets you hear it.';solo.i.title='Solo this lane in playback and export.';
     const choice=document.createElement('select');choice.id='kit-choice-'+role;
-    const udnbList=LIBRARY.filter(s=>s.role===role&&s.id.startsWith('udnb-')).map(s=>[s.id,s.name]);
-    const libList=LIBRARY.filter(s=>s.role===role&&!s.id.startsWith('udnb-')).map(s=>[s.id,s.name]);
+    choice.className='sound-select';
+    const lofiList=LIBRARY.filter(s=>s.role===role&&s.id.startsWith('lofi2-')).map(s=>[s.id,s.name] as [string,string]);
+    const acousticList=LIBRARY.filter(s=>s.role===role&&s.id.startsWith('acoustic-')).map(s=>[s.id,s.name] as [string,string]);
+    const tr808List=LIBRARY.filter(s=>s.role===role&&s.id.startsWith('808-')).map(s=>[s.id,s.name] as [string,string]);
+    const udnbList=LIBRARY.filter(s=>s.role===role&&s.id.startsWith('udnb-')).map(s=>[s.id,s.name] as [string,string]);
+    const otherList=LIBRARY.filter(s=>s.role===role&&!s.id.startsWith('lofi2-')&&!s.id.startsWith('acoustic-')&&!s.id.startsWith('808-')&&!s.id.startsWith('udnb-')).map(s=>[s.id,s.name] as [string,string]);
     const builtInList: [string, string][] = [['synth','Synthesized '+title.textContent]];
     if(role==='percussion') builtInList.push(['synth-scratch','Vinyl Scratch (Synth)']);
-    for(const [label,entries] of [['Built-in',builtInList],['UDNB Collection (Personal)',udnbList],['Sample library',libList],['Your sample',[['upload','My upload']]]] as [string,string[][]][]){if(!entries.length)continue;const group=document.createElement('optgroup');group.label=label;for(const [value,text] of entries){const o=document.createElement('option');o.value=value!;o.textContent=text!;group.append(o);}choice.append(group);}
+    const soundGroups: [string, [string, string][]][] = [
+      ['Built-in Synthesizers', builtInList],
+      ['Lo-Fi Hip-Hop Vol. 2', lofiList],
+      ['Acoustic & Studio Classics', acousticList],
+      ['Roland TR-808 Vintage', tr808List],
+      ['UDNB Collection (Jungle / DnB)', udnbList],
+    ];
+    if(otherList.length) soundGroups.push(['Other Library Samples', otherList]);
+    soundGroups.push(['Your Sample', [['upload','My upload']]]);
+    for(const [label,entries] of soundGroups){if(!entries.length)continue;const group=document.createElement('optgroup');group.label=label;for(const [value,text] of entries){const o=document.createElement('option');o.value=value;o.textContent=text;group.append(o);}choice.append(group);}
+    const navRow=document.createElement('div');navRow.className='sound-nav-row';
+    const prevBtn=document.createElement('button');prevBtn.type='button';prevBtn.className='sound-nav-btn sound-prev-btn';prevBtn.textContent='◀';prevBtn.title='Previous sound ('+title.textContent+')';prevBtn.setAttribute('aria-label','Previous sound for '+title.textContent);
+    const nextBtn=document.createElement('button');nextBtn.type='button';nextBtn.className='sound-nav-btn sound-next-btn';nextBtn.textContent='▶';nextBtn.title='Next sound ('+title.textContent+')';nextBtn.setAttribute('aria-label','Next sound for '+title.textContent);
+    const stepChoice=(delta:number)=>{const options=Array.from(choice.querySelectorAll('option')).filter(o=>!o.disabled&&o.value!=='upload');if(!options.length)return;const curIdx=options.findIndex(o=>o.value===choice.value);let nextIdx=(curIdx+delta)%options.length;if(nextIdx<0)nextIdx+=options.length;choice.value=options[nextIdx]!.value;choice.dispatchEvent(new Event('change'));setTimeout(()=>{void audition(role).catch(()=>{});},30);};
+    prevBtn.onclick=(e)=>{e.preventDefault();stepChoice(-1);};nextBtn.onclick=(e)=>{e.preventDefault();stepChoice(1);};
+    navRow.append(prevBtn,choice,nextBtn);
+    const soundContainer=document.createElement('label');soundContainer.className='sound-select-label';soundContainer.textContent='Sound';soundContainer.append(navRow);
     const file=document.createElement('input');file.type='file';file.accept='.wav,audio/wav';file.id='kit-file-'+role;file.className='sample-file-input';file.setAttribute('aria-label','Upload '+title.textContent+' WAV');
     const upload=document.createElement('button');upload.id='kit-upload-'+role;upload.textContent='Upload WAV';upload.onclick=()=>file.click();
     const level=document.createElement('input');level.type='range';level.min='0';level.max='1';level.step='.01';level.id='kit-level-'+role;
@@ -68,7 +88,7 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:()=>void,audi
     const decay=document.createElement('input');decay.type='range';decay.min='0.05';decay.max='1';decay.step='0.01';decay.id='kit-decay-'+role;
     const decayLabel=makeLabel('Decay / Tightness',decay),decayValue=document.createElement('output');decayValue.id='kit-decay-value-'+role;decayValue.htmlFor=decay.id;decayLabel.prepend(decayValue);
     shape.append(makeLabel('Lane pitch (semitones)',tune),decayLabel,reverse.l);
-    card.append(heading,makeLabel('Sound',choice),info,actions,routing,gainLabel,shape);root.append(card);
+    card.append(heading,soundContainer,info,actions,routing,gainLabel,shape);root.append(card);
     const fx=document.createElement('details');fx.className='effects-panel';fx.id='effects-'+role;const summary=document.createElement('summary');summary.textContent='Effects';fx.append(summary);
     const bypass=checkbox('fx-bypass-'+role,'Bypass effects');fx.append(bypass.l);
     const effectInputs=new Map<keyof Effects,HTMLInputElement>();
