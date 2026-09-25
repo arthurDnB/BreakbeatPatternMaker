@@ -3051,8 +3051,8 @@ tr.playing-row td { background:#0b1c18; }
 .track-col-header.track-hat .track-instrument-panel[open] summary { background:#00f5d4 !important; border-color:#00f5d4 !important; box-shadow:0 0 12px rgba(0,245,212,0.6); }
 .track-col-header.track-percussion .track-instrument-panel[open] summary { background:#7c9aff !important; border-color:#7c9aff !important; box-shadow:0 0 12px rgba(124,154,255,0.6); }
 #grid th:has(.track-instrument-panel[open]) { z-index:70; }
-.track-instrument-panel .drum-slot { position:absolute !important; top:calc(100% + 5px); left:0; width:min(330px,80vw) !important; max-height:min(70vh,560px); overflow:auto !important; z-index:75; padding:12px; background:#0b1110 !important; border:1px solid #428c7a; box-shadow:0 20px 45px #000d; }
-.track-col-header.track-hat .track-instrument-panel .drum-slot,.track-col-header.track-percussion .track-instrument-panel .drum-slot { left:auto; right:0; }
+.track-instrument-panel .drum-slot { position:fixed !important; top:var(--instrument-panel-top,12vh) !important; left:var(--instrument-panel-left,5vw) !important; right:auto !important; width:min(350px,calc(100vw - 16px)) !important; max-height:var(--instrument-panel-max-height,min(70vh,560px)) !important; overflow:auto !important; overscroll-behavior:contain; z-index:1000; padding:12px; background:#0b1110 !important; border:1px solid #428c7a; box-shadow:0 20px 45px #000d; }
+.track-col-header.track-hat .track-instrument-panel .drum-slot,.track-col-header.track-percussion .track-instrument-panel .drum-slot { left:var(--instrument-panel-left,5vw) !important; right:auto !important; }
 .tracker-hit-card { border:1px solid #293431; border-radius:5px; background:#08100e; min-width:158px; padding:2px; margin:1px 0; }
 #grid td { padding:1px 4px; }
 .tracker-hit-card { padding:1px 2px; margin:0; }
@@ -3159,7 +3159,7 @@ tr.playing-row td { background:#0b1c18; }
 .master-dsp-rack .quick-fx-panel { display:block; margin:0; border:0; }
 .master-dsp-rack[open] .quick-fx-panel { resize:vertical; overflow:auto; min-height:140px; }
 @media(max-width:1100px){#tray-bottom #transport { flex-wrap:wrap; justify-content:center; gap:6px; }#tray-bottom #transport .transport-center { order:1; }#tray-bottom #transport .nav-shortcuts { order:2; }#tray-bottom #transport .tray-session-hud { order:3; }}
-@media(max-width:800px){.studio-layout { display:flex !important; flex-direction:column; }.panel-splitter { display:none; }#tray-left,#stage-center { width:100%; }#tray-bottom #transport { display:flex; flex-wrap:wrap; justify-content:center; }#tray-bottom #transport .toolbar-group { flex-wrap:wrap; justify-content:center; }.track-instrument-panel .drum-slot { position:fixed; left:5vw !important; right:auto !important; top:15vh; width:90vw; max-height:70vh; }}
+@media(max-width:800px){.studio-layout { display:flex !important; flex-direction:column; }.panel-splitter { display:none; }#tray-left,#stage-center { width:100%; }#tray-bottom #transport { display:flex; flex-wrap:wrap; justify-content:center; }#tray-bottom #transport .toolbar-group { flex-wrap:wrap; justify-content:center; }.track-instrument-panel .drum-slot { width:min(350px,90vw) !important; }}
 @media(min-height:650px) and (min-width:801px){
  html,body { height:auto !important; overflow:auto !important; }
  main.daw-chassis { height:auto !important; max-height:none !important; min-height:100dvh; overflow:visible !important; }
@@ -3237,7 +3237,7 @@ tr.playing-row td { background:#0b1c18; }
   #master-dsp-rack { order:5 !important; width:100%; margin:0 0 8px; }
   .daw-footer { order:6 !important; }
   .track-instrument-panel:not([open]) .drum-slot { display:none !important; }
-  .track-instrument-panel[open] .drum-slot { position:fixed !important; left:5vw !important; right:auto !important; top:10vh !important; width:90vw !important; max-height:80vh; }
+  .track-instrument-panel[open] .drum-slot { position:fixed !important; left:var(--instrument-panel-left,5vw) !important; right:auto !important; top:var(--instrument-panel-top,10vh) !important; width:min(350px,90vw) !important; max-height:var(--instrument-panel-max-height,80vh) !important; overflow-y:auto !important; }
   #kit-preset-host { flex-wrap:wrap; min-width:0; }
   #kit-preset-host .kit-presets-strip { flex-wrap:wrap; flex-shrink:1; width:100%; min-width:0; }
   #kit-preset-host .kit-presets-strip label { min-width:0; }

@@ -145,6 +145,26 @@ function settings(){
   for(const name of ['complexity','syncopation','swing','humanizeMs','ghostAmount','fillAmount'] as const)s[name]=Number(input(name).value);
   return s;
 }
+function positionInstrumentPanel(panel:HTMLDetailsElement){
+  if(!panel.open)return;
+  const summary=panel.querySelector<HTMLElement>('summary'),card=panel.querySelector<HTMLElement>('.drum-slot');
+  if(!summary||!card)return;
+  const rect=summary.getBoundingClientRect(),margin=8,width=Math.min(350,innerWidth-margin*2);
+  const below=Math.max(0,innerHeight-rect.bottom-margin),above=Math.max(0,rect.top-margin);
+  const space=Math.max(80,Math.min(560,innerHeight*.75,Math.max(below,above)));
+  const placeBelow=below>=Math.min(card.scrollHeight,space)||below>=above;
+  const left=Math.max(margin,Math.min(innerWidth-width-margin,rect.left));
+  const top=placeBelow?Math.min(innerHeight-margin,rect.bottom+5):Math.max(margin,rect.top-space-5);
+  const available=placeBelow?Math.max(80,innerHeight-top-margin):Math.max(80,rect.top-top-5);
+  card.style.setProperty('--instrument-panel-left',`${Math.round(left)}px`);
+  card.style.setProperty('--instrument-panel-top',`${Math.round(top)}px`);
+  card.style.setProperty('--instrument-panel-max-height',`${Math.round(Math.min(space,available))}px`);
+}
+function positionOpenInstrumentPanels(){el('grid').querySelectorAll<HTMLDetailsElement>('.track-instrument-panel[open]').forEach(positionInstrumentPanel);}
+function openInstrumentPanel(panel:HTMLDetailsElement){panel.open=true;panel.querySelector('summary')?.focus();requestAnimationFrame(()=>positionInstrumentPanel(panel));}
+el('grid').addEventListener('scroll',positionOpenInstrumentPanels,{passive:true});
+window.addEventListener('resize',positionOpenInstrumentPanels,{passive:true});
+window.addEventListener('scroll',positionOpenInstrumentPanels,{capture:true,passive:true});
 function flashTrackMeter(role: Role, level = 1){
   const bar=document.querySelector(`#track-meter-${role} .track-meter-bar`) as HTMLElement|null;
   if(!bar)return;
@@ -180,7 +200,7 @@ function render(){
       b.textContent=label;
       b.setAttribute('aria-label','Open '+label+' instrument settings');
       b.title=label+' settings';
-      b.onclick=()=>{const panel=el('grid').querySelector<HTMLDetailsElement>(`.track-instrument-panel[data-role="${role}"]`);if(panel){panel.open=!panel.open;if(panel.open)panel.querySelector('summary')?.focus();}};
+      b.onclick=()=>{const panel=el('grid').querySelector<HTMLDetailsElement>(`.track-instrument-panel[data-role="${role}"]`);if(panel){if(panel.open)panel.open=false;else openInstrumentPanel(panel);}};
       const btns=document.createElement('div');
       btns.className='track-strip-btns';
       const muteBtn=document.createElement('button');
@@ -220,6 +240,7 @@ function render(){
       strip.append(top,mixer,meter);
       const instrument=document.createElement('details');instrument.className='track-instrument-panel';instrument.dataset.role=role;instrument.open=openTracks.has(role);
       const summary=document.createElement('summary');summary.textContent='Instrument / FX';summary.setAttribute('aria-label',`Open ${label} instrument and effects`);instrument.append(summary);
+      instrument.addEventListener('toggle',()=>{if(instrument.open)requestAnimationFrame(()=>positionInstrumentPanel(instrument));});
       const card=soundStore.querySelector<HTMLElement>(`.drum-slot[data-role="${role}"]`);if(card)instrument.append(card);
       strip.append(instrument);
       th.append(strip);
@@ -305,6 +326,7 @@ function render(){
   }
   table.append(body);container.append(table);
   container.scrollTop=scrollTop;container.scrollLeft=scrollLeft;
+  positionOpenInstrumentPanels();
   markTrackerCursor(container.querySelector<HTMLElement>(`[data-cell-row="${rowAnchor}"][data-cell-lane="${cursorLane}"][data-field="${cursorField}"]`));
   if(focusCellRow!==undefined&&focusCellLane)(container.querySelector<HTMLElement>(`[data-cell-row="${focusCellRow}"][data-cell-lane="${focusCellLane}"]${focusField?`[data-field="${focusField}"]`:''}`)??container.querySelector<HTMLElement>(`[data-cell-row="${focusCellRow}"][data-cell-lane="${focusCellLane}"]`))?.focus({preventScroll:true});
   else if(focusHit)container.querySelector<HTMLElement>(`[data-hit="${focusHit}"]`)?.focus({preventScroll:true});
@@ -1003,7 +1025,7 @@ el('grid').addEventListener('keydown', event => {
       else {const perRow=ROLES.length*trackerFields.length,total=transfer.timing.lines*perRow,current=row*perRow+ROLES.indexOf(lane)*trackerFields.length+trackerFields.indexOf(field),wrapped=(current+(event.key==='ArrowRight'?1:-1)+total)%total;nextRow=Math.floor(wrapped/perRow);const column=wrapped%perRow;nextLane=ROLES[Math.floor(column/trackerFields.length)]!;nextField=trackerFields[column%trackerFields.length]!;}
       selectTrackerCell(nextRow,nextLane,{shiftKey:event.shiftKey&&event.key.startsWith('Arrow'),ctrlKey:false,metaKey:false},undefined,false);focusTrackerField(nextRow,nextLane,nextField);return;
     }
-    if(field==='instrument'&&(event.key==='Enter'||event.key===' ')){event.preventDefault();event.stopPropagation();if(id)openHitSoundPicker(id);else el('grid').querySelector<HTMLDetailsElement>(`.track-instrument-panel[data-role="${lane}"]`)?.setAttribute('open','');return;}
+    if(field==='instrument'&&(event.key==='Enter'||event.key===' ')){event.preventDefault();event.stopPropagation();if(id)openHitSoundPicker(id);else{const panel=el('grid').querySelector<HTMLDetailsElement>(`.track-instrument-panel[data-role="${lane}"]`);if(panel)openInstrumentPanel(panel);}return;}
     if(event.key==='Delete'||event.key==='Backspace'){
       if(field==='effect'&&id){event.preventDefault();event.stopPropagation();trackerEffectDraft=undefined;edit(()=>editor.editTrackerEffect(id), 'Cleared tracker FX.');focusTrackerField(row,lane,field);return;}
       if(field!=='note'&&field!=='instrument'&&field!=='effect'&&id){event.preventDefault();event.stopPropagation();trackerFieldDraft=undefined;const normal=field==='volume'?128:field==='pan'?64:0;edit(()=>editor.editTrackerValue(id,field,normal),`Reset ${field} to its default.`);focusTrackerField(row,lane,field);return;}
@@ -1219,7 +1241,7 @@ document.addEventListener('click',event=>{const more=el<HTMLDetailsElement>('mor
 document.addEventListener('keydown',event=>{if(event.key==='Escape')el<HTMLDetailsElement>('more-actions').open=false;});
 
 // Workspace navigation changes presentation only, preserving edit and audio behavior.
-function openSoundAccordion(role:Role=cursorLane){const panel=el('grid').querySelector<HTMLDetailsElement>(`.track-instrument-panel[data-role="${role}"]`);if(panel){panel.open=true;panel.querySelector('summary')?.focus();panel.scrollIntoView({behavior:'smooth',block:'nearest'});}}
+function openSoundAccordion(role:Role=cursorLane){const panel=el('grid').querySelector<HTMLDetailsElement>(`.track-instrument-panel[data-role="${role}"]`);if(panel){openInstrumentPanel(panel);panel.scrollIntoView({behavior:'smooth',block:'nearest'});requestAnimationFrame(()=>positionInstrumentPanel(panel));}}
 el('show-sounds').onclick=()=>openSoundAccordion();
 el('show-arrangement').onclick=()=>{el<HTMLDetailsElement>('arranger').open=true;el('arranger').scrollIntoView({behavior:'smooth',block:'nearest'});el('arranger').querySelector('summary')?.focus();};
 const quickStart=el<HTMLElement>('quick-start'),quickStartToggle=el<HTMLButtonElement>('quick-start-toggle');

@@ -68,6 +68,11 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-26] - Scrollable Tracker Instrument Overlay (Codex)
+- **Track instrument menu (`src/web.ts`, `public/workspace.css`):** Replaced the table-clipped dropdown with a viewport-positioned panel anchored to its track control. It chooses the side with more space, stays inside the viewport, and limits its height so the panel can scroll through all sound and playback settings.
+- **Responsive behavior:** Repositions the panel on tracker/window scrolling and resizing, including on narrow layouts.
+- **Verification (`scripts/instrument-panel-smoke.mjs`):** All 128 unit tests pass; a browser smoke test at a short viewport confirms the panel stays on-screen and its contents scroll.
+
 ### [2026-09-26] - Tracker Cursor Highlight and Boundary Navigation (Codex)
 - **Tracker cursor (`src/web.ts`, `public/workspace.css`):** Added a persistent, high contrast outline and accessible current-location marker for the active tracker value, so the selected subfield is easy to find while editing.
 - **Keyboard movement:** Arrow keys now move continuously through tracker fields and lanes, wrapping cleanly from the first to last row (and back) within the active pattern. Numeric field auto-advance follows the configured step and wraps at the pattern edge.
