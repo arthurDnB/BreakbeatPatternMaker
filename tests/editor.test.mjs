@@ -96,3 +96,20 @@ test('top transport tempo changes are undoable and validated',()=>{
  assert.ok(e.undo());assert.equal(e.state.pattern.settings.bpm,before);assert.ok(e.redo());assert.equal(e.state.pattern.settings.bpm,132.5);
  assert.throws(()=>e.setTempo(31),/Tempo/);assert.throws(()=>e.setTempo(NaN),/Tempo/);
 });
+
+test('cell copy and paste preserve empty cells, replace destinations atomically, and undo',()=>{
+ const e=create(),notes=compile(e.state.pattern).notes,source=notes.find(n=>n.lane==='kick'&&n.row<20);
+ assert.ok(source);
+ e.state.selection={ids:[],rows:null,cells:[{row:source.row,lane:'kick'},{row:source.row+1,lane:'hat'}]};
+ const clip=e.copySelection(),before=exported(e),target=24;
+ assert.equal(clip.cells.length,2);
+ assert.equal(clip.cells[0].hits.length,notes.filter(n=>n.row===source.row&&n.lane==='kick').length);
+ assert.ok(e.pasteCells(clip,target,'kick'));
+ const after=compile(e.state.pattern).notes;
+ assert.equal(after.filter(n=>n.row===target&&n.lane==='kick').length,clip.cells[0].hits.length);
+ assert.equal(after.filter(n=>n.row===target+1&&n.lane==='hat').length,clip.cells[1].hits.length);
+ assert.ok(e.undo());assert.equal(exported(e),before);assert.ok(e.redo());
+ const pasted=exported(e);e.toggleRole('kick');const lockedBefore=exported(e);
+ assert.throws(()=>e.pasteCells(clip,target,'kick'),/Unlock/);
+ assert.equal(exported(e),lockedBefore);assert.equal(exported(e),pasted);
+});

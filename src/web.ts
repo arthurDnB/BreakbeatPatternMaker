@@ -16,7 +16,7 @@ import {defaults,genreDefaults,PROFILES} from './core/profiles.js';
 import {generate} from './core/generate.js';
 import {compile,serialize} from './core/compile.js';
 import {ROLES,hex,noteName,type Hit,type Role,type Genre,type BreakStyle,type Pattern,type Transfer} from './core/model.js';
-import {Editor,emptySelection,locked,selectedIds,type EditorState} from './core/editor.js';
+import {Editor,emptySelection,locked,selectedIds,type EditorState,type TrackerClipboard} from './core/editor.js';
 import {defaultEffects,type Effects} from './audio/effects.js';
 import {ArrangementHistory} from './core/arrangement-history.js';
 
@@ -38,6 +38,7 @@ let persistenceReady=false,saveTimer:ReturnType<typeof setTimeout>|undefined;
 let saveQueue:Promise<unknown>=Promise.resolve();
 let rowAnchor=0,cursorLane:Role='kick',playToken=0;
 let cellAnchor:{row:number;lane:Role}|undefined;
+let trackerClipboard:TrackerClipboard|undefined;
 const assets=new Map<string,AudioAsset>();
 let followPlayhead=true;
 
@@ -904,8 +905,13 @@ el('hit-preview').onclick=async()=>{
 el('hit-insert').onclick=()=>edit(()=>writeEntry(false),'Inserted tracker hit.');
 el('hit-apply').onclick=()=>edit(()=>writeEntry(true),'Updated tracker hit.');
 el('hit-delete').onclick=()=>edit(()=>editor.deleteSelected(),'Deleted unlocked selected hits.');
+function copyTrackerCells(){try{trackerClipboard=editor.copySelection();status(`Copied ${trackerClipboard.cells.length} tracker cells. Select a destination and paste.`);}catch(e){status((e as Error).message,true);}}
+function pasteTrackerCells(){if(!trackerClipboard){status('Copy tracker cells first.',true);return;}edit(()=>editor.pasteCells(trackerClipboard!,rowAnchor,cursorLane),'Pasted tracker cells. Undo restores the previous cells.');focusTrackerCell(rowAnchor,cursorLane);}
+function duplicateTrackerCells(){try{const clip=editor.copySelection(),positions=editor.state.selection.cells?.length?editor.state.selection.cells:editor.state.selection.rows?Array.from({length:editor.state.selection.rows[1]-editor.state.selection.rows[0]+1},(_,i)=>({row:editor.state.selection.rows![0]+i,lane:ROLES[0]})):transfer.notes.filter(n=>editor.state.selection.ids.includes(n.id)).map(n=>({row:n.row,lane:n.lane}));const row=Math.min(...positions.map(c=>c.row))+clip.height,lane=ROLES[Math.min(...positions.map(c=>ROLES.indexOf(c.lane)))]!;edit(()=>editor.pasteCells(clip,row,lane),'Duplicated tracker cells below the selection.');focusTrackerCell(row,lane);}catch(e){status((e as Error).message,true);}}
+el('tracker-copy').onclick=copyTrackerCells;el('tracker-paste').onclick=pasteTrackerCells;el('tracker-duplicate').onclick=duplicateTrackerCells;
 el('grid').addEventListener('keydown', event => {
-  if (event.ctrlKey || event.metaKey || event.altKey) return;
+  if(event.altKey)return;
+  if(event.ctrlKey||event.metaKey){const key=event.key.toLowerCase();if(key==='c'||key==='v'||key==='d'){event.preventDefault();if(key==='c')copyTrackerCells();else if(key==='v')pasteTrackerCells();else duplicateTrackerCells();}return;}
   if (event.key === ' ') {
     event.preventDefault();
     void play().catch(e => status(String(e), true));
@@ -914,12 +920,8 @@ el('grid').addEventListener('keydown', event => {
   if (event.key === 'Tab') {
     event.preventDefault();
     const curIdx = ROLES.indexOf(cursorLane);
-    const nextIdx = event.shiftKey ? (curIdx + 3) % 4 : (curIdx + 1) % 4;
-    cursorLane = ROLES[nextIdx]!;
-    editor.state.selection = emptySelection();
-    updateEntry();
-    render();
-    el('grid').focus();
+    const nextIdx = event.shiftKey ? (curIdx + ROLES.length - 1) % ROLES.length : (curIdx + 1) % ROLES.length;
+    selectTrackerCell(rowAnchor,ROLES[nextIdx]!,undefined,undefined,false);
     return;
   }
   if (event.key.startsWith('Arrow')) {
@@ -1050,7 +1052,7 @@ function scheduleSave(){
 }
 function applyProject(raw:unknown){
   const {project:p,assets:loaded}=readProject(raw);if(pendingCount()&&!confirm('Opening this project discards pending hit edits. Continue?'))return false;hitDrafts.clear();stop();samplePanel.stop();
-  comparison=undefined;cellAnchor=undefined;
+  comparison=undefined;cellAnchor=undefined;trackerClipboard=undefined;
   assets.clear();loaded.forEach((a,id)=>assets.set(id,a));kitPanel.restore(p.kit);
   bank=p.bank?structuredClone(p.bank):newBank(p.editor.pattern);arrangementHistory=new ArrangementHistory(bank);bank=arrangementHistory.bank;selectedArrangementStep=undefined;slotEditors.clear();
   editor=new Editor(p.editor.pattern);editor.state=structuredClone(p.editor);rowAnchor=0;
@@ -1065,7 +1067,7 @@ el('project-open').onchange=async e=>{const field=e.target as HTMLInputElement,f
 };
 el('project-new').onclick=()=>{
   if(!confirm('Start a new project? Save project first to keep your current work.'))return;
-  hitDrafts.clear();stop();samplePanel.stop();comparison=undefined;cellAnchor=undefined;assets.clear();bank=undefined;arrangementHistory=undefined;selectedArrangementStep=undefined;slotEditors.clear();kitPanel.restore(defaultKitState());editor=new Editor(generate(genreDefaults('jungle')));ensureArrangementHistory();syncControls();
+  hitDrafts.clear();stop();samplePanel.stop();comparison=undefined;cellAnchor=undefined;trackerClipboard=undefined;assets.clear();bank=undefined;arrangementHistory=undefined;selectedArrangementStep=undefined;slotEditors.clear();kitPanel.restore(defaultKitState());editor=new Editor(generate(genreDefaults('jungle')));ensureArrangementHistory();syncControls();
   const genre=input('genre').value as Genre,defaultKitId=GENRE_KITS[genre]||'acoustic-break';
   void kitPanel.applyPreset(defaultKitId);
   const ks=document.getElementById('kit-preset-select') as HTMLSelectElement | null;if(ks)ks.value=defaultKitId;const gks=document.getElementById('generator-kit-select') as HTMLSelectElement | null;if(gks)gks.value=defaultKitId;

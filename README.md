@@ -39,7 +39,7 @@ Open **Recent patterns** in the left tray to revisit the last 12 generated, vari
 
 To compare two versions, press **Set A** and **Set B** on any current or recent beats, then use **Preview A/B** to hear each through the current kit and effects. Switching previews starts the chosen beat from its first bar. **Keep A/B** loads the preferred beat into the tracker, where it can be edited, exported or undone. A/B choices are temporary and clear when you change slots or projects; the underlying recent beats remain saved.
 
-Click a hit or empty cell for direct tracker entry. Change its row, lane, pitch, volume, pan or delay. Enable Keyboard entry and focus the grid: Z S X D C V G B H N J M enter chromatic notes, arrows move the cursor, Delete removes selected unlocked hits, Space plays/stops. Typing into a form field never records notes. Manual insertion can use a lane excluded from generation; exclusion applies to automatic generation, not composition.
+Click a hit or empty cell for direct tracker entry. Change its row, lane, pitch, volume, pan or delay. Enable Keyboard entry and focus the grid: Z S X D C V G B H N J M enter chromatic notes, arrows move the cursor, Tab changes lane, Delete removes selected unlocked hits, and Space plays/stops. Select cells or rows, then use Copy, Paste, or Duplicate (Ctrl/Cmd+C/V/D). Paste includes empty cells and replaces destination cells in one undoable edit; locked lanes and hits block the whole paste. The clipboard works within the app while it is open and requires matching tracker resolution. Typing into a form field never records notes. Manual insertion can use a lane excluded from generation; exclusion applies to automatic generation, not composition.
 
 ## Save and restore
 

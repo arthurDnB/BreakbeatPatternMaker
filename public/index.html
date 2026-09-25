@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Breakbeat Pattern Maker</title><link rel="stylesheet" href="./public/style.css?v=0.3.2-tracker"><link rel="stylesheet" href="./public/workspace.css?v=0.3.2-tracker"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Breakbeat Pattern Maker</title><link rel="stylesheet" href="./public/style.css?v=0.3.3-clipboard"><link rel="stylesheet" href="./public/workspace.css?v=0.3.3-clipboard"></head>
 <body><main class="daw-chassis">
 
 <!-- Coherent Modern Studio Title Bar -->
@@ -181,6 +181,9 @@
         <div class="tracker-quick-actions">
           <button id="quick-insert-hit" title="Insert note at cursor with current instrument">+ Note</button>
           <button id="quick-delete-hit" title="Delete note at cursor (Backspace/Delete)">⌫ Clear</button>
+          <button id="tracker-copy" title="Copy selected cells (Ctrl/Cmd+C)">Copy</button>
+          <button id="tracker-paste" title="Paste at cursor (Ctrl/Cmd+V)">Paste</button>
+          <button id="tracker-duplicate" title="Duplicate selection below (Ctrl/Cmd+D)">Duplicate</button>
           <button id="quick-ghost-hit" title="Toggle ghost note (G)">👻 Ghost</button>
           <button id="quick-roll-2" title="Set 2 ratchets">×2</button>
           <button id="quick-roll-4" title="Set 4 ratchets">×4</button>
@@ -197,7 +200,7 @@
         <details id="row-selection"><summary>Select rows…</summary><div class="selection-tools"><label>From row<input id="row-start" type="number" min="0" value="0"></label><label>To row<input id="row-end" type="number" min="0" value="31"></label><button id="select-range">Select rows</button></div></details>
         <div class="lane-locks" aria-label="Drum lane locks"><span>Lock lanes</span><label><input id="lock-kick" type="checkbox">Kick</label><label><input id="lock-snare" type="checkbox">Snare</label><label><input id="lock-hat" type="checkbox">Hat</label><label><input id="lock-percussion" type="checkbox">Percussion</label></div>
         <div class="edit-actions"><button id="select-ending">Select last beat</button><button id="clear-selection">Clear selection</button><button id="lock-selected" disabled>Lock selected hits</button><button id="mutate">Mutate pattern</button><button id="fill" disabled>Generate Fill</button><span class="spacer"></span></div>
-        <p id="selection-status" aria-live="polite"></p><p class="selection-help">Click a hit to select it. Ctrl/Cmd-click adds hits. Click a row number, then Shift-click another to select a range. Main anchors stay in place.</p>
+        <p id="selection-status" aria-live="polite"></p><p class="selection-help">Click any cell, Ctrl/Cmd-click to add cells, or Shift-click to select a range. Copy, paste, and duplicate include empty cells; locked destinations are protected. Main anchors stay in place during generation.</p>
       </div>
 
       <div id="grid" tabindex="0" aria-label="Pattern rows, scrollable"></div>
@@ -240,7 +243,7 @@
           </details>
           <label id="hit-drafts-label" hidden>Pending edits in this session<select id="hit-drafts"><option value="">Go to a pending hit…</option></select></label><p id="hit-draft-status" role="status"></p>
           <div class="actions"><button id="hit-revert" disabled>Revert changes</button><button id="hit-unlock" hidden>Unlock hit</button><button id="hit-preview" disabled>Preview selected hit</button><button id="hit-insert">Insert hit</button><button id="hit-apply">Apply to selected hit</button><button id="hit-delete">Delete selected hits</button><label class="loop-label"><input id="edit-reverse" type="checkbox">Reverse hit</label><label class="loop-label"><input id="keyboard-entry" type="checkbox" checked>Keyboard entry</label></div>
-          <p id="edit-target">Choose a grid cell or hit.</p><small>Focus the grid. Arrow keys move the cursor. Z S X D C V G B H N J M enter C–B, at the pitch offset above. Delete removes selected hits. Space plays/stops. Keyboard entry must be enabled to write notes. Explicit edits can change anchors; locks are always respected.</small>
+          <p id="edit-target">Choose a grid cell or hit.</p><small>Focus the grid. Arrow keys move the cursor; Tab changes lane. Z S X D C V G B H N J M enter C–B at the pitch offset above. Delete clears selected hits; Ctrl/Cmd+C/V/D copy, paste, or duplicate cells. Space plays/stops. Keyboard entry must be enabled to write notes. Locks are respected.</small>
         </fieldset>
       </details>
       
@@ -389,4 +392,4 @@
   </div>
   <p class="footer-note" hidden>Single-shot tracker · Audio stays local. Save project includes your samples and settings; autosave restores your latest workspace on this browser. WAV includes tails; muted lanes are excluded. Pitch repitches the sound. MP3 export remains planned.</p>
 </footer>
-</main><script type="module" src="./dist/web.js?v=0.3.2-tracker"></script></body></html>
+</main><script type="module" src="./dist/web.js?v=0.3.3-clipboard"></script></body></html>

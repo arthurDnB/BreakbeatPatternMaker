@@ -26,7 +26,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.3.0-alpha`
-* **Test Status:** 123 / 123 unit tests passing (`npm.cmd test`).
+* **Test Status:** 124 / 124 unit tests passing (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -67,6 +67,11 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-09-25] - Tracker Cell Clipboard and Keyboard Flow (Codex)
+- **Editing engine (`src/core/editor.ts`):** Added cell/row copy and atomic paste that includes empty cells, preserves timing and sound choices, assigns unique hit IDs, respects destination locks and pattern bounds, and records a single Undo step. Clipboard pastes require the same resolution.
+- **Tracker UI (`src/web.ts`, `public/index.html`):** Added Copy, Paste, and Duplicate controls with Ctrl/Cmd+C/V/D while the grid has focus. Tab now moves the selected cell and keyboard focus to the next lane. Project load/reset clears the transient clipboard.
+- **Documentation and verification (`README.md`, `tests/editor.test.mjs`):** Documented the keyboard flow and tested copy/paste, empty cells, locks, and Undo/Redo. `npm.cmd test` passes 124/124; site smoke verified on root and GitHub Pages paths.
 
 ### [2026-09-25] - Tracker Cell Navigation, Audition and Editable Tempo (Codex)
 - **Tracker editing (`src/core/editor.ts`, `src/core/bank.ts`, `src/web.ts`):** Added validated cell-coordinate selection across populated and empty cells, precise selected-hit targeting for delete/lock/mutate/scramble, arrow movement, Shift range extension and Ctrl/Cmd cell toggles. Populated-cell clicks audition the selected hit through the active kit/effects; empty cells continue auditioning their lane sound.

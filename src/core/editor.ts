@@ -8,6 +8,8 @@ import {random} from './random.js';
 import {PPQ, ROLES, type Pattern, type Role, type Hit} from './model.js';
 
 export interface CellPosition {row:number;lane:Role}
+export interface TrackerClipCell extends CellPosition {hits:Hit[]}
+export interface TrackerClipboard {width:number;height:number;resolution:number;cells:TrackerClipCell[]}
 export interface Selection {ids: string[]; rows: [number, number] | null; cells?:CellPosition[]}
 export interface EditorState {pattern: Pattern; lockedIds: string[]; lockedRoles: Role[]; selection: Selection; revision: number}
 const copy = <T>(v:T):T => structuredClone(v);
@@ -80,6 +82,46 @@ export class Editor {
     const events=next.pattern.events.filter(h=>!ids.has(h.id)||locked(next,h));
     if(events.length===next.pattern.events.length)return false;
     next.pattern.events=events;next.selection=emptySelection();next.revision++;return this.commit(next,'Delete hits');
+  }
+  copySelection():TrackerClipboard {
+    const notes=compile(this.state.pattern).notes,selection=this.state.selection;
+    const positions=selection.cells?.length?selection.cells:selection.rows?Array.from({length:selection.rows[1]-selection.rows[0]+1},(_,index)=>selection.rows![0]+index).flatMap(row=>ROLES.map(lane=>({row,lane}))):notes.filter(n=>selection.ids.includes(n.id)).map(n=>({row:n.row,lane:n.lane}));
+    if(!positions.length)throw Error('Select tracker cells or rows to copy.');
+    const top=Math.min(...positions.map(c=>c.row)),left=Math.min(...positions.map(c=>ROLES.indexOf(c.lane)));
+    const unique=new Map(positions.map(c=>[`${c.row}:${c.lane}`,c]));
+    const ids=selection.cells?.length||selection.rows?undefined:new Set(selection.ids);
+    const cells=[...unique.values()].map(c=>({row:c.row-top,lane:ROLES[ROLES.indexOf(c.lane)-left]!,hits:notes.filter(n=>n.row===c.row&&n.lane===c.lane&&(!ids||ids.has(n.id))).map(n=>copy(this.state.pattern.events.find(h=>h.id===n.id)!))}));
+    return {width:Math.max(...positions.map(c=>ROLES.indexOf(c.lane)))-left+1,height:Math.max(...positions.map(c=>c.row))-top+1,resolution:this.state.pattern.settings.resolution,cells};
+  }
+  pasteCells(clip:TrackerClipboard,row:number,lane:Role):boolean {
+    const next=copy(this.state),lines=compile(next.pattern).timing.lines,step=PPQ*4/next.pattern.settings.resolution,laneIndex=ROLES.indexOf(lane);
+    if(!Number.isInteger(row)||row<0||laneIndex<0||!clip.cells.length)throw Error('Choose a valid destination cell.');
+    if(clip.resolution!==next.pattern.settings.resolution)throw Error('Copy and destination patterns must use the same resolution.');
+    const destination=clip.cells.map(c=>({row:row+c.row,lane:ROLES[laneIndex+ROLES.indexOf(c.lane)]!,source:c}));
+    if(destination.some(c=>c.row>=lines||!c.lane))throw Error('Paste would extend beyond the pattern.');
+    const notes=compile(next.pattern).notes,remove=new Set<string>();
+    for(const target of destination){
+      if(next.lockedRoles.includes(target.lane))throw Error(`Unlock the ${target.lane} lane before pasting.`);
+      for(const note of notes.filter(n=>n.row===target.row&&n.lane===target.lane)){
+        const hit=next.pattern.events.find(h=>h.id===note.id)!;
+        if(locked(next,hit))throw Error('Paste would replace a locked hit.');
+        remove.add(hit.id);
+      }
+    }
+    next.pattern.events=next.pattern.events.filter(h=>!remove.has(h.id));
+    let serial=0;
+    for(const target of destination)for(const source of target.source.hits){
+      const oldNote=compile({...this.state.pattern,events:[source]}).notes[0]!;
+      const moved=copy(source),tickDelta=(target.row-oldNote.row)*step;
+      moved.id=`paste-${next.revision+1}-${serial++}`;
+      while(next.pattern.events.some(h=>h.id===moved.id))moved.id=`paste-${next.revision+1}-${serial++}`;
+      moved.role=target.lane;moved.sourceId='kit.'+target.lane;moved.baseTick+=tickDelta;moved.anchor=false;
+      if(moved.baseTick<0||moved.baseTick>=next.pattern.settings.bars*4*PPQ)throw Error('Paste timing would extend beyond the pattern.');
+      next.pattern.events.push(moved);
+    }
+    next.pattern.events.sort((a,b)=>a.baseTick-b.baseTick||ROLES.indexOf(a.role)-ROLES.indexOf(b.role));
+    next.selection={ids:[],rows:null,cells:destination.map(c=>({row:c.row,lane:c.lane}))};next.revision++;
+    return this.commit(next,'Paste tracker cells');
   }
   mutate(){
     const next=copy(this.state),scope=selectedIds(next);
