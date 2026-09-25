@@ -68,6 +68,10 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-26] - Stable Play Control Layout (Codex)
+- **Transport (`public/index.html`, `public/workspace.css`):** Removed the visible stopped/playing status text from the transport so changes in playback state cannot resize or shift the play control. The button retains its accessible Play/Stop label; bumped the workspace stylesheet cache key.
+- **Verification (`scripts/transport-layout-smoke.mjs`):** All 128 unit tests pass; browser check confirms the status stays hidden and the play button keeps its position through state changes.
+
 ### [2026-09-26] - Scrollable Tracker Instrument Overlay (Codex)
 - **Track instrument menu (`src/web.ts`, `public/workspace.css`):** Replaced the table-clipped dropdown with a viewport-positioned panel anchored to its track control. It chooses the side with more space, stays inside the viewport, and limits its height so the panel can scroll through all sound and playback settings.
 - **Responsive behavior:** Repositions the panel on tracker/window scrolling and resizing, including on narrow layouts.
