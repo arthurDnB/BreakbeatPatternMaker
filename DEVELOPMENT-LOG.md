@@ -58,12 +58,18 @@ This document maintains the running project state and change log so that multipl
 * [x] **Arrangement editing history:** Undo/redo for sequence, slot, repeat and song-tempo changes with context-aware shortcuts.
 * [x] **Named song sections:** Optional per-step section labels are preserved in project data, shown in the arranger and transport, and included in history.
 * [x] **Visual song timeline:** Colored section blocks, playhead following, insertion gaps, drag reorder and pattern selection with arrangement undo/redo.
+* [x] **Quick Start guide:** First-run Generate → Preview → Edit → Export orientation, with persistent dismiss/reopen controls.
 * [ ] **Future Audio Roadmaps:** Procedural vinyl texture rack, MP3 export, velocity-layered drum kits, sample-browser filtering.
 * [ ] *Note: Renoise integration has been retired in favor of the standalone in-browser instrument.*
 
 ---
 
 ## 📝 Change Log
+
+### [2026-09-25] - First-Run Quick Start Guide (Codex)
+- **Onboarding (`public/index.html`, `public/workspace.css`, `src/web.ts`):** Added a compact four-step Generate → Preview → Edit → Export guide, responsive cards, and a header toggle that remembers visibility in local storage.
+- **Documentation and browser verification (`README.md`, `scripts/site-browser-smoke.mjs`):** Documented the guide and verified it opens, hides, and reopens on both site paths.
+- **Verification:** `npm.cmd test` passes 118/118 and `npm.cmd run test:site` passes on root and GitHub Pages subpath.
 
 ### [2026-09-25] - Visual Song Arrangement Timeline (Codex)
 - **Timeline data (`src/core/bank.ts`):** Added a validated per-step visual projection with song-tempo duration and bar ranges, plus insertion-point helpers that preserve section and repeat metadata.

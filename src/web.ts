@@ -1019,6 +1019,10 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape')el<HTMLDetai
 // Workspace navigation changes presentation only, preserving edit and audio behavior.
 el('show-sounds').onclick=()=>{el<HTMLDetailsElement>('sounds-panel').open=true;el('sounds-panel').scrollIntoView({behavior:'smooth',block:'nearest'});el('sounds-panel').querySelector('summary')?.focus();};
 el('show-arrangement').onclick=()=>{el<HTMLDetailsElement>('arranger').open=true;el('arranger').scrollIntoView({behavior:'smooth',block:'nearest'});el('arranger').querySelector('summary')?.focus();};
+const quickStart=el<HTMLElement>('quick-start'),quickStartToggle=el<HTMLButtonElement>('quick-start-toggle');
+function setQuickStartVisible(visible:boolean){quickStart.hidden=!visible;quickStartToggle.setAttribute('aria-expanded',String(visible));quickStartToggle.textContent=visible?'Hide guide':'Quick start';try{localStorage.setItem('bpm_quick_start_hidden',visible?'0':'1');}catch{}}
+try{setQuickStartVisible(localStorage.getItem('bpm_quick_start_hidden')!=='1');}catch{setQuickStartVisible(true);}
+quickStartToggle.onclick=()=>setQuickStartVisible(quickStart.hidden===true);
 
 el('back-to-pattern').onclick=()=>{el('grid').scrollIntoView({behavior:'smooth',block:'start'});el('grid').focus({preventScroll:true});};
 

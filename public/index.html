@@ -26,10 +26,24 @@
     <button id="project-save">Save project + samples</button>
     <label class="open-project" for="project-open">Open project<input id="project-open" type="file" accept=".bbproject,application/json"></label>
     <button id="project-new">New project</button>
+    <button id="quick-start-toggle" class="quick-start-toggle" type="button" aria-controls="quick-start" aria-expanded="true">Hide guide</button>
     <span id="save-status" role="status">Local autosave ready</span>
   </section>
   <a href="./README.md" target="_blank" class="help-link">Help ↗</a>
 </header>
+
+<section id="quick-start" class="quick-start" aria-labelledby="quick-start-title">
+  <div class="quick-start-heading">
+    <div><p class="eyebrow">QUICK START</p><h2 id="quick-start-title">Build a breakbeat in four steps</h2></div>
+    <p>Your patterns stay editable. Preview and export use the sounds and settings shown in the workspace.</p>
+  </div>
+  <ol class="quick-start-steps">
+    <li><span class="quick-start-number">1</span><div><strong>Generate</strong><p>Choose a genre, set BPM and bars, then press Generate in the Beat Generator tray.</p></div></li>
+    <li><span class="quick-start-number">2</span><div><strong>Preview</strong><p>Press Play to hear the pattern, or Preview on an instrument card to audition one sound.</p></div></li>
+    <li><span class="quick-start-number">3</span><div><strong>Edit</strong><p>Select a tracker hit to inspect it. Lock hits you want to keep before making variations.</p></div></li>
+    <li><span class="quick-start-number">4</span><div><strong>Export</strong><p>Choose Active pattern or Full song arrangement, then press Export WAV.</p></div></li>
+  </ol>
+</section>
 
 <!-- Global Hardware Transport Bar -->
 <div class="transport daw-transport" aria-label="Playback and export">

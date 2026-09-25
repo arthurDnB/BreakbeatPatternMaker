@@ -333,6 +333,21 @@ main.daw-chassis {
   border-color: var(--border-card);
 }
 
+.quick-start-toggle { font-size:11px; padding:3px 8px; border:1px solid #33445b; border-radius:4px; background:#151f2d; color:#c5d4e5; white-space:nowrap; }
+.quick-start-toggle:hover { border-color:var(--accent-cyan); color:#fff; }
+.quick-start { margin:6px 0 8px; padding:12px 14px; border:1px solid #344258; border-left:3px solid var(--accent-cyan); border-radius:7px; background:linear-gradient(110deg,#182431,#141d2a); }
+.quick-start-heading { display:flex; align-items:end; justify-content:space-between; gap:12px; margin-bottom:9px; }
+.quick-start-heading .eyebrow { margin:0 0 2px; color:var(--accent-cyan); font-size:9px; letter-spacing:1px; }
+.quick-start-heading h2 { margin:0; color:#f1f5fb; font-size:14px; }
+.quick-start-heading > p { max-width:440px; margin:0; color:#aebdd0; font-size:10px; }
+.quick-start-steps { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin:0; padding:0; list-style:none; }
+.quick-start-steps li { display:flex; align-items:flex-start; gap:8px; min-width:0; padding:8px; background:#101925; border:1px solid #27364a; border-radius:5px; }
+.quick-start-number { display:grid; place-items:center; flex:none; width:20px; height:20px; border-radius:50%; background:#203e48; color:#9af5e5; font-size:10px; font-weight:800; }
+.quick-start-steps strong { display:block; color:#eaf1fa; font-size:11px; }
+.quick-start-steps p { margin:2px 0 0; color:#aebdd0; font-size:10px; line-height:1.35; }
+@media(max-width:900px) { .quick-start-heading { align-items:flex-start; flex-direction:column; } .quick-start-steps { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:520px) { .quick-start { padding:9px; } .quick-start-steps { grid-template-columns:1fr; } }
+
 /* --------------------------------------------------------------------------
    4. Global Hardware Transport Bar (Docked Top Rack)
    -------------------------------------------------------------------------- */

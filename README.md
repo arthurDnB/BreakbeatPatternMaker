@@ -6,6 +6,8 @@ A standalone single-shot beat generator and tracker. The chopper is hidden, with
 
 Node 22+: `npm install`, then `npm start`. Open http://127.0.0.1:4173.
 
+The app opens with a **Quick Start** guide for Generate → Preview → Edit → Export. Hide it with **Hide guide**; use **Quick start** in the header to reopen it later.
+
 ## Choose your instruments
 
 Each Kick, Snare, Hi-hat and Percussion card provides:
@@ -14,7 +16,7 @@ Each Kick, Snare, Hi-hat and Percussion card provides:
 - **Sound:** choose Synthesized, a bundled library recording or My upload. WAV uploads must be mono/stereo, up to 10 seconds / 20 MB. The library loads from local files, not remote services at runtime.
 - **Level and tuning:** adjust instrument level from 0–100% and pitch from −24 to +24 semitones. Note pitch and instrument tuning combine, capped at ±48 semitones.
 - **Mute:** silences the lane in playback and WAV export without deleting its notes.
-- **Audition:** plays the selected sound with its level/tuning. New auditions stop previous playback. Mute is bypassed for isolated audition.
+- **Preview:** plays the selected sound with its level/tuning. New previews stop previous playback. Mute is bypassed for isolated audition.
 
 Instrument controls are separate from note Undo/Redo. Library playback trims leading silence and uses per-role peak targets (kick .9, snare .8, hat .4, percussion .65), with at most 4× boost. The shipped source WAVs are unchanged. These peak controls do not promise equal perceived loudness; adjust the level to taste. Uploads retain their original level.
 
