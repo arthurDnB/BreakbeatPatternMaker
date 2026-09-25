@@ -3,6 +3,8 @@ import type {AudioAsset} from './slices.js';
 import {validateWav} from './wav.js';
 import {defaultEffects,validateEffects,type Effects} from './effects.js';
 import {LIBRARY,KIT_PRESETS} from './library.js';
+// @ts-expect-error Shared original synth
+import {synthesize} from '../../public/synth.js';
 
 export type DrumKit=Partial<Record<Role,SliceRef>>;
 export type KitSlot={choice:string;uploadId?:string;assetId?:string;include:boolean;mute:boolean;solo?:boolean;level:number;tune:number;decay?:number;reverse?:boolean;effects?:Effects};
