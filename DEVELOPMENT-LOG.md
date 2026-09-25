@@ -68,6 +68,12 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-26] - Single-Row Transport & No-Scroll Beat Generator Viewport (Antigravity)
+- **Single-row hardware transport (`public/workspace.css`, `public/index.html`):** Reorganized `#transport` into a single, compact ~44px horizontal row instead of stacked vertical rows. Grouped `Play [Pattern v] [▶] Stopped` alongside `[TEMPO 165.0 BPM TAP]` and `[BAR & BEAT 01.1 2 BARS]` horizontally in `.transport-center`. Restyled `#play` to a sleek 38px circular button. Positioned `#transport` natively inside `#tray-bottom` in HTML without runtime DOM shifts.
+- **Beat Generator viewport visibility without scrolling (`public/workspace.css`):** Removed the redundant `.tray-rack-tabs` strip. Adjusted `.workspace #grid` height to `clamp(260px, 34dvh, 380px)` with `min-height: 260px` so the entire Beat Generator (genre, kit, bars, bpm, complexity, spicy sliders, and `Generate` button) fits 100% on-screen simultaneously with the tracker grid on standard laptop and desktop displays without window scrolling ("rolling").
+- **Session HUD legibility (`public/workspace.css`):** Refined `#tray-session-hud` items with crisp vertical alignment and dedicated labels/values for Pattern, Tempo, Kit, and Channels.
+- **Verification:** Verified 100% green test pass across unit tests (126/126) and browser smoke tests (`npm.cmd run test:site` passing all 344 samples on both `/` and `/breakbeat-pattern-maker/`).
+
 ### [2026-09-26] - Tracker Workspace Streamlining, In-Column Hardware Buttons & Responsive Layout (Antigravity)
 - **Responsive chassis & full-width layout (`public/workspace.css`):** Removed rigid `max-width: 1720px;` and centered margin constraints on `main.daw-chassis`, enabling the DAW workspace to fluidly utilize the full width of ultrawide, 1440p, and 1080p displays without empty black side bars.
 - **In-column instrument buttons (`public/workspace.css`):** Styled the per-track `▾ Instrument / FX` summary in column headers into prominent, tactile hardware-style toggle buttons with dynamic role-colored glow (Kick: coral, Snare: amber, Hat: teal, Percussion: periwinkle), distinct chevron indicators, and clear open/closed state.

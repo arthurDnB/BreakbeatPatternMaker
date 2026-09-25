@@ -62,47 +62,6 @@
   </ol>
 </section>
 
-<!-- Global Hardware Transport Bar -->
-<div class="transport daw-transport" id="transport" aria-label="Playback and navigation">
-  <div class="toolbar-group nav-shortcuts">
-    <button id="undo" disabled>Undo</button>
-    <button id="redo" disabled>Redo</button>
-    <button id="show-sounds">Sounds</button>
-    <button id="show-arrangement">Arrangement</button>
-  </div>
-
-  <div class="transport-center">
-    <div class="toolbar-group transport-main">
-      <label class="transport-target">Play <select id="transport-target" aria-label="Playback target"><option value="pattern">Pattern</option><option value="song">Song</option></select></label>
-      <button id="play" class="daw-btn-play" type="button" disabled aria-label="Play pattern" title="Play pattern"><span class="play-icon" aria-hidden="true">▶</span></button>
-      <span id="transport-state" role="status">Stopped</span>
-    </div>
-
-    <div class="toolbar-group hud-display">
-      <div class="hud-item hud-bpm-box">
-        <span class="hud-tag">TEMPO</span>
-        <input id="hud-bpm-val" class="hud-digits hud-bpm-input" type="number" min="32" max="999" step="0.1" value="165" aria-label="Tempo BPM" title="Edit tempo">
-        <span class="hud-unit">BPM</span>
-        <button id="hud-bpm-tap" class="hud-tap-btn" title="Tap tempo">TAP</button>
-      </div>
-      <div class="hud-item hud-pos-box">
-        <span class="hud-tag">BAR &amp; BEAT</span>
-        <span id="hud-pos-val" class="hud-digits">01.1</span>
-        <span id="hud-bars-val" class="hud-unit">2 BARS</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="tray-session-hud" id="tray-session-hud" aria-label="Live session status">
-    <div class="hud-grid">
-      <div class="hud-item"><span class="hud-lbl">PATTERN</span><span class="hud-val" id="hud-pattern-name">A (2 Bars)</span></div>
-      <div class="hud-item"><span class="hud-lbl">TEMPO</span><span class="hud-val" id="hud-tempo-val">165.0 BPM</span></div>
-      <div class="hud-item"><span class="hud-lbl">KIT</span><span class="hud-val" id="hud-kit-name">Custom Kit</span></div>
-      <div class="hud-item"><span class="hud-lbl">TRACKS</span><span class="hud-val" id="hud-tracks-val">4 Channels</span></div>
-    </div>
-  </div>
-</div>
-
 <!-- Studio Views Container (3-Tray Renoise Workstation) -->
 <div class="studio-layout" id="studio-layout">
   <!-- 1. LEFT TRAY: PATTERNS & SEQUENCER (Retractable) -->
@@ -235,6 +194,47 @@
 <!-- 4. BOTTOM TRAY: GENERATOR, SLICER & FX RACK (Retractable) -->
 <div id="resize-stage" class="panel-splitter panel-splitter-horizontal" role="separator" aria-label="Resize tracker height" aria-orientation="horizontal" tabindex="0" title="Drag to resize the tracker"></div>
 <section class="daw-tray-bottom" id="tray-bottom" aria-label="Beat generator, waveform slicer, and effects rack">
+  <!-- Global Hardware Transport Bar -->
+  <div class="transport daw-transport" id="transport" aria-label="Playback and navigation">
+    <div class="toolbar-group nav-shortcuts">
+      <button id="undo" disabled>Undo</button>
+      <button id="redo" disabled>Redo</button>
+      <button id="show-sounds">Sounds</button>
+      <button id="show-arrangement">Arrangement</button>
+    </div>
+
+    <div class="transport-center">
+      <div class="toolbar-group transport-main">
+        <label class="transport-target">Play <select id="transport-target" aria-label="Playback target"><option value="pattern">Pattern</option><option value="song">Song</option></select></label>
+        <button id="play" class="daw-btn-play" type="button" disabled aria-label="Play pattern" title="Play pattern"><span class="play-icon" aria-hidden="true">▶</span></button>
+        <span id="transport-state" role="status">Stopped</span>
+      </div>
+
+      <div class="toolbar-group hud-display">
+        <div class="hud-item hud-bpm-box">
+          <span class="hud-tag">TEMPO</span>
+          <input id="hud-bpm-val" class="hud-digits hud-bpm-input" type="number" min="32" max="999" step="0.1" value="165" aria-label="Tempo BPM" title="Edit tempo">
+          <span class="hud-unit">BPM</span>
+          <button id="hud-bpm-tap" class="hud-tap-btn" title="Tap tempo">TAP</button>
+        </div>
+        <div class="hud-item hud-pos-box">
+          <span class="hud-tag">BAR &amp; BEAT</span>
+          <span id="hud-pos-val" class="hud-digits">01.1</span>
+          <span id="hud-bars-val" class="hud-unit">2 BARS</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="tray-session-hud" id="tray-session-hud" aria-label="Live session status">
+      <div class="hud-grid">
+        <div class="hud-item"><span class="hud-lbl">PATTERN</span><span class="hud-val" id="hud-pattern-name">A (2 Bars)</span></div>
+        <div class="hud-item"><span class="hud-lbl">TEMPO</span><span class="hud-val" id="hud-tempo-val">165.0 BPM</span></div>
+        <div class="hud-item"><span class="hud-lbl">KIT</span><span class="hud-val" id="hud-kit-name">Custom Kit</span></div>
+        <div class="hud-item"><span class="hud-lbl">TRACKS</span><span class="hud-val" id="hud-tracks-val">4 Channels</span></div>
+      </div>
+    </div>
+  </div>
+
   <div class="tray-header">
     <div class="tray-header-left">
       <button id="toggle-tray-bottom" class="tray-toggle-btn" title="Toggle Bottom Tray (Alt+2)" aria-label="Toggle Bottom Tray" type="button">▼</button>
