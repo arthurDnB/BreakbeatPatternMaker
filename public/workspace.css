@@ -2697,3 +2697,38 @@ tr.bar-start .row-select { color: var(--accent-cyan); font-weight: 700; }
 #sequence .sequence-step label { flex-direction:row; align-items:center; flex:1 1 100%; }
 #sequence .sequence-step button { padding:4px 6px; font-size:10px; }
 #sequence .sequence-step > span { cursor:grab; user-select:none; }
+
+
+/* ANTIGRAVITY MOBILE FIXES */
+@media (max-width: 800px) {
+  main.daw-chassis {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  .studio-layout {
+    display: contents !important;
+  }
+  .app-header { order: 1; }
+  .daw-transport { order: 2; }
+  .daw-tray-left { order: 3; margin-bottom: 12px; }
+  .daw-tray-bottom { order: 4; margin-bottom: 12px; }
+  .daw-stage-center { order: 5; margin-bottom: 12px; }
+  .daw-tray-right { order: 6; }
+  .daw-footer { order: 7; }
+
+  #drum-slots {
+    display: flex !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x mandatory !important;
+    gap: 12px !important;
+    padding-bottom: 12px !important;
+  }
+  .drum-slot {
+    flex: 0 0 85% !important;
+    scroll-snap-align: start !important;
+  }
+  
+  #grid {
+    max-height: 400px !important;
+  }
+}

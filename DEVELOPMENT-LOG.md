@@ -71,6 +71,12 @@ This document maintains the running project state and change log so that multipl
 - **Test Suite Updates (`tests/audio-v3.test.mjs`):**
   - Corrected the `v3 triplet gestures` test assertion which was incorrectly expecting a faded-in `0` value at the start of a chopped note.
 
+### [2026-09-25] - Mobile Layout Overhaul (Antigravity)
+- **CSS Enhancements (`public/workspace.css`):**
+  - **Generator Ordering:** Implemented a Flexbox layout on `<main>` with `.studio-layout` set to `display: contents` for mobile screens (`max-width: 800px`). This completely reorders the mobile UI, pulling the Bottom Rack (Beat Generator) up to position `order: 4` right below the Pattern Bank.
+  - **Instrument Carousel:** Converted the `#drum-slots` container from a vertical stack to a swipeable horizontal carousel (`overflow-x: auto; scroll-snap-type: x mandatory`). Each instrument now takes 85% width, saving massive vertical scrolling space.
+  - **Grid Compactness:** Restricted the Tracker Grid to `max-height: 400px` on mobile.
+
 ### [2026-09-25] - Jungle Mastering & UI Faders (Antigravity)
 - **UI Enhancements (`public/index.html`, `src/audio/drum-kit.ts`):**
   - Converted all input boxes on the Advanced Generation rack (Syncopation, Swing, Humanize, Ghost, Fill) to range sliders with live numeric readouts.
