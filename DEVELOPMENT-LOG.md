@@ -63,6 +63,18 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-25] - Jungle Mastering & UI Faders (Antigravity)
+- **UI Enhancements (`public/index.html`, `src/audio/drum-kit.ts`):**
+  - Converted all input boxes on the Advanced Generation rack (Syncopation, Swing, Humanize, Ghost, Fill) to range sliders with live numeric readouts.
+  - Converted the instrument Quick FX input boxes (High-pass, Low-pass, Resonance, Punch, Drive, Delay, Mix) to range sliders, providing a much more intuitive, tactile DAW experience.
+- **Audio Engine Updates (`src/core/groove-v3-profiles.ts`, `src/core/profiles.ts`):**
+  - Analyzed the provided Jungle reference track (tempo 165+).
+  - Tightened the core `jungle` profile in V3 to strictly feature `[0, 10]`, `[0, 6, 10]`, and `[0, 7, 10]` kick anchors with `[4, 12]` snares.
+  - Increased `ghostGain`, `activity`, and `burstBudget` to generate highly active, syncopated 16th-note rolls.
+  - Cranked the out-of-the-box defaults for `jungle` so that the user immediately gets complex, fast-paced rhythms without tweaking.
+- **Verification:**
+  - `npm.cmd test`: 90/90 passing.
+
 ### [2026-09-25] - Snare Choke Fix for Jungle Kits (Antigravity)
 - **Audio Engine Updates (`src/audio/voice-v3.ts`):**
   - Addressed user feedback that fast snare rolls (specifically `acoustic-snare-piccolo` in the Jungle kit) sounded too wet and built up an unnatural reverb tail in V3.

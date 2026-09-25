@@ -41,7 +41,7 @@ export function defaults(genre: Genre = 'jungle'): Settings {
 export function genreDefaults(genre:Genre):Settings {
   const base=defaults(genre),profile=PROFILES[genre];
   const overrides:Partial<Record<Genre,Partial<Settings>>>={
-    jungle:{spicy:.35},dnb:{complexity:.5,ghostAmount:.25,fillAmount:.25,spicy:.25},
+    jungle:{complexity:.85,syncopation:.8,ghostAmount:.75,fillAmount:.85,spicy:.8,resolution:32},dnb:{complexity:.5,ghostAmount:.25,fillAmount:.25,spicy:.25},
     hiphop:{complexity:.3,syncopation:.3,ghostAmount:.2,fillAmount:.15,humanizeMs:2,spicy:.1},
     rap:{complexity:.25,syncopation:.25,ghostAmount:.15,fillAmount:.15,humanizeMs:2,spicy:.1},
     trap:{complexity:.6,resolution:32,syncopation:.45,ghostAmount:.15,fillAmount:.45,spicy:.4},

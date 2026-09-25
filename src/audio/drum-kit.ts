@@ -69,8 +69,10 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:()=>void,audi
     const bypass=checkbox('fx-bypass-'+role,'Bypass effects');fx.append(bypass.l);
     const effectInputs=new Map<keyof Effects,HTMLInputElement>();
     for(const [key,name,min,max,step] of [['highpass','High-pass (Hz)',0,2000,10],['lowpass','Low-pass (Hz)',200,20000,100],['resonance','Resonance / Q (0–1)',0,1,.05],['punch','Punch attack (0–1)',0,1,.05],['drive','Drive (0–1)',0,1,.05],['delayMs','Delay time (ms)',30,1000,10],['feedback','Feedback (0–0.75)',0,.75,.05],['mix','Delay mix (0–0.6)',0,.6,.05]] as const){
-      const field=document.createElement('input');field.type='number';field.min=String(min);field.max=String(max);field.step=String(step);field.id='fx-'+key+'-'+role;effectInputs.set(key,field);fx.append(makeLabel(name,field));
-      field.onchange=()=>{const next={...(mix[role].effects??defaultEffects()),[key]:Number(field.value)};try{validateEffects(next);mix[role].effects=next;update();changed();}catch(e){update();info.textContent=String(e);}};
+        const field=document.createElement('input');field.type='range';field.min=String(min);field.max=String(max);field.step=String(step);field.id='fx-'+key+'-'+role;effectInputs.set(key,field);
+        const l=makeLabel(name,field);const out=document.createElement('output');out.id='fx-'+key+'-val-'+role;out.htmlFor=field.id;l.prepend(out);fx.append(l);
+        const commit=()=>{const next={...(mix[role].effects??defaultEffects()),[key]:Number(field.value)};try{validateEffects(next);mix[role].effects=next;update();changed();}catch(e){update();info.textContent=String(e);}};
+        field.oninput=()=>{out.textContent=field.value;};field.onchange=commit;
     }
     card.append(fx);reverse.i.onchange=()=>{mix[role].reverse=reverse.i.checked;update();changed();};
     decay.oninput=()=>{mix[role].decay=Number(decay.value);update();changed();};
@@ -80,7 +82,7 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:()=>void,audi
       play.disabled=loading;upload.disabled=loading;card.setAttribute('aria-busy',String(loading));
       const slot=mix[role],asset=slot.assetId?assets.get(slot.assetId):undefined;
       if(asset)kit[role]={assetId:asset.id,startFrame:0,endFrame:asset.channels[0]!.length,sampleRate:asset.sampleRate,label:asset.name};else delete kit[role];
-      reverse.i.checked=!!slot.reverse;const effects=slot.effects??defaultEffects();bypass.i.checked=effects.bypass;for(const [key,field] of effectInputs)field.value=String(effects[key]);
+      reverse.i.checked=!!slot.reverse;const effects=slot.effects??defaultEffects();bypass.i.checked=effects.bypass;for(const [key,field] of effectInputs){field.value=String(effects[key]);const out=document.getElementById('fx-'+key+'-val-'+role);if(out)out.textContent=field.value;}
       choice.value=slot.choice;include.i.checked=slot.include;mute.i.checked=slot.mute;solo.i.checked=!!slot.solo;level.value=String(slot.level);tune.value=String(slot.tune);
       decay.value=String(slot.decay??1);decayValue.textContent=(slot.decay!==undefined&&slot.decay<1)?Math.round(slot.decay*100)+'% (Tight)':'100% (Natural)';
       (choice.querySelector('option[value="upload"]') as HTMLOptionElement).disabled=!slot.uploadId;
