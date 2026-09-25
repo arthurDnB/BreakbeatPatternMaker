@@ -97,8 +97,11 @@
 
       <details id="arranger"><summary>Song arrangement</summary>
         <label class="song-tempo">Song tempo <input id="song-bpm" type="number" min="32" max="999" step="0.1" value="165"> BPM</label>
-        <p class="song-help">Drag headings or use buttons to reorder. Song tempo is independent.</p>
+        <p class="song-help">Select a pattern in the timeline, drag blocks into gaps, or use Move buttons below. Song tempo is independent.</p>
         <p id="song-position" role="status">Song stopped</p>
+        <div class="timeline-heading"><strong>Song timeline</strong><span>Drag blocks into a gap · + inserts selected pattern</span></div>
+        <div id="song-timeline" class="song-timeline" aria-label="Song arrangement timeline"></div>
+        <div id="timeline-legend" class="timeline-legend" aria-label="Section colors"></div>
         <div id="sequence"></div><div class="actions"><select id="append-slot" aria-label="Pattern to append"></select><button id="append-step">Add pattern</button><button id="play-arrangement">Play arrangement</button><button id="export-arrangement">Export arrangement WAV</button></div><p id="arrangement-info"></p>
       </details>
 

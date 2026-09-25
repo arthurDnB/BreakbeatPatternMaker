@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {ArrangementHistory} from '../dist/core/arrangement-history.js';
-import {newBank, addPatternSlot, duplicatePatternSlot, deletePatternSlot, moveSequenceStep, songTimeline, validateBank} from '../dist/core/bank.js';
+import {newBank, addPatternSlot, duplicatePatternSlot, deletePatternSlot, moveSequenceStep, moveSequenceStepToInsertion, insertSequenceStep, songBlocks, songTimeline, validateBank} from '../dist/core/bank.js';
 import {generate} from '../dist/core/generate.js';
 import {defaults} from '../dist/core/profiles.js';
 
@@ -273,4 +273,41 @@ test('section names are optional and validated', () => {
   validateBank(b);
   b.sequence[0].section = 'x'.repeat(33);
   assert.throws(() => validateBank(b));
+});
+
+test('visual song blocks use song tempo, repeats and bar spans', () => {
+  const b = makeBank();
+  b.songBpm = 120;
+  b.sequence = [{slot: 0, repeats: 2, section: 'Intro'}, {slot: 1, repeats: 1, section: 'Drop'}];
+  const [first, second] = songBlocks(b);
+  assert.equal(first.section, 'Intro');
+  assert.equal(first.start, 0);
+  assert.equal(first.startBar, 1);
+  assert.equal(first.endBar, first.bars);
+  assert.equal(first.duration, first.bars * 2);
+  assert.equal(second.start, first.duration);
+  assert.equal(second.startBar, first.endBar + 1);
+  assert.equal(second.endBar, second.startBar + second.bars - 1);
+  assert.equal(second.start + second.duration, songTimeline(b).at(-1).start + songTimeline(b).at(-1).duration);
+});
+
+test('timeline gap insertion and drag reordering preserve section metadata through history', () => {
+  const b = makeBank();
+  b.sequence = [{slot: 0, repeats: 2, section: 'Intro'}, {slot: 1, repeats: 1, section: 'Drop'}];
+  const h = new ArrangementHistory(b);
+  assert.ok(h.execute(bank => insertSequenceStep(bank, 1, 0), 'Insert arrangement step'));
+  assert.deepEqual(h.bank.sequence.map(s => s.section), ['Intro', undefined, 'Drop']);
+  assert.ok(h.execute(bank => moveSequenceStepToInsertion(bank, 0, 3), 'Reorder arrangement'));
+  assert.deepEqual(h.bank.sequence.map(s => s.section), [undefined, 'Drop', 'Intro']);
+  assert.deepEqual(h.bank.sequence.map(s => s.repeats), [1, 1, 2]);
+  assert.ok(h.undo());
+  assert.deepEqual(h.bank.sequence.map(s => s.section), ['Intro', undefined, 'Drop']);
+  assert.ok(h.undo());
+  assert.deepEqual(h.bank.sequence.map(s => s.section), ['Intro', 'Drop']);
+  assert.ok(h.redo());
+  assert.ok(h.redo());
+  assert.deepEqual(h.bank.sequence.map(s => s.section), [undefined, 'Drop', 'Intro']);
+  validateBank(h.bank);
+  assert.throws(() => insertSequenceStep(h.bank, -1, 0));
+  assert.throws(() => moveSequenceStepToInsertion(h.bank, 0, 4));
 });

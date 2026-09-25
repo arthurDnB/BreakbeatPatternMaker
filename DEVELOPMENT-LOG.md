@@ -14,7 +14,7 @@ This document maintains the running project state and change log so that multipl
 2. **Execution on Windows:**
    * PowerShell execution policy may block `npm.ps1`. Always use `npm.cmd` directly for commands (e.g. `npm.cmd test`, `npm.cmd run build:site`).
 3. **Verify tests before committing:**
-   * Unit test suite (90 tests): `npm.cmd test`
+   * Unit test suite: `npm.cmd test`
    * Site deployment build & Playwright smoke test: `npm.cmd run test:site`
 4. **Update this log:**
    * Document each change under the [Change Log](#change-log) section with date, summary of files modified, and rationale.
@@ -26,7 +26,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.3.0-alpha`
-* **Test Status:** 116 / 116 unit tests passing (`npm.cmd test`).
+* **Test Status:** 118 / 118 unit tests passing (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -57,12 +57,19 @@ This document maintains the running project state and change log so that multipl
   - Isolated deterministic random streams (`v3Chance`, `v3Pick`) and Strudel-inspired Euclidean rhythmic distribution.
 * [x] **Arrangement editing history:** Undo/redo for sequence, slot, repeat and song-tempo changes with context-aware shortcuts.
 * [x] **Named song sections:** Optional per-step section labels are preserved in project data, shown in the arranger and transport, and included in history.
+* [x] **Visual song timeline:** Colored section blocks, playhead following, insertion gaps, drag reorder and pattern selection with arrangement undo/redo.
 * [ ] **Future Audio Roadmaps:** Procedural vinyl texture rack, MP3 export, velocity-layered drum kits, sample-browser filtering.
 * [ ] *Note: Renoise integration has been retired in favor of the standalone in-browser instrument.*
 
 ---
 
 ## 📝 Change Log
+
+### [2026-09-25] - Visual Song Arrangement Timeline (Codex)
+- **Timeline data (`src/core/bank.ts`):** Added a validated per-step visual projection with song-tempo duration and bar ranges, plus insertion-point helpers that preserve section and repeat metadata.
+- **Arranger (`src/web.ts`, `public/index.html`, `public/workspace.css`):** Added color-coded section blocks, accessible insertion gaps, drag reorder, click-to-edit selection, compact responsive layout, and playback highlighting with horizontal follow.
+- **History and persistence:** Timeline edits use the existing arrangement history; section labels and order remain in project exports and local autosave.
+- **Documentation and verification:** Updated `README.md` and `PROJECT-SCOPE.md`; added core and browser coverage for timeline math, editing, undo/redo, playback, export, persistence and mobile layout.
 
 ### [2026-09-25] - Named Song Sections (Codex)
 - **Arrangement data (`src/core/bank.ts`):** Added an optional, validated section label to sequence steps and exposed it through song timeline entries without changing the existing project schema version.

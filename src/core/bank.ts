@@ -126,6 +126,20 @@ export function songTimeline(bank: Bank) {
     return entry;
   }));
 }
+/** One visual block per arrangement step, measured in song bars and seconds. */
+export function songBlocks(bank: Bank) {
+  validateBank(bank);
+  let start = 0;
+  let startBar = 1;
+  return bank.sequence.map((step, index) => {
+    const bars = bank.slots[step.slot]!.editor!.pattern.settings.bars * step.repeats;
+    const duration = bars * 240 / bank.songBpm;
+    const block = {step: index, slot: step.slot, section: step.section, repeats: step.repeats, start, duration, bars, startBar, endBar: startBar + bars - 1};
+    start += duration;
+    startBar += bars;
+    return block;
+  });
+}
 export function songPosition(timeline: ReturnType<typeof songTimeline>, seconds: number) {
   const entry = timeline.find(e => seconds >= e.start && seconds < e.start + e.duration);
   return entry ? {...entry, row: Math.min(entry.lines - 1, Math.floor((seconds - entry.start) / entry.duration * entry.lines))} : undefined;
@@ -134,4 +148,13 @@ export function moveSequenceStep(bank: Bank, from: number, to: number) {
   if (![from, to].every(i => Number.isInteger(i) && i >= 0 && i < bank.sequence.length)) throw Error('Invalid arrangement position.');
   const [step] = bank.sequence.splice(from, 1);
   bank.sequence.splice(to, 0, step!);
+}
+/** Move an existing step into a gap (0 is before the first step). */
+export function moveSequenceStepToInsertion(bank: Bank, from: number, before: number) {
+  if (!Number.isInteger(before) || before < 0 || before > bank.sequence.length) throw Error('Invalid arrangement insertion point.');
+  moveSequenceStep(bank, from, from < before ? before - 1 : before);
+}
+export function insertSequenceStep(bank: Bank, before: number, slot: number) {
+  if (!Number.isInteger(before) || before < 0 || before > bank.sequence.length || bank.sequence.length >= 64 || !Number.isInteger(slot) || !bank.slots[slot]?.editor) throw Error('Invalid arrangement insertion.');
+  bank.sequence.splice(before, 0, {slot, repeats: 1});
 }

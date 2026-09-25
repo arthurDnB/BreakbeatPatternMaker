@@ -6,7 +6,7 @@ Excluded instrument conflicts with locked hits must be resolved explicitly. Ghos
 
 Authentic commercial-break one-shots were not bundled because redistribution permission was not established. All shipped library files have pinned source URLs, hashes and CC0 notices.
 
-Next candidates: MP3 export; arrangement; velocity-layered kits; stronger sample-browser filtering. Renoise integration is retired. Original long project documents are historical and superseded by this scope and README.md.
+Next candidates: MP3 export, velocity-layered kits and stronger sample-browser filtering. Renoise integration is retired. Original long project documents are historical and superseded by this scope and README.md.
 
 Implemented polish: simplified generator toolbar and advanced disclosure; Preview naming; per-lane high/low-pass, drive and delay with bypass; lane/per-hit reverse; shared DSP for preview and WAV; backward-compatible project persistence.
 
@@ -24,6 +24,8 @@ Collapsed tracker articulation controls provide 1–8 repeats per row and a gate
 ## Implemented: Phase 4 — song arrangement and transport
 - Sticky transport target: Pattern loops the active pattern; Song plays the full arrangement once, then its effect tails.
 - Song playback follows the current slot and tracker row; arrangement blocks show bar ranges and the current repeat. Stop/target changes clear playback indicators.
+- A horizontal timeline shows named sections, pattern names, repeats, bars and duration; the current block follows playback. Click a block to edit its pattern, drag it into an insertion gap, or use + to insert the selected pattern at that position.
+- Timeline edits, section names and song tempo participate in arrangement undo/redo and persist in projects and autosave.
 - Drag a block heading to reorder, or use Move up/down buttons (keyboard and touch accessible). Add pattern appends a block; repeats and remove remain available.
 - Song BPM is stored independently of per-pattern BPM; switching slots or genres cannot change it. Tap tempo follows the transport target.
 - Export target explicitly selects Active pattern or Full song arrangement. Pattern export retains Loop/Tail options; full songs retain continuous effects and final tails.

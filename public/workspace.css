@@ -2727,6 +2727,7 @@ tr.bar-start .row-select { color: var(--accent-cyan); font-weight: 700; }
 #sequence .sequence-step > span { font-weight:650; flex:1 1 100%; overflow-wrap:anywhere; }
 .sequence-range { color:#adbbce; flex:1 1 100%; }
 #sequence .sequence-step.playing-step { background:#253e3e; border-left-color:#00f5d4; }
+#sequence .sequence-step.selected-step { border-left-color:#c1a8ff; }
 #sequence .drop-target { outline:2px dashed #00f5d4; }
 #song-position { color:#00f5d4; min-height:2.5em; font-size:12px; }
 @media(max-width:800px) { .daw-transport .output-group { flex-wrap:wrap; } }
@@ -2740,8 +2741,42 @@ tr.bar-start .row-select { color: var(--accent-cyan); font-weight: 700; }
 #song-position { margin:6px 0; }
 #sequence .sequence-step { gap:5px; padding:8px; }
 #sequence .sequence-step label { flex-direction:row; align-items:center; flex:1 1 100%; }
+#sequence .sequence-step input[aria-label^="Section name"] { flex:1 1 100%; width:100%; min-width:0; }
 #sequence .sequence-step button { padding:4px 6px; font-size:10px; }
 #sequence .sequence-step > span { cursor:grab; user-select:none; }
+
+.timeline-heading { display:flex; flex-direction:column; gap:2px; margin:10px 0 5px; font-size:11px; }
+.timeline-heading strong { color:#e8eef8; font-size:12px; }
+.timeline-heading span { color:#adbbce; line-height:1.3; }
+.song-timeline { display:flex; align-items:stretch; gap:0; overflow-x:auto; overflow-y:hidden; padding:5px 2px 8px; scrollbar-width:thin; border-top:1px solid #334155; border-bottom:1px solid #334155; }
+.timeline-block { --section-color:#8492ab; display:flex; flex-direction:column; gap:3px; align-items:flex-start; width:var(--block-width); min-height:88px; padding:7px 8px; flex:none; text-align:left; border:1px solid #334155; border-top:4px solid var(--section-color); border-radius:5px; background:#182230; color:#ecf3ff; cursor:grab; }
+.timeline-block:active { cursor:grabbing; }
+.timeline-block:focus-visible, .timeline-insert:focus-visible { outline:2px solid #00f5d4; outline-offset:2px; }
+.timeline-block .timeline-section { color:var(--section-color); font-weight:750; font-size:11px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%; }
+.timeline-block .timeline-name { font-weight:700; font-size:11px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%; }
+.timeline-block .timeline-meta { color:#bac7d8; font-size:10px; white-space:nowrap; }
+.timeline-block.playing-step { background:#253e3e; border-color:#00f5d4; box-shadow:inset 0 0 0 1px #00f5d4; }
+.timeline-block.selected-step { background:#27273b; border-color:#c1a8ff; }
+.timeline-block.playing-step.selected-step { background:#253e3e; border-color:#00f5d4; }
+.timeline-block[data-section-kind="intro"] { --section-color:#87baf0; }
+.timeline-block[data-section-kind="build"] { --section-color:#dfaa64; }
+.timeline-block[data-section-kind="drop"] { --section-color:#ff858f; }
+.timeline-block[data-section-kind="fill"] { --section-color:#d2a4f4; }
+.timeline-block[data-section-kind="outro"] { --section-color:#80d7bc; }
+.timeline-block[data-section-kind="other"] { --section-color:#aeb9ed; }
+.timeline-insert { align-self:stretch; min-width:16px; width:16px; padding:0; flex:none; background:transparent; color:#a9bdd8; border:1px dashed #4b5a70; border-radius:4px; cursor:pointer; font-size:12px; }
+.timeline-insert:hover, .timeline-insert.drop-target { background:#27434a; border-color:#00f5d4; color:#e8fff9; }
+.timeline-insert[aria-disabled="true"] { color:#66778e; }
+.timeline-legend { display:flex; flex-wrap:wrap; gap:4px 9px; margin:5px 0 9px; color:#bdc9d8; font-size:10px; }
+.timeline-legend span { display:inline-flex; align-items:center; gap:4px; }
+.timeline-legend i { width:7px; height:7px; border-radius:50%; background:#8492ab; }
+.timeline-legend i[data-section-kind="intro"] { background:#87baf0; }
+.timeline-legend i[data-section-kind="build"] { background:#dfaa64; }
+.timeline-legend i[data-section-kind="drop"] { background:#ff858f; }
+.timeline-legend i[data-section-kind="fill"] { background:#d2a4f4; }
+.timeline-legend i[data-section-kind="outro"] { background:#80d7bc; }
+.timeline-legend i[data-section-kind="other"] { background:#aeb9ed; }
+@media(max-width:800px) { .timeline-insert { min-width:24px; width:24px; } }
 
 
 /* ANTIGRAVITY MOBILE FIXES */
