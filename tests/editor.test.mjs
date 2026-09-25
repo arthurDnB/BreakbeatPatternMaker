@@ -113,3 +113,25 @@ test('cell copy and paste preserve empty cells, replace destinations atomically,
  assert.throws(()=>e.pasteCells(clip,target,'kick'),/Unlock/);
  assert.equal(exported(e),lockedBefore);assert.equal(exported(e),pasted);
 });
+
+test('drag-style cell moves keep hit identities and reject locked destinations as one edit',()=>{
+ const e=create(),source=compile(e.state.pattern).notes.find(n=>n.lane==='kick'&&n.row<16);assert.ok(source);
+ const before=exported(e),cells=[{row:source.row,lane:'kick'}],target=source.row+8;
+ assert.ok(e.moveCells(cells,target,'kick'));
+ assert.equal(compile(e.state.pattern).notes.find(n=>n.id===source.id).row,target);
+ assert.ok(e.undo());assert.equal(exported(e),before);assert.ok(e.redo());
+ e.toggleRole('snare');const unchanged=exported(e);
+ assert.throws(()=>e.moveCells([{row:target,lane:'kick'}],target,'snare'),/Unlock/);
+ assert.equal(exported(e),unchanged);
+});
+
+test('tracker values edit note, volume, pan and delay with individual undo history',()=>{
+ const e=create(),note=compile(e.state.pattern).notes.find(n=>n.lane==='kick');assert.ok(note);
+ const original=exported(e);
+ assert.ok(e.editTrackerValue(note.id,'note',60));assert.equal(e.state.pattern.events.find(h=>h.id===note.id).pitch,12);
+ assert.ok(e.editTrackerValue(note.id,'volume',64));assert.equal(compile(e.state.pattern).notes.find(n=>n.id===note.id).volume,64);
+ assert.ok(e.editTrackerValue(note.id,'pan',0));assert.equal(compile(e.state.pattern).notes.find(n=>n.id===note.id).pan,0);
+ assert.ok(e.editTrackerValue(note.id,'delay',32));assert.equal(compile(e.state.pattern).notes.find(n=>n.id===note.id).delay,32);
+ assert.throws(()=>e.editTrackerValue(note.id,'volume',255),/Volume/);
+ for(let i=0;i<4;i++)assert.ok(e.undo());assert.equal(exported(e),original);
+});

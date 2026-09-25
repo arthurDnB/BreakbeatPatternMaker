@@ -123,6 +123,45 @@ export class Editor {
     next.selection={ids:[],rows:null,cells:destination.map(c=>({row:c.row,lane:c.lane}))};next.revision++;
     return this.commit(next,'Paste tracker cells');
   }
+  moveCells(cells:CellPosition[],row:number,lane:Role):boolean {
+    if(!cells.length||!Number.isInteger(row)||!ROLES.includes(lane))throw Error('Select a valid tracker destination.');
+    const next=copy(this.state),notes=compile(next.pattern).notes,lines=next.pattern.settings.bars*next.pattern.settings.resolution;
+    const source=[...new Map(cells.map(c=>[`${c.row}:${c.lane}`,c])).values()];
+    const top=Math.min(...source.map(c=>c.row)),left=Math.min(...source.map(c=>ROLES.indexOf(c.lane)));
+    const rowShift=row-top,laneShift=ROLES.indexOf(lane)-left,step=PPQ*4/next.pattern.settings.resolution;
+    if(!rowShift&&!laneShift)return false;
+    const destinations=source.map(c=>({row:c.row+rowShift,lane:ROLES[ROLES.indexOf(c.lane)+laneShift]}));
+    if(destinations.some(c=>c.row<0||c.row>=lines||!c.lane))throw Error('Move would extend beyond the pattern.');
+    const sourceKeys=new Set(source.map(c=>`${c.row}:${c.lane}`));
+    const moving=new Map(notes.filter(n=>sourceKeys.has(`${n.row}:${n.lane}`)).map(n=>[n.id,n]));
+    for(const note of moving.values()){const hit=next.pattern.events.find(h=>h.id===note.id)!;if(locked(next,hit))throw Error('Unlock selected hits and lanes before moving.');}
+    const overwritten=new Set<string>();
+    for(const target of destinations){
+      if(next.lockedRoles.includes(target.lane!))throw Error(`Unlock the ${target.lane} lane before moving.`);
+      for(const note of notes.filter(n=>n.row===target.row&&n.lane===target.lane&&!moving.has(n.id))){
+        const hit=next.pattern.events.find(h=>h.id===note.id)!;
+        if(locked(next,hit))throw Error('Move would replace a locked hit.');
+        overwritten.add(hit.id);
+      }
+    }
+    next.pattern.events=next.pattern.events.filter(h=>!overwritten.has(h.id));
+    for(const hit of next.pattern.events){if(!moving.has(hit.id))continue;hit.baseTick+=rowShift*step;hit.role=ROLES[ROLES.indexOf(hit.role)+laneShift]!;hit.sourceId='kit.'+hit.role;if(hit.baseTick<0||hit.baseTick>=next.pattern.settings.bars*4*PPQ)throw Error('Move timing exceeds the pattern.');}
+    next.pattern.events.sort((a,b)=>a.baseTick-b.baseTick||ROLES.indexOf(a.role)-ROLES.indexOf(b.role));
+    next.selection={ids:[...moving.keys()],rows:null,cells:destinations.map(c=>({row:c.row,lane:c.lane!}))};next.revision++;
+    return this.commit(next,'Move tracker cells');
+  }
+  editTrackerValue(id:string,field:'note'|'volume'|'pan'|'delay',value:number):boolean {
+    const next=copy(this.state),hit=next.pattern.events.find(h=>h.id===id);
+    if(!hit)throw Error('Select a hit to edit.');if(locked(next,hit))throw Error('Unlock this hit before editing.');
+    const note=compile(next.pattern).notes.find(n=>n.id===id)!;
+    if(!Number.isInteger(value))throw Error('Enter a whole-number tracker value.');
+    if(field==='note'){if(value<0||value>96)throw Error('Notes must be C-0 through C-8.');hit.pitch=value-48;}
+    else if(field==='volume'){if(value<0||value>128)throw Error('Volume must be 00–80 hex.');hit.gain=value/128;}
+    else if(field==='pan'){if(value<0||value>128)throw Error('Pan must be 00–80 hex.');hit.pan=value/64-1;}
+    else {if(value<0||value>255)throw Error('Delay must be 00–FF hex.');const tick=(note.row+value/256)*PPQ*4/next.pattern.settings.resolution;hit.baseTick=Math.floor(tick);hit.fineOffset=tick-Math.floor(tick);hit.offsetTick=0;}
+    next.selection={ids:[id],rows:null,cells:[{row:note.row,lane:note.lane}]};next.revision++;
+    return this.commit(next,`Edit tracker ${field}`);
+  }
   mutate(){
     const next=copy(this.state),scope=selectedIds(next);
     const scoped=next.selection.rows!==null||next.selection.ids.length>0||!!next.selection.cells?.length;

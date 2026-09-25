@@ -1,6 +1,7 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Breakbeat Pattern Maker</title><link rel="stylesheet" href="./public/style.css?v=0.3.3-clipboard"><link rel="stylesheet" href="./public/workspace.css?v=0.3.3-clipboard"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Breakbeat Pattern Maker</title><link rel="stylesheet" href="./public/style.css?v=0.4.0-workspace"><link rel="stylesheet" href="./public/workspace.css?v=0.4.0-workspace"></head>
 <body><main class="daw-chassis">
+<svg class="icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><symbol id="icon-shuffle" viewBox="0 0 24 24"><path d="M3 6h3c6 0 6 12 12 12h3m-3-3 3 3-3 3M3 18h3c2 0 3-1 4-3m4-6c1-2 2-3 4-3h3m-3-3 3 3-3 3"/></symbol><symbol id="icon-sliders" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16M9 2v6m6 1v6m-5 1v6"/></symbol><symbol id="icon-variation" viewBox="0 0 24 24"><path d="M4 7h12a4 4 0 0 1 4 4v2m-3-3 3 3 3-3M20 17H8a4 4 0 0 1-4-4v-2m3 3-3-3-3 3"/></symbol><symbol id="icon-grid" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 10h16M4 15h16M10 4v16m5-16v16"/></symbol><symbol id="icon-wave" viewBox="0 0 24 24"><path d="M2 12h3l2-7 4 14 3-10 2 5 2-2h4"/></symbol><symbol id="icon-follow" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M12 2v5m0 10v5M2 12h5m10 0h5"/></symbol></svg>
 
 <!-- Coherent Modern Studio Title Bar -->
 <header class="app-header tracker-header">
@@ -27,6 +28,22 @@
     <label class="open-project" for="project-open">Open project<input id="project-open" type="file" accept=".bbproject,application/json"></label>
     <button id="project-new">New project</button>
     <button id="quick-start-toggle" class="quick-start-toggle" type="button" aria-controls="quick-start" aria-expanded="true">Hide guide</button>
+    <button id="layout-stack" type="button" aria-pressed="false" title="Stack or unstack workspace panels">Stack panels</button>
+    <div class="output-group">
+      <select id="export-target" aria-label="WAV export target"><option value="pattern">Active pattern</option><option value="song">Full song arrangement</option></select>
+      <button id="export-wav" class="export">Export WAV ↓</button>
+      <select id="export-mode" class="export-mode-select" title="WAV export mode">
+        <option value="loop" selected>Seamless loop · exact bars</option>
+        <option value="tail">One shot · natural tail</option>
+      </select>
+      <details id="more-actions">
+        <summary>More ⋯</summary>
+        <div class="more-menu">
+          <button id="copy" disabled>Copy pattern JSON</button>
+          <button id="export" disabled>Download pattern JSON</button>
+        </div>
+      </details>
+    </div>
     <span id="save-status" role="status">Local autosave ready</span>
   </section>
   <a href="./README.md" target="_blank" class="help-link">Help ↗</a>
@@ -46,27 +63,7 @@
 </section>
 
 <!-- Global Hardware Transport Bar -->
-<div class="transport daw-transport" aria-label="Playback and export">
-  <div class="toolbar-group transport-main">
-    <label class="transport-target">Play <select id="transport-target" aria-label="Playback target"><option value="pattern">Pattern</option><option value="song">Song</option></select></label>
-    <button id="play" class="daw-btn-play" type="button" disabled aria-label="Play pattern" title="Play pattern"><span class="play-icon" aria-hidden="true">▶</span></button>
-    <span id="transport-state" role="status">Stopped</span>
-  </div>
-
-  <div class="toolbar-group hud-display">
-    <div class="hud-item hud-bpm-box">
-      <span class="hud-tag">TEMPO</span>
-      <input id="hud-bpm-val" class="hud-digits hud-bpm-input" type="number" min="32" max="999" step="0.1" value="165" aria-label="Tempo BPM" title="Edit tempo">
-      <span class="hud-unit">BPM</span>
-      <button id="hud-bpm-tap" class="hud-tap-btn" title="Tap tempo">TAP</button>
-    </div>
-    <div class="hud-item hud-pos-box">
-      <span class="hud-tag">BAR &amp; BEAT</span>
-      <span id="hud-pos-val" class="hud-digits">01.1</span>
-      <span id="hud-bars-val" class="hud-unit">2 BARS</span>
-    </div>
-  </div>
-
+<div class="transport daw-transport" id="transport" aria-label="Playback and navigation">
   <div class="toolbar-group nav-shortcuts">
     <button id="undo" disabled>Undo</button>
     <button id="redo" disabled>Redo</button>
@@ -74,20 +71,35 @@
     <button id="show-arrangement">Arrangement</button>
   </div>
 
-  <div class="toolbar-group output-group">
-    <select id="export-target" aria-label="WAV export target"><option value="pattern">Active pattern</option><option value="song">Full song arrangement</option></select>
-    <button id="export-wav" class="export">Export WAV ↓</button>
-    <select id="export-mode" class="export-mode-select" title="WAV export mode">
-      <option value="loop" selected>🔄 Seamless Loop (Exact Bars)</option>
-      <option value="tail">🔊 One-Shot (with Tail)</option>
-    </select>
-    <details id="more-actions">
-      <summary>More ⋯</summary>
-      <div class="more-menu">
-        <button id="copy" disabled>Copy pattern JSON</button>
-        <button id="export" disabled>Download pattern JSON</button>
+  <div class="transport-center">
+    <div class="toolbar-group transport-main">
+      <label class="transport-target">Play <select id="transport-target" aria-label="Playback target"><option value="pattern">Pattern</option><option value="song">Song</option></select></label>
+      <button id="play" class="daw-btn-play" type="button" disabled aria-label="Play pattern" title="Play pattern"><span class="play-icon" aria-hidden="true">▶</span></button>
+      <span id="transport-state" role="status">Stopped</span>
+    </div>
+
+    <div class="toolbar-group hud-display">
+      <div class="hud-item hud-bpm-box">
+        <span class="hud-tag">TEMPO</span>
+        <input id="hud-bpm-val" class="hud-digits hud-bpm-input" type="number" min="32" max="999" step="0.1" value="165" aria-label="Tempo BPM" title="Edit tempo">
+        <span class="hud-unit">BPM</span>
+        <button id="hud-bpm-tap" class="hud-tap-btn" title="Tap tempo">TAP</button>
       </div>
-    </details>
+      <div class="hud-item hud-pos-box">
+        <span class="hud-tag">BAR &amp; BEAT</span>
+        <span id="hud-pos-val" class="hud-digits">01.1</span>
+        <span id="hud-bars-val" class="hud-unit">2 BARS</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tray-session-hud" id="tray-session-hud" aria-label="Live session status">
+    <div class="hud-grid">
+      <div class="hud-item"><span class="hud-lbl">PATTERN</span><span class="hud-val" id="hud-pattern-name">A (2 Bars)</span></div>
+      <div class="hud-item"><span class="hud-lbl">TEMPO</span><span class="hud-val" id="hud-tempo-val">165.0 BPM</span></div>
+      <div class="hud-item"><span class="hud-lbl">KIT</span><span class="hud-val" id="hud-kit-name">Custom Kit</span></div>
+      <div class="hud-item"><span class="hud-lbl">TRACKS</span><span class="hud-val" id="hud-tracks-val">4 Channels</span></div>
+    </div>
   </div>
 </div>
 
@@ -135,23 +147,10 @@
         <div id="sequence"></div><div class="actions"><select id="append-slot" aria-label="Pattern to append"></select><button id="append-step">Add pattern</button><button id="play-arrangement">Play arrangement</button><button id="export-arrangement">Export arrangement WAV</button></div><p id="arrangement-info"></p>
       </details>
 
-      <div class="tray-session-hud" id="tray-session-hud" aria-label="Live session status">
-        <div class="hud-header">
-          <span class="hud-dot"></span>
-          <span class="hud-title">LIVE STATUS</span>
-        </div>
-        <div class="hud-grid">
-          <div class="hud-item"><span class="hud-lbl">PATTERN</span><span class="hud-val" id="hud-pattern-name">A (2 Bars)</span></div>
-          <div class="hud-item"><span class="hud-lbl">TEMPO</span><span class="hud-val" id="hud-tempo-val">165.0 BPM</span></div>
-          <div class="hud-item"><span class="hud-lbl">KIT</span><span class="hud-val" id="hud-kit-name">Custom Kit</span></div>
-          <div class="hud-item"><span class="hud-lbl">TRACKS</span><span class="hud-val" id="hud-tracks-val">4 Channels</span></div>
-        </div>
-        <div class="hud-keys">
-          <span class="key-tag">Space</span> Play · <span class="key-tag">Z–M</span> Notes · <span class="key-tag">1–9</span> Vol
-        </div>
-      </div>
+
     </div>
   </aside>
+  <div id="resize-left" class="panel-splitter" role="separator" aria-label="Resize pattern bank" aria-orientation="vertical" tabindex="0"></div>
 
   <!-- 2. CENTER STAGE: RENOISE TRACKER WORKSPACE -->
   <div class="daw-stage-center" id="stage-center">
@@ -159,7 +158,7 @@
       <div class="grid-heading">
         <h2 id="summary">Pattern</h2>
         <div class="workspace-header-actions">
-          <label>View <select id="view"><option value="hybrid">Hybrid</option><option value="beginner">Beginner</option><option value="renoise">Tracker</option></select></label>
+          <label>View <select id="view"><option value="renoise" selected>Tracker</option><option value="hybrid">Hybrid</option><option value="beginner">Beginner</option></select></label>
         </div>
       </div>
       <p class="legend"><span class="kick">■ Kick</span><span class="snare">◆ Snare</span><span class="hat">│ Hat</span><span class="ghost">◇ Ghost</span><span class="percussion">▲ Percussion</span></p>
@@ -184,12 +183,12 @@
           <button id="tracker-copy" title="Copy selected cells (Ctrl/Cmd+C)">Copy</button>
           <button id="tracker-paste" title="Paste at cursor (Ctrl/Cmd+V)">Paste</button>
           <button id="tracker-duplicate" title="Duplicate selection below (Ctrl/Cmd+D)">Duplicate</button>
-          <button id="quick-ghost-hit" title="Toggle ghost note (G)">👻 Ghost</button>
+          <button id="quick-ghost-hit" title="Toggle ghost note (G)"><svg class="tool-icon"><use href="#icon-wave"/></svg> Ghost</button>
           <button id="quick-roll-2" title="Set 2 ratchets">×2</button>
           <button id="quick-roll-4" title="Set 4 ratchets">×4</button>
           <button id="quick-pitch-up" title="Transpose +1 semitone (+)">+1 st</button>
           <button id="quick-pitch-down" title="Transpose -1 semitone (-)">-1 st</button>
-          <button type="button" id="tracker-follow-playhead" class="tracker-follow-btn is-active" title="Follow Playhead: Auto-scroll tracker rows during playback (F)" aria-pressed="true">🎯 Follow</button>
+          <button type="button" id="tracker-follow-playhead" class="tracker-follow-btn is-active" title="Follow Playhead: Auto-scroll tracker rows during playback (F)" aria-pressed="true"><svg class="tool-icon"><use href="#icon-follow"/></svg> Follow</button>
         </div>
         <div class="tracker-hint-pill" title="Press keys to enter notes directly in the tracker">
           <span class="key-pill">Z–M</span> Notes · <span class="key-pill">1–9</span> Vol · <span class="key-pill">Del</span> Cut · <span class="key-pill">Space</span> Play
@@ -203,77 +202,58 @@
         <p id="selection-status" aria-live="polite"></p><p class="selection-help">Click any cell, Ctrl/Cmd-click to add cells, or Shift-click to select a range. Copy, paste, and duplicate include empty cells; locked destinations are protected. Main anchors stay in place during generation.</p>
       </div>
 
+      <div id="kit-preset-host" class="kit-preset-host">
+        <div class="kit-presets-strip">
+          <label>Drum Kit Preset <select id="kit-preset-select"><option value="custom">Custom Kit</option></select></label>
+          <label class="loop-label auto-kit-label"><input id="auto-kit" type="checkbox" checked> Auto-load kit with genre</label>
+        </div>
+        <div id="explanation" class="beat-explanation-badge" role="status">Select any hit to view its rhythm and musical rationale.</div>
+      </div>
       <div id="grid" tabindex="0" aria-label="Pattern rows, scrollable"></div>
+      <div id="inspector-host">
+        <details id="hit-editor"><summary>Hit editor <span id="inspector-context" class="inspector-context"></span></summary>
+          <fieldset class="tracker-edit"><legend>Selected hit / note entry</legend>
+            <p>Click a hit to edit it, or an empty cell to enter a note. The selected lane instrument supplies its sound.</p>
+            <div class="chop-options"><label>Row<input id="edit-row" type="number" min="0" value="0"></label><label>Lane<select id="edit-lane"><option value="kick">Kick</option><option value="snare">Snare</option><option value="hat">Hat</option><option value="percussion">Percussion</option></select></label><label>Sound<select id="edit-sound"><option value="keep">Keep selected hit sound</option><option value="demo">Lane instrument (uploaded hit or synth)</option></select></label><label>Hit pitch <output id="edit-pitch-value" for="edit-pitch-slider">0 st</output><input id="edit-pitch-slider" aria-label="Selected hit pitch" type="range" min="-48" max="48" step="1" value="0"><input id="edit-pitch" aria-label="Exact hit pitch in semitones" type="number" min="-48" max="48" step="1" value="0"><small>Drag to edit · release to save · Esc cancels</small></label></div>
+            <div class="chop-options"><label>Volume (0–128)<input id="edit-volume" type="number" min="0" max="128" value="100"></label><label>Pan (0–128)<input id="edit-pan" type="number" min="0" max="128" value="64"></label><label>Delay (0–255)<input id="edit-delay" type="number" min="0" max="255" value="0"></label><label>Entry step (rows)<input id="edit-step" type="number" min="0" max="16" value="1"></label></div>
+            <details id="hit-articulation"><summary>Hit articulation · ratchets &amp; gate</summary><p id="hit-expression" class="help" hidden></p>
+              <div class="chop-options"><label><span id="edit-ratchets-label">Ratchets per row</span><select id="edit-ratchets"><option value="1">1 · Single hit</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></label><label id="burst-span-field" hidden>Burst span<select id="edit-burst-span"><option value="0">One tracker row</option><option value="120">1/32 note</option><option value="240">1/16 note</option><option value="480">1/8 note</option><option value="960">1 beat</option><option value="1920">2 beats</option><option value="3840">1 bar</option></select></label><label>Gate length<select id="edit-gate"><option value="0">Full sample</option><option value="1">100% of repeat interval</option><option value="0.75">75%</option><option value="0.5">50%</option><option value="0.25">25%</option><option value="0.1">10%</option><option value="0.05">5%</option></select></label></div>
+              <p id="articulation-help">Ratchets divide one tracker row into equal repeats. Gate shortens each attack; 50% leaves half its interval silent. Ratchets retrigger the sample and stop each attack at the next repeat. Effects can ring beyond the gate.</p>
+            </details>
+            <label id="hit-drafts-label" hidden>Pending edits in this session<select id="hit-drafts"><option value="">Go to a pending hit…</option></select></label><p id="hit-draft-status" role="status"></p>
+            <div class="actions"><button id="hit-revert" disabled>Revert changes</button><button id="hit-unlock" hidden>Unlock hit</button><button id="hit-preview" disabled>Preview selected hit</button><button id="hit-insert">Insert hit</button><button id="hit-apply">Apply to selected hit</button><button id="hit-delete">Delete selected hits</button><label class="loop-label"><input id="edit-reverse" type="checkbox">Reverse hit</label><label class="loop-label"><input id="keyboard-entry" type="checkbox" checked>Keyboard entry</label></div>
+            <p id="edit-target">Choose a grid cell or hit.</p><small>Focus the grid. Arrow keys move the cursor; Tab changes lane. Z S X D C V G B H N J M enter C–B at the pitch offset above. Delete clears selected hits; Ctrl/Cmd+C/V/D copy, paste, or duplicate cells. Space plays/stops. Keyboard entry must be enabled to write notes. Locks are respected.</small>
+          </fieldset>
+        </details>
+      </div>
+      <div id="drum-slots" hidden></div>
+      <p id="inspector-hint" hidden></p>
     </section>
   </div>
-
-  <!-- 3. RIGHT TRAY: INSTRUMENT RACK & INSPECTOR (Retractable) -->
-  <aside class="daw-tray daw-tray-right context-panel" id="tray-right" aria-label="Context inspector and instruments">
-    <div class="tray-header">
-      <span class="tray-title"><span class="tray-dot"></span> INSTRUMENTS</span>
-      <div class="tray-header-actions">
-        <button id="back-to-pattern">Back to pattern</button>
-        <button id="toggle-tray-right" class="tray-toggle-btn" title="Toggle Instruments Tray (Alt+3)" aria-label="Toggle Instruments Tray" type="button">▶</button>
-      </div>
-    </div>
-    <div class="tray-collapsed-rail" id="rail-tray-right" title="Click to expand Instruments tray">
-      <button class="rail-expand-btn" aria-label="Expand Instruments Tray" type="button">◀</button>
-      <span class="rail-label">INSTRUMENTS</span>
-    </div>
-    <div class="tray-body">
-      <div class="inspector-heading"><h2>Inspector &amp; Sounds</h2><span id="inspector-context">Select a hit</span></div>
-      
-      <details id="sounds-panel" open><summary>Instruments &amp; effects <small>Shared across patterns</small></summary>
-        <section class="sample-panel" aria-label="Single-hit drum kit">
-          <div class="kit-presets-strip"><label>Drum Kit Preset <select id="kit-preset-select"><option value="custom">Custom Kit</option></select></label><label class="loop-label auto-kit-label"><input id="auto-kit" type="checkbox" checked> Auto-load kit with genre</label></div>
-          <p>One shared kit for every pattern. Generate notes affects your next generation; Mute audio silences existing notes in playback and export. Preview always lets you hear the instrument.</p>
-          <div id="drum-slots"></div>
-          <small>344 library sounds: 111 Lo-Fi Hip-Hop Vol. 2 hits + 188 UDNB personal hits + 45 acoustic &amp; 808 recordings. <a href="./public/samples/credits.html" target="_blank">Sources &amp; licenses</a>.</small>
-        </section>
-      </details>
-
-      <details id="hit-editor"><summary>Hit editor</summary>
-        <fieldset class="tracker-edit"><legend>Selected hit / note entry</legend>
-          <p>Click a hit to edit it, or an empty cell to enter a note. The selected lane instrument supplies its sound.</p>
-          <div class="chop-options"><label>Row<input id="edit-row" type="number" min="0" value="0"></label><label>Lane<select id="edit-lane"><option value="kick">Kick</option><option value="snare">Snare</option><option value="hat">Hat</option><option value="percussion">Percussion</option></select></label><label>Sound<select id="edit-sound"><option value="keep">Keep selected hit sound</option><option value="demo">Lane instrument (uploaded hit or synth)</option></select></label><label>Hit pitch <output id="edit-pitch-value" for="edit-pitch-slider">0 st</output><input id="edit-pitch-slider" aria-label="Selected hit pitch" type="range" min="-48" max="48" step="1" value="0"><input id="edit-pitch" aria-label="Exact hit pitch in semitones" type="number" min="-48" max="48" step="1" value="0"><small>Drag to edit · release to save · Esc cancels</small></label></div>
-          <div class="chop-options"><label>Volume (0–128)<input id="edit-volume" type="number" min="0" max="128" value="100"></label><label>Pan (0–128)<input id="edit-pan" type="number" min="0" max="128" value="64"></label><label>Delay (0–255)<input id="edit-delay" type="number" min="0" max="255" value="0"></label><label>Entry step (rows)<input id="edit-step" type="number" min="0" max="16" value="1"></label></div>
-          <details id="hit-articulation"><summary>Hit articulation · ratchets &amp; gate</summary><p id="hit-expression" class="help" hidden></p>
-            <div class="chop-options"><label><span id="edit-ratchets-label">Ratchets per row</span><select id="edit-ratchets"><option value="1">1 · Single hit</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></label><label id="burst-span-field" hidden>Burst span<select id="edit-burst-span"><option value="0">One tracker row</option><option value="120">1/32 note</option><option value="240">1/16 note</option><option value="480">1/8 note</option><option value="960">1 beat</option><option value="1920">2 beats</option><option value="3840">1 bar</option></select></label><label>Gate length<select id="edit-gate"><option value="0">Full sample</option><option value="1">100% of repeat interval</option><option value="0.75">75%</option><option value="0.5">50%</option><option value="0.25">25%</option><option value="0.1">10%</option><option value="0.05">5%</option></select></label></div>
-            <p id="articulation-help">Ratchets divide one tracker row into equal repeats. Gate shortens each attack; 50% leaves half its interval silent. Ratchets retrigger the sample and stop each attack at the next repeat. Effects can ring beyond the gate.</p>
-          </details>
-          <label id="hit-drafts-label" hidden>Pending edits in this session<select id="hit-drafts"><option value="">Go to a pending hit…</option></select></label><p id="hit-draft-status" role="status"></p>
-          <div class="actions"><button id="hit-revert" disabled>Revert changes</button><button id="hit-unlock" hidden>Unlock hit</button><button id="hit-preview" disabled>Preview selected hit</button><button id="hit-insert">Insert hit</button><button id="hit-apply">Apply to selected hit</button><button id="hit-delete">Delete selected hits</button><label class="loop-label"><input id="edit-reverse" type="checkbox">Reverse hit</label><label class="loop-label"><input id="keyboard-entry" type="checkbox" checked>Keyboard entry</label></div>
-          <p id="edit-target">Choose a grid cell or hit.</p><small>Focus the grid. Arrow keys move the cursor; Tab changes lane. Z S X D C V G B H N J M enter C–B at the pitch offset above. Delete clears selected hits; Ctrl/Cmd+C/V/D copy, paste, or duplicate cells. Space plays/stops. Keyboard entry must be enabled to write notes. Locks are respected.</small>
-        </fieldset>
-      </details>
-      
-      <p id="inspector-hint">Select a hit to edit it, or an empty cell to insert one.</p>
-      <details id="learn-panel"><summary>Learn this beat</summary><section class="inspector"><h2>Listen closer</h2><p id="explanation">Select any hit for its role, tracker fields, and reason for being there.</p></section></details>
-    </div>
-  </aside>
 </div>
 
 <!-- 4. BOTTOM TRAY: GENERATOR, SLICER & FX RACK (Retractable) -->
+<div id="resize-stage" class="panel-splitter panel-splitter-horizontal" role="separator" aria-label="Resize tracker height" aria-orientation="horizontal" tabindex="0" title="Drag to resize the tracker"></div>
 <section class="daw-tray-bottom" id="tray-bottom" aria-label="Beat generator, waveform slicer, and effects rack">
   <div class="tray-header">
     <div class="tray-header-left">
       <button id="toggle-tray-bottom" class="tray-toggle-btn" title="Toggle Bottom Tray (Alt+2)" aria-label="Toggle Bottom Tray" type="button">▼</button>
-      <span class="tray-title"><span class="tray-dot"></span> BOTTOM RACK: SLICER · DSP · GENERATOR</span>
+      <span class="tray-title"><span class="tray-dot"></span> BEAT GENERATOR</span>
     </div>
     <div class="tray-hardware-actions" aria-label="Pattern Chops and Mutations">
-      <button type="button" id="action-scramble" class="hw-action-btn hw-btn-scramble" title="Instant breakbeat chop randomizer — scrambles hits/slices into new break variations">🎲 SCRAMBLE</button>
-      <button type="button" id="action-mutate" class="hw-action-btn hw-btn-mutate" title="Intelligently mutate velocities, pitch offsets, and ghost placements">🧬 MUTATE</button>
-      <button type="button" id="action-variation" class="hw-action-btn hw-btn-variation" title="Generate a fresh rhythm variation using generator seed">⚡ VARIATION</button>
+      <button type="button" id="action-scramble" class="hw-action-btn hw-btn-scramble" title="Scramble selected breakbeat hits"><svg class="tool-icon"><use href="#icon-shuffle"/></svg> SCRAMBLE</button>
+      <button type="button" id="action-mutate" class="hw-action-btn hw-btn-mutate" title="Mutate the pattern"><svg class="tool-icon"><use href="#icon-sliders"/></svg> MUTATE</button>
+      <button type="button" id="action-variation" class="hw-action-btn hw-btn-variation" title="Generate a related variation"><svg class="tool-icon"><use href="#icon-variation"/></svg> VARIATION</button>
     </div>
     <p id="status" role="status" aria-live="polite"></p>
   </div>
   <div class="tray-collapsed-bar" id="bar-tray-bottom" title="Click to expand Bottom tray">
-    <button class="bar-expand-btn" aria-label="Expand Bottom Tray" type="button">▲ BOTTOM RACK: SLICER · DSP · GENERATOR</button>
+    <button class="bar-expand-btn" aria-label="Expand Beat Generator" type="button">▲ BEAT GENERATOR</button>
   </div>
   <div class="tray-rack-tabs" role="tablist" aria-label="Bottom tray view switcher">
-    <button type="button" class="tray-rack-tab active" id="tab-generator" role="tab" aria-selected="true" aria-controls="controls">🎛️ Beat Generator</button>
-    <button type="button" class="tray-rack-tab" id="tab-slicer" role="tab" aria-selected="false" aria-controls="sample-drop">🌊 Waveform Slicer</button>
-    <button type="button" class="tray-rack-tab" id="tab-fx" role="tab" aria-selected="false" aria-controls="quick-fx-panel">⚡ Master DSP</button>
+    <button type="button" class="tray-rack-tab active" id="tab-generator" role="tab" aria-selected="true" aria-controls="controls"><svg class="tool-icon"><use href="#icon-grid"/></svg> Beat Generator</button>
+    <button type="button" class="tray-rack-tab" id="tab-slicer" role="tab" aria-selected="false" aria-controls="sample-drop" hidden>Waveform Slicer</button>
+    <button type="button" class="tray-rack-tab" id="tab-fx" role="tab" aria-selected="false" aria-controls="quick-fx-panel" hidden>Master DSP</button>
   </div>
   <div class="tray-body">
     <!-- Chopper retained for future use; hidden on initial load for smoke test compliance -->
@@ -302,7 +282,7 @@
         <label class="control-bars">Bars<select id="bars"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label>
         <div class="tempo-control"><label for="bpm-slider">BPM</label><input id="bpm-slider" aria-label="BPM slider" type="range" min="32" max="300" step=".1" value="165"><input aria-label="Exact BPM" id="bpm" type="number" min="32" max="999" step=".1" value="165"><span id="presets" class="presets"></span></div>
         <label>Complexity <output id="complexity-value" for="complexity">45%</output><input id="complexity" type="range" min="0" max="1" step=".01" value=".45"><small>Simple to detailed</small></label>
-        <label>Spicy 🌶️ <output id="spicy-value" for="spicy">0%</output><input id="spicy" type="range" min="0" max="1" step=".01" value="0"><small>Rolls &amp; chaos</small></label>
+        <label>Spicy <output id="spicy-value" for="spicy">0%</output><input id="spicy" type="range" min="0" max="1" step=".01" value="0"><small>Rolls &amp; variation</small></label>
       </div>
       <details id="advanced-generation"><summary>Advanced generation</summary><div class="advanced"><label>Break<select id="breakStyle"><option value="genre">Genre default</option></select><small id="break-description">Use the selected genre’s rhythm.</small><small>Rhythm presets – synthesized kit, not original recordings</small></label><label>Resolution<select id="resolution"><option value="8">1/8</option><option value="16" selected>1/16</option><option value="32">1/32</option><option value="64">1/64</option></select></label><label>Engine<select id="algorithm" title="Groove v3 adds musical rolls and genre-specific phrasing. Saved patterns keep their recorded engine."><option value="groove-v3" selected>Groove v3</option><option value="groove-v2">Groove v2</option><option value="legacy-v1">Legacy v1 (older seeds)</option></select></label><input id="variation" type="hidden" value="0"><label id="phrase-length-field" hidden>Phrase<select id="phraseLength" title="Generate a section of a longer musical phrase; saved patterns repeat exactly as written."><option value="0">This pattern</option><option value="4">4 bars</option><option value="8">8 bars</option><option value="16">16 bars</option></select></label><label id="phrase-offset-field" hidden>Starting bar<select id="phraseOffset"></select></label>
       <label>Seed<input id="seed" type="text" value="break-042" maxlength="80"></label>
@@ -379,6 +359,9 @@
     </section>
   </div>
 </section>
+<details id="master-dsp-rack" class="master-dsp-rack"><summary><svg class="tool-icon"><use href="#icon-sliders"/></svg> Master DSP <span>Filter · dynamics · delay</span></summary><div id="master-dsp-host"></div></details>
+
+<dialog id="hit-sound-dialog" class="tracker-dialog" aria-labelledby="hit-sound-dialog-title"><form method="dialog"><h2 id="hit-sound-dialog-title">Hit instrument</h2><p>Choose a sound for this hit. The lane instrument remains available to other hits.</p><label>Sound<select id="hit-sound-choice"></select></label><div class="actions"><button id="hit-sound-cancel" type="button">Cancel</button><button id="hit-sound-apply" type="button" class="accent">Use sound</button></div></form></dialog>
 
 <footer class="daw-footer">
   <div class="footer-status-bar">
@@ -392,4 +375,4 @@
   </div>
   <p class="footer-note" hidden>Single-shot tracker · Audio stays local. Save project includes your samples and settings; autosave restores your latest workspace on this browser. WAV includes tails; muted lanes are excluded. Pitch repitches the sound. MP3 export remains planned.</p>
 </footer>
-</main><script type="module" src="./dist/web.js?v=0.3.3-clipboard"></script></body></html>
+</main><script type="module" src="./dist/web.js?v=0.4.0-workspace"></script></body></html>

@@ -26,7 +26,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.3.0-alpha`
-* **Test Status:** 124 / 124 unit tests passing (`npm.cmd test`).
+* **Test Status:** 126 / 126 unit tests passing (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -67,6 +67,20 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-09-26] - Tracker Workspace Streamlining, In-Column Hardware Buttons & Responsive Layout (Antigravity)
+- **Responsive chassis & full-width layout (`public/workspace.css`):** Removed rigid `max-width: 1720px;` and centered margin constraints on `main.daw-chassis`, enabling the DAW workspace to fluidly utilize the full width of ultrawide, 1440p, and 1080p displays without empty black side bars.
+- **In-column instrument buttons (`public/workspace.css`):** Styled the per-track `▾ Instrument / FX` summary in column headers into prominent, tactile hardware-style toggle buttons with dynamic role-colored glow (Kick: coral, Snare: amber, Hat: teal, Percussion: periwinkle), distinct chevron indicators, and clear open/closed state.
+- **Streamlined non-intrusive hit editing (`src/web.ts`, `public/index.html`, `public/workspace.css`):** Decoupled cell clicks from auto-expanding the massive `#hit-editor` drawer, preventing disruptive viewport jumping while retaining instant audio auditioning and direct parameter editing. Compacted the inspector into a streamlined drawer with contextual summary badges.
+- **Top header & transport reorganization (`public/index.html`, `public/workspace.css`):** Relocated export controls (`Active pattern`, `Export WAV`, export format) up into the top project header bar where export actions logically belong. Reorganized the bottom transport into a balanced 3-part layout (nav shortcuts, centered 52px round play button & tempo display, and clean live status HUD). Fixed the green box overflow collision between arrangement items and the footer status bar.
+- **Beat rationale & kit grouping (`public/index.html`, `public/workspace.css`, `src/web.ts`):** Grouped `Drum Kit Preset` and `[x] Auto-load kit with genre` together above the grid on the top-left. Completely removed the bulky `Learn this beat` panel and "Listen closer" box from beneath the grid. Repositioned the live beat explanation badge (`#explanation`) to the top-right above the grid as a clean contextual readout.
+- **Verification & HTML structure fixes (`public/index.html`, `scripts/site-browser-smoke.mjs`):** Corrected nested tag closing structure for `#stage-center` and `.studio-layout`. Updated Playwright browser smoke test to ensure instrument accordions are opened during sound scans. Verified 100% green test suite: 126/126 unit tests pass (`npm.cmd test`) and all 344 samples, WAV export, A/B comparison, project roundtrip, and autosave pass on both root (`/`) and GitHub Pages subpath (`/breakbeat-pattern-maker/`) via `npm.cmd run test:site`.
+
+### [2026-09-25] - Tracker Field Editing and Flexible Workspace (Codex)
+- **Tracker editing (`src/core/editor.ts`, `src/web.ts`):** Added atomic drag-to-move for single hits or selected cells, lock and bounds protection, and direct note, instrument, volume, pan, and delay editing. Numeric fields accept two-digit tracker-style hex entry; field and cell keyboard navigation preserve the current selection. Moves and value changes each create one Undo/Redo step.
+- **Sound workflow (`src/web.ts`, `public/index.html`):** Added a per-hit instrument picker for lane sound, uploaded sample, or bundled library sample. Library choices become embedded audio assets, so hit-specific assignments survive project save and use the same playback/export engine. Moved instrument and effect controls into each track's expandable header, and kept hit editing beneath the tracker.
+- **Workspace (`public/index.html`, `public/workspace.css`):** Made Tracker the default view, replaced emoji controls with simple tracker-style symbols, moved the round transport beneath the tracker, hid the slicer tab, added a separate collapsed Master DSP row, and grouped generator controls. The left tray and tracker height can be resized; the left tray and tracker can be stacked, with layout saved locally.
+- **Verification (`tests/editor.test.mjs`, `scripts/site-browser-smoke.mjs`):** Added core coverage for move/edit history and browser coverage for tracker fields, drag, stacking, instrument accordion, DSP row, and contextual starting-bar control. Updated `README.md` and `PROJECT-SCOPE.md`.
 
 ### [2026-09-25] - Tracker Cell Clipboard and Keyboard Flow (Codex)
 - **Editing engine (`src/core/editor.ts`):** Added cell/row copy and atomic paste that includes empty cells, preserves timing and sound choices, assigns unique hit IDs, respects destination locks and pattern bounds, and records a single Undo step. Clipboard pastes require the same resolution.

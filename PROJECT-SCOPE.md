@@ -10,7 +10,16 @@ Next candidates: MP3 export, velocity-layered kits and stronger sample-browser f
 
 Implemented polish: simplified generator toolbar and advanced disclosure; Preview naming; per-lane high/low-pass, drive and delay with bypass; lane/per-hit reverse; shared DSP for preview and WAV; backward-compatible project persistence; OLED black theme and animated round transport control; tracker cell audition, rectangular cell selection, arrow navigation, and editable transport tempo.
 
+Tracker workspace: Tracker is the default grid view. Each occupied cell exposes note, instrument, volume, pan, and delay fields with direct keyboard entry; hits and selected groups can be dragged to new cells with lock protection and one-step Undo/Redo. Per-track instrument/effects accordions sit over their columns. A hit can choose its lane sound, an upload, or a bundled sample; selected sample audio is embedded into projects. The right instrument tray is hidden. The workspace supports a resizable left tray, adjustable tracker height, and a saved stacked layout. Playback/tempo sit below the tracker, the slicer tab is hidden, Master DSP has its own collapsed row, and the generator uses grouped controls without an internal vertical scrollbar.
+
 Quality-of-life: a dismissible, persistent Quick Start guide explains Generate → Preview → Edit → Export and can be reopened from the header. A per-slot Recent patterns panel holds up to 12 previous generated or mutated beats, restores them through the editor, and persists in project files and local autosave. Temporary A/B choices let users preview two frozen beats with the shared audio renderer and keep either choice with Undo support.
+
+## Active UI/UX Scope — Tracker Streamlining & Layout Polish
+- Full-width responsive workspace: removes fixed max-width constraints and black side bars on widescreen/ultrawide displays.
+- Expandable in-column Instrument/FX buttons: prominent DAW-style hardware toggle buttons in column headers with expand chevrons and active role-colored state.
+- Streamlined hit inspection: clicking hits auditions and updates parameters without auto-expanding a disruptive, template-breaking inspector drawer.
+- Clean transport & export reorganization: export controls docked in the upper header/toolbar; bottom transport cleanly centered with round Play control and no overlapping text/footer collisions.
+- Simplified beat context: removal of "Learn this beat" and bulky "Listen closer" boxes; dynamic hit explanation relocated to a clean contextual badge in the top-right header area above the grid. Grouped kit preset and auto-load controls.
 
 ## Implemented: pattern bank and arrangement
 - Dynamic bank of 1–256 named slots (starting with A, B, C, Fill), copy into empty slots, automatic edit retention, and per-slot in-memory undo history.
