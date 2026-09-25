@@ -26,7 +26,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.3.0-alpha`
-* **Test Status:** 97 / 97 unit tests passing (`npm.cmd test`).
+* **Test Status:** 116 / 116 unit tests passing (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -55,13 +55,20 @@ This document maintains the running project state and change log so that multipl
   - Fixed fast-tempo drum clicks: one-shot sample preservation ensures acoustic kicks/snares retain body and punch at 170–220+ BPM without abrupt row cutoffs.
   - Hi-hat choke groups closing open hats across tracker steps and arrangement loop boundaries.
   - Isolated deterministic random streams (`v3Chance`, `v3Pick`) and Strudel-inspired Euclidean rhythmic distribution.
-* [ ] **Next Priority:** Arrangement editing history (undo/redo for sequence and song-tempo changes), followed by named song sections.
+* [x] **Arrangement editing history:** Undo/redo for sequence, slot, repeat and song-tempo changes with context-aware shortcuts.
+* [x] **Named song sections:** Optional per-step section labels are preserved in project data, shown in the arranger and transport, and included in history.
 * [ ] **Future Audio Roadmaps:** Procedural vinyl texture rack, MP3 export, velocity-layered drum kits, sample-browser filtering.
 * [ ] *Note: Renoise integration has been retired in favor of the standalone in-browser instrument.*
 
 ---
 
 ## 📝 Change Log
+
+### [2026-09-25] - Named Song Sections (Codex)
+- **Arrangement data (`src/core/bank.ts`):** Added an optional, validated section label to sequence steps and exposed it through song timeline entries without changing the existing project schema version.
+- **Arranger and transport (`src/web.ts`):** Added editable section labels for each arrangement step and included the active section in the song transport status and accessibility label.
+- **History and persistence:** Section edits use the existing arrangement history engine, so undo/redo, autosave and project export retain the labels.
+- **Verification:** Added coverage for section history, timeline projection and validation; `npm.cmd test` passes 116/116 and `npm.cmd run test:site` passes for both root and GitHub Pages subpath builds.
 
 ### [2026-09-25] - Arrangement Undo/Redo State Engine (Codex)
 - **Arrangement state (`src/core/arrangement-history.ts`):** Added bounded, validated Memento history for pattern slots, sequence steps, repeats, names and song tempo. Pattern editor history remains separate.

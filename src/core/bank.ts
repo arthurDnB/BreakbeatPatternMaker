@@ -18,7 +18,7 @@ export interface Bank {
   songBpm: number;
   active: number;
   slots: PatternSlot[];
-  sequence: { slot: number; repeats: number }[];
+  sequence: { slot: number; repeats: number; section?: string }[];
 }
 
 export function newBank(pattern: Pattern): Bank {
@@ -87,7 +87,7 @@ export function validateBank(bank: Bank) {
   }
   if (!bank.slots[bank.active]!.editor) throw Error('Active slot is empty.');
   for (const step of bank.sequence) {
-    if (!step || !Number.isInteger(step.slot) || step.slot < 0 || step.slot >= bank.slots.length || !bank.slots[step.slot]!.editor || !Number.isInteger(step.repeats) || step.repeats < 1 || step.repeats > 16) {
+    if (!step || !Number.isInteger(step.slot) || step.slot < 0 || step.slot >= bank.slots.length || !bank.slots[step.slot]!.editor || !Number.isInteger(step.repeats) || step.repeats < 1 || step.repeats > 16 || (step.section !== undefined && (typeof step.section !== 'string' || step.section.length > 32 || /[\x00-\x1f\x7f]/.test(step.section)))) {
       throw Error('Invalid arrangement step.');
     }
   }
@@ -121,7 +121,7 @@ export function songTimeline(bank: Bank) {
   return bank.sequence.flatMap((step, index) => Array.from({length: step.repeats}, (_, repeat) => {
     const settings = bank.slots[step.slot]!.editor!.pattern.settings;
     const duration = settings.bars * 240 / bank.songBpm;
-    const entry = {step: index, slot: step.slot, repeat, start, duration, lines: settings.bars * settings.resolution};
+    const entry = {step: index, slot: step.slot, section: step.section, repeat, start, duration, lines: settings.bars * settings.resolution};
     start += duration;
     return entry;
   }));

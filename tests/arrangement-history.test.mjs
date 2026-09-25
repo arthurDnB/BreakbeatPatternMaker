@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {ArrangementHistory} from '../dist/core/arrangement-history.js';
-import {newBank, addPatternSlot, duplicatePatternSlot, deletePatternSlot, moveSequenceStep, validateBank} from '../dist/core/bank.js';
+import {newBank, addPatternSlot, duplicatePatternSlot, deletePatternSlot, moveSequenceStep, songTimeline, validateBank} from '../dist/core/bank.js';
 import {generate} from '../dist/core/generate.js';
 import {defaults} from '../dist/core/profiles.js';
 
@@ -251,4 +251,26 @@ test('validateBank passes after undo/redo cycles', () => {
   // Redo all 4
   for (let i = 0; i < 4; i++) h.redo();
   validateBank(h.bank);
+});
+
+test('named arrangement sections persist through history and timeline', () => {
+  const b = makeBank();
+  b.sequence = [{slot: 0, repeats: 1, section: 'Intro'}, {slot: 1, repeats: 2, section: 'Drop'}];
+  const h = new ArrangementHistory(b);
+  h.execute(bank => { bank.sequence[0].section = 'Build'; }, 'Name arrangement section');
+  assert.equal(h.bank.sequence[0].section, 'Build');
+  assert.ok(h.undo());
+  assert.equal(h.bank.sequence[0].section, 'Intro');
+  assert.ok(h.redo());
+  assert.equal(h.bank.sequence[0].section, 'Build');
+  assert.equal(songTimeline(h.bank)[0].section, 'Build');
+  validateBank(h.bank);
+});
+
+test('section names are optional and validated', () => {
+  const b = makeBank();
+  b.sequence[0].section = '';
+  validateBank(b);
+  b.sequence[0].section = 'x'.repeat(33);
+  assert.throws(() => validateBank(b));
 });
