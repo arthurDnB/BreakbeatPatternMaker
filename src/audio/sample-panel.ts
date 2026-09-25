@@ -1,7 +1,8 @@
 import {gridMarkers,transientMarkers,moveMarker} from './chop.js';
 import {validateWav,encodeWav} from './wav.js';
 import {downloadBytes} from './render.js';
-export function setupSamplePanel(stopPattern:()=>void){
+import type {Role} from '../core/model.js';
+export function setupSamplePanel(stopPattern:()=>void, sendSlice:(role:Role, id:string, name:string, rate:number, channels:Float32Array[])=>void){
   const el=<T extends HTMLElement>(id:string)=>document.getElementById(id) as T;
   const button=(id:string)=>el<HTMLButtonElement>(id);
   const seek=el<HTMLInputElement>('sample-seek'),canvas=el<HTMLCanvasElement>('waveform');

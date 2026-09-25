@@ -318,7 +318,14 @@ function download(){
   const a=document.createElement('a');a.href=url;a.download=`${transfer.genre}-${transfer.seed.replace(/[^a-zA-Z0-9_-]/g,'_')}.json`;a.click();
   setTimeout(()=>URL.revokeObjectURL(url),1000);status('Pattern JSON downloaded. Use Export pattern WAV for playable audio.');
 }
-const samplePanel=setupSamplePanel(stop);
+const samplePanel=setupSamplePanel(stop, (role, id, name, rate, channels) => {
+  assets.set(id, {id, name, sampleRate: rate, channels});
+  kitPanel.mix[role].uploadId = id;
+  kitPanel.mix[role].assetId = id;
+  kitPanel.mix[role].choice = 'upload';
+  kitPanel.restore(kitPanel.mix);
+  scheduleSave();
+});
 async function auditionRole(role: Role) {
   flashTrackMeter(role, kitPanel.mix[role].level);
   stop();samplePanel.stop();context??=new AudioContext();const token=playToken;await context.resume();if(token!==playToken)return;
