@@ -77,6 +77,17 @@ export function applyV3Chokes(voices:RenderVoice[],rate:number,loopDuration?:num
       if(length<previous.length){previous.length=length;previous.gated=true;}
     }
   }
+
+  const snares=voices.filter(v=>v.hit.role==='snare').sort((a,b)=>a.start-b.start);
+  for(let i=0;i<snares.length;i++){
+    const previous=snares[i]!,next=snares[i+1];
+    const nextStart=next?.start??(loopDuration!==undefined?snares[0]!.start+loopDuration:undefined);
+    if(nextStart===undefined)continue;
+    if(previous.v3){
+      const length=Math.max(0,Math.round(nextStart*rate)-Math.round(previous.start*rate));
+      if(length<previous.length){previous.length=length;previous.gated=true;}
+    }
+  }
 }
 
 export function renderV3Voice(v:RenderVoice,bus:Float32Array[],rate:number):void {

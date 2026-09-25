@@ -63,6 +63,13 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-25] - Snare Choke Fix for Jungle Kits (Antigravity)
+- **Audio Engine Updates (`src/audio/voice-v3.ts`):**
+  - Addressed user feedback that fast snare rolls (specifically `acoustic-snare-piccolo` in the Jungle kit) sounded too wet and built up an unnatural reverb tail in V3.
+  - Implemented classic polyphony-1 choke logic for snares in `applyV3Chokes()`. Now, when a snare is triggered rapidly (e.g. 32nd/64th note ratchets or dense ghosts), the new hit cleanly cuts off the ringing tail of the previous hit. This completely eliminates the muddy reverb buildup and restores the dry, punchy tracker aesthetic.
+- **Verification:**
+  - `npm.cmd test`: 90/90 passing (determinism unbroken).
+
 ### [2026-09-25] - AmenScience Break Chop Mastering (Antigravity)
 - **Audio Engine Updates (`src/core/groove-v3-profiles.ts`):**
   - Analyzed the AmenScience reference track to capture the authentic, surgical tracker-style beat splicing.
