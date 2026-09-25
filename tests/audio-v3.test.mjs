@@ -19,7 +19,7 @@ test('v3 triplet gestures have exact musical spacing and PCM independent of disp
  const {p,assets}=fixture({ratchets:3,gate:.5,articulation:{durationTicks:960,mode:'gate',repeats:[{gain:1},{gain:.6},{gain:.3}]}});
  const baseline=render(p,assets);
  for(const [start,level] of [[0,.2],[2000,.12],[4000,.06]]){
-   assert.equal(baseline[start],0);close(baseline[start+30],level);
+   close(baseline[start],level);
    assert.equal(baseline[start+999],0);assert.equal(baseline[start+1100],0);
  }
  for(const resolution of [8,16,32,64]){p.settings.resolution=resolution;assert.deepEqual(render(p,assets),baseline);}

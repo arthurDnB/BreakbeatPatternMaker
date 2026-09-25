@@ -99,7 +99,7 @@ export function renderV3Voice(v:RenderVoice,bus:Float32Array[],rate:number):void
   for(let i=0;i<v.length&&offset+i<bus[0]!.length;i++){
     const pos=v.reverse?v.to-1-phase:v.from+phase,index=Math.floor(pos),fraction=pos-index;
     if(index<v.from||index>=v.to)break;
-    let envelope=v.gated||v.edgeFade?Math.max(0,Math.min(1,i/fade,(v.length-1-i)/fade)):1;
+    let envelope=v.edgeFade?Math.max(0,Math.min(1,i/fade,(v.length-1-i)/fade)):v.gated?Math.max(0,Math.min(1,(v.length-1-i)/fade)):1;
     if(v.hit.decay!==undefined&&v.hit.decay<1)envelope*=(1-i/v.length)**2;
     for(let c=0;c<2;c++){
       const data=v.channels[Math.min(c,v.channels.length-1)]!;

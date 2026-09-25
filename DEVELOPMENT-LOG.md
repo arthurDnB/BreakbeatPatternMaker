@@ -63,6 +63,14 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-25] - Audio Engine Seamless Looping & Transient Fix (Antigravity)
+- **Audio Engine Updates (`src/audio/voice-v3.ts`):**
+  - Addressed a user-reported audio "stutter" near the end of patterns (especially in Jungle and Liquid DnB).
+  - The recent snare polyphony-1 choke update unintentionally applied a fade-in envelope to all choked hits. This destroyed the transient (attack) of dense 16th-note ratchets and ghost snare rolls near the loop boundary, creating a clicking/stuttering sound instead of punchy drums.
+  - Fixed the envelope logic in `renderV3Voice` so that `v.gated` ONLY applies a 2ms fade-*out* to cleanly silence the tail, preserving the natural attack transient of every drum hit.
+- **Test Suite Updates (`tests/audio-v3.test.mjs`):**
+  - Corrected the `v3 triplet gestures` test assertion which was incorrectly expecting a faded-in `0` value at the start of a chopped note.
+
 ### [2026-09-25] - Jungle Mastering & UI Faders (Antigravity)
 - **UI Enhancements (`public/index.html`, `src/audio/drum-kit.ts`):**
   - Converted all input boxes on the Advanced Generation rack (Syncopation, Swing, Humanize, Ghost, Fill) to range sliders with live numeric readouts.
