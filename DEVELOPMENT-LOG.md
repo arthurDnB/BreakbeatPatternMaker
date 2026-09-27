@@ -26,7 +26,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.3.0-alpha`
-* **Test Status:** 141 / 141 unit tests passing (`npm.cmd test`).
+* **Test Status:** 144 / 144 unit tests passing (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -68,6 +68,11 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-09-28] - Bundled Sample Quality and Curated Kits (Codex)
+- **Sample preparation (`src/audio/sample-prep.ts`, `src/audio/drum-kit.ts`):** Replace peak-only normalization with transient RMS balancing under role-specific peak ceilings, trim dead air with pre-roll and apply short edge fades to bundled samples. Preserve uploaded PCM and use the same prepared assets in Preview and WAV export.
+- **Kit curation (`src/audio/library.ts`, `src/audio/drum-kit.ts`):** Add focused UDNB jungle, liquid and roller kits; route related genres to them and promote kit sounds in a Featured menu group. Correct a pre-existing Boom Bap preset that assigned a hi-hat sample to the percussion lane.
+- **Audit and verification (`scripts/audit-samples.mjs`, `docs/SAMPLE-QUALITY.md`, `tests/sample-prep.test.mjs`):** Verify all 344 catalog hashes and report signal/provenance metrics. Owner confirmed redistribution clearance for UDNB and Lo-Fi Vol. 2; source metadata gaps remain documented. Added preparation and kit-validity tests. `npm.cmd test` passed 144/144; `npm.cmd run test:site` passed.
 
 ### [2026-09-28] - Live Sample BPM Follow (Codex)
 - **Sample speed (`src/audio/drum-kit.ts`, `src/web.ts`):** Added per-sound Follow BPM with effective Repitch calculated from playback BPM / original break BPM at render time. Pattern and song tempos drive their respective playback and WAV exports; per-hit speed overrides still take priority. The instrument panel shows the current effective rate, warns outside 0.5×–2×, and uses the saved manual speed there. Moving the manual Speed slider or pressing Match BPM once exits follow mode; editing original BPM stops already rendered playback so the next Preview uses the new rate.

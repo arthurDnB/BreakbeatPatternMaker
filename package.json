@@ -23,7 +23,8 @@
     "build:site": "npm run build && node scripts/build-site.mjs",
     "test:site": "npm run build:site && node scripts/site-browser-smoke.mjs",
     "test:loop": "npm run build && node scripts/loop-browser-smoke.mjs",
-    "test:loop-audit": "npm run build && node scripts/loop-generation-audit.mjs"
+    "test:loop-audit": "npm run build && node scripts/loop-generation-audit.mjs",
+    "audit:samples": "node scripts/audit-samples.mjs"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

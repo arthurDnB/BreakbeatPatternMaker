@@ -3,6 +3,7 @@ import type {AudioAsset} from './slices.js';
 import {validateWav} from './wav.js';
 import {defaultEffects,validateEffects,type Effects} from './effects.js';
 import {LIBRARY,KIT_PRESETS} from './library.js';
+import {prepareLibraryHit} from './sample-prep.js';
 // @ts-expect-error Shared original synth
 import {synthesize} from '../../public/synth.js';
 
@@ -73,8 +74,11 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:(refreshTrack
     const otherList=LIBRARY.filter(s=>s.role===role&&!s.id.startsWith('lofi2-')&&!s.id.startsWith('acoustic-')&&!s.id.startsWith('808-')&&!s.id.startsWith('udnb-')).map(s=>[s.id,s.name] as [string,string]);
     const builtInList: [string, string][] = [['synth','Synthesized '+title.textContent]];
     if(role==='percussion') builtInList.push(['synth-scratch','Vinyl Scratch (Synth)']);
+    const featured=KIT_PRESETS.flatMap(p=>p.slots[role]).filter((id,index,all)=>id!=='synth'&&id!=='synth-scratch'&&all.indexOf(id)===index);
+    const featuredList=featured.map(id=>LIBRARY.find(s=>s.id===id&&s.role===role)).filter((s):s is (typeof LIBRARY)[number]=>!!s).map(s=>[s.id,s.name] as [string,string]);
     const soundGroups: [string, [string, string][]][] = [
       ['Built-in Synthesizers', builtInList],
+      ['Featured in kits', featuredList],
       ['Lo-Fi Hip-Hop Vol. 2', lofiList],
       ['Acoustic & Studio Classics', acousticList],
       ['Roland TR-808 Vintage', tr808List],
@@ -185,14 +189,8 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:(refreshTrack
     async function decode(bytes:ArrayBuffer,name:string,id:string,library=false){
       const meta=validateWav(bytes);if(meta.duration>20)throw Error('Single hits must be 20 seconds or shorter.');
       context??=new AudioContext();const decoded=await context.decodeAudioData(bytes);
-      let channels=Array.from({length:decoded.numberOfChannels},(_,i)=>decoded.getChannelData(i));
-      if(library){
-        let peak=0;for(const c of channels)for(const v of c)peak=Math.max(peak,Math.abs(v));
-        let first=0;while(first<decoded.length-1&&channels.every(c=>Math.abs(c[first]!)<peak*.005))first++;
-        first=Math.max(0,first-Math.round(decoded.sampleRate*.002));
-        const target={kick:.9,snare:.68,hat:.4,percussion:.65}[role],scale=peak?Math.min(4,target/peak):1;
-        channels=channels.map(c=>Float32Array.from(c.subarray(first),v=>v*scale));
-      }
+      let channels:Float32Array[]=Array.from({length:decoded.numberOfChannels},(_,i)=>decoded.getChannelData(i));
+      if(library)channels=prepareLibraryHit(channels,decoded.sampleRate,role);
       const used=[...assets.values()].reduce((n,a)=>n+a.channels.reduce((v,c)=>v+c.byteLength,0),0);
       if(used+channels.reduce((n,c)=>n+c.byteLength,0)>256*1024*1024)throw Error('Session audio limit reached. Save project before refreshing.');
       return {id,name,sampleRate:decoded.sampleRate,channels};

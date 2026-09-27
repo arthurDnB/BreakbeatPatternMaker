@@ -2077,6 +2077,27 @@ export interface KitPreset {
 
 export const KIT_PRESETS: KitPreset[] = [
   {
+    id: 'udnb-jungle',
+    name: 'Jungle Break Kit · UDNB',
+    description: 'Compact UDNB kick, short snare and hat with a dry percussion accent for fast breaks.',
+    slots: {kick:'udnb-kick-01',snare:'udnb-snare-08',hat:'udnb-hat-11',percussion:'udnb-perc-13'},
+    levels: {kick:.9,snare:.9,hat:.8,percussion:.62},
+  },
+  {
+    id: 'udnb-liquid',
+    name: 'Liquid Drum & Bass · UDNB',
+    description: 'Rounder UDNB kick and snare with a restrained hat and percussion layer.',
+    slots: {kick:'udnb-kick-21',snare:'udnb-snare-03',hat:'udnb-hat-15',percussion:'udnb-perc-06'},
+    levels: {kick:.9,snare:.8,hat:.68,percussion:.48},
+  },
+  {
+    id: 'udnb-roller',
+    name: 'DnB Roller · UDNB',
+    description: 'Short UDNB kick and snare with a driving hat and tight accent.',
+    slots: {kick:'udnb-kick-16',snare:'udnb-snare-01',hat:'udnb-hat-02',percussion:'udnb-perc-77'},
+    levels: {kick:.88,snare:.84,hat:.72,percussion:.54},
+  },
+  {
     id: 'studio-acoustic',
     name: '🥁 Studio Drum Kit (Pearl & Vintage Acoustic)',
     description: '24" dampened punch kick, Pearl 14x8 aluminum snare, tight hi-hat, 17" crash cymbal',
@@ -2162,7 +2183,7 @@ export const KIT_PRESETS: KitPreset[] = [
       kick: 'lofi2-kick-16',
       snare: 'lofi2-snare-04',
       hat: 'lofi2-hat-closed-12',
-      percussion: 'lofi2-hat-open-03',
+      percussion: 'lofi2-perc-02',
     },
     levels: {snare: 0.88, percussion: 0.75},
     decays: {snare: 0.60},
@@ -2255,11 +2276,11 @@ export const KIT_PRESETS: KitPreset[] = [
 ];
 
 export const GENRE_KITS: Record<string, string> = {
-  jungle: 'acoustic-break',
-  dnb: 'acoustic-break',
-  raggajungle: 'acoustic-break',
-  atmosphericjungle: 'acoustic-break',
-  footworkjungle: 'acoustic-break',
+  jungle: 'udnb-jungle',
+  dnb: 'udnb-roller',
+  raggajungle: 'udnb-jungle',
+  atmosphericjungle: 'udnb-liquid',
+  footworkjungle: 'udnb-jungle',
   breaks: 'studio-acoustic',
   trap: 'trap-808',
   drill: 'trap-808',
@@ -2277,7 +2298,7 @@ export const GENRE_KITS: Record<string, string> = {
   dubstep: 'uk-garage',
   twostepgarage:'uk-garage', speedgarage:'uk-garage',
   downtempo:'lofi2-chillhop', lofihiphop:'lofi2-dusty-vinyl', boombap:'lofi2-boombap-tape', mellowbeats:'lofi2-jazzhop-lounge', triphop:'lofi2-sp404-grit',
-  liquiddnb:'acoustic-break', jumpup:'electronic-dance', drumfunk:'studio-acoustic', amenscience:'acoustic-break',
-  atmosphericbreakcore:'atmospheric-breakcore', halftimednb:'electronic-dance', neurofunk:'electronic-dance',
+  liquiddnb:'udnb-liquid', jumpup:'udnb-roller', drumfunk:'udnb-jungle', amenscience:'udnb-jungle',
+  atmosphericbreakcore:'atmospheric-breakcore', halftimednb:'udnb-liquid', neurofunk:'udnb-roller',
   dub:'studio-acoustic', psydub:'lofi-soul', brostep:'hardcore-rave', postdubstep:'uk-garage',
 };
