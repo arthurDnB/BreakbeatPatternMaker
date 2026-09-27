@@ -4,7 +4,7 @@ import {NEW_GENRES} from './core/new-genres.js';
 import {newBank,arrange,songTimeline,songBlocks,songPosition,moveSequenceStep,moveSequenceStepToInsertion,insertSequenceStep,slotLabel,addPatternSlot,duplicatePatternSlot,deletePatternSlot,rememberPattern,type Bank} from './core/bank.js';
 import {makeProject,readProject,localProject} from './audio/project.js';
 import {defaultKitState} from './audio/drum-kit.js';
-import {setupDrumKit,withDrumKit} from './audio/drum-kit.js';
+import {setupDrumKit,withDrumKit,effectiveSampleSpeed} from './audio/drum-kit.js';
 import {KIT_PRESETS,GENRE_KITS,LIBRARY} from './audio/library.js';
 import {setupSamplePanel} from './audio/sample-panel.js';
 import {downloadBytes} from './audio/render.js';
@@ -73,6 +73,7 @@ function syncFollowPlayhead(){
 
 let context:AudioContext|undefined,timer:ReturnType<typeof setInterval>|undefined;
 const playingSources=new Set<AudioBufferSourceNode>();
+let refreshKitTempo=()=>{};
 function showHitEditor(){if(matchMedia('(max-width:800px)').matches)requestAnimationFrame(()=>el('hit-editor').scrollIntoView({behavior:'smooth',block:'start'}));}
 function status(message:string,error=false){el('status').textContent=message;el('status').classList.toggle('error',error);}
 function syncHud() {
@@ -100,6 +101,7 @@ function syncHud() {
     const txt = kitSelect?.selectedOptions[0]?.text?.replace(/^[^\w\s]+/, '')?.trim() ?? 'Custom Kit';
     sideKit.textContent = txt.length > 16 ? txt.slice(0, 14) + '…' : txt;
   }
+  refreshKitTempo();
 }
 function updateHudPosition(row: number) {
   const posVal = document.getElementById('hud-pos-val');
@@ -457,14 +459,14 @@ const samplePanel=setupSamplePanel(stop, (role, id, name, rate, channels) => {
 async function auditionRole(role: Role) {
   flashTrackMeter(role, kitPanel.mix[role].level);
   stop();samplePanel.stop();context??=new AudioContext();const token=playToken;await context.resume();if(token!==playToken)return;
-  const one=generate({...defaults(),algorithm:pattern?.settings.algorithm,bpm:pattern?.settings.bpm??120,bars:1});one.events=[{id:'preview',role,sourceId:'kit.'+role,baseTick:0,offsetTick:0,gain:1,pan:0,anchor:false,ghost:false,reason:'Instrument preview.'}];
+  const one=generate({...defaults(),algorithm:pattern?.settings.algorithm,bpm:input('transport-target').value==='song'&&bank?bank.songBpm:pattern?.settings.bpm??120,bars:1});one.events=[{id:'preview',role,sourceId:'kit.'+role,baseTick:0,offsetTick:0,gain:1,pan:0,anchor:false,ghost:false,reason:'Instrument preview.'}];
   const mix=kitPanel.snapshot();mix[role].mute=false;mix[role].solo=true;
   const audio=renderPerformance(withDrumKit(one,drumKit,mix),assets,context.sampleRate,effectMap());
   const b=context.createBuffer(2,audio.channels[0]!.length,audio.sampleRate);audio.channels.forEach((c,i)=>b.copyToChannel(new Float32Array(c),i));
   const source=context.createBufferSource();source.buffer=b;source.connect(context.destination);playingSources.add(source);source.onended=()=>{playingSources.delete(source);source.disconnect();};source.start();
 }
 const kitPanel=setupDrumKit(assets,(refreshTracker=true)=>{
-  if(refreshTracker){stop();samplePanel.stop();}
+  stop();samplePanel.stop();
   const ks=document.getElementById('kit-preset-select') as HTMLSelectElement | null;
   const gks=document.getElementById('generator-kit-select') as HTMLSelectElement | null;
   const matching=KIT_PRESETS.find(p=>ROLES.every(r=>kitPanel.mix[r].choice===p.slots[r]));
@@ -474,14 +476,15 @@ const kitPanel=setupDrumKit(assets,(refreshTracker=true)=>{
   const desc = document.getElementById('generator-kit-desc');
   if(desc) desc.textContent = matching ? matching.description : 'Custom kit configuration';
   if(editor){if(refreshTracker)refresh();else scheduleSave();}
-},auditionRole,()=>pattern?.settings.bpm??Number(input('bpm').value));
+},auditionRole,()=>input('transport-target').value==='song'&&bank?bank.songBpm:pattern?.settings.bpm??Number(input('bpm').value));
+refreshKitTempo=()=>kitPanel.refreshTempo();
 const drumKit=kitPanel.kit;
 function effectMap(){return Object.fromEntries(ROLES.map(r=>[r,kitPanel.mix[r].effects]));}
 function audioBuffer(audio:ReturnType<typeof renderPerformance>){const b=context!.createBuffer(2,audio.channels[0]!.length,audio.sampleRate);audio.channels.forEach((c,i)=>b.copyToChannel(new Float32Array(c),i));return b;}
 function startSource(buffer:AudioBuffer,at:number,loop=false){const s=context!.createBufferSource();s.buffer=buffer;s.loop=loop;s.connect(context!.destination);playingSources.add(s);s.onended=()=>{playingSources.delete(s);s.disconnect();};s.start(at);return s;}
 async function auditionHit(hit:Hit){
  flashTrackMeter(hit.role,(hit.gain??1)*kitPanel.mix[hit.role].level);stop();samplePanel.stop();context??=new AudioContext();const token=playToken;await context.resume();if(token!==playToken)return;
- const one=structuredClone(pattern),mix=kitPanel.snapshot();one.events=[{...hit,baseTick:0,offsetTick:0,fineOffset:0}];mix[hit.role].mute=false;mix[hit.role].solo=true;const audio=renderPerformance(withDrumKit(one,drumKit,mix),assets,context.sampleRate,effectMap());
+ const one=structuredClone(pattern),mix=kitPanel.snapshot();if(input('transport-target').value==='song'&&bank)one.settings.bpm=bank.songBpm;one.events=[{...hit,baseTick:0,offsetTick:0,fineOffset:0}];mix[hit.role].mute=false;mix[hit.role].solo=true;const audio=renderPerformance(withDrumKit(one,drumKit,mix),assets,context.sampleRate,effectMap());
  startSource(audioBuffer(audio),context.currentTime);status(`Auditioning ${hit.ghost?'ghost ':''}${hit.role} hit. Press Play to hear the full pattern.`);
 }
 async function play(){
@@ -947,7 +950,7 @@ function updateEntry(hit?:Hit){
   const shape=hit?.slice&&hit.slice.assetId!==slot.assetId?slot.sampleProfiles?.[hit.slice.assetId]??{}:slot;
   for(const [name,key,fallback] of [['speed','playbackRate',1],['lowpass','lowpassHz',20000],['attack','attackMs',0],['decay','decay',1]] as const){
     const own=hit?.[key];input('edit-'+name+'-override').checked=own!==undefined;
-    input('edit-'+name).value=String(own??shape[key]??fallback);
+    input('edit-'+name).value=String(own??(key==='playbackRate'?effectiveSampleSpeed(shape,pattern.settings.bpm).rate:shape[key])??fallback);
   }
   const isV3=['groove-v3','groove-v4'].includes(pattern.settings.algorithm??'');
   el('burst-span-field').hidden=!isV3;

@@ -7,13 +7,21 @@ import {LIBRARY,KIT_PRESETS} from './library.js';
 import {synthesize} from '../../public/synth.js';
 
 export type DrumKit=Partial<Record<Role,SliceRef>>;
-export type SampleShape={decay?:number;playbackRate?:number;lowpassHz?:number;attackMs?:number;sourceBpm?:number};
+export type SampleShape={decay?:number;playbackRate?:number;lowpassHz?:number;attackMs?:number;sourceBpm?:number;followBpm?:boolean};
 export type KitSlot={choice:string;uploadId?:string;assetId?:string;include:boolean;mute:boolean;solo?:boolean;level:number;tune:number;reverse?:boolean;effects?:Effects;sampleProfiles?:Record<string,SampleShape>} & SampleShape;
 export type KitState=Record<Role,KitSlot>;
 const SHAPE_KEYS=['decay','playbackRate','lowpassHz','attackMs','sourceBpm'] as const;
 const sampleKey=(slot:KitSlot)=>slot.assetId??'synth';
-function rememberShape(slot:KitSlot){const shape:SampleShape={};for(const key of SHAPE_KEYS)if(slot[key]!==undefined)shape[key]=slot[key];(slot.sampleProfiles??={})[sampleKey(slot)]=shape;}
-function recallShape(slot:KitSlot){const shape=slot.sampleProfiles?.[sampleKey(slot)];for(const key of SHAPE_KEYS){if(shape?.[key]!==undefined)slot[key]=shape[key];else delete slot[key];}}
+function rememberShape(slot:KitSlot){const shape:SampleShape={};for(const key of SHAPE_KEYS)if(slot[key]!==undefined)shape[key]=slot[key];if(slot.followBpm!==undefined)shape.followBpm=slot.followBpm;(slot.sampleProfiles??={})[sampleKey(slot)]=shape;}
+function recallShape(slot:KitSlot){const shape=slot.sampleProfiles?.[sampleKey(slot)];for(const key of SHAPE_KEYS){if(shape?.[key]!==undefined)slot[key]=shape[key];else delete slot[key];}if(shape?.followBpm!==undefined)slot.followBpm=shape.followBpm;else delete slot.followBpm;}
+export function effectiveSampleSpeed(shape:SampleShape,bpm:number):{rate:number;following:boolean;warning?:string}{
+  const manual=shape.playbackRate??1;
+  if(!shape.followBpm)return {rate:manual,following:false};
+  if(!shape.sourceBpm||!Number.isFinite(shape.sourceBpm))return {rate:manual,following:false,warning:'Enter the original break BPM to follow tempo.'};
+  const ratio=bpm/shape.sourceBpm;
+  if(!Number.isFinite(ratio)||ratio<.5||ratio>2)return {rate:manual,following:false,warning:'BPM follow needs 0.5×–2× speed. Manual speed is playing.'};
+  return {rate:ratio,following:true};
+}
 export function defaultKitState():KitState{return Object.fromEntries(ROLES.map(r=>[r,{choice:'synth',include:true,mute:false,solo:false,level:1,tune:0,reverse:false,effects:defaultEffects()}])) as KitState;}
 export function withDrumKit(pattern:Pattern,kit:DrumKit,mix?:KitState):Pattern{
   const hasSolo=mix&&Object.values(mix).some(s=>s.solo);
@@ -33,7 +41,7 @@ export function withDrumKit(pattern:Pattern,kit:DrumKit,mix?:KitState):Pattern{
       result.pitch=Math.max(-48,Math.min(48,(hit.pitch??0)+mix[hit.role].tune));
       const slot=mix[hit.role];
       const soundShape:SampleShape=hit.slice&&hit.slice.assetId!==sampleKey(slot)?slot.sampleProfiles?.[hit.slice.assetId]??{}:slot;
-      if(hit.playbackRate!==undefined||soundShape.playbackRate!==undefined)result.playbackRate=hit.playbackRate??soundShape.playbackRate;
+      if(hit.playbackRate!==undefined||soundShape.playbackRate!==undefined||soundShape.followBpm)result.playbackRate=hit.playbackRate??effectiveSampleSpeed(soundShape,pattern.settings.bpm).rate;
       if(hit.lowpassHz!==undefined||soundShape.lowpassHz!==undefined)result.lowpassHz=hit.lowpassHz??soundShape.lowpassHz;
       if(hit.attackMs!==undefined||soundShape.attackMs!==undefined)result.attackMs=hit.attackMs??soundShape.attackMs;
       const slotDecay=soundShape.decay;
@@ -107,8 +115,10 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:(refreshTrack
     const lowpass=sampleControl('lowpass','Low-pass tone',200,20000,100);
     const attack=sampleControl('attack','Attack (ms)',0,50,1);
     const sourceBpm=document.createElement('input');sourceBpm.type='number';sourceBpm.id='kit-source-bpm-'+role;sourceBpm.min='40';sourceBpm.max='300';sourceBpm.step='.1';sourceBpm.placeholder='Original BPM';
-    const matchBpm=document.createElement('button');matchBpm.type='button';matchBpm.id='kit-match-bpm-'+role;matchBpm.textContent='Match pattern BPM';matchBpm.title='Repitch this sample using pattern BPM ÷ original BPM.';
-    shape.append(makeLabel('Lane pitch (semitones)',tune),speed.wrapper,makeLabel('Original break BPM',sourceBpm),matchBpm,lowpass.wrapper,attack.wrapper,decayLabel,reverse.l);
+    const matchBpm=document.createElement('button');matchBpm.type='button';matchBpm.id='kit-match-bpm-'+role;matchBpm.textContent='Match BPM once';matchBpm.title='Set manual speed to current BPM ÷ original BPM once.';
+    const followBpm=checkbox('kit-follow-bpm-'+role,'Follow BPM as tempo changes');
+    const tempoInfo=document.createElement('p');tempoInfo.id='kit-tempo-info-'+role;tempoInfo.className='sample-tempo-info';tempoInfo.setAttribute('role','status');
+    shape.append(makeLabel('Lane pitch (semitones)',tune),speed.wrapper,makeLabel('Original break BPM',sourceBpm),matchBpm,followBpm.l,tempoInfo,lowpass.wrapper,attack.wrapper,decayLabel,reverse.l);
     card.append(heading,soundContainer,info,actions,routing,gainLabel,shape);root.append(card);
     const fx=document.createElement('details');fx.className='effects-panel';fx.id='effects-'+role;const summary=document.createElement('summary');summary.textContent='Effects';fx.append(summary);
     const bypass=checkbox('fx-bypass-'+role,'Bypass effects');fx.append(bypass.l);
@@ -121,13 +131,14 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:(refreshTrack
     }
     card.append(fx);reverse.i.onchange=()=>{mix[role].reverse=reverse.i.checked;update();changed();};
     decay.oninput=()=>{mix[role].decay=Number(decay.value);rememberShape(mix[role]);update();changed();};
-    speed.field.oninput=()=>{mix[role].playbackRate=Number(speed.field.value);rememberShape(mix[role]);update();changed();};
+    speed.field.oninput=()=>{mix[role].playbackRate=Number(speed.field.value);mix[role].followBpm=false;rememberShape(mix[role]);update();changed();};
     lowpass.field.oninput=()=>{mix[role].lowpassHz=Number(lowpass.field.value);rememberShape(mix[role]);update();changed();};
     attack.field.oninput=()=>{mix[role].attackMs=Number(attack.field.value);rememberShape(mix[role]);update();changed();};
-    sourceBpm.onchange=()=>{const bpm=Number(sourceBpm.value);if(sourceBpm.value!==''&&(!Number.isFinite(bpm)||bpm<40||bpm>300)){update();info.textContent='Original break BPM must be 40–300.';return;}const next=sourceBpm.value===''?undefined:bpm;if(mix[role].sourceBpm===next)return;mix[role].sourceBpm=next;rememberShape(mix[role]);update();changed(false);};
+    sourceBpm.onchange=()=>{const bpm=Number(sourceBpm.value);if(sourceBpm.value!==''&&(!Number.isFinite(bpm)||bpm<40||bpm>300)){update();tempoInfo.textContent='Original break BPM must be 40–300.';return;}const next=sourceBpm.value===''?undefined:bpm;if(mix[role].sourceBpm===next)return;mix[role].sourceBpm=next;if(next===undefined)mix[role].followBpm=false;rememberShape(mix[role]);update();changed(false);};
+    followBpm.i.onchange=()=>{const source=Number(sourceBpm.value);if(followBpm.i.checked&&(!sourceBpm.value||!Number.isFinite(source)||source<40||source>300)){followBpm.i.checked=false;tempoInfo.textContent='Enter the original break BPM (40–300) first.';return;}mix[role].sourceBpm=sourceBpm.value?source:undefined;mix[role].followBpm=followBpm.i.checked;rememberShape(mix[role]);update();changed();};
     matchBpm.onclick=()=>{const source=Number(sourceBpm.value),target=getBpm(),ratio=target/source;
       if(!Number.isFinite(source)||source<40||source>300||!Number.isFinite(target)||ratio<.5||ratio>2){info.textContent='Enter the original break BPM. Matching must result in 0.5×–2× speed.';return;}
-      mix[role].sourceBpm=source;mix[role].playbackRate=Math.round(ratio*100)/100;rememberShape(mix[role]);update();changed();
+      mix[role].sourceBpm=source;mix[role].playbackRate=Math.round(ratio*100)/100;mix[role].followBpm=false;rememberShape(mix[role]);update();changed();
     };
     bypass.i.onchange=()=>{mix[role].effects={...(mix[role].effects??defaultEffects()),bypass:bypass.i.checked};update();changed();};
     let token=0,loading=false;
@@ -147,7 +158,11 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:(refreshTrack
       reverse.i.checked=!!slot.reverse;const effects=slot.effects??defaultEffects();bypass.i.checked=effects.bypass;for(const [key,field] of effectInputs){field.value=String(effects[key] ?? (key==='wet'?1:0));const out=document.getElementById('fx-'+key+'-val-'+role);if(out)out.textContent=key==='wet'?Math.round(Number(field.value)*100)+'%':field.value;}
       choice.value=slot.choice;include.i.checked=slot.include;mute.i.checked=slot.mute;solo.i.checked=!!slot.solo;level.value=String(slot.level);tune.value=String(slot.tune);
       decay.value=String(slot.decay??1);decayValue.textContent=(slot.decay!==undefined&&slot.decay<1)?Math.round(slot.decay*100)+'% (Tight)':'100% (Natural)';
-      speed.field.value=String(slot.playbackRate??1);speed.output.textContent=(slot.playbackRate??1).toFixed(2)+'×';
+      const tempo=getBpm(),effective=effectiveSampleSpeed(slot,tempo);
+      speed.field.value=String(slot.playbackRate??1);speed.output.textContent=(slot.playbackRate??1).toFixed(2)+'× manual';
+      followBpm.i.checked=!!slot.followBpm;
+      tempoInfo.textContent=effective.warning??(effective.following?`Following ${tempo.toFixed(1)} BPM · ${effective.rate.toFixed(2)}× repitch`:'Manual speed');
+      tempoInfo.classList.toggle('warning',!!effective.warning);
       lowpass.field.value=String(slot.lowpassHz??20000);lowpass.output.textContent=(slot.lowpassHz??20000)>=20000?'Open':Math.round(slot.lowpassHz!)+' Hz';
       attack.field.value=String(slot.attackMs??0);attack.output.textContent=(slot.attackMs??0)+' ms';sourceBpm.value=slot.sourceBpm===undefined?'':String(slot.sourceBpm);
       (choice.querySelector('option[value="upload"]') as HTMLOptionElement).disabled=!slot.uploadId;
@@ -157,7 +172,7 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:(refreshTrack
       const hasFx=effects.highpass>0||effects.lowpass<20000||(effects.resonance??0)>0||(effects.punch??0)>0||effects.drive>0||effects.mix>0;const active=[effects.highpass>0?'High-pass':'',effects.lowpass<20000?'Low-pass':'',(effects.resonance??0)>0?'Resonance':'',(effects.punch??0)>0?'Punch':'',effects.drive>0?'Drive':'',effects.mix>0?'Delay':'',(hasFx&&(effects.wet??1)<1)?Math.round((effects.wet??1)*100)+'% Wet':''].filter(Boolean);
       summary.textContent=effects.bypass?'Effects · bypassed':active.length?'Effects · '+active.join(' + '):'Effects · off';
       badge.textContent=slot.mute?'Muted':slot.solo?'Solo':effects.bypass?'FX bypassed':active.length?'FX on':'Dry';badge.classList.toggle('active',!slot.mute&&!effects.bypass&&active.length>0);badge.title=slot.mute?'Muted in playback and export':summary.textContent;
-      shapeSummary.textContent='Pitch & sample shape'+(slot.tune?' · '+(slot.tune>0?'+':'')+slot.tune+' st':'')+((slot.playbackRate??1)!==1?' · '+(slot.playbackRate??1).toFixed(2)+'×':'')+((slot.decay??1)<1?' · Decay '+Math.round((slot.decay??1)*100)+'%':'')+(slot.reverse?' · Reverse':'');
+      shapeSummary.textContent='Pitch & sample shape'+(slot.tune?' · '+(slot.tune>0?'+':'')+slot.tune+' st':'')+(slot.followBpm?' · BPM follow':(slot.playbackRate??1)!==1?' · '+(slot.playbackRate??1).toFixed(2)+'×':'')+((slot.decay??1)<1?' · Decay '+Math.round((slot.decay??1)*100)+'%':'')+(slot.reverse?' · Reverse':'');
       card.classList.toggle('audio-muted',slot.mute);card.classList.toggle('audio-soloed',!!slot.solo);card.classList.toggle('generation-off',!slot.include);
       info.textContent=(asset?asset.name:'Synthesized '+role)+' · '+Math.round(slot.level*100)+'%'+((slot.decay??1)<1?' · Decay '+Math.round((slot.decay??1)*100)+'%':'')+(slot.reverse?' · Reverse':'')+(slot.solo?' · Solo':'')+(slot.mute?' · Muted':'');
     };
@@ -224,7 +239,7 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:(refreshTrack
     loaders.set(role, async(soundId:string)=>{choice.value=soundId;await choice.onchange!(new Event('change'));});
   }
   return {
-    kit,mix,get busy(){return pending>0;},snapshot:()=>structuredClone(mix),
+    kit,mix,get busy(){return pending>0;},snapshot:()=>structuredClone(mix),refreshTempo:()=>refreshers.forEach(f=>f()),
     restore:(state:KitState)=>{cancellers.forEach(f=>f());for(const r of ROLES)mix[r]=structuredClone(state[r]);refreshers.forEach(f=>f());},
     applyPreset: async(presetId:string)=>{
       const preset=KIT_PRESETS.find(p=>p.id===presetId);

@@ -26,7 +26,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.3.0-alpha`
-* **Test Status:** 139 / 139 unit tests passing (`npm.cmd test`).
+* **Test Status:** 141 / 141 unit tests passing (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -68,6 +68,11 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-09-28] - Live Sample BPM Follow (Codex)
+- **Sample speed (`src/audio/drum-kit.ts`, `src/web.ts`):** Added per-sound Follow BPM with effective Repitch calculated from playback BPM / original break BPM at render time. Pattern and song tempos drive their respective playback and WAV exports; per-hit speed overrides still take priority. The instrument panel shows the current effective rate, warns outside 0.5×–2×, and uses the saved manual speed there. Moving the manual Speed slider or pressing Match BPM once exits follow mode; editing original BPM stops already rendered playback so the next Preview uses the new rate.
+- **Persistence and interface (`src/audio/project.ts`, `public/workspace.css`, `public/index.html`, `README.md`):** Saved Follow BPM in each sound profile, validated imported settings, refreshed the visible rate when tempo or transport target changes, and documented the workflow. Existing projects without this setting remain manual.
+- **Verification (`tests/sample-shaping.test.mjs`, `scripts/sample-shaping-browser-smoke.mjs`):** Added pattern/song tempo, override, range fallback, project roundtrip, and browser interaction checks. `npm.cmd test` passed 141/141; focused browser smoke passed; `npm.cmd run test:site` passed at root and GitHub Pages subpath.
 
 ### [2026-09-27] - Per-Sample Repitch and Tone Shaping (Codex)
 - **Sample controls (`src/audio/drum-kit.ts`, `src/web.ts`, `public/index.html`, `public/workspace.css`):** Added remembered speed, original break BPM, pattern-BPM matching, low-pass tone, attack and decay defaults for each selected sound. Added optional per-hit overrides in the tracker inspector, with Preview and one-step Undo/Redo. The hidden waveform slicer can now be opened from an instrument's “Chop a break” action.

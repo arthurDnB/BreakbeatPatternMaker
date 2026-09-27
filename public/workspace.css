@@ -3233,6 +3233,8 @@ tr.playing-row td { background:#0b1c18; }
 #hit-sample-controls output { color:#a8f5db; font-variant-numeric:tabular-nums; }
 .tray-rack-tabs.slicer-revealed { display:flex !important; }
 .tray-rack-tabs.slicer-revealed #tab-slicer { display:inline-flex !important; }
+.sample-tempo-info { margin:3px 0 7px; color:#8fe4c7; font:600 11px/1.35 var(--font-mono); font-variant-numeric:tabular-nums; }
+.sample-tempo-info.warning { color:#f4b56b; }
 @media(max-width:800px){#hit-sample-controls .sample-shape-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }}
 @media(max-width:900px){.grid-heading .legend { display:none; }#tracker-selection-menu .editor-tools { right:-8px; width:min(620px,94vw); }}
 @media(max-width:800px){

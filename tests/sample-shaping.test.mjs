@@ -3,9 +3,10 @@ import assert from 'node:assert/strict';
 import {defaults} from '../dist/core/profiles.js';
 import {compile} from '../dist/core/compile.js';
 import {Editor} from '../dist/core/editor.js';
-import {defaultKitState,withDrumKit} from '../dist/audio/drum-kit.js';
+import {defaultKitState,withDrumKit,effectiveSampleSpeed} from '../dist/audio/drum-kit.js';
 import {renderPerformance} from '../dist/audio/performance.js';
 import {makeProject,readProject} from '../dist/audio/project.js';
+import {newBank,arrange} from '../dist/core/bank.js';
 
 const rate=8000;
 function fixture(samples=new Float32Array(1600).fill(.4)){
@@ -71,4 +72,37 @@ test('Hit speed and tone overrides form one reversible editor change',()=>{
  const edited=structuredClone(editor.state.pattern.events[0]);
  assert.ok(editor.undo());assert.equal(editor.state.pattern.events[0].playbackRate,undefined);
  assert.ok(editor.redo());assert.deepEqual(editor.state.pattern.events[0],edited);
+});
+
+test('BPM follow tracks pattern and song tempo in the shared renderer, with hit and range precedence',()=>{
+ const {pattern,assets,kit}=fixture(Float32Array.from({length:1600},(_,i)=>Math.sin(2*Math.PI*220*i/rate)*.35));
+ kit.snare.playbackRate=1.1;kit.snare.sourceBpm=100;kit.snare.followBpm=true;
+ const first=withDrumKit(pattern,{},kit);
+ assert.equal(first.events[0].playbackRate,1.7);
+ const firstAudio=audio(pattern,assets,kit);
+ pattern.settings.bpm=150;
+ assert.equal(withDrumKit(pattern,{},kit).events[0].playbackRate,1.5);
+ assert.notDeepEqual(audio(pattern,assets,kit).slice(0,250),firstAudio.slice(0,250));
+ const bank=newBank(pattern);bank.songBpm=180;
+ assert.equal(withDrumKit(arrange(bank)[0],{},kit).events[0].playbackRate,1.8);
+ pattern.events[0].playbackRate=.8;
+ assert.equal(withDrumKit(pattern,{},kit).events[0].playbackRate,.8);
+ delete pattern.events[0].playbackRate;
+ assert.deepEqual(effectiveSampleSpeed(kit.snare,250),{rate:1.1,following:false,warning:'BPM follow needs 0.5×–2× speed. Manual speed is playing.'});
+ pattern.settings.bpm=250;
+ assert.equal(withDrumKit(pattern,{},kit).events[0].playbackRate,1.1);
+});
+
+test('BPM follow survives project save and rejects invalid saved settings',()=>{
+ const {pattern,assets,kit}=fixture();
+ kit.snare.playbackRate=1.2;kit.snare.sourceBpm=110;kit.snare.followBpm=true;
+ kit.snare.sampleProfiles={'sample-shape':{sourceBpm:110,followBpm:true,playbackRate:1.2}};
+ const saved=makeProject(new Editor(pattern).state,pattern.settings,kit,assets);
+ const restored=readProject(saved);
+ assert.equal(restored.project.kit.snare.followBpm,true);
+ assert.equal(withDrumKit(restored.project.editor.pattern,{},restored.project.kit).events[0].playbackRate,170/110);
+ const old=structuredClone(saved);delete old.kit.snare.followBpm;delete old.kit.snare.sampleProfiles['sample-shape'].followBpm;
+ assert.ok(readProject(old).project);
+ const invalid=structuredClone(saved);invalid.kit.snare.followBpm='yes';assert.throws(()=>readProject(invalid),/BPM follow/);
+ invalid.kit.snare.followBpm=true;invalid.kit.snare.sampleProfiles['sample-shape'].sourceBpm=undefined;assert.throws(()=>readProject(invalid),/BPM follow/);
 });
