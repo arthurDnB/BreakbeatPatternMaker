@@ -8,6 +8,8 @@ Node 22+: `npm install`, then `npm start`. Open http://127.0.0.1:4173.
 
 The app opens with a **Quick Start** guide for Generate → Preview → Edit → Export. Hide it with **Hide guide**; use **Quick start** in the header to reopen it later. The workstation uses an OLED black canvas with near-black control surfaces. The round transport button pulses while playback is running and becomes a stop control.
 
+To find a sound, open a track's **Instrument / FX** panel and choose **Browse sounds**, or click the instrument value of a tracker hit. The shared browser searches the sounds available for that lane and filters by collection, sounds featured in kits, Favorites, or Recently used. Select a sound, press **Preview** to hear it without changing the beat, then **Use sound** to assign it. A hit assignment can be undone. Favorites and recent bundled sounds stay in this browser across projects and reloads. Arrow keys move through results; Space previews from the results list, Enter applies from search or results, and Escape closes the browser.
+
 ## Choose your instruments
 
 Each Kick, Snare, Hi-hat and Percussion card provides:

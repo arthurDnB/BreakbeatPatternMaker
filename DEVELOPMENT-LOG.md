@@ -26,7 +26,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.3.0-alpha`
-* **Test Status:** 144 / 144 unit tests passing (`npm.cmd test`).
+* **Test Status:** 145 / 145 unit tests passing (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -62,12 +62,18 @@ This document maintains the running project state and change log so that multipl
 * [x] **Quick Start guide:** First-run Generate → Preview → Edit → Export orientation, with persistent dismiss/reopen controls.
 * [x] **Recent patterns:** Per-slot snapshots of the last 12 generated, varied or mutated beats, with restore, project persistence and Undo recovery.
 * [x] **A/B pattern comparison:** Capture current or recent beats as A and B, preview either with the current kit, and keep a winner with Undo support.
-* [ ] **Future Audio Roadmaps:** Procedural vinyl texture rack, MP3 export, velocity-layered drum kits, sample-browser filtering.
+* [ ] **Future Audio Roadmaps:** Procedural vinyl texture rack, MP3 export, velocity-layered drum kits.
+* [x] **Sound Library Browser:** Shared searchable and filterable audition/selection for lanes and tracker hits, with browser-local Favorites and Recently used sounds.
 * [ ] *Note: Renoise integration has been retired in favor of the standalone in-browser instrument.*
 
 ---
 
 ## 📝 Change Log
+
+### [2026-09-28] - Sound Library Browser (Codex)
+- **Shared sound browser (`src/audio/sound-browser.ts`, `public/index.html`, `public/workspace.css`):** Added one searchable dialog for track lanes and individual tracker hits, collection/featured filters, Favorites, Recently used, separate Preview and Use actions, keyboard navigation and responsive layout. Favorites and recent bundled sound IDs persist in browser storage.
+- **Consistent audio (`src/audio/library-audio.ts`, `src/audio/drum-kit.ts`, `src/web.ts`, `src/audio/project.ts`):** Consolidated bundled WAV loading and preparation so lane and per-hit choices use identical PCM. Preview renders a temporary candidate through the shared playback engine without changing the beat. Hit assignment remains one Undo/Redo action. Failed loads retain the previous sound and show an error. Portable projects now accept the existing built-in vinyl scratch sound.
+- **Guidance and verification (`README.md`, `scripts/sound-browser-site-smoke.mjs`, `tests/workspace.test.mjs`):** Documented the workflow and added a deployed-subpath browser check for search, persistence, preview isolation, load failure, lane and hit selection, Undo/Redo, project roundtrip, WAV export and mobile width, plus a vinyl scratch project regression. `npm.cmd test` passed 145/145; `npm.cmd run test:site` passed.
 
 ### [2026-09-28] - Bundled Sample Quality and Curated Kits (Codex)
 - **Sample preparation (`src/audio/sample-prep.ts`, `src/audio/drum-kit.ts`):** Replace peak-only normalization with transient RMS balancing under role-specific peak ceilings, trim dead air with pre-roll and apply short edge fades to bundled samples. Preserve uploaded PCM and use the same prepared assets in Preview and WAV export.

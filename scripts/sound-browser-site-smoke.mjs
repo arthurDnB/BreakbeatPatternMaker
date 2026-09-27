@@ -1,0 +1,51 @@
+import {createServer} from 'node:http';
+import {readFile} from 'node:fs/promises';
+import {resolve,extname,sep} from 'node:path';
+import {chromium} from 'playwright';
+import assert from 'node:assert/strict';
+
+const root=resolve('site'),prefix='/breakbeat-pattern-maker/';
+const server=createServer(async(req,res)=>{try{
+  const url=new URL(req.url,'http://local');if(!url.pathname.startsWith(prefix))throw Error('Outside site');
+  const file=resolve(root,decodeURIComponent(url.pathname.slice(prefix.length))||'index.html');if(!file.startsWith(root+sep))throw Error('Outside site');
+  const bytes=await readFile(file);res.writeHead(200,{'Content-Type':{'.html':'text/html','.js':'text/javascript','.css':'text/css','.wav':'audio/wav'}[extname(file)]??'text/plain'});res.end(bytes);
+}catch{res.writeHead(404);res.end('Not found');}});
+await new Promise(r=>server.listen(0,'127.0.0.1',r));
+const browser=await chromium.launch({headless:true,channel:process.env.BROWSER_CHANNEL??'msedge'});
+try{
+  const context=await browser.newContext({viewport:{width:1400,height:950},acceptDownloads:true}),page=await context.newPage(),errors=[];
+  page.on('pageerror',e=>errors.push(e.message));
+  await page.goto(`http://127.0.0.1:${server.address().port}${prefix}`);await page.locator('#grid .hit').first().waitFor();
+  await page.locator('.track-instrument-panel[data-role="kick"]>summary').click();
+  const before=await page.inputValue('#kit-choice-kick');await page.click('#kit-browse-kick');
+  assert.equal(await page.locator('#sound-browser-search').evaluate(e=>e===document.activeElement),true);
+  await page.selectOption('#sound-browser-filter','UDNB');await page.fill('#sound-browser-search','UDNB Kick 02');
+  assert.equal(await page.locator('.sound-browser-row').count(),1);
+  await page.locator('.sound-browser-favorite').click();await page.click('#sound-browser-preview');
+  await page.waitForFunction(()=>document.querySelector('#sound-browser-status').textContent.includes('UDNB Kick 02'));
+  assert.equal(await page.inputValue('#kit-choice-kick'),before,'Preview must not apply');
+  await page.click('#sound-browser-use');await page.waitForFunction(()=>document.querySelector('#kit-choice-kick').value==='udnb-kick-02');
+  assert.equal(await page.locator('#sound-browser').evaluate(e=>e.open),false);
+  await page.click('#kit-browse-kick');await page.selectOption('#sound-browser-filter','recent');assert.match(await page.locator('.sound-browser-row').first().textContent(),/UDNB Kick 02/);
+  await page.selectOption('#sound-browser-filter','favorites');assert.equal(await page.locator('.sound-browser-row').count(),1);
+  await page.keyboard.press('Escape');assert.equal(await page.locator('#kit-browse-kick').evaluate(e=>e===document.activeElement),true);
+  await page.route('**/udnb-kick-04.wav',route=>route.abort());await page.click('#kit-browse-kick');await page.fill('#sound-browser-search','UDNB Kick 04');await page.click('#sound-browser-use');
+  await page.waitForFunction(()=>document.querySelector('#sound-browser-status').textContent.includes('Could not load'));
+  assert.equal(await page.inputValue('#kit-choice-kick'),'udnb-kick-02');await page.keyboard.press('Escape');await page.unroute('**/udnb-kick-04.wav');
+  await page.locator('.track-instrument-panel[data-role="kick"]>summary').click();
+  const cell=page.locator('#grid .tracker-value[data-field="instrument"][data-cell-lane="kick"]').first();
+  const hitId=await cell.getAttribute('data-hit');
+  await cell.click();await page.fill('#sound-browser-search','UDNB Kick 03');await page.keyboard.press('Enter');
+  await page.waitForFunction(()=>!document.querySelector('#sound-browser').open);
+  assert.notEqual(await cell.textContent(),'KIT');await page.click('#undo');assert.equal(await cell.textContent(),'KIT');await page.click('#redo');assert.notEqual(await cell.textContent(),'KIT');
+  const wavDownload=page.waitForEvent('download');await page.click('#export-wav');const wav=await readFile(await(await wavDownload).path());assert.equal(wav.toString('ascii',0,4),'RIFF');assert.ok(wav.length>44);
+  const projectDownload=page.waitForEvent('download');await page.click('#project-save');const project=await readFile(await(await projectDownload).path());
+  assert.equal(JSON.parse(project.toString()).editor.pattern.events.find(h=>h.id===hitId).slice.assetId,'library-udnb-kick-03');
+  await page.setInputFiles('#project-open',{name:'sound-browser.bbproject',mimeType:'application/json',buffer:project});await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('Project opened'));
+  assert.notEqual(await cell.textContent(),'KIT');
+  await page.reload();await page.locator('#grid .hit').first().waitFor();await page.locator('.track-instrument-panel[data-role="kick"]>summary').click();await page.click('#kit-browse-kick');await page.selectOption('#sound-browser-filter','favorites');
+  assert.equal(await page.locator('.sound-browser-row').count(),1);assert.match(await page.locator('.sound-browser-row').textContent(),/UDNB Kick 02/);
+  await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),390);
+  assert.deepEqual(errors,[]);console.log('Sound browser: search, favorite/recent persistence, preview isolation, failed loads, lane/hit selection, undo/redo and mobile passed.');
+  await context.close();
+}finally{await browser.close();await new Promise(r=>server.close(r));}

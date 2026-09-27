@@ -3,7 +3,7 @@ import type {AudioAsset} from './slices.js';
 import {validateWav} from './wav.js';
 import {defaultEffects,validateEffects,type Effects} from './effects.js';
 import {LIBRARY,KIT_PRESETS} from './library.js';
-import {prepareLibraryHit} from './sample-prep.js';
+import {ensureLibraryAudio} from './library-audio.js';
 // @ts-expect-error Shared original synth
 import {synthesize} from '../../public/synth.js';
 
@@ -53,7 +53,7 @@ export function withDrumKit(pattern:Pattern,kit:DrumKit,mix?:KitState):Pattern{
     return result;
   })};
 }
-export function setupDrumKit(assets:Map<string,AudioAsset>,changed:(refreshTracker?:boolean)=>void,audition:(role:Role)=>Promise<void>,getBpm:()=>number){
+export function setupDrumKit(assets:Map<string,AudioAsset>,changed:(refreshTracker?:boolean)=>void,audition:(role:Role)=>Promise<void>,getBpm:()=>number,browse?:(role:Role,opener:HTMLElement)=>void,recordUsed?:(id:string)=>void){
   const kit:DrumKit={},mix=defaultKitState(),root=document.getElementById('drum-slots')!;
   let context:AudioContext|undefined;
   const refreshers:(()=>void)[]=[],cancellers:(()=>void)[]=[];let pending=0;
@@ -93,6 +93,7 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:(refreshTrack
     const stepChoice=(delta:number)=>{const options=Array.from(choice.querySelectorAll('option')).filter(o=>!o.disabled&&o.value!=='upload');if(!options.length)return;const curIdx=options.findIndex(o=>o.value===choice.value);let nextIdx=(curIdx+delta)%options.length;if(nextIdx<0)nextIdx+=options.length;choice.value=options[nextIdx]!.value;choice.dispatchEvent(new Event('change'));setTimeout(()=>{void audition(role).catch(()=>{});},30);};
     prevBtn.onclick=(e)=>{e.preventDefault();stepChoice(-1);};nextBtn.onclick=(e)=>{e.preventDefault();stepChoice(1);};
     navRow.append(prevBtn,choice,nextBtn);
+    const browseBtn=document.createElement('button');browseBtn.type='button';browseBtn.className='sound-browse-btn';browseBtn.textContent='Browse sounds';browseBtn.id='kit-browse-'+role;browseBtn.onclick=()=>browse?.(role,browseBtn);navRow.append(browseBtn);
     const soundContainer=document.createElement('label');soundContainer.className='sound-select-label';soundContainer.textContent='Sound';soundContainer.append(navRow);
     const file=document.createElement('input');file.type='file';file.accept='.wav,audio/wav';file.id='kit-file-'+role;file.className='sample-file-input';file.setAttribute('aria-label','Upload '+title.textContent+' WAV');
     const upload=document.createElement('button');upload.id='kit-upload-'+role;upload.textContent='Upload WAV';upload.onclick=()=>file.click();
@@ -186,22 +187,13 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:(refreshTrack
     solo.i.onchange=()=>{mix[role].solo=solo.i.checked;update();changed();};
     level.oninput=()=>{mix[role].level=Number(level.value);update();changed();};
     tune.onchange=()=>{const v=Number(tune.value);if(!Number.isInteger(v)||v< -24||v>24){update();return;}mix[role].tune=v;update();changed();};
-    async function decode(bytes:ArrayBuffer,name:string,id:string,library=false){
+    async function decode(bytes:ArrayBuffer,name:string,id:string){
       const meta=validateWav(bytes);if(meta.duration>20)throw Error('Single hits must be 20 seconds or shorter.');
       context??=new AudioContext();const decoded=await context.decodeAudioData(bytes);
       let channels:Float32Array[]=Array.from({length:decoded.numberOfChannels},(_,i)=>decoded.getChannelData(i));
-      if(library)channels=prepareLibraryHit(channels,decoded.sampleRate,role);
       const used=[...assets.values()].reduce((n,a)=>n+a.channels.reduce((v,c)=>v+c.byteLength,0),0);
       if(used+channels.reduce((n,c)=>n+c.byteLength,0)>256*1024*1024)throw Error('Session audio limit reached. Save project before refreshing.');
       return {id,name,sampleRate:decoded.sampleRate,channels};
-    }
-    async function fetchSampleBytes(path:string):Promise<ArrayBuffer>{
-      const rel=path.replace(/^\//,'');
-      const urls=[new URL('../../'+rel,import.meta.url).href,'./'+rel,'/'+rel];
-      for(const url of urls){
-        try{const res=await fetch(url);if(res.ok)return await res.arrayBuffer();}catch{}
-      }
-      throw Error('Cannot reach server for sample. Ensure local server is running (npm start).');
     }
     choice.onchange=async()=>{
       const value=choice.value,request=++token;pending++;loading=true;update();info.textContent='Loading sound…';
@@ -217,10 +209,9 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:(refreshTrack
           }
         }
         else if(value!=='synth'){
-          const entry=LIBRARY.find(s=>s.id===value&&s.role===role);if(!entry)throw Error('Unknown library sound.');id='library-'+entry.id;
-          if(!assets.has(id)){const bytes=await fetchSampleBytes(entry.path);const a=await decode(bytes,entry.name,id,true);if(request!==token)return;assets.set(id,a);}
+          context??=new AudioContext();const a=await ensureLibraryAudio(value,role,assets,context);id=a.id;
         }
-        if(request!==token)return;rememberShape(mix[role]);mix[role].choice=value;mix[role].assetId=id;recallShape(mix[role]);update();changed();
+        if(request!==token)return;rememberShape(mix[role]);mix[role].choice=value;mix[role].assetId=id;recallShape(mix[role]);update();recordUsed?.(value);changed();
       }catch(e){if(request===token){update();const msg=e instanceof TypeError&&e.message.includes('fetch')?'Server unreachable. Ensure local server is running.':String(e);info.textContent=msg+' Previous sound kept.';}}finally{pending--;if(request===token){loading=false;play.disabled=false;upload.disabled=false;card.setAttribute('aria-busy','false');}}
     };
     file.onchange=async()=>{
@@ -239,6 +230,7 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:(refreshTrack
   return {
     kit,mix,get busy(){return pending>0;},snapshot:()=>structuredClone(mix),refreshTempo:()=>refreshers.forEach(f=>f()),
     restore:(state:KitState)=>{cancellers.forEach(f=>f());for(const r of ROLES)mix[r]=structuredClone(state[r]);refreshers.forEach(f=>f());},
+    selectSound:async(role:Role,soundId:string)=>{const load=loaders.get(role);if(!load)throw Error('Unknown instrument.');await load(soundId);if(mix[role].choice!==soundId)throw Error(document.getElementById('kit-info-'+role)?.textContent?.replace(' Previous sound kept.','')||'Sound could not be selected.');},
     applyPreset: async(presetId:string)=>{
       const preset=KIT_PRESETS.find(p=>p.id===presetId);
       if(!preset) return;

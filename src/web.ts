@@ -6,6 +6,8 @@ import {makeProject,readProject,localProject} from './audio/project.js';
 import {defaultKitState} from './audio/drum-kit.js';
 import {setupDrumKit,withDrumKit,effectiveSampleSpeed} from './audio/drum-kit.js';
 import {KIT_PRESETS,GENRE_KITS,LIBRARY} from './audio/library.js';
+import {ensureLibraryAudio} from './audio/library-audio.js';
+import {setupSoundBrowser} from './audio/sound-browser.js';
 import {setupSamplePanel} from './audio/sample-panel.js';
 import {downloadBytes} from './audio/render.js';
 import {renderPerformance,renderSequence} from './audio/performance.js';
@@ -19,6 +21,8 @@ import {ROLES,hex,noteName,type Hit,type Role,type Genre,type BreakStyle,type Pa
 import {Editor,emptySelection,locked,selectedIds,type EditorState,type TrackerClipboard} from './core/editor.js';
 import {defaultEffects,type Effects} from './audio/effects.js';
 import {ArrangementHistory} from './core/arrangement-history.js';
+// @ts-expect-error Shared browser synthesizer has no TypeScript declaration.
+import {synthesize} from '../public/synth.js';
 
 
 const el=<T extends HTMLElement>(id:string)=>document.getElementById(id) as T;
@@ -357,41 +361,25 @@ function render(){
 function markTrackerCursor(target:HTMLElement|null|undefined){el('grid').querySelectorAll<HTMLElement>('.tracker-value.is-cursor-field').forEach(value=>{value.classList.remove('is-cursor-field');value.removeAttribute('aria-current');});if(target?.matches('.tracker-value')){target.classList.add('is-cursor-field');target.setAttribute('aria-current','location');}}
 function focusTrackerCell(row:number,lane:Role){cursorField='note';const target=el('grid').querySelector<HTMLElement>(`[data-cell-row="${row}"][data-cell-lane="${lane}"]`),field=el('grid').querySelector<HTMLElement>(`[data-cell-row="${row}"][data-cell-lane="${lane}"][data-field="note"]`);markTrackerCursor(field);target?.focus({preventScroll:true});}
 function focusTrackerField(row:number,lane:Role,field:string){cursorField=field as typeof trackerFields[number];const target=el('grid').querySelector<HTMLElement>(`[data-cell-row="${row}"][data-cell-lane="${lane}"][data-field="${field}"]`)??el('grid').querySelector<HTMLElement>(`[data-cell-row="${row}"][data-cell-lane="${lane}"]`);markTrackerCursor(target);target?.focus({preventScroll:true});}
-let soundPickerHit:string|undefined;
+let soundBrowser:ReturnType<typeof setupSoundBrowser>;
 function openHitSoundPicker(id:string){
  const hit=pattern.events.find(h=>h.id===id);if(!hit)return;
- soundPickerHit=id;const picker=el<HTMLSelectElement>('hit-sound-choice');picker.replaceChildren();
- const option=(value:string,label:string)=>{const o=document.createElement('option');o.value=value;o.textContent=label;picker.append(o);};
- option('lane','Use lane instrument');if(kitPanel.mix[hit.role].uploadId)option('upload','Use uploaded '+hit.role+' sample');
- for(const entry of LIBRARY.filter(e=>e.role===hit.role))option(entry.id,entry.name);
- const current=LIBRARY.find(e=>hit.slice?.assetId==='library-'+e.id);picker.value=current?.id??(hit.slice?.assetId===kitPanel.mix[hit.role].uploadId?'upload':'lane');
- el('hit-sound-dialog-title').textContent=`${hit.role} · row ${transfer.notes.find(n=>n.id===id)?.row??0} instrument`;
- el<HTMLDialogElement>('hit-sound-dialog').showModal();picker.focus();
+ const current=LIBRARY.find(e=>hit.slice?.assetId==='library-'+e.id);
+ const opener=document.activeElement instanceof HTMLElement?document.activeElement:el('grid');
+ soundBrowser.open({role:hit.role,mode:'hit',current:current?.id??(hit.slice?.assetId===kitPanel.mix[hit.role].uploadId?'upload':'lane'),uploadName:kitPanel.mix[hit.role].uploadId?assets.get(kitPanel.mix[hit.role].uploadId!)?.name:undefined,opener,
+   preview:choice=>previewSoundCandidate(hit.role,choice,hit),apply:choice=>applyHitSound(id,choice)});
 }
-el('hit-sound-cancel').onclick=()=>el<HTMLDialogElement>('hit-sound-dialog').close();
-el('hit-sound-apply').onclick=async()=>{
- const hit=pattern.events.find(h=>h.id===soundPickerHit);if(!hit)return;
- const choice=input('hit-sound-choice').value;input('hit-sound-apply').disabled=true;
- try{
+async function applyHitSound(id:string,choice:string){
+ const hit=pattern.events.find(h=>h.id===id);if(!hit)throw Error('This hit is no longer available.');
   let slice=undefined;
   if(choice!=='lane'){
-   const assetId=choice==='upload'?kitPanel.mix[hit.role].uploadId:'library-'+choice;
-   if(!assetId)throw Error('Upload a sample for this lane first.');
-   let asset=assets.get(assetId);
-   if(!asset&&choice!=='upload'){
-    const entry=LIBRARY.find(e=>e.id===choice&&e.role===hit.role);if(!entry)throw Error('Choose a valid instrument.');
-    const response=await fetch(new URL('./'+entry.path.replace(/^\//,''),document.baseURI));if(!response.ok)throw Error('Could not load instrument sample.');
-    context??=new AudioContext();const decoded=await context.decodeAudioData(await response.arrayBuffer());
-    asset={id:assetId,name:entry.name,sampleRate:decoded.sampleRate,channels:Array.from({length:decoded.numberOfChannels},(_,i)=>new Float32Array(decoded.getChannelData(i)))};assets.set(assetId,asset);
-   }
+   const asset=choice==='upload'?assets.get(kitPanel.mix[hit.role].uploadId??''):(context??=new AudioContext(),await ensureLibraryAudio(choice,hit.role,assets,context));
    if(!asset)throw Error('The selected sample is unavailable.');
    slice={assetId:asset.id,startFrame:0,endFrame:asset.channels[0]!.length,sampleRate:asset.sampleRate,label:asset.name};
   }
   const revised={...hit,sourceKind:'oneShot' as const};if(slice)revised.slice=slice;else delete revised.slice;
   edit(()=>editor.write(revised,hit.id),'Hit instrument changed. Undo restores the previous sound.');
-  el<HTMLDialogElement>('hit-sound-dialog').close();
- }catch(e){status((e as Error).message,true);}finally{input('hit-sound-apply').disabled=false;}
-};
+}
 function selectTrackerCell(row:number,lane:Role,event?:{shiftKey:boolean;ctrlKey:boolean;metaKey:boolean},hit?:Hit,audition=true){
  const cell={row,lane},key=`${row}:${lane}`;rowAnchor=row;cursorLane=lane;
  let cells:{row:number;lane:Role}[];
@@ -465,6 +453,32 @@ async function auditionRole(role: Role) {
   const b=context.createBuffer(2,audio.channels[0]!.length,audio.sampleRate);audio.channels.forEach((c,i)=>b.copyToChannel(new Float32Array(c),i));
   const source=context.createBufferSource();source.buffer=b;source.connect(context.destination);playingSources.add(source);source.onended=()=>{playingSources.delete(source);source.disconnect();};source.start();
 }
+async function previewSoundCandidate(role:Role,choice:string,hit?:Hit){
+ stop();samplePanel.stop();context??=new AudioContext();const token=playToken;await context.resume();
+ let slice:Hit['slice']|undefined;
+ if(choice==='upload'){
+   const asset=assets.get(kitPanel.mix[role].uploadId??'');if(!asset)throw Error('No uploaded sound is available for this lane.');
+   slice={assetId:asset.id,startFrame:0,endFrame:asset.channels[0]!.length,sampleRate:asset.sampleRate,label:asset.name};
+ }else if(choice==='synth-scratch'){
+   const id='synth-scratch';if(!assets.has(id))assets.set(id,{id,name:'Vinyl Scratch (Synth)',sampleRate:44100,channels:[synthesize('scratch',44100)]});
+   const asset=assets.get(id)!;slice={assetId:id,startFrame:0,endFrame:asset.channels[0]!.length,sampleRate:asset.sampleRate,label:asset.name};
+ }else if(choice!=='synth'&&choice!=='lane'){
+   const asset=await ensureLibraryAudio(choice,role,assets,context);
+   slice={assetId:asset.id,startFrame:0,endFrame:asset.channels[0]!.length,sampleRate:asset.sampleRate,label:asset.name};
+ }
+ if(token!==playToken||!el<HTMLDialogElement>('sound-browser').open)return;
+ const one=generate({...defaults(),algorithm:pattern?.settings.algorithm,bpm:input('transport-target').value==='song'&&bank?bank.songBpm:pattern?.settings.bpm??120,bars:1});
+ const next:Hit=hit?{...hit,baseTick:0,offsetTick:0,fineOffset:0,sourceKind:'oneShot'}:{id:'sound-browser-preview',role,sourceId:'kit.'+role,baseTick:0,offsetTick:0,gain:1,pan:0,anchor:false,ghost:false,reason:'Sound browser preview.',sourceKind:'oneShot'};
+ if(slice)next.slice=slice;else delete next.slice;
+ one.events=[next];const mix=kitPanel.snapshot();mix[role].mute=false;mix[role].solo=true;
+ const previewKit={...drumKit};if(choice==='synth')delete previewKit[role];
+ const audio=renderPerformance(withDrumKit(one,previewKit,mix),assets,context.sampleRate,effectMap());
+ startSource(audioBuffer(audio),context.currentTime);
+}
+function browseLaneSounds(role:Role,opener:HTMLElement){
+ soundBrowser.open({role,mode:'lane',current:kitPanel.mix[role].choice,uploadName:kitPanel.mix[role].uploadId?assets.get(kitPanel.mix[role].uploadId!)?.name:undefined,opener,
+   preview:choice=>previewSoundCandidate(role,choice),apply:choice=>kitPanel.selectSound(role,choice)});
+}
 const kitPanel=setupDrumKit(assets,(refreshTracker=true)=>{
   stop();samplePanel.stop();
   const ks=document.getElementById('kit-preset-select') as HTMLSelectElement | null;
@@ -476,7 +490,8 @@ const kitPanel=setupDrumKit(assets,(refreshTracker=true)=>{
   const desc = document.getElementById('generator-kit-desc');
   if(desc) desc.textContent = matching ? matching.description : 'Custom kit configuration';
   if(editor){if(refreshTracker)refresh();else scheduleSave();}
-},auditionRole,()=>input('transport-target').value==='song'&&bank?bank.songBpm:pattern?.settings.bpm??Number(input('bpm').value));
+},auditionRole,()=>input('transport-target').value==='song'&&bank?bank.songBpm:pattern?.settings.bpm??Number(input('bpm').value),browseLaneSounds,id=>soundBrowser?.recordUsed(id));
+soundBrowser=setupSoundBrowser();
 refreshKitTempo=()=>kitPanel.refreshTempo();
 const drumKit=kitPanel.kit;
 function effectMap(){return Object.fromEntries(ROLES.map(r=>[r,kitPanel.mix[r].effects]));}
