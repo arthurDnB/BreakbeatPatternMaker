@@ -26,7 +26,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.3.0-alpha`
-* **Test Status:** 147 / 147 unit tests passing (`npm.cmd test`).
+* **Test Status:** 150 / 150 unit tests passing (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -69,6 +69,12 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-09-28] - Continuous Vinyl Ambience Layer & Scratch Synth Retirement (Codex)
+- **Continuous Vinyl Texture (`src/audio/vinyl-texture.ts`, `src/audio/performance.ts`, `src/audio/project.ts`):** Removed the scratch synthesizer instrument and moved the nine bundled vinyl surface recordings out of the percussion one-shot lists into a dedicated background ambience engine. Vinyl texture runs as an optional continuous layer across pattern preview, song playback, and WAV export with smooth crossfades at loop points and bar boundaries.
+- **Controls & Interface (`public/index.html`, `public/workspace.css`, `src/web.ts`):** Added a dedicated Vinyl Texture control strip with an On/Off toggle, selection among the 9 bundled textures (`lofi2-vinyl-01` through `09`), independent volume slider (defaulting to a subtle -30 dB), and an audition Preview button.
+- **Project Migration & Kit Curation (`src/audio/library.ts`, `src/audio/project.ts`, `src/audio/sound-browser.ts`):** Migrated older projects referencing `synth-scratch` or vinyl textures as percussion hits to `lofi2-percussion-02`, moving identified vinyl textures to the background ambience setting. Updated Dusty Vinyl and Lo-Fi kit presets.
+- **Verification (`tests/vinyl-texture.test.mjs`, `scripts/site-browser-smoke.mjs`):** Added unit coverage for texture loop rendering, level scaling, and project migration. Verified 150/150 unit tests pass (`npm.cmd test`) and all site smoke tests pass (`npm.cmd run test:site`).
 
 ### [2026-09-28] - Groove V4 Instrument Density (Codex)
 - **Generator (`src/core/model.ts`, `src/core/settings.ts`, `src/core/groove-v4.ts`):** Added optional per-lane density from 0% to 200%. Neutral 100% reproduces prior V4 events; lower values thin optional hits, while higher values unlock more genre-defined details and fills. Protected kick/snare anchors remain, and missing settings in older projects default to 100%.

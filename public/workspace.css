@@ -3181,6 +3181,14 @@ tr.playing-row td { background:#0b1c18; }
 #tray-bottom #play { width:38px !important; min-width:38px !important; height:38px !important; min-height:38px !important; flex-basis:38px !important; border-radius:50% !important; padding:0 !important; }
 #tray-bottom #play .play-icon { font-size:14px !important; line-height:1; }
 .master-dsp-rack { margin:3px 0; border:1px solid #27322f; border-radius:7px; background:#080d0c; }
+.vinyl-texture-rack { display:flex; flex-wrap:wrap; align-items:center; gap:8px 16px; margin:3px 0; padding:8px 12px; border:1px solid #27322f; border-radius:7px; background:#080d0c; color:#bdd9d1; font-size:11px; }
+.vinyl-texture-rack label { display:flex; align-items:center; gap:6px; }
+.vinyl-texture-rack label:last-child { margin-left:auto; }
+.vinyl-texture-rack select { max-width:220px; }
+.vinyl-texture-rack input[type=range] { width:100px; }
+.vinyl-texture-rack .vinyl-texture-toggle { font-weight:800; letter-spacing:.03em; }
+.vinyl-texture-rack .vinyl-texture-toggle span { color:#68847c; font-weight:500; letter-spacing:0; }
+.vinyl-texture-rack.is-lofi { border-color:#86704d; }
 .master-dsp-rack>summary { display:flex; align-items:center; gap:6px; padding:6px 12px; font-size:11px; font-weight:800; letter-spacing:.08em; color:#bdd9d1; }
 .master-dsp-rack>summary span { margin-left:auto; font-weight:500; letter-spacing:0; color:#68847c; }
 .master-dsp-rack .quick-fx-panel { display:block; margin:0; border:0; }

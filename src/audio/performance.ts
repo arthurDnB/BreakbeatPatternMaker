@@ -4,12 +4,14 @@ import {compile} from '../core/compile.js';
 import type {AudioAsset} from './slices.js';
 import {planV3Voices,applyV3Chokes,renderV3Voice,type RenderVoice} from './voice-v3.js';
 import {sampleShaper} from './sample-shaping.js';
+import {mixVinylTexture} from './vinyl-texture.js';
 // @ts-expect-error Shared original synth.
 import {synthesize} from '../../public/synth.js';
 export interface RenderOptions {
   loop?: boolean;
   maxTailSeconds?: number;
   trimSilence?: boolean;
+  vinylTexture?:{asset:AudioAsset;levelDb:number};
 }
 // One renderer for preview and WAV, including stereo slices and pitch repitching.
 export function renderPerformance(pattern:Pattern,assets:Map<string,AudioAsset>,rate=44100,effects:Partial<Record<Role,Effects>>={},options:RenderOptions={}){
@@ -30,21 +32,10 @@ export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,
     const ratio=(hit.playbackRate??1)*2**((hit.pitch??0)/12),start=origin+Math.max(0,(hit.baseTick+hit.offsetTick+(hit.fineOffset??0))*secondsPerTick);
     let channels:Float32Array[],sourceRate=rate,from=0,to=0;
     if(hit.slice){
-      let asset=assets.get(hit.slice.assetId);
-      if(!asset||(hit.slice.assetId==='synth-scratch'&&asset.sampleRate!==rate)){
-        if(hit.slice.assetId==='synth-scratch'){
-          const ch=[synthesize('scratch',rate)];
-          asset={id:'synth-scratch',name:'Vinyl Scratch (Synth)',sampleRate:rate,channels:ch};
-          assets.set(asset.id,asset);
-        }
-      }
+      const asset=assets.get(hit.slice.assetId);
       if(!asset)throw Error('The audio for a slice is missing. Re-import and reassign the slice.');
-      if(hit.slice.assetId==='synth-scratch'){
-        channels=asset.channels;sourceRate=rate;from=0;to=channels[0]!.length;
-      }else{
-        if(asset.sampleRate!==hit.slice.sampleRate||hit.slice.endFrame>asset.channels[0]!.length)throw Error('Slice audio does not match its saved boundaries.');
-        channels=asset.channels;sourceRate=asset.sampleRate;from=hit.slice.startFrame;to=hit.slice.endFrame;
-      }
+      if(asset.sampleRate!==hit.slice.sampleRate||hit.slice.endFrame>asset.channels[0]!.length)throw Error('Slice audio does not match its saved boundaries.');
+      channels=asset.channels;sourceRate=asset.sampleRate;from=hit.slice.startFrame;to=hit.slice.endFrame;
     }else{if(!kit.has(hit.role))kit.set(hit.role,synthesize(hit.role,rate));channels=[kit.get(hit.role)!];to=channels[0]!.length;}
     if(hit.effect){
       const command=hit.effect.command,param=hit.effect.param,fxHit={...hit,ratchets:1,articulation:undefined};
@@ -137,6 +128,7 @@ export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,
       channels[1]=channels[1]!.slice(0,keep);
     }
   }
+  if(options.vinylTexture)mixVinylTexture(channels,rate,options.vinylTexture.asset,options.vinylTexture.levelDb,!!options.loop);
   // Master bus glue & soft saturation: warm analog tape curve for peaks above 0.7
   for(let c=0;c<2;c++){
     const ch=channels[c]!;

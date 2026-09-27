@@ -1,9 +1,10 @@
 import {LIBRARY,KIT_PRESETS} from './library.js';
+import {isVinylTexture} from './vinyl-texture.js';
 import type {Role} from '../core/model.js';
 
 type Target={role:Role;mode:'lane'|'hit';current:string;uploadName?:string;opener:HTMLElement;preview:(id:string)=>Promise<void>;apply:(id:string)=>Promise<void>};
 const key='bpm_sound_browser_v1';
-const catalogIds=new Set<string>(LIBRARY.map(s=>s.id));
+const catalogIds=new Set<string>(LIBRARY.filter(s=>!isVinylTexture(s.id)).map(s=>s.id));
 const family=(id:string)=>id.startsWith('udnb-')?'UDNB':id.startsWith('lofi2-')?'Lo-Fi':id.startsWith('808-')?'TR-808':'Acoustic & other';
 const featured=new Set(KIT_PRESETS.flatMap(p=>Object.values(p.slots)));
 const valid=(value:unknown):string[]=>Array.isArray(value)?value.filter((id):id is string=>typeof id==='string'&&catalogIds.has(id)).slice(0,100):[];
@@ -23,9 +24,9 @@ export function setupSoundBrowser(){
   let target:Target|undefined,selected='',visible:string[]=[],busy=false;
   const choices=()=>{
     if(!target)return [] as {id:string;name:string;group:string;special:boolean}[];
-    const special=target.mode==='hit'?[{id:'lane',name:'Use lane instrument',group:'Current sound',special:true}]:[{id:'synth',name:'Synthesized '+target.role,group:'Built-in',special:true},...(target.role==='percussion'?[{id:'synth-scratch',name:'Vinyl Scratch (Synth)',group:'Built-in',special:true}]:[])];
+    const special=target.mode==='hit'?[{id:'lane',name:'Use lane instrument',group:'Current sound',special:true}]:[{id:'synth',name:'Synthesized '+target.role,group:'Built-in',special:true}];
     if(target.uploadName)special.push({id:'upload',name:target.uploadName,group:'My upload',special:true});
-    return [...special,...LIBRARY.filter(s=>s.role===target!.role).map(s=>({id:s.id,name:s.name,group:family(s.id),special:false}))];
+    return [...special,...LIBRARY.filter(s=>s.role===target!.role&&!isVinylTexture(s.id)).map(s=>({id:s.id,name:s.name,group:family(s.id),special:false}))];
   };
   const render=()=>{
     const query=search.value.trim().toLowerCase(),group=filter.value;

@@ -7,15 +7,24 @@ import type {EditorState} from '../core/editor.js';
 import {validateSettings} from '../core/generate.js';
 import type {AudioAsset} from './slices.js';
 import type {KitState} from './drum-kit.js';
-export interface Project {format:'breakbeat-project';version:2|3;bank?:Bank;editor:EditorState;draft:Settings;kit:KitState;assets:{id:string;name:string;sampleRate:number;channels:string[]}[]}
+import {DEFAULT_VINYL_TEXTURE,isVinylTexture,validateVinylTexture,type VinylTexture} from './vinyl-texture.js';
+export interface Project {format:'breakbeat-project';version:2|3;bank?:Bank;editor:EditorState;draft:Settings;kit:KitState;vinylTexture?:VinylTexture;assets:{id:string;name:string;sampleRate:number;channels:string[]}[]}
 function base64(data:Float32Array){let s='';const bytes=new Uint8Array(data.buffer,data.byteOffset,data.byteLength);for(let i=0;i<bytes.length;i+=8192)s+=String.fromCharCode(...bytes.subarray(i,i+8192));return btoa(s);}
-export function makeProject(editor:EditorState,draft:Settings,kit:KitState,assets:Map<string,AudioAsset>,bank?:Bank):Project{
+const legacyId=(id:string)=>id==='synth-scratch'||isVinylTexture(id)||id.startsWith('library-')&&isVinylTexture(id.slice(8));
+const projectPatterns=(p:Project)=>[p.editor.pattern,...(p.bank?.slots.flatMap(s=>[...(s.editor?[s.editor.pattern]:[]),...(s.patternHistory?.map(h=>h.editor.pattern)??[])])??[])];
+export function needsVinylMigration(raw:unknown){
+  if(!raw||typeof raw!=='object')return false;
+  const p=raw as Project;
+  return !!(p.kit&&Object.values(p.kit).some(s=>s&&[s.choice,s.assetId,s.uploadId].some(id=>typeof id==='string'&&legacyId(id)))||p.editor&&projectPatterns(p).some(pattern=>pattern?.events?.some(hit=>hit.slice&&legacyId(hit.slice.assetId))));
+}
+export function makeProject(editor:EditorState,draft:Settings,kit:KitState,assets:Map<string,AudioAsset>,bank?:Bank,vinylTexture:VinylTexture=DEFAULT_VINYL_TEXTURE):Project{
   const patterns=[editor.pattern,...(bank?.slots.flatMap(s=>[...(s.editor?[s.editor.pattern]:[]),...(s.patternHistory?.map(h=>h.editor.pattern)??[])])??[])];
   const ids=new Set(patterns.flatMap(p=>p.events).flatMap(h=>h.slice?[h.slice.assetId]:[]));for(const r of ROLES){if(kit[r].assetId)ids.add(kit[r].assetId!);if(kit[r].uploadId)ids.add(kit[r].uploadId!);}
   const v3=['groove-v3','groove-v4'].includes(draft.algorithm??'')||patterns.some(p=>['groove-v3','groove-v4'].includes(p.settings.algorithm??'')||p.events.some(h=>h.articulation||h.effect));
-  return {format:'breakbeat-project',version:v3?3:2,...(bank?{bank:structuredClone(bank)}:{}),editor:structuredClone(editor),draft:structuredClone(draft),kit:structuredClone(kit),assets:[...ids].map(id=>{const a=assets.get(id);if(!a)throw Error('Missing project audio.');return {id,name:a.name,sampleRate:a.sampleRate,channels:a.channels.map(base64)};})};
+  if([...ids].some(legacyId)||Object.values(kit).some(s=>legacyId(s.choice)))throw Error('Old vinyl instrument must be migrated before saving.');
+  return {format:'breakbeat-project',version:v3?3:2,...(bank?{bank:structuredClone(bank)}:{}),editor:structuredClone(editor),draft:structuredClone(draft),kit:structuredClone(kit),vinylTexture:validateVinylTexture(vinylTexture),assets:[...ids].map(id=>{const a=assets.get(id);if(!a)throw Error('Missing project audio.');return {id,name:a.name,sampleRate:a.sampleRate,channels:a.channels.map(base64)};})};
 }
-export function readProject(raw:unknown){
+export function readProject(raw:unknown,replacement?:AudioAsset){
   // Migrate a copy: opening an old file must not mutate the caller's data.
   const legacy=structuredClone(raw) as Omit<Project,'version'> & {version:number};
   if(legacy?.format==='breakbeat-project' && legacy.version===1 && legacy.editor?.pattern){
@@ -24,6 +33,26 @@ export function readProject(raw:unknown){
   }
   const p=legacy as Project;
   if(!p||p.format!=='breakbeat-project'||![2,3].includes(p.version)||!p.editor||!p.kit||!Array.isArray(p.assets)||p.assets.length>256)throw Error('Not a supported project.');
+  let migrated=false;
+  if(needsVinylMigration(p)){
+    if(!replacement||replacement.id!=='library-lofi2-perc-02')throw Error('Load the replacement percussion sample before opening this older project.');
+    migrated=true;
+    const selected=Object.values(p.kit).map(s=>s.choice).find(id=>typeof id==='string'&&isVinylTexture(id)) as string|undefined
+      ??projectPatterns(p).flatMap(pattern=>pattern.events).map(hit=>hit.slice?.assetId??'').map(id=>id.startsWith('library-')?id.slice(8):id).find(isVinylTexture);
+    p.vinylTexture=selected?{enabled:true,catalogId:selected,levelDb:-30}:p.vinylTexture??{...DEFAULT_VINYL_TEXTURE};
+    for(const slot of Object.values(p.kit))if(legacyId(slot.choice)||slot.assetId&&legacyId(slot.assetId)){
+      slot.choice='lofi2-perc-02';slot.assetId=replacement.id;
+      if(slot.uploadId&&legacyId(slot.uploadId))delete slot.uploadId;
+      if(slot.sampleProfiles)for(const key of Object.keys(slot.sampleProfiles))if(legacyId(key))delete slot.sampleProfiles[key];
+    }
+    for(const pattern of projectPatterns(p))for(const hit of pattern.events)if(hit.slice&&legacyId(hit.slice.assetId)){
+      hit.slice={assetId:replacement.id,startFrame:0,endFrame:replacement.channels[0]!.length,sampleRate:replacement.sampleRate,label:replacement.name};
+      if(legacyId(hit.sourceId))hit.sourceId='kit.percussion';
+    }
+    if(!p.assets.some(a=>a.id===replacement.id))p.assets.push({id:replacement.id,name:replacement.name,sampleRate:replacement.sampleRate,channels:replacement.channels.map(base64)});
+  }
+  p.assets=p.assets.filter(a=>!legacyId(a.id));
+  p.vinylTexture=validateVinylTexture(p.vinylTexture??DEFAULT_VINYL_TEXTURE);
   compile(p.editor.pattern);validateSettings(p.draft);if(p.bank){validateBank(p.bank);if(JSON.stringify(p.bank.slots[p.bank.active]!.editor)!==JSON.stringify(p.editor))throw Error('Active slot mismatch.');}
   if(!Array.isArray(p.editor.lockedRoles)||p.editor.lockedRoles.some(r=>!ROLES.includes(r))||!Array.isArray(p.editor.lockedIds)||p.editor.lockedIds.some(id=>typeof id!=='string')||!Number.isInteger(p.editor.revision)||p.editor.revision<0)throw Error('Invalid project editor state.');
   const selection=p.editor.selection;
@@ -39,7 +68,7 @@ export function readProject(raw:unknown){
     });
     if(channels.some(c=>c.length!==channels[0]!.length))throw Error('Channel lengths differ.');assets.set(a.id,{id:a.id,name:a.name,sampleRate:a.sampleRate,channels});
   }
-  for(const role of ROLES){const s=p.kit[role];if(!s||typeof s.choice!=='string'||typeof s.include!=='boolean'||typeof s.mute!=='boolean'||!Number.isFinite(s.level)||s.level<0||s.level>1||!Number.isInteger(s.tune)||s.tune< -24||s.tune>24)throw Error('Invalid instrument settings.');if(s.solo!==undefined&&typeof s.solo!=='boolean')throw Error('Invalid instrument settings.');if(s.reverse!==undefined&&typeof s.reverse!=='boolean')throw Error('Invalid instrument reverse.');if(s.decay!==undefined&&(!Number.isFinite(s.decay)||s.decay<.02||s.decay>1))throw Error('Invalid instrument decay.');if(s.playbackRate!==undefined&&(!Number.isFinite(s.playbackRate)||s.playbackRate<.5||s.playbackRate>2))throw Error('Invalid instrument speed.');if(s.lowpassHz!==undefined&&(!Number.isFinite(s.lowpassHz)||s.lowpassHz<200||s.lowpassHz>20000))throw Error('Invalid instrument low-pass.');if(s.attackMs!==undefined&&(!Number.isFinite(s.attackMs)||s.attackMs<0||s.attackMs>50))throw Error('Invalid instrument attack.');if(s.sourceBpm!==undefined&&(!Number.isFinite(s.sourceBpm)||s.sourceBpm<40||s.sourceBpm>300))throw Error('Invalid source BPM.');if(s.followBpm!==undefined&&typeof s.followBpm!=='boolean'||s.followBpm&&!s.sourceBpm)throw Error('Invalid instrument BPM follow.');if(s.effects!==undefined)validateEffects(s.effects);if(!['synth','synth-scratch','upload',...LIBRARY.filter(e=>e.role===role).map(e=>e.id)].includes(s.choice))throw Error('Unknown instrument choice.');if(s.choice!=='synth'&&!s.assetId)throw Error('Instrument has no audio.');if(s.choice==='upload'&&s.assetId!==s.uploadId)throw Error('Upload mapping mismatch.');for(const id of [s.assetId,s.uploadId])if(id!==undefined){const a=assets.get(id);if(!a)throw Error('Missing instrument audio.');if(a.channels[0]!.length/a.sampleRate>20)throw Error('Single-hit audio exceeds twenty seconds.');}}
+  for(const role of ROLES){const s=p.kit[role];if(!s||typeof s.choice!=='string'||typeof s.include!=='boolean'||typeof s.mute!=='boolean'||!Number.isFinite(s.level)||s.level<0||s.level>1||!Number.isInteger(s.tune)||s.tune< -24||s.tune>24)throw Error('Invalid instrument settings.');if(s.solo!==undefined&&typeof s.solo!=='boolean')throw Error('Invalid instrument settings.');if(s.reverse!==undefined&&typeof s.reverse!=='boolean')throw Error('Invalid instrument reverse.');if(s.decay!==undefined&&(!Number.isFinite(s.decay)||s.decay<.02||s.decay>1))throw Error('Invalid instrument decay.');if(s.playbackRate!==undefined&&(!Number.isFinite(s.playbackRate)||s.playbackRate<.5||s.playbackRate>2))throw Error('Invalid instrument speed.');if(s.lowpassHz!==undefined&&(!Number.isFinite(s.lowpassHz)||s.lowpassHz<200||s.lowpassHz>20000))throw Error('Invalid instrument low-pass.');if(s.attackMs!==undefined&&(!Number.isFinite(s.attackMs)||s.attackMs<0||s.attackMs>50))throw Error('Invalid instrument attack.');if(s.sourceBpm!==undefined&&(!Number.isFinite(s.sourceBpm)||s.sourceBpm<40||s.sourceBpm>300))throw Error('Invalid source BPM.');if(s.followBpm!==undefined&&typeof s.followBpm!=='boolean'||s.followBpm&&!s.sourceBpm)throw Error('Invalid instrument BPM follow.');if(s.effects!==undefined)validateEffects(s.effects);if(!['synth','upload',...LIBRARY.filter(e=>e.role===role&&!isVinylTexture(e.id)).map(e=>e.id)].includes(s.choice))throw Error('Unknown instrument choice.');if(s.choice!=='synth'&&!s.assetId)throw Error('Instrument has no audio.');if(s.choice==='upload'&&s.assetId!==s.uploadId)throw Error('Upload mapping mismatch.');for(const id of [s.assetId,s.uploadId])if(id!==undefined){const a=assets.get(id);if(!a)throw Error('Missing instrument audio.');if(a.channels[0]!.length/a.sampleRate>20)throw Error('Single-hit audio exceeds twenty seconds.');}}
   for(const role of ROLES){
     const profiles=p.kit[role].sampleProfiles;
     if(profiles===undefined)continue;
@@ -55,7 +84,7 @@ export function readProject(raw:unknown){
     }
   }
   for(const h of [p.editor.pattern,...(p.bank?.slots.flatMap(s=>[...(s.editor?[s.editor.pattern]:[]),...(s.patternHistory?.map(h=>h.editor.pattern)??[])])??[])].flatMap(p=>p.events))if(h.slice){const a=assets.get(h.slice.assetId);if(!a||a.sampleRate!==h.slice.sampleRate||h.slice.endFrame>a.channels[0]!.length)throw Error('Missing slice audio.');}
-  return {project:p,assets};
+  return {project:p,assets,migrated};
 }
 function database():Promise<IDBDatabase>{return new Promise((resolve,reject)=>{const request=indexedDB.open('breakbeat-workspace',1);request.onupgradeneeded=()=>request.result.createObjectStore('projects');request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);});}
 export async function localProject(value?:Project){const db=await database();try{return await new Promise<Project|undefined>((resolve,reject)=>{const tx=db.transaction('projects',value?'readwrite':'readonly'),store=tx.objectStore('projects');let result:Project|undefined;const request=value?store.put(value,'latest'):store.get('latest');request.onsuccess=()=>{if(!value)result=request.result;};tx.oncomplete=()=>resolve(result);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);});}finally{db.close();}}

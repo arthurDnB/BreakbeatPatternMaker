@@ -1,0 +1,50 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {generate} from '../dist/core/generate.js';
+import {defaults} from '../dist/core/profiles.js';
+import {renderPerformance,renderSequence} from '../dist/audio/performance.js';
+import {mixVinylTexture,VINYL_TEXTURES,DEFAULT_VINYL_TEXTURE} from '../dist/audio/vinyl-texture.js';
+import {makeProject,readProject} from '../dist/audio/project.js';
+import {defaultKitState} from '../dist/audio/drum-kit.js';
+import {Editor} from '../dist/core/editor.js';
+import {newBank} from '../dist/core/bank.js';
+
+const rate=8000;
+const recording={id:'lofi2-vinyl-01',name:'Texture',sampleRate:rate,channels:[Float32Array.from({length:1600},(_,i)=>Math.sin(i*.07)*.5)]};
+const silent=()=>{const p=generate({...defaults(),bpm:120,bars:1});p.events=[];return p;};
+test('all vinyl recordings are ambience choices and default is off at -30 dB',()=>{
+ assert.equal(VINYL_TEXTURES.length,9);
+ assert.deepEqual(VINYL_TEXTURES.map(s=>s.id),Array.from({length:9},(_,i)=>`lofi2-vinyl-0${i+1}`));
+ assert.deepEqual(DEFAULT_VINYL_TEXTURE,{enabled:false,catalogId:'lofi2-vinyl-01',levelDb:-30});
+});
+test('texture rendering is deterministic, quiet, independent of tempo and smooth at recording and pattern joins',()=>{
+ const p=silent(),options={loop:true,vinylTexture:{asset:recording,levelDb:-30}};
+ const dry=renderPerformance(p,new Map(),rate,{}, {loop:true});
+ const wet=renderPerformance(p,new Map(),rate,{},options);
+ assert.ok(dry.channels.every(ch=>ch.every(v=>v===0)));
+ assert.deepEqual(wet.channels,renderPerformance(p,new Map(),rate,{},options).channels);
+ const ch=wet.channels[0];assert.ok(Math.max(...ch)<.04);
+ assert.ok(Math.abs(ch[0]-ch.at(-1))<.002,'exact-bars loop must join without an audible step');
+ const repeat=Math.round((recording.channels[0].length-Math.round(rate*.12)));
+ assert.ok(Math.abs(ch[repeat]-ch[repeat-1])<.002,'recording repeat must crossfade');
+ const song=renderSequence([p,{...p,settings:{...p.settings,bpm:180}}],new Map(),rate,{}, {vinylTexture:{asset:recording,levelDb:-30}});
+ const reference=[new Float32Array(song.channels[0].length),new Float32Array(song.channels[0].length)];mixVinylTexture(reference,rate,recording,-30);
+ assert.deepEqual(song.channels,reference,'song texture keeps its phase across pattern and tempo changes');
+});
+test('project vinyl setting persists and migration updates bank slots and pattern history',()=>{
+ const p=silent(),editor=new Editor(p),kit=defaultKitState(),bank=newBank(p);
+ const settings={enabled:true,catalogId:'lofi2-vinyl-09',levelDb:-35};
+ const saved=makeProject(editor.state,defaults(),kit,new Map(),bank,settings);
+ assert.deepEqual(readProject(saved).project.vinylTexture,settings);
+ const replacement={id:'library-lofi2-perc-02',name:'Percussion',sampleRate:rate,channels:[new Float32Array([0,.2,0])]};
+ const old=structuredClone(saved);old.kit.percussion={...kit.percussion,choice:'synth-scratch',assetId:'synth-scratch'};
+ const legacyHit={id:'legacy',role:'percussion',sourceId:'synth-scratch',baseTick:0,offsetTick:0,gain:1,pan:0,anchor:false,ghost:false,reason:'Legacy',slice:{assetId:'synth-scratch',startFrame:0,endFrame:3,sampleRate:rate,label:'Scratch'}};
+ old.editor.pattern.events.push(structuredClone(legacyHit));old.bank.slots[0].editor.pattern.events.push(structuredClone(legacyHit));
+ old.bank.slots[0].patternHistory=[{label:'Old',capturedAt:0,editor:structuredClone(old.editor)}];
+ old.assets.push({id:'synth-scratch',name:'Scratch',sampleRate:rate,channels:[btoa(String.fromCharCode(...new Uint8Array(new Float32Array([0,.2,0]).buffer)))]});
+ const migrated=readProject(old,replacement);assert.ok(migrated.migrated);
+ assert.equal(migrated.project.editor.pattern.events.at(-1).slice.assetId,replacement.id);
+ assert.equal(migrated.project.bank.slots[0].editor.pattern.events.at(-1).slice.assetId,replacement.id);
+ assert.equal(migrated.project.bank.slots[0].patternHistory[0].editor.pattern.events.at(-1).slice.assetId,replacement.id);
+ assert.ok(!migrated.project.assets.some(a=>a.id==='synth-scratch'));
+});

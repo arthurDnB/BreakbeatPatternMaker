@@ -376,6 +376,12 @@
     </section>
   </div>
 </section>
+<section id="vinyl-texture-rack" class="vinyl-texture-rack" aria-label="Vinyl Texture">
+  <label class="vinyl-texture-toggle"><input id="vinyl-texture-enabled" type="checkbox"> Vinyl Texture <span>Continuous background ambience</span></label>
+  <label>Recording <select id="vinyl-texture-choice"></select></label>
+  <button id="vinyl-texture-preview" type="button">Preview</button>
+  <label>Level <output id="vinyl-texture-level-value">−30 dB</output><input id="vinyl-texture-level" type="range" min="-60" max="0" step="1" value="-30"></label>
+</section>
 <details id="master-dsp-rack" class="master-dsp-rack"><summary><svg class="tool-icon"><use href="#icon-sliders"/></svg> Master DSP <span>Filter · dynamics · delay</span></summary><div id="master-dsp-host"></div></details>
 
 <dialog id="sound-browser" class="sound-browser" aria-labelledby="sound-browser-title"><div class="sound-browser-shell"><header><div><h2 id="sound-browser-title">Browse sounds</h2><p>Preview a sound, then use it in the tracker.</p></div><button id="sound-browser-close" type="button" aria-label="Close sound browser">×</button></header><div class="sound-browser-tools"><label>Search sounds<input id="sound-browser-search" type="search" autocomplete="off" placeholder="Name or collection"></label><label>Collection<select id="sound-browser-filter"><option value="all">All sounds</option><option value="featured">Featured in kits</option><option value="favorites">Favorites</option><option value="recent">Recently used</option><option value="UDNB">UDNB</option><option value="Lo-Fi">Lo-Fi</option><option value="TR-808">TR-808</option><option value="Acoustic & other">Acoustic & other</option></select></label></div><p id="sound-browser-status" role="status"></p><div id="sound-browser-results" class="sound-browser-results" tabindex="0" aria-label="Sound results"></div><p id="sound-browser-empty" hidden>No sounds match this search and collection.</p><footer><span>↑ ↓ Select · Space Preview · Enter Use · Esc Close</span><button id="sound-browser-preview" type="button">Preview</button><button id="sound-browser-use" type="button" class="accent">Use sound</button></footer></div></dialog>

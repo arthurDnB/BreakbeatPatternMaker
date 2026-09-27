@@ -2125,13 +2125,13 @@ export const KIT_PRESETS: KitPreset[] = [
   },
   {
     id: 'lofi-soul',
-    name: '🍂 Lo-Fi Hip-Hop (Vinyl Scratch & Soul Snare)',
-    description: 'Warm 20" clean kick, 16x7 deep wood snare crack, natural closed hat, generative vinyl scratch',
+    name: '🍂 Lo-Fi Hip-Hop (Soul Snare & Percussion)',
+    description: 'Warm 20" clean kick, deep wood snare crack, natural closed hat, lo-fi percussion',
     slots: {
       kick: 'acoustic-kick-clean',
       snare: 'acoustic-snare-fat',
       hat: 'acoustic-hat-closed',
-      percussion: 'synth-scratch',
+      percussion: 'lofi2-perc-02',
     },
     levels: {snare: 0.82, percussion: 0.95},
     decays: {snare: 0.60},
@@ -2151,13 +2151,13 @@ export const KIT_PRESETS: KitPreset[] = [
   },
   {
     id: 'lofi2-dusty-vinyl',
-    name: '📻 Lo-Fi Dusty Vinyl (Sub Kick & Crackle)',
-    description: 'Deep round lofi kick, textured vinyl snare, vintage tape closed hat, authentic vinyl crackle texture',
+    name: '📻 Lo-Fi Dusty Drums (Sub Kick & Percussion)',
+    description: 'Deep round lofi kick, textured snare, vintage tape closed hat, lo-fi percussion',
     slots: {
       kick: 'lofi2-kick-04',
       snare: 'lofi2-snare-01',
       hat: 'lofi2-hat-closed-03',
-      percussion: 'lofi2-vinyl-01',
+      percussion: 'lofi2-perc-02',
     },
     levels: {snare: 0.85, percussion: 0.70},
     decays: {snare: 0.65},
@@ -2191,12 +2191,12 @@ export const KIT_PRESETS: KitPreset[] = [
   {
     id: 'lofi2-sp404-grit',
     name: '🎛️ SP-404 Gritty Lo-Fi (Crunch & Sizzle)',
-    description: 'Saturated boxy kick, crunch rim snare, dark sizzle closed hat, vinyl scratch synth',
+    description: 'Saturated boxy kick, crunch rim snare, dark sizzle closed hat, lo-fi percussion',
     slots: {
       kick: 'lofi2-kick-08',
       snare: 'lofi2-snare-11',
       hat: 'lofi2-hat-closed-18',
-      percussion: 'synth-scratch',
+      percussion: 'lofi2-perc-02',
     },
     levels: {snare: 0.84, percussion: 0.90},
     decays: {snare: 0.55},

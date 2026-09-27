@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import {createHash} from 'node:crypto';
-import {generate} from '../dist/core/generate.js';import {defaults} from '../dist/core/profiles.js';import {Editor} from '../dist/core/editor.js';import {defaultKitState,withDrumKit} from '../dist/audio/drum-kit.js';import {makeProject,readProject} from '../dist/audio/project.js';
+import {generate} from '../dist/core/generate.js';import {defaults} from '../dist/core/profiles.js';import {Editor} from '../dist/core/editor.js';import {defaultKitState,withDrumKit} from '../dist/audio/drum-kit.js';import {makeProject,readProject,needsVinylMigration} from '../dist/audio/project.js';
 test('generation exclusion reaches ghosts, fills, variation and lock conflicts',()=>{
  const s={...defaults(),enabledRoles:['kick','hat'],ghostAmount:1,fillAmount:1};const p=generate(s);assert.ok(p.events.every(h=>['kick','hat'].includes(h.role)));
  const e=new Editor(p);e.state.selection={rows:[0,3],ids:[]};assert.throws(()=>e.fill(),/excluded/);
@@ -15,14 +15,26 @@ test('project embeds PCM and restores kit, draft, locks without rounding audio',
  const bad=structuredClone(p);bad.kit.snare.level=NaN;assert.throws(()=>readProject(bad));
  const mixed=withDrumKit(e.state.pattern,{}, {...kit,snare:{...kit.snare,mute:true}});assert.ok(mixed.events.every(h=>h.role!=='snare'));
 });
-test('vinyl scratch built-in sound survives a portable project roundtrip',()=>{
+test('older scratch and vinyl instruments migrate to sampled percussion and background texture',()=>{
  const e=new Editor(generate(defaults())),kit=defaultKitState();
- const a={id:'synth-scratch',name:'Vinyl Scratch (Synth)',sampleRate:44100,channels:[new Float32Array([0,.2,0])]};
- kit.percussion={...kit.percussion,choice:'synth-scratch',assetId:a.id};
- const saved=makeProject(e.state,defaults(),kit,new Map([[a.id,a]]));
- const opened=readProject(JSON.parse(JSON.stringify(saved)));
- assert.equal(opened.project.kit.percussion.choice,'synth-scratch');
- assert.deepEqual(opened.assets.get(a.id),a);
+ const replacement={id:'library-lofi2-perc-02',name:'Lo-Fi Percussion 02',sampleRate:44100,channels:[new Float32Array([0,.2,0])]};
+ const saved=makeProject(e.state,defaults(),kit,new Map());
+ const older=structuredClone(saved);older.kit.percussion={...kit.percussion,choice:'synth-scratch',assetId:'synth-scratch'};
+ older.assets.push({id:'synth-scratch',name:'Old scratch',sampleRate:44100,channels:[btoa(String.fromCharCode(...new Uint8Array(new Float32Array([0,.3,0]).buffer)))]});
+ const hit=older.editor.pattern.events.find(h=>h.role==='percussion')??{...older.editor.pattern.events[0],id:'legacy-percussion',role:'percussion',sourceId:'synth-scratch'};
+ if(!older.editor.pattern.events.some(h=>h.id===hit.id))older.editor.pattern.events.push(hit);
+ hit.slice={assetId:'synth-scratch',startFrame:0,endFrame:3,sampleRate:44100,label:'Old scratch'};
+ assert.ok(needsVinylMigration(older));
+ const opened=readProject(older,replacement);
+ assert.ok(opened.migrated);assert.equal(opened.project.kit.percussion.choice,'lofi2-perc-02');
+ assert.equal(opened.project.editor.pattern.events.find(h=>h.id===hit.id).slice.assetId,replacement.id);
+ assert.ok(!opened.project.assets.some(a=>a.id==='synth-scratch'));
+ assert.deepEqual(opened.project.vinylTexture,{enabled:false,catalogId:'lofi2-vinyl-01',levelDb:-30});
+ const vinyl=structuredClone(saved);vinyl.kit.percussion={...kit.percussion,choice:'lofi2-vinyl-08',assetId:'library-lofi2-vinyl-08'};
+ vinyl.assets.push({id:'library-lofi2-vinyl-08',name:'Vinyl 08',sampleRate:44100,channels:[btoa(String.fromCharCode(...new Uint8Array(new Float32Array([0,.1,0]).buffer)))]});
+ const vinylOpened=readProject(vinyl,replacement);
+ assert.deepEqual(vinylOpened.project.vinylTexture,{enabled:true,catalogId:'lofi2-vinyl-08',levelDb:-30});
+ assert.equal(vinylOpened.project.kit.percussion.choice,'lofi2-perc-02');
 });
 test('bundled audio matches recorded provenance hashes and CC0 license records',()=>{
  const catalog=JSON.parse(readFileSync('public/samples/catalog.json','utf8'));assert.equal(catalog.length,344);

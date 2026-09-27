@@ -2,11 +2,12 @@ import {setRatchets,articulationLabel} from './core/articulation.js';
 import {GROOVES} from './core/groove-profiles.js';
 import {NEW_GENRES} from './core/new-genres.js';
 import {newBank,arrange,songTimeline,songBlocks,songPosition,moveSequenceStep,moveSequenceStepToInsertion,insertSequenceStep,slotLabel,addPatternSlot,duplicatePatternSlot,deletePatternSlot,rememberPattern,type Bank} from './core/bank.js';
-import {makeProject,readProject,localProject} from './audio/project.js';
+import {makeProject,readProject,localProject,needsVinylMigration} from './audio/project.js';
 import {defaultKitState} from './audio/drum-kit.js';
 import {setupDrumKit,withDrumKit,effectiveSampleSpeed} from './audio/drum-kit.js';
 import {KIT_PRESETS,GENRE_KITS,LIBRARY} from './audio/library.js';
 import {ensureLibraryAudio} from './audio/library-audio.js';
+import {DEFAULT_VINYL_TEXTURE,VINYL_TEXTURES,loadVinylTexture,mixVinylTexture,type VinylTexture} from './audio/vinyl-texture.js';
 import {setupSoundBrowser} from './audio/sound-browser.js';
 import {setupSamplePanel} from './audio/sample-panel.js';
 import {downloadBytes} from './audio/render.js';
@@ -21,8 +22,6 @@ import {ROLES,hex,noteName,type Hit,type Role,type Genre,type BreakStyle,type Pa
 import {Editor,emptySelection,locked,selectedIds,type EditorState,type TrackerClipboard} from './core/editor.js';
 import {defaultEffects,type Effects} from './audio/effects.js';
 import {ArrangementHistory} from './core/arrangement-history.js';
-// @ts-expect-error Shared browser synthesizer has no TypeScript declaration.
-import {synthesize} from '../public/synth.js';
 
 
 const el=<T extends HTMLElement>(id:string)=>document.getElementById(id) as T;
@@ -64,6 +63,8 @@ let trackerEffectDraft:{id:string;command?:EffectCommand['command'];digits:strin
 const trackerFields=['note','instrument','volume','pan','delay','effect'] as const;
 let cursorField:typeof trackerFields[number]='note';
 const assets=new Map<string,AudioAsset>();
+let vinylTexture:VinylTexture={...DEFAULT_VINYL_TEXTURE};
+const vinylCache=new Map<string,AudioAsset>();
 let followPlayhead=true;
 
 function syncFollowPlayhead(){
@@ -76,6 +77,21 @@ function syncFollowPlayhead(){
 }
 
 let context:AudioContext|undefined,timer:ReturnType<typeof setInterval>|undefined;
+const vinylChoice=input('vinyl-texture-choice'),vinylEnabled=input('vinyl-texture-enabled'),vinylLevel=input('vinyl-texture-level');
+for(const item of VINYL_TEXTURES){const option=document.createElement('option');option.value=item.id;option.textContent=item.name;vinylChoice.append(option);}
+function syncVinylControls(){vinylEnabled.checked=vinylTexture.enabled;vinylChoice.value=vinylTexture.catalogId;vinylLevel.value=String(vinylTexture.levelDb);el('vinyl-texture-level-value').textContent=`${vinylTexture.levelDb} dB`;}
+function updateVinylTexture(){stop();vinylTexture={enabled:vinylEnabled.checked,catalogId:vinylChoice.value,levelDb:Number(vinylLevel.value)};syncVinylControls();scheduleSave();}
+vinylEnabled.onchange=updateVinylTexture;vinylChoice.onchange=updateVinylTexture;vinylLevel.oninput=()=>{el('vinyl-texture-level-value').textContent=`${vinylLevel.value} dB`;};vinylLevel.onchange=updateVinylTexture;syncVinylControls();
+function emphasizeVinylForGenre(){el('vinyl-texture-rack').classList.toggle('is-lofi',input('genre').value==='lofihiphop');}
+input('genre').addEventListener('change',emphasizeVinylForGenre);emphasizeVinylForGenre();
+async function vinylOptions(){
+ if(!vinylTexture.enabled)return {};
+ context??=new AudioContext();let asset=vinylCache.get(vinylTexture.catalogId);
+ if(!asset){asset=await loadVinylTexture(vinylTexture.catalogId,context);vinylCache.set(vinylTexture.catalogId,asset);}
+ return {vinylTexture:{asset,levelDb:vinylTexture.levelDb}};
+}
+function readyVinylOptions(){if(!vinylTexture.enabled)return {};const asset=vinylCache.get(vinylTexture.catalogId);if(!asset)throw Error('Vinyl texture is still loading. Try again.');return {vinylTexture:{asset,levelDb:vinylTexture.levelDb}};}
+el('vinyl-texture-preview').onclick=async()=>{try{stop();context??=new AudioContext();const token=playToken;await context.resume();const asset=vinylCache.get(vinylChoice.value)??await loadVinylTexture(vinylChoice.value,context);vinylCache.set(vinylChoice.value,asset);if(token!==playToken)return;const channels=[new Float32Array(Math.round(context.sampleRate*4)),new Float32Array(Math.round(context.sampleRate*4))];mixVinylTexture(channels,context.sampleRate,asset,Number(vinylLevel.value));startSource(audioBuffer({channels,sampleRate:context.sampleRate,duration:4,attenuation:1}),context.currentTime);status(`Previewing ${asset.name} at ${vinylLevel.value} dB.`);}catch(e){status(String(e),true);}};
 const playingSources=new Set<AudioBufferSourceNode>();
 let refreshKitTempo=()=>{};
 function showHitEditor(){if(matchMedia('(max-width:800px)').matches)requestAnimationFrame(()=>el('hit-editor').scrollIntoView({behavior:'smooth',block:'start'}));}
@@ -461,9 +477,6 @@ async function previewSoundCandidate(role:Role,choice:string,hit?:Hit){
  if(choice==='upload'){
    const asset=assets.get(kitPanel.mix[role].uploadId??'');if(!asset)throw Error('No uploaded sound is available for this lane.');
    slice={assetId:asset.id,startFrame:0,endFrame:asset.channels[0]!.length,sampleRate:asset.sampleRate,label:asset.name};
- }else if(choice==='synth-scratch'){
-   const id='synth-scratch';if(!assets.has(id))assets.set(id,{id,name:'Vinyl Scratch (Synth)',sampleRate:44100,channels:[synthesize('scratch',44100)]});
-   const asset=assets.get(id)!;slice={assetId:id,startFrame:0,endFrame:asset.channels[0]!.length,sampleRate:asset.sampleRate,label:asset.name};
  }else if(choice!=='synth'&&choice!=='lane'){
    const asset=await ensureLibraryAudio(choice,role,assets,context);
    slice={assetId:asset.id,startFrame:0,endFrame:asset.channels[0]!.length,sampleRate:asset.sampleRate,label:asset.name};
@@ -506,7 +519,8 @@ async function auditionHit(hit:Hit){
 }
 async function play(){
  if(mode){stop();return;}if(input('transport-target').value==='song'){await playArrangement();return;}stop();samplePanel.stop();const token=playToken;context??=new AudioContext();await context.resume();if(token!==playToken)return;
- let audio=renderPerformance(withDrumKit(pattern,drumKit,kitPanel.mix),assets,context.sampleRate,effectMap(),{loop:true}),buffer=audioBuffer(audio);
+ const texture=await vinylOptions();if(token!==playToken)return;
+ let audio=renderPerformance(withDrumKit(pattern,drumKit,kitPanel.mix),assets,context.sampleRate,effectMap(),{loop:true,...texture}),buffer=audioBuffer(audio);
  let start=context.currentTime+.08,duration=buffer.duration;
  let source=startSource(buffer,start,true),prepared:{slot:number;buffer:AudioBuffer;mix:string}|undefined;
  let boundary:{at:number;slot:number;duration:number}|undefined;
@@ -519,7 +533,7 @@ async function play(){
   if(!boundary&&pendingSlot!==undefined){
    const mix=JSON.stringify(kitPanel.mix);
    if(prepared?.slot!==pendingSlot||prepared.mix!==mix){
-    const nextAudio=renderPerformance(withDrumKit(bank!.slots[pendingSlot]!.editor!.pattern,drumKit,kitPanel.mix),assets,context!.sampleRate,effectMap(),{loop:true});
+    const nextAudio=renderPerformance(withDrumKit(bank!.slots[pendingSlot]!.editor!.pattern,drumKit,kitPanel.mix),assets,context!.sampleRate,effectMap(),{loop:true,...readyVinylOptions()});
     prepared={slot:pendingSlot,buffer:audioBuffer(nextAudio),mix};
    }
    now=context!.currentTime;
@@ -573,7 +587,8 @@ async function previewComparison(side:CompareSide){
  const selected=comparison&&bank&&comparison.slot===bank.active?comparison[side]:undefined;if(!selected)return;
  if(mode==='comparison'&&comparisonPlaying===side){stop();return;}
  stop();samplePanel.stop();context??=new AudioContext();const token=playToken;await context.resume();if(token!==playToken)return;
- const audio=renderPerformance(withDrumKit(selected.state.pattern,drumKit,kitPanel.mix),assets,context.sampleRate,effectMap(),{loop:true});
+ const texture=await vinylOptions();if(token!==playToken)return;
+ const audio=renderPerformance(withDrumKit(selected.state.pattern,drumKit,kitPanel.mix),assets,context.sampleRate,effectMap(),{loop:true,...texture});
  startSource(audioBuffer(audio),context.currentTime+.08,true);mode='comparison';comparisonPlaying=side;
  el('transport-state').textContent=`Comparing ${side}`;setPlayButton(true);renderComparisonControls();status(`Previewing ${side}: ${selected.label}. The tracker remains unchanged.`);
 }
@@ -628,7 +643,7 @@ function renderBank(){if(!bank)return;const host=el('bank-slots');host.replaceCh
  renderSongTimeline();
  const bars=bank.sequence.reduce((n,s)=>n+bank!.slots[s.slot]!.editor!.pattern.settings.bars*s.repeats,0);el('arrangement-info').textContent=bars+' bars - '+(bars*240/bank.songBpm).toFixed(1)+' seconds - '+bank.songBpm+' BPM · max 170s';input('play-arrangement').disabled=!bars;input('export-arrangement').disabled=!bars;input('append-step').disabled=bank.sequence.length>=64;const undo=input('arr-undo'),redo=input('arr-redo');if(arrangementHistory&&undo&&redo){undo.disabled=!arrangementHistory.undoLabel;redo.disabled=!arrangementHistory.redoLabel;undo.title=arrangementHistory.undoLabel?`Undo ${arrangementHistory.undoLabel}`:'Nothing to undo';redo.title=arrangementHistory.redoLabel?`Redo ${arrangementHistory.redoLabel}`:'Nothing to redo';}
 }
-function arrangementAudio(rate:number){stashSlot();return renderSequence(arrange(bank!).map(p=>withDrumKit(p,drumKit,kitPanel.mix)),assets,rate,effectMap());}
+function arrangementAudio(rate:number){stashSlot();return renderSequence(arrange(bank!).map(p=>withDrumKit(p,drumKit,kitPanel.mix)),assets,rate,effectMap(),readyVinylOptions());}
 el('append-step').onclick=()=>{stop();if(bank!.sequence.length>=64)return;if(arrangementMutation('Append to arrangement',b=>insertSequenceStep(b,b.sequence.length,Number(input('append-slot').value)))){selectedArrangementStep=bank!.sequence.length-1;renderBank();scheduleSave();}};
 function revealPlaybackItem(container:HTMLElement, item:Element|null, inset=0){
  if(!item||!container.clientHeight)return;
@@ -642,6 +657,7 @@ async function playArrangement(){
  if(mode){stop();return;}
  stop();samplePanel.stop();context??=new AudioContext();const token=playToken;
  await context.resume();if(token!==playToken)return;
+ await vinylOptions();if(token!==playToken)return;
  const audio=arrangementAudio(context.sampleRate),timeline=songTimeline(bank!),buffer=audioBuffer(audio),start=context.currentTime+.05;
  input('transport-target').value='song';syncHud();
  startSource(buffer,start);mode='arrangement';el('transport-state').textContent='Song playing';el('play-arrangement').textContent='Stop arrangement';setPlayButton(true);
@@ -674,13 +690,14 @@ async function playArrangement(){
   if(elapsed>=buffer.duration)stop();
  },25);
 }
-function exportArrangement(){
+async function exportArrangement(){
+ await vinylOptions();
  const audio=arrangementAudio(44100);
  downloadBytes(encodeWav(audio.channels,audio.sampleRate),'breakbeat-arrangement.wav');
  status('Full song exported at '+bank!.songBpm+' BPM with continuous effects and final tails.');
 }
 el('play-arrangement').onclick=()=>{playArrangement().catch(e=>{stop();status(String(e),true);});};
-el('export-arrangement').onclick=()=>{try{exportArrangement();}catch(e){status(String(e),true);}};
+el('export-arrangement').onclick=()=>{exportArrangement().catch(e=>status(String(e),true));};
 el('transport-target').onchange=()=>{stop();syncHud();};
 el('export-target').onchange=()=>{input('export-mode').disabled=input('export-target').value==='song';};
 function setTransportTempo(bpm:number){
@@ -797,17 +814,18 @@ document.addEventListener('keydown',event=>{
   else if(!event.ctrlKey&&!event.metaKey&&!event.altKey&&event.key.toLowerCase()==='f'){event.preventDefault();followPlayhead=!followPlayhead;syncFollowPlayhead();status(`Follow playhead ${followPlayhead?'enabled':'disabled'}.`);}
 });
 el('regenerate').onclick=()=>{if(pendingCount()){status('Apply or Revert pending hit edits before generating a variation.',true);return;}edit(()=>editor.variation(),'Related variation generated. Seed, core motif, anchors and locks are retained.','Before variation');syncControls();};
-el('export-wav').onclick=()=>{
+el('export-wav').onclick=async()=>{
   try{
-    if(input('export-target').value==='song'){exportArrangement();return;}
+    if(input('export-target').value==='song'){await exportArrangement();return;}
     const modeEl=document.getElementById('export-mode') as HTMLSelectElement | null;
     const isLoop=modeEl?.value!=='tail';
+    const texture=await vinylOptions();
     const audio=renderPerformance(
       withDrumKit(pattern,drumKit,kitPanel.mix),
       assets,
       44100,
       effectMap(),
-      isLoop ? {loop:true} : {trimSilence:true,maxTailSeconds:3}
+      isLoop ? {loop:true,...texture} : {trimSilence:true,maxTailSeconds:3,...texture}
     );
     const filename=isLoop?transfer.genre+'-pattern.wav':transfer.genre+'-pattern-tail.wav';
     downloadBytes(encodeWav(audio.channels,audio.sampleRate),filename);
@@ -1239,31 +1257,35 @@ el('grid').addEventListener('keydown', event => {
 function snapshot(){
   if(kitPanel.busy)throw Error('Wait for the sample to finish loading.');
   let draft=pattern.settings;try{const candidate=settings();generate(candidate);draft=candidate;}catch{}
-  stashSlot();return makeProject(editor.state,draft,kitPanel.snapshot(),assets,bank);
+  stashSlot();return makeProject(editor.state,draft,kitPanel.snapshot(),assets,bank,vinylTexture);
 }
 function scheduleSave(){
   if(!persistenceReady)return;clearTimeout(saveTimer);el('save-status').textContent='Saving locally…';
   saveTimer=setTimeout(()=>{try{const value=snapshot();saveQueue=saveQueue.catch(()=>{}).then(()=>localProject(value)).then(()=>{el('save-status').textContent='Saved locally';}).catch(e=>{el('save-status').textContent='Autosave unavailable — use Save project';console.error(e);});}catch(e){el('save-status').textContent=String(e);}},600);
 }
-function applyProject(raw:unknown){
-  const {project:p,assets:loaded}=readProject(raw);if(pendingCount()&&!confirm('Opening this project discards pending hit edits. Continue?'))return false;hitDrafts.clear();stop();samplePanel.stop();
+async function applyProject(raw:unknown){
+  if(pendingCount()&&!confirm('Opening this project discards pending hit edits. Continue?'))return false;
+  let replacement:AudioAsset|undefined;
+  if(needsVinylMigration(raw)){context??=new AudioContext();replacement=await ensureLibraryAudio('lofi2-perc-02','percussion',assets,context);}
+  const {project:p,assets:loaded,migrated}=readProject(raw,replacement);hitDrafts.clear();stop();samplePanel.stop();
   comparison=undefined;cellAnchor=undefined;trackerClipboard=undefined;
   assets.clear();loaded.forEach((a,id)=>assets.set(id,a));kitPanel.restore(p.kit);
+  vinylTexture={...(p.vinylTexture??DEFAULT_VINYL_TEXTURE)};syncVinylControls();
   bank=p.bank?structuredClone(p.bank):newBank(p.editor.pattern);arrangementHistory=new ArrangementHistory(bank);bank=arrangementHistory.bank;selectedArrangementStep=undefined;slotEditors.clear();
   editor=new Editor(p.editor.pattern);editor.state=structuredClone(p.editor);rowAnchor=0;
   input('phraseLength').value=String(p.draft.phraseLength??0);syncPhraseControls(p.draft.phraseOffset??0);
   input('algorithm').value=p.draft.algorithm??'legacy-v1';input('variation').value=String(p.draft.variation??0);
   for(const role of ROLES)input(`${role}-density`).value=String(p.draft.laneDensity?.[role]??1);
   for(const [key,value] of Object.entries(p.draft))if(key!=='enabledRoles'&&key!=='laneDensity')input(key).value=String(value);
-  presets();refresh();return true;
+  presets();refresh();emphasizeVinylForGenre();if(migrated)status('Older project sound updated: scratch and vinyl instrument hits now use Lo-Fi Percussion 02. Vinyl texture moved to background where available.');return true;
 }
 el('project-save').onclick=()=>{try{if(pendingCount())throw Error('Apply or Revert pending hit edits before saving a project backup.');const data=snapshot();downloadBytes(new TextEncoder().encode(JSON.stringify(data)).buffer,'breakbeat-project.bbproject','application/json');status('Project saved with sample audio, kit, pattern and settings.');}catch(e){status(String(e),true);}};
 el('project-open').onchange=async e=>{const field=e.target as HTMLInputElement,file=field.files?.[0];field.value='';if(!file)return;
-  try{if(file.size>384*1024*1024)throw Error('Project exceeds 384 MB.');const raw=JSON.parse(await file.text());if(applyProject(raw)){scheduleSave();status('Project opened. Samples and instrument choices restored.');}}catch(e){status('Could not open project: '+String(e),true);}
+  try{if(file.size>384*1024*1024)throw Error('Project exceeds 384 MB.');const raw=JSON.parse(await file.text());if(await applyProject(raw)){scheduleSave();if(!needsVinylMigration(raw))status('Project opened. Samples and instrument choices restored.');}}catch(e){status('Could not open project: '+String(e),true);}
 };
 el('project-new').onclick=()=>{
   if(!confirm('Start a new project? Save project first to keep your current work.'))return;
-  hitDrafts.clear();stop();samplePanel.stop();comparison=undefined;cellAnchor=undefined;trackerClipboard=undefined;assets.clear();bank=undefined;arrangementHistory=undefined;selectedArrangementStep=undefined;slotEditors.clear();kitPanel.restore(defaultKitState());editor=new Editor(generate(genreDefaults('jungle')));ensureArrangementHistory();syncControls();
+  hitDrafts.clear();stop();samplePanel.stop();comparison=undefined;cellAnchor=undefined;trackerClipboard=undefined;assets.clear();vinylTexture={...DEFAULT_VINYL_TEXTURE};syncVinylControls();bank=undefined;arrangementHistory=undefined;selectedArrangementStep=undefined;slotEditors.clear();kitPanel.restore(defaultKitState());editor=new Editor(generate(genreDefaults('jungle')));ensureArrangementHistory();syncControls();
   const genre=input('genre').value as Genre,defaultKitId=GENRE_KITS[genre]||'acoustic-break';
   void kitPanel.applyPreset(defaultKitId);
   const ks=document.getElementById('kit-preset-select') as HTMLSelectElement | null;if(ks)ks.value=defaultKitId;const gks=document.getElementById('generator-kit-select') as HTMLSelectElement | null;if(gks)gks.value=defaultKitId;
@@ -1273,7 +1295,7 @@ presets();build();
 // Do not overwrite a stored workspace with the initial default pattern.
 try{
   const saved=await localProject();
-  if(saved){applyProject(saved);el('save-status').textContent='Restored local workspace';}
+  if(saved){await applyProject(saved);el('save-status').textContent='Restored local workspace';}
   else{
     const genre=input('genre').value as Genre,defaultKitId=GENRE_KITS[genre]||'acoustic-break';
     void kitPanel.applyPreset(defaultKitId);

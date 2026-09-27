@@ -2,9 +2,10 @@ import {LIBRARY} from './library.js';
 import {prepareLibraryHit} from './sample-prep.js';
 import type {AudioAsset} from './slices.js';
 import type {Role} from '../core/model.js';
+import {isVinylTexture} from './vinyl-texture.js';
 
 export async function ensureLibraryAudio(id:string,role:Role,assets:Map<string,AudioAsset>,context:AudioContext):Promise<AudioAsset>{
-  const entry=LIBRARY.find(item=>item.id===id&&item.role===role);
+  const entry=LIBRARY.find(item=>item.id===id&&item.role===role&&!isVinylTexture(item.id));
   if(!entry)throw Error('Choose a valid sound for this instrument.');
   const assetId='library-'+entry.id;
   const existing=assets.get(assetId);if(existing)return existing;

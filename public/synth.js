@@ -1,10 +1,10 @@
 // Original, deterministic synthesized drums. Shared by browser and Renoise WAV kit.
 // No recordings, external samples, or network dependencies.
 export function synthesize(role, sampleRate = 44100) {
-  if (!['kick','snare','hat','percussion','scratch'].includes(role)) throw new Error('Unknown drum role.');
+  if (!['kick','snare','hat','percussion'].includes(role)) throw new Error('Unknown drum role.');
   if (!Number.isFinite(sampleRate) || sampleRate < 8000 || sampleRate > 192000) throw new Error('Unsupported sample rate.');
-  const duration={kick:.58,snare:.34,hat:.14,percussion:.26,scratch:.35}[role];
-  const peak={kick:.94,snare:.82,hat:.42,percussion:.62,scratch:.70}[role];
+  const duration={kick:.58,snare:.34,hat:.14,percussion:.26}[role];
+  const peak={kick:.94,snare:.82,hat:.42,percussion:.62}[role];
   const data=new Float32Array(Math.ceil(duration*sampleRate));
   let state=123456789,phase=0,bodyPhase=0,low=0,air=0,dc=0;
   // One-pole filters keep noise transients bright without full-band hiss.
@@ -45,14 +45,6 @@ export function synthesize(role, sampleRate = 44100) {
       const skin=Math.sin(bodyPhase)*Math.exp(-t*22);
       const rim=Math.sin(2*Math.PI*1173*t)*Math.exp(-t*65)*.3;
       value=Math.tanh(skin*.9+rim+bright*Math.exp(-t*95)*.2);
-    } else if(role==='scratch') {
-      // Vinyl scratch (chirp/forward stroke)
-      const handSpeed = Math.max(0, Math.sin(Math.PI * Math.min(1, t / 0.35)));
-      const freq = 120 + 1500 * handSpeed;
-      phase += 2 * Math.PI * freq / sampleRate;
-      const grit = Math.sin(phase + Math.sin(phase*2)*0.8);
-      const envelope = Math.max(0, Math.sin(Math.PI * Math.min(1, t / 0.35)));
-      value = (grit * 0.6 + bright * 0.4) * envelope * 0.8;
     }
     // Remove DC/very low rumble and taper both edges to avoid cut-off clicks.
     dc+=dcAlpha*(value-dc);value-=dc;

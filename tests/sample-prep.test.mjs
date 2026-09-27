@@ -29,7 +29,7 @@ test('every genre default kit resolves to playable library sounds',()=>{
     const preset=KIT_PRESETS.find(p=>p.id===id);
     assert.ok(preset,genre);
     for(const [role,choice] of Object.entries(preset.slots)){
-      assert.ok(choice==='synth'||choice==='synth-scratch'||LIBRARY.some(s=>s.id===choice&&s.role===role),`${genre}: ${role} ${choice}`);
+      assert.ok(choice==='synth'||LIBRARY.some(s=>s.id===choice&&s.role===role&&!s.id.startsWith('lofi2-vinyl-')),`${genre}: ${role} ${choice}`);
     }
   }
 });

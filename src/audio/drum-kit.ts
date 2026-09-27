@@ -3,9 +3,8 @@ import type {AudioAsset} from './slices.js';
 import {validateWav} from './wav.js';
 import {defaultEffects,validateEffects,type Effects} from './effects.js';
 import {LIBRARY,KIT_PRESETS} from './library.js';
+import {isVinylTexture} from './vinyl-texture.js';
 import {ensureLibraryAudio} from './library-audio.js';
-// @ts-expect-error Shared original synth
-import {synthesize} from '../../public/synth.js';
 
 export type DrumKit=Partial<Record<Role,SliceRef>>;
 export type SampleShape={decay?:number;playbackRate?:number;lowpassHz?:number;attackMs?:number;sourceBpm?:number;followBpm?:boolean};
@@ -67,14 +66,13 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:(refreshTrack
     include.i.title='Use this lane when generating a new pattern. Existing notes stay unchanged.';mute.i.title='Silence this lane in pattern/song playback and WAV exports. Instrument Preview still lets you hear it.';solo.i.title='Solo this lane in playback and export.';
     const choice=document.createElement('select');choice.id='kit-choice-'+role;
     choice.className='sound-select';
-    const lofiList=LIBRARY.filter(s=>s.role===role&&s.id.startsWith('lofi2-')).map(s=>[s.id,s.name] as [string,string]);
+    const lofiList=LIBRARY.filter(s=>s.role===role&&s.id.startsWith('lofi2-')&&!isVinylTexture(s.id)).map(s=>[s.id,s.name] as [string,string]);
     const acousticList=LIBRARY.filter(s=>s.role===role&&s.id.startsWith('acoustic-')).map(s=>[s.id,s.name] as [string,string]);
     const tr808List=LIBRARY.filter(s=>s.role===role&&s.id.startsWith('808-')).map(s=>[s.id,s.name] as [string,string]);
     const udnbList=LIBRARY.filter(s=>s.role===role&&s.id.startsWith('udnb-')).map(s=>[s.id,s.name] as [string,string]);
     const otherList=LIBRARY.filter(s=>s.role===role&&!s.id.startsWith('lofi2-')&&!s.id.startsWith('acoustic-')&&!s.id.startsWith('808-')&&!s.id.startsWith('udnb-')).map(s=>[s.id,s.name] as [string,string]);
     const builtInList: [string, string][] = [['synth','Synthesized '+title.textContent]];
-    if(role==='percussion') builtInList.push(['synth-scratch','Vinyl Scratch (Synth)']);
-    const featured=KIT_PRESETS.flatMap(p=>p.slots[role]).filter((id,index,all)=>id!=='synth'&&id!=='synth-scratch'&&all.indexOf(id)===index);
+    const featured=KIT_PRESETS.flatMap(p=>p.slots[role]).filter((id,index,all)=>id!=='synth'&&all.indexOf(id)===index);
     const featuredList=featured.map(id=>LIBRARY.find(s=>s.id===id&&s.role===role)).filter((s):s is (typeof LIBRARY)[number]=>!!s).map(s=>[s.id,s.name] as [string,string]);
     const soundGroups: [string, [string, string][]][] = [
       ['Built-in Synthesizers', builtInList],
@@ -150,14 +148,6 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:(refreshTrack
     const update=()=>{
       play.disabled=loading;upload.disabled=loading;card.setAttribute('aria-busy',String(loading));
       const slot=mix[role];
-      if(slot.choice==='synth-scratch'){
-        slot.assetId='synth-scratch';
-        if(!assets.has('synth-scratch')){
-          const rate=44100;
-          const ch=[synthesize('scratch',rate)];
-          assets.set('synth-scratch',{id:'synth-scratch',name:'Vinyl Scratch (Synth)',sampleRate:rate,channels:ch});
-        }
-      }
       const asset=slot.assetId?assets.get(slot.assetId):undefined;
       if(asset)kit[role]={assetId:asset.id,startFrame:0,endFrame:asset.channels[0]!.length,sampleRate:asset.sampleRate,label:asset.name};else delete kit[role];
       reverse.i.checked=!!slot.reverse;const effects=slot.effects??defaultEffects();bypass.i.checked=effects.bypass;for(const [key,field] of effectInputs){field.value=String(effects[key] ?? (key==='wet'?1:0));const out=document.getElementById('fx-'+key+'-val-'+role);if(out)out.textContent=key==='wet'?Math.round(Number(field.value)*100)+'%':field.value;}
@@ -200,14 +190,6 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:(refreshTrack
       try{
         let id:string|undefined;
         if(value==='upload'){id=mix[role].uploadId;if(!id||!assets.has(id))throw Error('Upload a WAV first.');}
-        else if(value==='synth-scratch'){
-          id='synth-scratch';
-          if(!assets.has(id)){
-            const rate=44100;
-            const ch=[synthesize('scratch',rate)];
-            assets.set(id,{id,name:'Vinyl Scratch (Synth)',sampleRate:rate,channels:ch});
-          }
-        }
         else if(value!=='synth'){
           context??=new AudioContext();const a=await ensureLibraryAudio(value,role,assets,context);id=a.id;
         }
