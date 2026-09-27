@@ -135,7 +135,7 @@ function getTrackerStep(): number {
 function settings(){
   const s=defaults(input('genre').value as Genre);
   s.algorithm=input('algorithm').value as NonNullable<Pattern['settings']['algorithm']>;s.variation=Number(input('variation').value);
-  if(s.algorithm==='groove-v3'&&Number(input('phraseLength').value)){s.phraseLength=Number(input('phraseLength').value) as 4|8|16;s.phraseOffset=Number(input('phraseOffset').value);}
+  if(['groove-v3','groove-v4'].includes(s.algorithm??'')&&Number(input('phraseLength').value)){s.phraseLength=Number(input('phraseLength').value) as 4|8|16;s.phraseOffset=Number(input('phraseOffset').value);}
   s.enabledRoles=ROLES.filter(r=>kitPanel.mix[r].include);
   s.breakStyle=input('breakStyle').value as BreakStyle;
   s.seed=input('seed').value;s.bpm=Number(input('bpm').value);s.bars=Number(input('bars').value);
@@ -690,7 +690,7 @@ function syncSliders(){
   const spicyEl=document.getElementById('spicy-value');
   if(spicyEl){
     const pct=Math.round(spicyVal*100);
-    const tag=spicyVal>=0.7?(input('algorithm').value==='groove-v3'?' 🔥 Expressive':' 🔥 Chaos'):spicyVal>=0.35?' 🌶️ Spicy':spicyVal>0?' 🌶️ Mild':' Off';
+    const tag=spicyVal>=0.7?(['groove-v3','groove-v4'].includes(input('algorithm').value)?' 🔥 Expressive':' 🔥 Chaos'):spicyVal>=0.35?' 🌶️ Spicy':spicyVal>0?' 🌶️ Mild':' Off';
     spicyEl.textContent=pct+'%'+tag;
     input('spicy').setAttribute('aria-valuetext',spicyEl.textContent);
   }
@@ -701,9 +701,9 @@ function breakDescription(){
   el('break-description').textContent=key==='genre'?'Use the selected genre’s rhythm.':BREAKS[key].description+' Genre still controls tempo suggestions, detail and fill intensity.';
 }
 function syncStructureControls(){
- const v3=input('algorithm').value==='groove-v3',structure=input('patternStructure').value,build=structure==='build';
+ const v3=['groove-v3','groove-v4'].includes(input('algorithm').value),structure=input('patternStructure').value,build=structure==='build'&&input('algorithm').value==='groove-v3';
  input('patternStructure').disabled=!v3;
- input('patternStructure').title=v3?'Choose groove, ending or full snare build.':'Pattern structure requires Groove v3.';
+ input('patternStructure').title=v3?'Choose groove, ending or full snare build.':'Pattern structure requires Groove v3 or v4.';
  for(const id of ['syncopation','ghostAmount','swing','breakStyle','variation','phraseLength','phraseOffset']){
   input(id).disabled=v3&&build;
   input(id).title=v3&&build?'Not used by a full snare build.':'';
@@ -713,7 +713,7 @@ function syncStructureControls(){
 }
 input('patternStructure').addEventListener('change',syncStructureControls);
 function syncPhraseControls(offset=Number(input('phraseOffset').value)||0){
- const v3=input('algorithm').value==='groove-v3',length=Number(input('phraseLength').value);
+ const v3=['groove-v3','groove-v4'].includes(input('algorithm').value),length=Number(input('phraseLength').value);
  syncStructureControls();
  el('phrase-length-field').hidden=!v3;el('phrase-offset-field').hidden=!v3||!length;
  const select=el<HTMLSelectElement>('phraseOffset');select.replaceChildren();
@@ -807,11 +807,11 @@ input('phraseLength').addEventListener('change',()=>syncPhraseControls());
 el('breakStyle').onchange=()=>{breakDescription();dirty();};
 function restoreGenerationDefaults(){
  const genre=input('genre').value as Genre;
- const keepV3=input('algorithm').value==='groove-v3';
+ const keepEngine=input('algorithm').value;
  input('phraseLength').value='0';syncPhraseControls(0);
  input('algorithm').querySelector<HTMLOptionElement>('[value="legacy-v1"]')!.disabled=Object.hasOwn(NEW_GENRES,genre);
  for(const [key,value] of Object.entries(genreDefaults(genre)))input(key).value=String(value);
- if(keepV3)input('algorithm').value='groove-v3';
+ if(['groove-v3','groove-v4'].includes(keepEngine))input('algorithm').value=keepEngine;
  const autoKit=document.getElementById('auto-kit') as HTMLInputElement | null;
  if(autoKit&&autoKit.checked){
    const defaultKitId=GENRE_KITS[genre]||'acoustic-break';
@@ -936,7 +936,7 @@ function updateEntry(hit?:Hit){
     const n=transfer.notes.find(n=>n.id===hit.id)!;input('edit-row').value=String(n.row);input('edit-lane').value=hit.role;
     input('edit-volume').value=String(n.volume);input('edit-pan').value=String(n.pan);input('edit-delay').value=String(n.delay);input('edit-pitch').value=String(hit.pitch??0);input('edit-reverse').checked=!!hit.reverse;input('edit-ratchets').value=String(hit.ratchets??1);const gateSelect=el<HTMLSelectElement>('edit-gate');gateSelect.querySelector('[data-custom]')?.remove();if(hit.gate!==undefined&&!Array.from(gateSelect.options).some(o=>Number(o.value)===hit.gate)){const option=document.createElement('option');option.dataset.custom='true';option.value=String(hit.gate);option.textContent=Math.round(hit.gate*100)+'%';gateSelect.append(option);}gateSelect.value=String(hit.gate??0);input('edit-sound').value='keep';
   }else{input('edit-row').value=String(rowAnchor);input('edit-lane').value=cursorLane;}
-  const isV3=pattern.settings.algorithm==='groove-v3';
+  const isV3=['groove-v3','groove-v4'].includes(pattern.settings.algorithm??'');
   el('burst-span-field').hidden=!isV3;
   el('articulation-help').textContent=isV3?'Repeats divide the musical Burst span, independent of tracker resolution. Generated natural hits can sustain; Gate deliberately shortens attacks. Pitch and velocity contours are shown above.':'Ratchets divide one tracker row into equal repeats. Gate shortens each attack; 50% leaves half its interval silent. Effects can ring beyond the gate.';
   el('edit-ratchets-label').textContent=isV3?'Repeats in burst':'Ratchets per row';
@@ -962,7 +962,7 @@ function entryHit(replace:boolean,pitchOverride?:number){
   const tick=(row+delay/256)*960/transfer.timing.lpb;
   const hit:Hit={id:prior?.id??'entry-'+crypto.randomUUID(),role,sourceId:'kit.'+role,baseTick:Math.floor(tick),fineOffset:tick-Math.floor(tick),offsetTick:0,gain:volume/128,pan:pan/64-1,pitch,reverse:input('edit-reverse').checked,ratchets:Number(input('edit-ratchets').value),...(Number(input('edit-gate').value)?{gate:Number(input('edit-gate').value)}:{}),...(prior?.effect?{effect:{...prior.effect}}:{}),anchor:prior?.anchor??false,ghost:prior?.ghost??false,reason:'A manually entered tracker hit.'};
   if(prior?.decay!==undefined)hit.decay=prior.decay;
-  if(pattern.settings.algorithm==='groove-v3'){
+  if(['groove-v3','groove-v4'].includes(pattern.settings.algorithm??'')){
     const duration=Number(input('edit-burst-span').value)||3840/pattern.settings.resolution;
     const expression=prior?.articulation?structuredClone(prior.articulation):undefined;
     if(expression||hit.ratchets!>1||hit.gate!==undefined||Number(input('edit-burst-span').value)){
@@ -977,9 +977,9 @@ function entryHit(replace:boolean,pitchOverride?:number){
   const oldNote=prior&&transfer.notes.find(n=>n.id===prior.id);
   if(prior&&oldNote?.row===row&&oldNote.delay===delay){hit.baseTick=prior.baseTick;hit.offsetTick=prior.offsetTick;hit.fineOffset=prior.fineOffset;}
   const sound=input('edit-sound').value;
-  if(sound==='slice'){const a=currentAsset();hit.slice=sliceReference(a.asset,a.markers,a.selected);if(pattern.settings.algorithm==='groove-v3')hit.sourceKind='slice';}
+  if(sound==='slice'){const a=currentAsset();hit.slice=sliceReference(a.asset,a.markers,a.selected);if(['groove-v3','groove-v4'].includes(pattern.settings.algorithm??''))hit.sourceKind='slice';}
   else if(sound==='keep'&&prior?.slice)hit.slice={...prior.slice};
-  if(pattern.settings.algorithm==='groove-v3'){
+  if(['groove-v3','groove-v4'].includes(pattern.settings.algorithm??'')){
     if(sound!=='slice'&&sound!=='keep')hit.sourceKind='oneShot';
     if(prior&&oldNote?.volume===volume)hit.gain=prior.gain;
     if(prior&&oldNote?.pan===pan)hit.pan=prior.pan;

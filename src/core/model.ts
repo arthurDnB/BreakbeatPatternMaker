@@ -5,7 +5,7 @@ export type Role = typeof ROLES[number];
 export type Genre = 'jungle' | 'dnb' | 'hiphop' | 'trap' | 'rap' | 'drill' | 'breakcore' | 'idm' | 'hardcore' | 'experimental' | 'breaks' | 'bigbeat' | 'nuskoolbreaks' | 'electrobreaks' | 'breakbeathardcore' | 'raggajungle' | 'atmosphericjungle' | 'footworkjungle' | 'downtempo' | 'lofihiphop' | 'boombap' | 'mellowbeats' | 'liquiddnb' | 'jumpup' | 'garage' | 'speedgarage' | 'twostepgarage' | 'dub' | 'psydub' | 'dubstep' | 'brostep' | 'postdubstep' | 'drumfunk' | 'amenscience' | 'atmosphericbreakcore' | 'triphop' | 'halftimednb' | 'neurofunk';
 export type BreakStyle = 'genre' | 'amen' | 'think' | 'apache' | 'funkyDrummer' | 'hotPants';
 export interface Settings {
-  algorithm?: 'legacy-v1' | 'groove-v2' | 'groove-v3';
+  algorithm?: 'legacy-v1' | 'groove-v2' | 'groove-v3' | 'groove-v4';
   variation?: number;
   phraseLength?:4|8|16; phraseOffset?:number; // V3 section position, zero-based bars.
   breakStyle?: BreakStyle;

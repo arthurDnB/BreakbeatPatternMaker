@@ -26,7 +26,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.3.0-alpha`
-* **Test Status:** 128 / 128 unit tests passing (`npm.cmd test`).
+* **Test Status:** 135 / 135 unit tests passing (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -55,6 +55,7 @@ This document maintains the running project state and change log so that multipl
   - Fixed fast-tempo drum clicks: one-shot sample preservation ensures acoustic kicks/snares retain body and punch at 170–220+ BPM without abrupt row cutoffs.
   - Hi-hat choke groups closing open hats across tracker steps and arrangement loop boundaries.
   - Isolated deterministic random streams (`v3Chance`, `v3Pick`) and Strudel-inspired Euclidean rhythmic distribution.
+* [x] **Groove V4 (Complete):** Typed, profile-driven composition for all 38 genres with separate Complexity layers and Spicy gestures; V1–V3 remain selectable for existing projects. See `docs/GROOVE-V4.md` for tuning guidance.
 * [x] **Arrangement editing history:** Undo/redo for sequence, slot, repeat and song-tempo changes with context-aware shortcuts.
 * [x] **Named song sections:** Optional per-step section labels are preserved in project data, shown in the arranger and transport, and included in history.
 * [x] **Visual song timeline:** Colored section blocks, playhead following, insertion gaps, drag reorder and pattern selection with arrangement undo/redo.
@@ -67,6 +68,12 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-09-27] - Profile-Driven Groove V4 Engine (Codex)
+- **Generator (`src/core/groove-v4.ts`, `src/core/groove-v4-profiles.ts`):** Added a deterministic five-stage composition pipeline and typed, editable profiles for all 38 genres. Complexity adds genre-specific call/response and counter-rhythms; Spicy articulates secondary hits with bounded timing, pitch, reverse, rolls and source-offset chops while protecting the kick/snare spine.
+- **Integration (`src/core`, `src/audio`, `src/web.ts`, `public/index.html`):** Made V4 the new-generation default and routed variations, selected fills, locks, project persistence, Preview and WAV through the existing editor and audio path. V1, V2 and V3 remain selectable and previously saved projects keep their engine.
+- **Guidance and regression coverage (`docs/GROOVE-V4.md`, `README.md`, `PROJECT-SCOPE.md`, `tests/groove-v4.test.mjs`, `scripts/groove-v4-browser-smoke.mjs`):** Documented profile tuning and added 38-genre determinism, slider, anchor, fast-tempo, chop, editor and browser export checks. Kept the loop audit pinned to V3 and closed instrument panels in the existing site smoke before its transport/export checks.
+- **Verification:** `npm.cmd test` passed 135/135; `npm.cmd run test:site` passed at root and GitHub Pages subpath; focused V4 browser smoke passed generation, project save and WAV export.
 
 ### [2026-09-26] - Stable Play Control Layout (Codex)
 - **Transport (`public/index.html`, `public/workspace.css`):** Removed the visible stopped/playing status text from the transport so changes in playback state cannot resize or shift the play control. The button retains its accessible Play/Stop label; bumped the workspace stylesheet cache key.

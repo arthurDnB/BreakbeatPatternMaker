@@ -46,6 +46,12 @@ Collapsed tracker articulation controls provide 1–8 repeats per row and a gate
 - Verification: npm.cmd test; with the dev server running, node scripts/song-browser-smoke.mjs; npm.cmd run test:site.
 
 
+## Implemented: Groove v4 profile-driven generation
+
+- All 38 genres have typed, editable call/answer profiles and style-specific density, cadence and gesture limits. Complexity changes the rhythm's structure, while Spicy changes the articulation of non-anchor accents.
+- Named deterministic streams protect the anchor spine across variations. Selected-row Fill, pattern structure modes, Preview, WAV rendering, project save, locks and Undo/Redo use the V4 path. Earlier engines remain available for saved work.
+- Profile tuning and research references are in `docs/GROOVE-V4.md`.
+
 ## Implemented: Groove v3 phrase development
 - Genre-specific support phrases and articulation budgets preserve anchor spines; Jungle/Drumfunk include seed-selected displaced backbeat motifs, and Two-step Garage has its own shuffled supporting pulse.
 - Complexity adds call/answer phrases and optional complete Euclidean support layers; Spicy obeys each genre's repeat ceilings and minimum onset spacing, with energy-normalized repeat contours.

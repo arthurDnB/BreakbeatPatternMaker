@@ -67,7 +67,7 @@ export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,
       }
       return effectVoices;
     }
-    if(pattern.settings.algorithm==='groove-v3')return planV3Voices(pattern,hit,channels,sourceRate,from,to,origin,options.loop ? Infinity : position,rate);
+    if(['groove-v3','groove-v4'].includes(pattern.settings.algorithm??''))return planV3Voices(pattern,hit,channels,sourceRate,from,to,origin,options.loop ? Infinity : position,rate);
     const count=hit.ratchets??1,interval=240/pattern.settings.bpm/pattern.settings.resolution/count;
     const naturalLength=Math.ceil((to-from)/sourceRate/ratio*rate),decayActive=hit.decay!==undefined&&hit.decay<1;
     const decayMax=decayActive?Math.max(Math.round(rate*.02),Math.round(naturalLength*hit.decay!)):naturalLength;

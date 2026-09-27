@@ -281,7 +281,7 @@
         <label>Genre<select id="genre"></select><small id="genre-description"></small></label>
         <label>Drum Kit<select id="generator-kit-select"><option value="custom">Custom Kit</option></select><small id="generator-kit-desc">Kit sounds</small></label>
         <label class="control-bars">Bars<select id="bars"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label>
-        <label class="control-engine">Engine<select id="algorithm" title="Groove v3 adds musical rolls and genre-specific phrasing. Saved patterns keep their recorded engine."><option value="groove-v3" selected>Groove v3</option><option value="groove-v2">Groove v2</option><option value="legacy-v1">Legacy v1 (older seeds)</option></select></label>
+        <label class="control-engine">Engine<select id="algorithm" title="Groove v4 develops genre phrases with independent Complexity and Spicy controls. Saved patterns keep their recorded engine."><option value="groove-v4" selected>Groove v4</option><option value="groove-v3">Groove v3</option><option value="groove-v2">Groove v2</option><option value="legacy-v1">Legacy v1 (older seeds)</option></select></label>
         <div class="tempo-control"><label for="bpm-slider">BPM</label><input id="bpm-slider" aria-label="BPM slider" type="range" min="32" max="300" step=".1" value="165"><input aria-label="Exact BPM" id="bpm" type="number" min="32" max="999" step=".1" value="165"><span id="presets" class="presets"></span></div>
         <label>Complexity <output id="complexity-value" for="complexity">45%</output><input id="complexity" type="range" min="0" max="1" step=".01" value=".45"><small>Simple to detailed</small></label>
         <label>Spicy <output id="spicy-value" for="spicy">0%</output><input id="spicy" type="range" min="0" max="1" step=".01" value="0"><small>Rolls &amp; variation</small></label>
@@ -377,4 +377,4 @@
   </div>
   <p class="footer-note" hidden>Single-shot tracker · Audio stays local. Save project includes your samples and settings; autosave restores your latest workspace on this browser. WAV includes tails; muted lanes are excluded. Pitch repitches the sound. MP3 export remains planned.</p>
 </footer>
-</main><script type="module" src="./dist/web.js?v=0.4.1-trackerfx"></script></body></html>
+</main><script type="module" src="./dist/web.js?v=0.4.3-groovev4"></script></body></html>

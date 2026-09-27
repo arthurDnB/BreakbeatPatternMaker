@@ -132,6 +132,10 @@ Saved projects use schema version 2 or 3 depending on the audio engine. Version 
 Regression check: run `npm.cmd test`, start the local server, then run `node scripts/song-browser-smoke.mjs`. The song test checks timeline selection, insertion, drag reorder, undo/redo, playback following, exact rendered WAV data, persistence and mobile layout.
 
 
+## Groove v4 generation
+
+New UI patterns use **Groove v4**. Each of the 38 genres has an editable call/answer profile in `src/core/groove-v4-profiles.ts`. Complexity adds coordinated rhythmic layers; Spicy adds bounded rolls, pitch accents, reverse hits, chops, and microtiming where that genre permits them. Protected kick/snare anchors stay fixed through slider changes and variations. Preview and WAV use the same renderer. See [the V4 tuning guide](docs/GROOVE-V4.md) for where to change genre behavior and how to verify it.
+
 ## Groove v3 musical phrasing
 
 Choose **Advanced generation → Engine → Groove v3**. Complexity develops coordinated hat/ghost/percussion phrases. Spicy adds genre-limited, velocity-shaped doubles, triplets, rolls and pitch accents; only the more disruptive styles use generated micro-chops. Main anchors, locks, undo/redo and Preview/WAV share the existing workflow. Saved patterns keep their events until you generate again.
