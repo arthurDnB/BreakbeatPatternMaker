@@ -463,8 +463,8 @@ async function auditionRole(role: Role) {
   const b=context.createBuffer(2,audio.channels[0]!.length,audio.sampleRate);audio.channels.forEach((c,i)=>b.copyToChannel(new Float32Array(c),i));
   const source=context.createBufferSource();source.buffer=b;source.connect(context.destination);playingSources.add(source);source.onended=()=>{playingSources.delete(source);source.disconnect();};source.start();
 }
-const kitPanel=setupDrumKit(assets,()=>{
-  stop();samplePanel.stop();
+const kitPanel=setupDrumKit(assets,(refreshTracker=true)=>{
+  if(refreshTracker){stop();samplePanel.stop();}
   const ks=document.getElementById('kit-preset-select') as HTMLSelectElement | null;
   const gks=document.getElementById('generator-kit-select') as HTMLSelectElement | null;
   const matching=KIT_PRESETS.find(p=>ROLES.every(r=>kitPanel.mix[r].choice===p.slots[r]));
@@ -473,8 +473,8 @@ const kitPanel=setupDrumKit(assets,()=>{
   if(gks) gks.value=matchedId;
   const desc = document.getElementById('generator-kit-desc');
   if(desc) desc.textContent = matching ? matching.description : 'Custom kit configuration';
-  if(editor)refresh();
-},auditionRole);
+  if(editor){if(refreshTracker)refresh();else scheduleSave();}
+},auditionRole,()=>pattern?.settings.bpm??Number(input('bpm').value));
 const drumKit=kitPanel.kit;
 function effectMap(){return Object.fromEntries(ROLES.map(r=>[r,kitPanel.mix[r].effects]));}
 function audioBuffer(audio:ReturnType<typeof renderPerformance>){const b=context!.createBuffer(2,audio.channels[0]!.length,audio.sampleRate);audio.channels.forEach((c,i)=>b.copyToChannel(new Float32Array(c),i));return b;}
@@ -883,14 +883,14 @@ function currentAsset(){
   if(!assets.has(current.id))assets.set(current.id,{id:current.id,name:current.name,sampleRate:current.buffer.sampleRate,channels:Array.from({length:current.buffer.numberOfChannels},(_,i)=>current.buffer.getChannelData(i))});
   return {...current,asset:assets.get(current.id)!};
 }
-const hitFields=['edit-row','edit-lane','edit-sound','edit-volume','edit-pan','edit-delay','edit-pitch','edit-reverse','edit-ratchets','edit-gate','edit-burst-span'] as const;
+const hitFields=['edit-row','edit-lane','edit-sound','edit-volume','edit-pan','edit-delay','edit-pitch','edit-reverse','edit-ratchets','edit-gate','edit-burst-span','edit-speed-override','edit-speed','edit-lowpass-override','edit-lowpass','edit-attack-override','edit-attack','edit-decay-override','edit-decay'] as const;
 type HitDraft=Partial<Record<typeof hitFields[number],string>>;
 const hitDrafts=new Map<Editor,Map<string,HitDraft>>();
 let draftTargets:{slot:number;id:string}[]=[];
 let entryKey:string|undefined,entryOwner:Editor|undefined,entryBaseline:HitDraft={},pitchGesture:HitDraft|undefined,pitchCancelled=false;
 function draftMap(){let map=hitDrafts.get(editor);if(!map){map=new Map();hitDrafts.set(editor,map);}return map;}
-function fieldValue(id:typeof hitFields[number]){return id==='edit-reverse'?String(input(id).checked):input(id).value;}
-function setField(id:typeof hitFields[number],value:string){if(id==='edit-reverse')input(id).checked=value==='true';else input(id).value=value;}
+function fieldValue(id:typeof hitFields[number]){return input(id).type==='checkbox'?String(input(id).checked):input(id).value;}
+function setField(id:typeof hitFields[number],value:string){if(input(id).type==='checkbox')input(id).checked=value==='true';else input(id).value=value;}
 function captureHitDraft(){if(!entryKey||entryOwner!==editor)return;const draft:HitDraft={};for(const id of hitFields)if(fieldValue(id)!==entryBaseline[id])draft[id]=fieldValue(id);if(Object.keys(draft).length)draftMap().set(entryKey,draft);else draftMap().delete(entryKey);updateDraftStatus();}
 function pendingCount(){return [...hitDrafts.values()].reduce((n,m)=>n+m.size,0);}
 function updateDraftStatus(){
@@ -898,6 +898,7 @@ function updateDraftStatus(){
  el('hit-draft-status').textContent=!hit?'Select a hit, or use Insert hit to create a note at the cursor.':isLocked?'Locked — unlock to edit.':pending?'Pending changes · Preview includes these values. Apply or Revert. Kept in this session when switching hits.':pendingCount()?pendingCount()+' other hit draft(s) kept in this session.':'Saved hit · Pitch slider saves on release; other edits use Apply.';
  input('hit-revert').disabled=!pending;input('hit-unlock').hidden=!isLocked;el('hit-unlock').textContent=hit&&editor.state.lockedRoles.includes(hit.role)?'Unlock lane and hit':'Unlock hit';
  for(const id of [...hitFields,'edit-pitch-slider'])input(id).disabled=isLocked;
+ for(const name of ['speed','lowpass','attack','decay'])input('edit-'+name).disabled=isLocked||!input('edit-'+name+'-override').checked;
  input('hit-apply').disabled=!hit||isLocked||!pending;input('hit-insert').disabled=isLocked;
  el('hit-preview').textContent=pending?'Preview pending hit':'Preview selected hit';
  el('hit-draft-status').classList.toggle('pending',pending);
@@ -905,7 +906,13 @@ function updateDraftStatus(){
  for(const [slot,owner] of slotEditors)for(const id of hitDrafts.get(owner)?.keys()??[]){const h=owner.state.pattern.events.find(h=>h.id===id);if(!h)continue;const option=document.createElement('option');option.value=String(draftTargets.length);option.textContent=(bank?.slots[slot]?.name??String(slot))+' · '+h.role+' · row '+compile(owner.state.pattern).notes.find(n=>n.id===id)?.row;select.append(option);draftTargets.push({slot,id});}
  el('hit-drafts-label').hidden=!draftTargets.length;
 }
-for(const id of hitFields)input(id).addEventListener('input',captureHitDraft);
+function syncHitShape(){
+  el('edit-speed-value').textContent=Number(input('edit-speed').value).toFixed(2)+'×';
+  const lowpass=Number(input('edit-lowpass').value);el('edit-lowpass-value').textContent=lowpass>=20000?'Open':lowpass+' Hz';
+  el('edit-attack-value').textContent=input('edit-attack').value+' ms';
+  el('edit-decay-value').textContent=Math.round(Number(input('edit-decay').value)*100)+'%';
+}
+for(const id of hitFields)input(id).addEventListener('input',()=>{syncHitShape();captureHitDraft();});
 function revertHitDraft(){if(entryKey)draftMap().delete(entryKey);pitchGesture=undefined;render();}
 el('hit-revert').onclick=revertHitDraft;
 el('hit-drafts').onchange=()=>{if(input('hit-drafts').value==='')return;const target=draftTargets[Number(input('hit-drafts').value)];if(!target)return;stop();activateSlot(target.slot);editor.state.selection={ids:[target.id],rows:null};showHitEditor();render();};
@@ -936,6 +943,12 @@ function updateEntry(hit?:Hit){
     const n=transfer.notes.find(n=>n.id===hit.id)!;input('edit-row').value=String(n.row);input('edit-lane').value=hit.role;
     input('edit-volume').value=String(n.volume);input('edit-pan').value=String(n.pan);input('edit-delay').value=String(n.delay);input('edit-pitch').value=String(hit.pitch??0);input('edit-reverse').checked=!!hit.reverse;input('edit-ratchets').value=String(hit.ratchets??1);const gateSelect=el<HTMLSelectElement>('edit-gate');gateSelect.querySelector('[data-custom]')?.remove();if(hit.gate!==undefined&&!Array.from(gateSelect.options).some(o=>Number(o.value)===hit.gate)){const option=document.createElement('option');option.dataset.custom='true';option.value=String(hit.gate);option.textContent=Math.round(hit.gate*100)+'%';gateSelect.append(option);}gateSelect.value=String(hit.gate??0);input('edit-sound').value='keep';
   }else{input('edit-row').value=String(rowAnchor);input('edit-lane').value=cursorLane;}
+  const shapeRole=hit?.role??cursorLane,slot=kitPanel.mix[shapeRole];
+  const shape=hit?.slice&&hit.slice.assetId!==slot.assetId?slot.sampleProfiles?.[hit.slice.assetId]??{}:slot;
+  for(const [name,key,fallback] of [['speed','playbackRate',1],['lowpass','lowpassHz',20000],['attack','attackMs',0],['decay','decay',1]] as const){
+    const own=hit?.[key];input('edit-'+name+'-override').checked=own!==undefined;
+    input('edit-'+name).value=String(own??shape[key]??fallback);
+  }
   const isV3=['groove-v3','groove-v4'].includes(pattern.settings.algorithm??'');
   el('burst-span-field').hidden=!isV3;
   el('articulation-help').textContent=isV3?'Repeats divide the musical Burst span, independent of tracker resolution. Generated natural hits can sustain; Gate deliberately shortens attacks. Pitch and velocity contours are shown above.':'Ratchets divide one tracker row into equal repeats. Gate shortens each attack; 50% leaves half its interval silent. Effects can ring beyond the gate.';
@@ -947,7 +960,7 @@ function updateEntry(hit?:Hit){
   el('inspector-context').textContent=hit?hit.role+' · row '+input('edit-row').value:'Row '+rowAnchor+' · '+cursorLane;
   entryKey=hit?.id;entryOwner=editor;entryBaseline=Object.fromEntries(hitFields.map(id=>[id,fieldValue(id)]));
   if(entryKey){const draft=draftMap().get(entryKey);if(draft){for(const id of hitFields){if(draft[id]===entryBaseline[id])delete draft[id];if(draft[id]!==undefined)setField(id,draft[id]!);}if(!Object.keys(draft).length)draftMap().delete(entryKey);}}
-  syncHitPitch();
+  syncHitPitch();syncHitShape();
   input('hit-preview').disabled=editor.state.selection.ids.length!==1;
   input('hit-apply').disabled=editor.state.selection.ids.length!==1;
   input('hit-delete').disabled=selectedIds(editor.state).size===0;
@@ -961,7 +974,10 @@ function entryHit(replace:boolean,pitchOverride?:number){
   if(replace&&!prior)throw Error('Select one hit to edit.');
   const tick=(row+delay/256)*960/transfer.timing.lpb;
   const hit:Hit={id:prior?.id??'entry-'+crypto.randomUUID(),role,sourceId:'kit.'+role,baseTick:Math.floor(tick),fineOffset:tick-Math.floor(tick),offsetTick:0,gain:volume/128,pan:pan/64-1,pitch,reverse:input('edit-reverse').checked,ratchets:Number(input('edit-ratchets').value),...(Number(input('edit-gate').value)?{gate:Number(input('edit-gate').value)}:{}),...(prior?.effect?{effect:{...prior.effect}}:{}),anchor:prior?.anchor??false,ghost:prior?.ghost??false,reason:'A manually entered tracker hit.'};
-  if(prior?.decay!==undefined)hit.decay=prior.decay;
+  if(input('edit-speed-override').checked)hit.playbackRate=Number(input('edit-speed').value);
+  if(input('edit-lowpass-override').checked)hit.lowpassHz=Number(input('edit-lowpass').value);
+  if(input('edit-attack-override').checked)hit.attackMs=Number(input('edit-attack').value);
+  if(input('edit-decay-override').checked)hit.decay=Number(input('edit-decay').value);
   if(['groove-v3','groove-v4'].includes(pattern.settings.algorithm??'')){
     const duration=Number(input('edit-burst-span').value)||3840/pattern.settings.resolution;
     const expression=prior?.articulation?structuredClone(prior.articulation):undefined;

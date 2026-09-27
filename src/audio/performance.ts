@@ -3,6 +3,7 @@ import {ROLES,type Role,type Pattern} from '../core/model.js';
 import {compile} from '../core/compile.js';
 import type {AudioAsset} from './slices.js';
 import {planV3Voices,applyV3Chokes,renderV3Voice,type RenderVoice} from './voice-v3.js';
+import {sampleShaper} from './sample-shaping.js';
 // @ts-expect-error Shared original synth.
 import {synthesize} from '../../public/synth.js';
 export interface RenderOptions {
@@ -26,7 +27,7 @@ export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,
   const origin=position;position+=pattern.settings.bars*240/pattern.settings.bpm;
   const secondsPerTick=60/pattern.settings.bpm/960;
   return pattern.events.flatMap((hit):RenderVoice[]=>{
-    const ratio=2**((hit.pitch??0)/12),start=origin+Math.max(0,(hit.baseTick+hit.offsetTick+(hit.fineOffset??0))*secondsPerTick);
+    const ratio=(hit.playbackRate??1)*2**((hit.pitch??0)/12),start=origin+Math.max(0,(hit.baseTick+hit.offsetTick+(hit.fineOffset??0))*secondsPerTick);
     let channels:Float32Array[],sourceRate=rate,from=0,to=0;
     if(hit.slice){
       let asset=assets.get(hit.slice.assetId);
@@ -93,6 +94,7 @@ export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,
   const bus=[new Float32Array(busLength),new Float32Array(busLength)];
   for(const v of laneVoices){
     if(v.v3){renderV3Voice(v,bus,rate);continue;}
+    const shape=sampleShaper(v.hit,rate);
     const offset=Math.round(v.start*rate),pan=v.hit.pan;
     const gains=v.channels.length===1?[Math.cos((pan+1)*Math.PI/4),Math.sin((pan+1)*Math.PI/4)]:[pan>0?1-pan:1,pan<0?1+pan:1];
     // Mono slices stay at unity at centre, demo drums retain the established kit level.
@@ -107,7 +109,7 @@ export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,
           const t=i/v.length;
           envelope*=(1-t)*(1-t);
         }
-        bus[c]![offset+i]!+=value*level*gains[c]!*envelope;
+        bus[c]![offset+i]!+=shape(value,c,i)*level*gains[c]!*envelope;
       }
     }
   }

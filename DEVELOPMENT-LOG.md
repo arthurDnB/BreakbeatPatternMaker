@@ -26,7 +26,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.3.0-alpha`
-* **Test Status:** 135 / 135 unit tests passing (`npm.cmd test`).
+* **Test Status:** 139 / 139 unit tests passing (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -68,6 +68,12 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-09-27] - Per-Sample Repitch and Tone Shaping (Codex)
+- **Sample controls (`src/audio/drum-kit.ts`, `src/web.ts`, `public/index.html`, `public/workspace.css`):** Added remembered speed, original break BPM, pattern-BPM matching, low-pass tone, attack and decay defaults for each selected sound. Added optional per-hit overrides in the tracker inspector, with Preview and one-step Undo/Redo. The hidden waveform slicer can now be opened from an instrument's “Chop a break” action.
+- **Shared audio and persistence (`src/audio/sample-shaping.ts`, `src/audio/performance.ts`, `src/audio/voice-v3.ts`, `src/audio/project.ts`, `src/core/model.ts`, `src/core/compile.ts`):** Repitch changes playback duration and pitch, while per-voice filtering and envelopes shape both Preview and WAV export. Validated the new fields and kept older projects compatible.
+- **Guidance and tests (`README.md`, `tests/sample-shaping.test.mjs`, `scripts/sample-shaping-browser-smoke.mjs`):** Documented the Think-style chop workflow and added render, project, Undo/Redo and browser checks for the new controls.
+- **Verification:** `npm.cmd test` passed 139/139; `npm.cmd run test:site` passed at root and GitHub Pages subpath; focused sample-shaping browser smoke passed.
 
 ### [2026-09-27] - Profile-Driven Groove V4 Engine (Codex)
 - **Generator (`src/core/groove-v4.ts`, `src/core/groove-v4-profiles.ts`):** Added a deterministic five-stage composition pipeline and typed, editable profiles for all 38 genres. Complexity adds genre-specific call/response and counter-rhythms; Spicy articulates secondary hits with bounded timing, pitch, reverse, rolls and source-offset chops while protecting the kick/snare spine.

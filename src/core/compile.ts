@@ -36,6 +36,9 @@ export function compile(pattern: Pattern, sources: Source[] = DEFAULT_SOURCES, l
     if(hit.ratchets!==undefined)bounded(hit.ratchets,1,8,'ratchets',true);
     if(hit.gate!==undefined)bounded(hit.gate,.05,1,'gate');
     if(hit.decay!==undefined)bounded(hit.decay,.02,1,'decay');
+    if(hit.playbackRate!==undefined)bounded(hit.playbackRate,.5,2,'sample speed');
+    if(hit.lowpassHz!==undefined)bounded(hit.lowpassHz,200,20000,'sample low-pass');
+    if(hit.attackMs!==undefined)bounded(hit.attackMs,0,50,'sample attack');
     if(hit.pitch!==undefined)bounded(hit.pitch,-48,48,'pitch',true);
     if(hit.fineOffset!==undefined)bounded(hit.fineOffset,0,.9999999999,'fine offset');
     if(hit.slice){identifier(hit.slice.assetId,'audio asset');bounded(hit.slice.startFrame,0,23040000,'slice start',true);bounded(hit.slice.endFrame,hit.slice.startFrame+1,23040000,'slice end',true);bounded(hit.slice.sampleRate,8000,192000,'sample rate',true);}

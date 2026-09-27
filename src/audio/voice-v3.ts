@@ -1,4 +1,5 @@
 import {PPQ,type Hit,type Pattern} from '../core/model.js';
+import {sampleShaper} from './sample-shaping.js';
 
 // V1/V2 voices use the same shape; their sample loop remains in performance.ts.
 export interface RenderVoice {
@@ -35,7 +36,7 @@ export function planV3Voices(pattern:Pattern,hit:Hit,channels:Float32Array[],sou
   const mode=hit.gate!==undefined?'gate':art?.mode??(count>1?'gate':'natural');
   return Array.from({length:count},(_,repeat)=>{
     const expression=art?.repeats?.[repeat],onset=start+repeat*interval;
-    const pitch=(hit.pitch??0)+(expression?.pitch??0),step=sourceRate/rate*2**(pitch/12);
+    const pitch=(hit.pitch??0)+(expression?.pitch??0),step=sourceRate/rate*(hit.playbackRate??1)*2**(pitch/12);
     const fx=hit.effect;
     const sourceOffset=Math.min(to-from-1,(fx&&['0S','09'].includes(fx.command)?fx.param/256:expression?.sourceOffset??0)*(to-from));
     const fxGlide=fx&&['0U','01','0D','02'].includes(fx.command)?(fx.command==='0U'||fx.command==='01'?1:-1)*fx.param*12/16:0;
@@ -99,6 +100,7 @@ export function renderV3Voice(v:RenderVoice,bus:Float32Array[],rate:number):void
   const gains=v.channels.length===1?[Math.cos((pan+1)*Math.PI/4),Math.sin((pan+1)*Math.PI/4)]:[pan>0?1-pan:1,pan<0?1+pan:1];
   const level=v.hit.gain*(v.repeatGain??1)*(v.hit.slice?(v.channels.length===1?Math.SQRT2:1):.65);
   const fade=Math.max(1,Math.min(Math.round(rate*.002),Math.floor(v.length/2)));
+  const shape=sampleShaper(v.hit,rate);
   let phase=v.sourceOffset??0;
   for(let i=0;i<v.length&&offset+i<bus[0]!.length;i++){
     const pos=v.reverse?v.to-1-phase:v.from+phase,index=Math.floor(pos),fraction=pos-index;
@@ -112,7 +114,7 @@ export function renderV3Voice(v:RenderVoice,bus:Float32Array[],rate:number):void
     for(let c=0;c<2;c++){
       const data=v.channels[Math.min(c,v.channels.length-1)]!;
       const value=data[index]!*(1-fraction)+data[Math.min(v.to-1,index+1)]!*fraction;
-      bus[c]![offset+i]!+=value*level*gains[c]!*envelope;
+      bus[c]![offset+i]!+=shape(value,c,i)*level*gains[c]!*envelope;
     }
     // Integrate changing playback speed: using i*speed would jump/discontinue phase.
     phase+=v.step*2**((v.glide??0)/12*Math.min(1,i/(v.glideFrames??1)));
