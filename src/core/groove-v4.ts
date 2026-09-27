@@ -11,6 +11,9 @@ const BAR=PPQ*4,STEP=PPQ/4;
 const round=(n:number)=>Math.round(n*10000)/10000;
 const actual=(h:Hit)=>h.baseTick+h.offsetTick;
 const active=(s:Settings,role:Role)=>!s.enabledRoles||s.enabledRoles.includes(role);
+const density=(s:Settings,role:Role)=>s.laneDensity?.[role]??1;
+const detail=(s:Settings,role:Role)=>{const d=density(s,role);return d>1?1-(1-s.complexity)/d:s.complexity;};
+const probability=(s:Settings,role:Role,value:number)=>Math.min(1,value*Math.max(1,density(s,role)));
 const order=(a:Hit,b:Hit)=>a.baseTick-b.baseTick||ROLES.indexOf(a.role)-ROLES.indexOf(b.role)||a.id.localeCompare(b.id);
 
 /** Separate named streams keep a changed layer from perturbing the spine or another layer. */
@@ -43,6 +46,7 @@ function state(settings:Settings):State {
  const profile=V4_PROFILES[settings.genre],events=new Map<string,Hit>();
  const add=(item:Hit)=>{
   if(!active(settings,item.role)||item.baseTick<0||item.baseTick>=settings.bars*BAR)return false;
+  if(!item.anchor&&density(settings,item.role)<1&&v4Chance(settings,'lane-density',item.id)>=density(settings,item.role))return false;
   const key=`${item.role}:${item.baseTick}`;
   if(events.has(key))return false;
   events.set(key,item);return true;
@@ -62,8 +66,8 @@ function spine(c:State):void {
 }
 function addSignature(c:State,bar:number,note:V4Note,response:boolean):void {
  const s=c.settings;
- if(s.complexity<note.depth||(note.ghost&&s.ghostAmount===0))return;
- if(note.ghost&&v4Chance(s,'signature-ghost',`${bar}:${note.step}:${note.role}`)>s.ghostAmount)return;
+ if(detail(s,note.role)<note.depth||(note.ghost&&s.ghostAmount===0))return;
+ if(note.ghost&&v4Chance(s,'signature-ghost',`${bar}:${note.step}:${note.role}`)>probability(s,note.role,s.ghostAmount))return;
  const item=hit(s,note.role,bar*BAR+note.step*STEP,note.gain,false,!!note.ghost,
   `A ${response?'response':'call'} accent develops the ${s.genre} phrase at ${Math.round(note.depth*100)}% complexity.`);
  c.add(item);
@@ -77,37 +81,37 @@ function layers(c:State):void {
   const spacious=!!rule.spaciousCall&&!response;
   for(const [index,step] of rule.hats.entries()){
    if(spacious&&index%2)continue;
-   if(index%2&&s.complexity<.22+.65*v4Chance(s,'pulse-depth',`${bar}:${step}`))continue;
-   if(v4Chance(s,'pulse-density',`${bar}:${step}`)>profile.pulseDensity)continue;
+   if(index%2&&detail(s,'hat')<.22+.65*v4Chance(s,'pulse-depth',`${bar}:${step}`))continue;
+   if(v4Chance(s,'pulse-density',`${bar}:${step}`)>probability(s,'hat',profile.pulseDensity))continue;
    const item=hit(s,'hat',origin+step*STEP,rule.accents[step%4]??.28,false,false,'The hat pulse makes the underlying meter audible.');
    item.decay=step%2?.45:.72;c.add(item);
   }
   for(const step of rule.hatDetails){
-   if(s.complexity<.18+.78*v4Chance(s,'hat-depth',`${bar}:${step}`))continue;
-   if(v4Chance(s,'hat-density',`${bar}:${step}`)>rule.activity*(spacious?.55:1))continue;
+   if(detail(s,'hat')<.18+.78*v4Chance(s,'hat-depth',`${bar}:${step}`))continue;
+   if(v4Chance(s,'hat-density',`${bar}:${step}`)>probability(s,'hat',rule.activity*(spacious?.55:1)))continue;
    const item=hit(s,'hat',origin+step*STEP,(rule.accents[step%4]??.28)*.7,false,false,'A softer subdivision adds detail without replacing the pulse.');
    item.decay=.44;c.add(item);
   }
   const motif=response?profile.answer:profile.call;
   for(const note of motif)addSignature(c,bar,note,response);
   for(const step of rule.pickups){
-   if(s.complexity<.36+.54*v4Chance(s,'pickup-depth',`${bar}:${step}`)||v4Chance(s,'pickup-sync',`${bar}:${step}`)>s.syncopation*(response?1:.65))continue;
+   if(detail(s,'kick')<.36+.54*v4Chance(s,'pickup-depth',`${bar}:${step}`)||v4Chance(s,'pickup-sync',`${bar}:${step}`)>probability(s,'kick',s.syncopation*(response?1:.65)))continue;
    c.add(hit(s,'kick',origin+step*STEP,.53,false,false,'A quiet kick pickup answers the main motif.'));
   }
   for(const step of rule.ghosts){
-   if(s.complexity<.2+.65*v4Chance(s,'ghost-depth',`${bar}:${step}`)||v4Chance(s,'ghost-amount',`${bar}:${step}`)>s.ghostAmount)continue;
+   if(detail(s,'snare')<.2+.65*v4Chance(s,'ghost-depth',`${bar}:${step}`)||v4Chance(s,'ghost-amount',`${bar}:${step}`)>probability(s,'snare',s.ghostAmount))continue;
    c.add(hit(s,'snare',origin+step*STEP,rule.ghostGain*(.8+.35*v4Chance(s,'ghost-gain',`${bar}:${step}`)),false,true,'A lower-velocity ghost snare leads into the main backbeat.'));
   }
   for(const step of rule.percussion){
-   if(s.complexity<.28+.6*v4Chance(s,'percussion-depth',`${bar}:${step}`)||v4Chance(s,'percussion-density',`${bar}:${step}`)>rule.activity*(response?1:.7))continue;
+   if(detail(s,'percussion')<.28+.6*v4Chance(s,'percussion-depth',`${bar}:${step}`)||v4Chance(s,'percussion-density',`${bar}:${step}`)>probability(s,'percussion',rule.activity*(response?1:.7)))continue;
    const item=hit(s,'percussion',origin+step*STEP,rule.melodicPercussion?.46:.31,false,false,'Secondary percussion answers the primary drums.');
    if(rule.melodicPercussion)item.pitch=[0,3,7,10][bar%4]!;
    c.add(item);
   }
-  if(rule.euclidean&&s.complexity>.66){
+  if(rule.euclidean&&detail(s,'percussion')>.66){
    const [pulses,steps,rotation]=rule.euclidean;
    for(const i of euclideanSteps(pulses,steps,rotation)){
-    if(v4Chance(s,'cross-density',`${bar}:${i}`)>s.complexity*.65)continue;
+    if(v4Chance(s,'cross-density',`${bar}:${i}`)>probability(s,'percussion',s.complexity*.65))continue;
     const tick=origin+Math.round(i*BAR/steps);
     if([...c.events.values()].some(e=>e.anchor&&Math.abs(e.baseTick-tick)<STEP/2))continue;
     const item=hit(s,'percussion',tick,.23,false,false,`A supporting ${pulses}-in-${steps} rhythm crosses the bar without moving its anchors.`);
@@ -128,7 +132,7 @@ function cadence(c:State,forced=false):void {
   if(forced&&bar!==finalBar)continue;
   const strength=phase.ending?1:.4;
   if(!forced&&v4Chance(s,'cadence',String(phase.position))>s.fillAmount*profile.responseWeight*strength)continue;
-  const count=forced?profile.fillSteps.length:Math.max(1,Math.ceil(s.complexity*profile.fillSteps.length));
+  const count=forced?profile.fillSteps.length:Math.max(1,Math.ceil(detail(s,profile.fillRole)*profile.fillSteps.length));
   for(const [index,step] of profile.fillSteps.entries()){
    if(index>=count)break;
    const item=hit(s,profile.fillRole,bar*BAR+step*STEP,.25+.42*(index+1)/profile.fillSteps.length,false,false,
@@ -236,7 +240,7 @@ export function grooveV4Fill(s:Settings,startTick:number,endTick:number):Hit[] {
  const start=Math.max(0,Math.ceil(startTick)),end=Math.min(s.bars*BAR,Math.floor(endTick));
  if(end-start<2)return [];
  const profile=V4_PROFILES[s.genre],span=Math.min(2*PPQ,end-start),origin=end-span;
- return profile.fillSteps.slice(0,Math.max(1,Math.ceil(s.complexity*profile.fillSteps.length))).map((step,index)=>{
+ return profile.fillSteps.slice(0,Math.max(1,Math.ceil(detail(s,profile.fillRole)*profile.fillSteps.length))).map((step,index)=>{
   // Profile positions occupy the final 10–16 sixteenths. Scale that phrase
   // into any selected ending, including a single beat, without dropping notes.
   const tick=origin+Math.round((step-10)/6*span);
@@ -244,5 +248,5 @@ export function grooveV4Fill(s:Settings,startTick:number,endTick:number):Hit[] {
   item.offsetTick=Math.max(start-item.baseTick,Math.min(end-2-item.baseTick,item.offsetTick));
   item.articulation!.durationTicks=Math.min(item.articulation!.durationTicks,end-actual(item));
   return item;
- }).filter(item=>active(s,item.role)&&item.baseTick>=start&&item.baseTick<end).sort(order);
+ }).filter(item=>active(s,item.role)&&item.baseTick>=start&&item.baseTick<end&&(density(s,item.role)>=1||v4Chance(s,'lane-density',item.id)<density(s,item.role))).sort(order);
 }

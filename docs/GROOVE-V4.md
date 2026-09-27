@@ -24,6 +24,8 @@ Groove V4 is the default for new UI generation. Saved V1, V2, and V3 patterns ke
 
 Complexity changes note structure; Spicy changes performance. This separation lets a producer make a simple beat expressive or a detailed beat restrained. Genre profiles limit both controls. Variation changes supporting events while retaining the exact anchor spine. Editor locks, Undo/Redo, project saves, Preview, and WAV export use the normal application path.
 
+Advanced Generation also has Kick, Snare, Hi-hat and Percussion density controls for V4. Each defaults to 100%, which retains the genre profile's current behavior. Lower values remove optional hits from that lane; 0% leaves only protected kick/snare anchors. Higher values, up to 200%, bring in more profile-defined detail and fills. Use the instrument's Generate notes switch to silence a lane entirely. Density changes take effect on the next Generate or Variation and are saved with the pattern and project draft. Older saved patterns without density settings behave as 100% on every lane.
+
 ## Editing a genre safely
 
 1. Change one profile entry in `groove-v4-profiles.ts`. Keep its `call` and `answer` notes within steps 0–15.5, gains within 0–1, and depths within 0–1. `fillSteps` should lie in the last part of the bar (10–15.5); selected-row fills scale that phrase into the chosen ending.

@@ -14,6 +14,8 @@ export interface Settings {
   resolution: 8 | 16 | 32 | 64; complexity: number; syncopation: number;
   swing: number; humanizeMs: number; ghostAmount: number; fillAmount: number;
   spicy?: number;
+  /** Groove V4 per-lane optional-hit density. Missing roles behave as 1 (100%). */
+  laneDensity?: Partial<Record<Role,number>>;
   patternStructure?: 'groove'|'auto'|'fill'|'roll'|'build';
 }
 export interface SliceRef {assetId:string; startFrame:number; endFrame:number; sampleRate:number; label:string}

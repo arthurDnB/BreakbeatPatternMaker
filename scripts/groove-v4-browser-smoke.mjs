@@ -26,7 +26,17 @@ try{
  await page.goto(`http://127.0.0.1:${server.address().port}/`);
  await page.locator('#grid .hit').first().waitFor();
  assert.equal(await page.inputValue('#algorithm'),'groove-v4');
+ await page.locator('#advanced-generation>summary').click();
+ assert.equal(await page.inputValue('#hat-density'),'1');
+ await page.locator('#hat-density').fill('2');
+ assert.equal(await page.locator('#hat-density-value').textContent(),'200%');
+ await page.selectOption('#algorithm','groove-v3');
+ assert.equal(await page.locator('#hat-density').isDisabled(),true);
+ await page.selectOption('#algorithm','groove-v4');
+ assert.equal(await page.locator('#hat-density').isDisabled(),false);
  await page.selectOption('#genre','amenscience');
+ assert.equal(await page.inputValue('#hat-density'),'1','Genre defaults should restore neutral density');
+ await page.locator('#hat-density').fill('2');
  await page.locator('#generate').click();
  await page.waitForFunction(()=>document.querySelector('#grid .hit'));
  assert.equal(await page.inputValue('#algorithm'),'groove-v4');
@@ -34,7 +44,12 @@ try{
  await page.locator('#project-save').click();
  const project=JSON.parse((await readFile(await(await projectDownload).path())).toString());
  assert.equal(project.editor.pattern.settings.algorithm,'groove-v4');
+ assert.equal(project.editor.pattern.settings.laneDensity.hat,2);
+ assert.equal(project.draft.laneDensity.hat,2);
  assert.ok(project.editor.pattern.events.length>0);
+ await page.setInputFiles('#project-open',{name:'density.bbproject',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(project))});
+ await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('Project opened'));
+ assert.equal(await page.inputValue('#hat-density'),'2');
  for(const role of ['kick','snare','hat','percussion']){
   const sound=LIBRARY.filter(item=>item.role===role).at(-1);
   await page.evaluate(value=>{document.querySelector(`.track-instrument-panel[data-role="${value}"]`).open=true;},role);

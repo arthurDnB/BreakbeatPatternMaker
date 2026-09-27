@@ -39,6 +39,44 @@ test('Complexity adds genre notes while Spicy articulates them without changing 
  }
 });
 
+test('Per-lane density is deterministic, neutral at 100%, and preserves anchors in every genre',()=>{
+ for(const genre of genres){
+  const baseSettings=config(genre,{complexity:.7,spicy:.4,seed:'density-check',fillAmount:.6});
+  const base=generate(baseSettings);
+  const neutral=generate({...baseSettings,laneDensity:{kick:1,snare:1,hat:1,percussion:1}});
+  assert.deepEqual(neutral.events,base.events,genre+' changed at 100%');
+  for(const role of ['kick','snare','hat','percussion']){
+   const low=generate({...baseSettings,laneDensity:{[role]:0}});
+   const highSettings={...baseSettings,laneDensity:{[role]:2}};
+   const high=generate(highSettings);
+   assert.deepEqual(high,generate(highSettings),genre+'/'+role+' became nondeterministic');
+   assert.deepEqual(anchors(low),anchors(base),genre+'/'+role+' 0% moved anchors');
+   assert.deepEqual(anchors(high),anchors(base),genre+'/'+role+' 200% moved anchors');
+   assert.ok(low.events.filter(hit=>hit.role===role).every(hit=>hit.anchor),genre+'/'+role+' 0% retained an optional hit');
+   assert.ok(high.events.filter(hit=>hit.role===role).length>=base.events.filter(hit=>hit.role===role).length,genre+'/'+role+' 200% lost hits');
+   compile(low);compile(high);
+  }
+ }
+});
+
+test('Density works with fills, lane exclusions, locks and project settings',()=>{
+ const settings=config('amenscience',{complexity:1,spicy:1,patternStructure:'fill',laneDensity:{kick:0,snare:0,hat:2,percussion:2}});
+ const generated=generate(settings);
+ assert.ok(generated.events.filter(hit=>hit.role==='snare').every(hit=>hit.anchor));
+ assert.ok(generated.events.filter(hit=>hit.role==='kick').every(hit=>hit.anchor));
+ const editor=new Editor(generated);editor.toggleRole('kick');
+ const kicks=structuredClone(editor.state.pattern.events.filter(hit=>hit.role==='kick'));
+ assert.ok(editor.variation());assert.deepEqual(editor.state.pattern.events.filter(hit=>hit.role==='kick'),kicks);
+ const saved=makeProject(editor.state,settings,defaultKitState(),new Map());
+ const restored=readProject(saved).project;
+ assert.deepEqual(restored.draft.laneDensity,settings.laneDensity);
+ assert.deepEqual(restored.editor.pattern.settings.laneDensity,settings.laneDensity);
+ const excluded=generate({...settings,enabledRoles:['kick','snare','hat'],laneDensity:{percussion:2}});
+ assert.ok(excluded.events.every(hit=>hit.role!=='percussion'));
+ assert.throws(()=>generate({...settings,laneDensity:{hat:2.1}}),/hat density/);
+ const old=generate(config('jungle'));assert.deepEqual(old.events,generate({...old.settings,laneDensity:{}}).events);
+});
+
 test('The 38 genre grammars differ at matched tempo and phrase context directs changes',()=>{
  const signatures=new Set();
  for(const genre of genres){

@@ -17,6 +17,10 @@ export function validateSettings(s: Settings): void {
   if (![8,16,32,64].includes(s.resolution)) throw new Error('Resolution must be 8, 16, 32 or 64.');
   for (const k of ['complexity','syncopation','ghostAmount','fillAmount'] as const) bounded(s[k],0,1,k);
   if(s.spicy!==undefined) bounded(s.spicy,0,1,'spicy');
+  if(s.laneDensity!==undefined){
+    if(!s.laneDensity||typeof s.laneDensity!=='object'||Array.isArray(s.laneDensity)||Object.keys(s.laneDensity).some(role=>!ROLES.includes(role as typeof ROLES[number])))throw Error('Invalid lane density.');
+    for(const role of ROLES)if(s.laneDensity[role]!==undefined)bounded(s.laneDensity[role],0,2,`${role} density`);
+  }
   if(s.patternStructure!==undefined&&!['groove','auto','fill','roll','build'].includes(s.patternStructure))throw Error('Invalid pattern structure.');
   bounded(s.swing,.5,.67,'swing'); bounded(s.humanizeMs,0,10,'humanizeMs');
 }

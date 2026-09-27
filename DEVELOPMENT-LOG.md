@@ -26,7 +26,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.3.0-alpha`
-* **Test Status:** 145 / 145 unit tests passing (`npm.cmd test`).
+* **Test Status:** 147 / 147 unit tests passing (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -69,6 +69,11 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-09-28] - Groove V4 Instrument Density (Codex)
+- **Generator (`src/core/model.ts`, `src/core/settings.ts`, `src/core/groove-v4.ts`):** Added optional per-lane density from 0% to 200%. Neutral 100% reproduces prior V4 events; lower values thin optional hits, while higher values unlock more genre-defined details and fills. Protected kick/snare anchors remain, and missing settings in older projects default to 100%.
+- **Controls (`public/index.html`, `public/workspace.css`, `src/web.ts`):** Added compact Kick, Snare, Hi-hat and Percussion sliders in Advanced Generation, enabled only for V4. Genre defaults reset them; drafts and generated patterns retain values through save/reopen.
+- **Guidance and verification (`docs/GROOVE-V4.md`, `tests/groove-v4.test.mjs`, `scripts/groove-v4-browser-smoke.mjs`):** Documented the controls and checked all 38 genres for deterministic density, protected anchors, fills, locks, validation, project roundtrip and browser export. `npm.cmd test` passed 147/147, `npm.cmd run test:site` and the focused V4 browser smoke passed.
 
 ### [2026-09-28] - Sound Library Browser (Codex)
 - **Shared sound browser (`src/audio/sound-browser.ts`, `public/index.html`, `public/workspace.css`):** Added one searchable dialog for track lanes and individual tracker hits, collection/featured filters, Favorites, Recently used, separate Preview and Use actions, keyboard navigation and responsive layout. Favorites and recent bundled sound IDs persist in browser storage.

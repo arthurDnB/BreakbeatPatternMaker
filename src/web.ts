@@ -17,7 +17,7 @@ import {BREAKS} from './core/breaks.js';
 import {defaults,genreDefaults,PROFILES} from './core/profiles.js';
 import {generate} from './core/generate.js';
 import {compile,serialize} from './core/compile.js';
-import {ROLES,hex,noteName,type Hit,type Role,type Genre,type BreakStyle,type Pattern,type Transfer,type EffectCommand} from './core/model.js';
+import {ROLES,hex,noteName,type Hit,type Role,type Genre,type BreakStyle,type Pattern,type Transfer,type EffectCommand,type Settings} from './core/model.js';
 import {Editor,emptySelection,locked,selectedIds,type EditorState,type TrackerClipboard} from './core/editor.js';
 import {defaultEffects,type Effects} from './audio/effects.js';
 import {ArrangementHistory} from './core/arrangement-history.js';
@@ -147,6 +147,7 @@ function settings(){
   s.seed=input('seed').value;s.bpm=Number(input('bpm').value);s.bars=Number(input('bars').value);
   s.resolution=Number(input('resolution').value) as typeof s.resolution;
   s.spicy=Number(input('spicy').value);
+  if(s.algorithm==='groove-v4')s.laneDensity=Object.fromEntries(ROLES.map(role=>[role,Number(input(`${role}-density`).value)])) as NonNullable<Settings['laneDensity']>;
   const ps=input('patternStructure').value; if(['groove','auto','fill','roll','build'].includes(ps)) s.patternStructure = ps as any;
   for(const name of ['complexity','syncopation','swing','humanizeMs','ghostAmount','fillAmount'] as const)s[name]=Number(input(name).value);
   return s;
@@ -405,10 +406,11 @@ function selectRows(start:number,end:number,anchor=true){
 }
 function syncControls(){
   const s=editor.state.pattern.settings;
+  for(const role of ROLES)input(`${role}-density`).value=String(s.laneDensity?.[role]??1);
   input('patternStructure').value=s.patternStructure??'auto';
   input('phraseLength').value=String(s.phraseLength??0);syncPhraseControls(s.phraseOffset??0);
   input('algorithm').value=s.algorithm??'legacy-v1';input('variation').value=String(s.variation??0);
-  for(const [key,value] of Object.entries(s))if(key!=='enabledRoles')input(key).value=String(value);
+  for(const [key,value] of Object.entries(s))if(key!=='enabledRoles'&&key!=='laneDensity')input(key).value=String(value);
   for(const r of ROLES)kitPanel.mix[r].include=!s.enabledRoles||s.enabledRoles.includes(r);kitPanel.restore(kitPanel.snapshot());
   presets();
 }
@@ -704,6 +706,11 @@ function syncSliders(){
   input('bpm-slider').value=String(bpm);
   el('complexity-value').textContent=Math.round(Number(input('complexity').value)*100)+'%';
   input('complexity').setAttribute('aria-valuetext',el('complexity-value').textContent!);
+  for(const role of ROLES){
+    const value=Math.round(Number(input(`${role}-density`).value)*100)+'%';
+    el(`${role}-density-value`).textContent=value;
+    input(`${role}-density`).setAttribute('aria-valuetext',value);
+  }
   const spicyVal=Number(input('spicy').value);
   const spicyEl=document.getElementById('spicy-value');
   if(spicyEl){
@@ -720,6 +727,8 @@ function breakDescription(){
 }
 function syncStructureControls(){
  const v3=['groove-v3','groove-v4'].includes(input('algorithm').value),structure=input('patternStructure').value,build=structure==='build'&&input('algorithm').value==='groove-v3';
+ const v4=input('algorithm').value==='groove-v4';
+ for(const role of ROLES){input(`${role}-density`).disabled=!v4;input(`${role}-density`).title=v4?'Adjust optional hits in this lane. Main kick and snare anchors remain.':'Instrument density requires Groove v4.';}
  input('patternStructure').disabled=!v3;
  input('patternStructure').title=v3?'Choose groove, ending or full snare build.':'Pattern structure requires Groove v3 or v4.';
  for(const id of ['syncopation','ghostAmount','swing','breakStyle','variation','phraseLength','phraseOffset']){
@@ -819,6 +828,7 @@ input('bpm').addEventListener('input',()=>{syncSliders();});
 input('bpm-slider').addEventListener('input',()=>{input('bpm').value=input('bpm-slider').value;syncSliders();});
 input('complexity').addEventListener('input',syncSliders);
 input('spicy').addEventListener('input',syncSliders);
+for(const role of ROLES)input(`${role}-density`).addEventListener('input',syncSliders);
 input('algorithm').addEventListener('change',()=>{syncSliders();syncPhraseControls();});
 input('phraseLength').addEventListener('change',()=>syncPhraseControls());
 
@@ -829,6 +839,7 @@ function restoreGenerationDefaults(){
  input('phraseLength').value='0';syncPhraseControls(0);
  input('algorithm').querySelector<HTMLOptionElement>('[value="legacy-v1"]')!.disabled=Object.hasOwn(NEW_GENRES,genre);
  for(const [key,value] of Object.entries(genreDefaults(genre)))input(key).value=String(value);
+ for(const role of ROLES)input(`${role}-density`).value='1';
  if(['groove-v3','groove-v4'].includes(keepEngine))input('algorithm').value=keepEngine;
  const autoKit=document.getElementById('auto-kit') as HTMLInputElement | null;
  if(autoKit&&autoKit.checked){
@@ -1242,7 +1253,8 @@ function applyProject(raw:unknown){
   editor=new Editor(p.editor.pattern);editor.state=structuredClone(p.editor);rowAnchor=0;
   input('phraseLength').value=String(p.draft.phraseLength??0);syncPhraseControls(p.draft.phraseOffset??0);
   input('algorithm').value=p.draft.algorithm??'legacy-v1';input('variation').value=String(p.draft.variation??0);
-  for(const [key,value] of Object.entries(p.draft))if(key!=='enabledRoles')input(key).value=String(value);
+  for(const role of ROLES)input(`${role}-density`).value=String(p.draft.laneDensity?.[role]??1);
+  for(const [key,value] of Object.entries(p.draft))if(key!=='enabledRoles'&&key!=='laneDensity')input(key).value=String(value);
   presets();refresh();return true;
 }
 el('project-save').onclick=()=>{try{if(pendingCount())throw Error('Apply or Revert pending hit edits before saving a project backup.');const data=snapshot();downloadBytes(new TextEncoder().encode(JSON.stringify(data)).buffer,'breakbeat-project.bbproject','application/json');status('Project saved with sample audio, kit, pattern and settings.');}catch(e){status(String(e),true);}};

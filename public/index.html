@@ -310,6 +310,12 @@
   <option value="build">100% Snare Roll Build-up</option>
 </select></label>
 <label>Fill amount <output id="fillAmount-val">0.4</output><input id="fillAmount" type="range" min="0" max="1" step=".05" value=".4" oninput="document.getElementById('fillAmount-val').textContent=this.value"></label>
+<fieldset id="lane-density-controls" class="lane-density-controls"><legend>Instrument density <small>Optional hits · 100% = genre default</small></legend>
+  <label>Kick <output id="kick-density-value" for="kick-density">100%</output><input id="kick-density" type="range" min="0" max="2" step=".05" value="1"></label>
+  <label>Snare <output id="snare-density-value" for="snare-density">100%</output><input id="snare-density" type="range" min="0" max="2" step=".05" value="1"></label>
+  <label>Hi-hat <output id="hat-density-value" for="hat-density">100%</output><input id="hat-density" type="range" min="0" max="2" step=".05" value="1"></label>
+  <label>Percussion <output id="percussion-density-value" for="percussion-density">100%</output><input id="percussion-density" type="range" min="0" max="2" step=".05" value="1"></label>
+</fieldset>
       </div></details>
       <div class="generation-toolbar"><button id="generate" class="accent">Generate</button><button id="regenerate">Variation</button><button id="restore-defaults" title="Reset all generation controls to the selected genre’s defaults">Restore defaults</button></div>
     </section>
