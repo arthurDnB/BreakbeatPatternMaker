@@ -3181,14 +3181,19 @@ tr.playing-row td { background:#0b1c18; }
 #tray-bottom #play { width:38px !important; min-width:38px !important; height:38px !important; min-height:38px !important; flex-basis:38px !important; border-radius:50% !important; padding:0 !important; }
 #tray-bottom #play .play-icon { font-size:14px !important; line-height:1; }
 .master-dsp-rack { margin:3px 0; border:1px solid #27322f; border-radius:7px; background:#080d0c; }
-.vinyl-texture-rack { display:flex; flex-wrap:wrap; align-items:center; gap:8px 16px; margin:3px 0; padding:8px 12px; border:1px solid #27322f; border-radius:7px; background:#080d0c; color:#bdd9d1; font-size:11px; }
-.vinyl-texture-rack label { display:flex; align-items:center; gap:6px; }
+.vinyl-texture-rack { display:flex; flex-wrap:nowrap; align-items:center; gap:8px 12px; margin:2px 0 4px 0; padding:3px 10px; border:1px solid rgba(134,112,77,0.4); border-radius:6px; background:linear-gradient(90deg, #0e1311 0%, #0a0e0d 100%); color:#bdd9d1; font-size:11px; min-height:28px; box-sizing:border-box; }
+.vinyl-texture-rack[hidden] { display:none !important; }
+.vinyl-texture-rack label { display:inline-flex; align-items:center; gap:5px; margin:0; white-space:nowrap; font-size:10.5px; color:#8fa8a0; }
 .vinyl-texture-rack label:last-child { margin-left:auto; }
-.vinyl-texture-rack select { max-width:220px; }
-.vinyl-texture-rack input[type=range] { width:100px; }
-.vinyl-texture-rack .vinyl-texture-toggle { font-weight:800; letter-spacing:.03em; }
-.vinyl-texture-rack .vinyl-texture-toggle span { color:#68847c; font-weight:500; letter-spacing:0; }
-.vinyl-texture-rack.is-lofi { border-color:#86704d; }
+.vinyl-texture-rack select { max-width:175px; height:22px; padding:1px 6px; font-size:10.5px; background:#111715; border:1px solid #273430; border-radius:4px; color:#cde4dc; }
+.vinyl-texture-rack button { height:22px; padding:1px 8px; font-size:10px; font-weight:600; letter-spacing:.04em; background:#18221e; border:1px solid #2e3e38; border-radius:4px; color:#a8d5c7; cursor:pointer; transition:all .15s ease; }
+.vinyl-texture-rack button:hover { background:#23322d; border-color:#00f5d4; color:#ffffff; }
+.vinyl-texture-rack input[type=range] { width:72px; height:12px; margin:0; }
+.vinyl-texture-rack .vinyl-texture-toggle { font-weight:700; letter-spacing:.02em; color:#eeddbb; }
+.vinyl-texture-rack .vinyl-texture-toggle input[type=checkbox] { margin:0; width:13px; height:13px; accent-color:#d4af37; cursor:pointer; }
+.vinyl-texture-rack .vinyl-texture-toggle span, .vinyl-texture-rack .vinyl-sub { color:#7b7463; font-size:9.5px; font-weight:400; letter-spacing:0; }
+.vinyl-texture-rack output { font-variant-numeric:tabular-nums; min-width:42px; text-align:right; font-size:10px; color:#a2c8bd; }
+.vinyl-texture-rack.is-lofi { border-color:#9c825a; box-shadow:0 0 8px rgba(156,130,90,0.12); }
 .master-dsp-rack>summary { display:flex; align-items:center; gap:6px; padding:6px 12px; font-size:11px; font-weight:800; letter-spacing:.08em; color:#bdd9d1; }
 .master-dsp-rack>summary span { margin-left:auto; font-weight:500; letter-spacing:0; color:#68847c; }
 .master-dsp-rack .quick-fx-panel { display:block; margin:0; border:0; }

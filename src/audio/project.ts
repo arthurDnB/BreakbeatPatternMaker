@@ -39,7 +39,7 @@ export function readProject(raw:unknown,replacement?:AudioAsset){
     migrated=true;
     const selected=Object.values(p.kit).map(s=>s.choice).find(id=>typeof id==='string'&&isVinylTexture(id)) as string|undefined
       ??projectPatterns(p).flatMap(pattern=>pattern.events).map(hit=>hit.slice?.assetId??'').map(id=>id.startsWith('library-')?id.slice(8):id).find(isVinylTexture);
-    p.vinylTexture=selected?{enabled:true,catalogId:selected,levelDb:-30}:p.vinylTexture??{...DEFAULT_VINYL_TEXTURE};
+    p.vinylTexture=selected?{enabled:true,catalogId:selected,levelDb:-10}:p.vinylTexture??{...DEFAULT_VINYL_TEXTURE};
     for(const slot of Object.values(p.kit))if(legacyId(slot.choice)||slot.assetId&&legacyId(slot.assetId)){
       slot.choice='lofi2-perc-02';slot.assetId=replacement.id;
       if(slot.uploadId&&legacyId(slot.uploadId))delete slot.uploadId;

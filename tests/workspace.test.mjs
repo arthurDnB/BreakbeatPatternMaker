@@ -29,11 +29,11 @@ test('older scratch and vinyl instruments migrate to sampled percussion and back
  assert.ok(opened.migrated);assert.equal(opened.project.kit.percussion.choice,'lofi2-perc-02');
  assert.equal(opened.project.editor.pattern.events.find(h=>h.id===hit.id).slice.assetId,replacement.id);
  assert.ok(!opened.project.assets.some(a=>a.id==='synth-scratch'));
- assert.deepEqual(opened.project.vinylTexture,{enabled:false,catalogId:'lofi2-vinyl-01',levelDb:-30});
+ assert.deepEqual(opened.project.vinylTexture,{enabled:false,catalogId:'lofi2-vinyl-01',levelDb:-10});
  const vinyl=structuredClone(saved);vinyl.kit.percussion={...kit.percussion,choice:'lofi2-vinyl-08',assetId:'library-lofi2-vinyl-08'};
  vinyl.assets.push({id:'library-lofi2-vinyl-08',name:'Vinyl 08',sampleRate:44100,channels:[btoa(String.fromCharCode(...new Uint8Array(new Float32Array([0,.1,0]).buffer)))]});
  const vinylOpened=readProject(vinyl,replacement);
- assert.deepEqual(vinylOpened.project.vinylTexture,{enabled:true,catalogId:'lofi2-vinyl-08',levelDb:-30});
+ assert.deepEqual(vinylOpened.project.vinylTexture,{enabled:true,catalogId:'lofi2-vinyl-08',levelDb:-10});
  assert.equal(vinylOpened.project.kit.percussion.choice,'lofi2-perc-02');
 });
 test('bundled audio matches recorded provenance hashes and CC0 license records',()=>{

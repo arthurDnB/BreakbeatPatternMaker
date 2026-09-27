@@ -70,6 +70,14 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-28] - Sleek Compact Vinyl Texture Rack, Lo-Fi Auto-Activation & Randomizer (Antigravity)
+- **Compact & Sleek Single-Row Layout (`public/workspace.css`, `public/index.html`):** Overhauled `#vinyl-texture-rack` from a bulky panel into a slim 28px single-row strip with subtle warm amber accents (`#9c825a`), compact dropdown, tactile Preview button, concise inline label (`Continuous ambience`), and responsive wrap on mobile devices.
+- **Lo-Fi Exclusivity & Auto-Activation (`src/web.ts`, `public/index.html`):** Configured `#vinyl-texture-rack` to be hidden by default across other genres and visible strictly when Lo-Fi Hip-Hop (`lofihiphop`) is selected. Switching to Lo-Fi Hip-Hop automatically enables vinyl ambience and selects a texture; switching away from Lo-Fi disables and hides it.
+- **Standard Volume Default of -10 dB (`src/audio/vinyl-texture.ts`, `src/audio/project.ts`, `public/index.html`, `tests/vinyl-texture.test.mjs`, `tests/workspace.test.mjs`):** Adjusted the default vinyl texture volume from -30 dB to -10 dB so ambient crackle and warmth is clearly audible out-of-the-box.
+- **Dynamic Vinyl Texture Randomization (`src/audio/vinyl-texture.ts`, `src/web.ts`):** Added `getRandomVinylTextureId()` to select random vinyl textures (`lofi2-vinyl-01` through `09`), automatically rotating to a fresh texture on each pattern Generate (`build`) and Variation (`regenerate` / `action-variation`).
+- **Test Suite & Verification (`scripts/site-browser-smoke.mjs`, `tests/vinyl-texture.test.mjs`, `tests/workspace.test.mjs`):** Verified 150/150 unit tests pass (`npm.cmd test`), and full Playwright browser smoke test (`npm.cmd run test:site`) passes across root and GitHub Pages subpath.
+
+
 ### [2026-09-28] - Continuous Vinyl Ambience Layer & Scratch Synth Retirement (Codex)
 - **Continuous Vinyl Texture (`src/audio/vinyl-texture.ts`, `src/audio/performance.ts`, `src/audio/project.ts`):** Removed the scratch synthesizer instrument and moved the nine bundled vinyl surface recordings out of the percussion one-shot lists into a dedicated background ambience engine. Vinyl texture runs as an optional continuous layer across pattern preview, song playback, and WAV export with smooth crossfades at loop points and bar boundaries.
 - **Controls & Interface (`public/index.html`, `public/workspace.css`, `src/web.ts`):** Added a dedicated Vinyl Texture control strip with an On/Off toggle, selection among the 9 bundled textures (`lofi2-vinyl-01` through `09`), independent volume slider (defaulting to a subtle -30 dB), and an audition Preview button.

@@ -2,9 +2,15 @@ import {LIBRARY} from './library.js';
 import type {AudioAsset} from './slices.js';
 
 export const VINYL_TEXTURES=LIBRARY.filter(item=>/^lofi2-vinyl-0[1-9]$/.test(item.id));
-export const DEFAULT_VINYL_TEXTURE={enabled:false,catalogId:'lofi2-vinyl-01',levelDb:-30};
+export const DEFAULT_VINYL_TEXTURE={enabled:false,catalogId:'lofi2-vinyl-01',levelDb:-10};
 export type VinylTexture=typeof DEFAULT_VINYL_TEXTURE;
 export function isVinylTexture(id:string){return VINYL_TEXTURES.some(item=>item.id===id);}
+export function getRandomVinylTextureId(excludeId?:string):string{
+  const available=VINYL_TEXTURES.map(item=>item.id);
+  const choices=excludeId?available.filter(id=>id!==excludeId):available;
+  const pool=choices.length>0?choices:available;
+  return pool[Math.floor(Math.random()*pool.length)]??'lofi2-vinyl-01';
+}
 export function validateVinylTexture(value:unknown):VinylTexture{
   if(!value||typeof value!=='object')throw Error('Invalid vinyl texture settings.');
   const v=value as VinylTexture;

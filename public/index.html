@@ -376,11 +376,11 @@
     </section>
   </div>
 </section>
-<section id="vinyl-texture-rack" class="vinyl-texture-rack" aria-label="Vinyl Texture">
-  <label class="vinyl-texture-toggle"><input id="vinyl-texture-enabled" type="checkbox"> Vinyl Texture <span>Continuous background ambience</span></label>
+<section id="vinyl-texture-rack" class="vinyl-texture-rack" aria-label="Vinyl Texture" hidden>
+  <label class="vinyl-texture-toggle"><input id="vinyl-texture-enabled" type="checkbox"> Vinyl Texture <span class="vinyl-sub">Continuous ambience</span></label>
   <label>Recording <select id="vinyl-texture-choice"></select></label>
   <button id="vinyl-texture-preview" type="button">Preview</button>
-  <label>Level <output id="vinyl-texture-level-value">−30 dB</output><input id="vinyl-texture-level" type="range" min="-60" max="0" step="1" value="-30"></label>
+  <label>Level <output id="vinyl-texture-level-value">−10 dB</output><input id="vinyl-texture-level" type="range" min="-60" max="0" step="1" value="-10"></label>
 </section>
 <details id="master-dsp-rack" class="master-dsp-rack"><summary><svg class="tool-icon"><use href="#icon-sliders"/></svg> Master DSP <span>Filter · dynamics · delay</span></summary><div id="master-dsp-host"></div></details>
 
@@ -398,4 +398,4 @@
   </div>
   <p class="footer-note" hidden>Single-shot tracker · Audio stays local. Save project includes your samples and settings; autosave restores your latest workspace on this browser. WAV includes tails; muted lanes are excluded. Pitch repitches the sound. MP3 export remains planned.</p>
 </footer>
-</main><script type="module" src="./dist/web.js?v=0.4.6-sound-browser"></script></body></html>
+</main><script type="module" src="./dist/web.js?v=0.4.7-lofi-vinyl"></script></body></html>
