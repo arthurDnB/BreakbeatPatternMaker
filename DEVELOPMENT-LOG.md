@@ -73,6 +73,11 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-29] - Tracker Boundary and Bar Navigation (Codex)
+- **Tracker keys (`src/web.ts`, `public/index.html`):** Added Home/End jumps to the first/last row and PageUp/PageDown jumps by one bar, retaining the current lane and tracker field. Shift extends the selected cell range. Added these key bindings to the shortcut dialog and bumped the app cache key.
+- **Browser coverage (`scripts/tracker-navigation-smoke.mjs`):** Checks both ends, one-bar moves, and return navigation alongside existing arrow wrapping, LPB/resolution remapping, and Undo.
+- **Verification:** `npm.cmd test` passed 177/177; tracker navigation browser smoke passed; `npm.cmd run test:site` passed at root and GitHub Pages subpath with sound browser and break transcription checks.
+
 ### [2026-09-29] - Clear Save and Export Feedback (Codex)
 - **Project and WAV downloads (`public/index.html`, `public/workspace.css`, `src/web.ts`):** Renamed the manual project action to **Download project + samples** to distinguish portable backups from local autosave. Added a persistent accessible file-action message naming the downloaded file, embedded content, active pattern/song target, bar count, BPM, duration, loop/tail behavior, master trim when applied, and that the browser controls download location. Errors appear in the same feedback area with error styling.
 - **Browser checks (`scripts/site-browser-smoke.mjs`, `scripts/song-browser-smoke.mjs`):** Verified active-pattern WAV and project-backup messaging plus full-song and active-pattern target summaries. Corrected the song smoke test to read the editable HUD tempo input's value rather than its empty `textContent`, allowing the song export assertions to run.

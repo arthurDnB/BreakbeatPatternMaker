@@ -1116,6 +1116,8 @@ function copyTrackerCells(){try{trackerClipboard=editor.copySelection();status(`
 function pasteTrackerCells(){if(!trackerClipboard){status('Copy tracker cells first.',true);return;}edit(()=>editor.pasteCells(trackerClipboard!,rowAnchor,cursorLane),'Pasted tracker cells. Undo restores the previous cells.');focusTrackerCell(rowAnchor,cursorLane);}
 function duplicateTrackerCells(){try{const clip=editor.copySelection(),positions=editor.state.selection.cells?.length?editor.state.selection.cells:editor.state.selection.rows?Array.from({length:editor.state.selection.rows[1]-editor.state.selection.rows[0]+1},(_,i)=>({row:editor.state.selection.rows![0]+i,lane:ROLES[0]})):transfer.notes.filter(n=>editor.state.selection.ids.includes(n.id)).map(n=>({row:n.row,lane:n.lane}));const row=Math.min(...positions.map(c=>c.row))+clip.height,lane=ROLES[Math.min(...positions.map(c=>ROLES.indexOf(c.lane)))]!;edit(()=>editor.pasteCells(clip,row,lane),'Duplicated tracker cells below the selection.');focusTrackerCell(row,lane);}catch(e){status((e as Error).message,true);}}
 el('tracker-copy').onclick=copyTrackerCells;el('tracker-paste').onclick=pasteTrackerCells;el('tracker-duplicate').onclick=duplicateTrackerCells;
+function trackerJumpRow(key:string,row:number){const last=transfer.timing.lines-1;if(key==='Home')return 0;if(key==='End')return last;const barRows=transfer.timing.lpb*4;if(key==='PageUp')return Math.max(0,row-barRows);if(key==='PageDown')return Math.min(last,row+barRows);return row;}
+const trackerJumpKeys=['Home','End','PageUp','PageDown'];
 el('grid').addEventListener('keydown', event => {
   if(event.altKey)return;
   if(event.ctrlKey||event.metaKey){const key=event.key.toLowerCase();if(key==='c'||key==='v'||key==='d'){event.preventDefault();if(key==='c')copyTrackerCells();else if(key==='v')pasteTrackerCells();else duplicateTrackerCells();}return;}
@@ -1123,13 +1125,14 @@ el('grid').addEventListener('keydown', event => {
   if(field){
     const row=Number(focused.dataset.cellRow),lane=focused.dataset.cellLane as Role,id=focused.dataset.hit;
     if(event.key==='Escape'){trackerFieldDraft=undefined;trackerEffectDraft=undefined;event.preventDefault();event.stopPropagation();render();return;}
-    if(event.key==='Tab'||event.key.startsWith('Arrow')){
+    if(event.key==='Tab'||event.key.startsWith('Arrow')||trackerJumpKeys.includes(event.key)){
       event.preventDefault();event.stopPropagation();trackerFieldDraft=undefined;trackerEffectDraft=undefined;
       let nextRow=row,nextLane=lane,nextField:string=field;
       if(event.key==='ArrowUp'||event.key==='ArrowDown')nextRow=(row+(event.key==='ArrowDown'?1:-1)+transfer.timing.lines)%transfer.timing.lines;
+      else if(trackerJumpKeys.includes(event.key))nextRow=trackerJumpRow(event.key,row);
       else if(event.key==='Tab'){const position=ROLES.indexOf(lane)*trackerFields.length+trackerFields.indexOf(field)+(event.shiftKey?-1:1);const wrapped=(position+ROLES.length*trackerFields.length)%(ROLES.length*trackerFields.length);nextLane=ROLES[Math.floor(wrapped/trackerFields.length)]!;nextField=trackerFields[wrapped%trackerFields.length]!;}
       else {const perRow=ROLES.length*trackerFields.length,total=transfer.timing.lines*perRow,current=row*perRow+ROLES.indexOf(lane)*trackerFields.length+trackerFields.indexOf(field),wrapped=(current+(event.key==='ArrowRight'?1:-1)+total)%total;nextRow=Math.floor(wrapped/perRow);const column=wrapped%perRow;nextLane=ROLES[Math.floor(column/trackerFields.length)]!;nextField=trackerFields[column%trackerFields.length]!;}
-      selectTrackerCell(nextRow,nextLane,{shiftKey:event.shiftKey&&event.key.startsWith('Arrow'),ctrlKey:false,metaKey:false},nextRow===row&&nextLane===lane&&!event.shiftKey?pattern.events.find(h=>h.id===id):undefined,false);focusTrackerField(nextRow,nextLane,nextField);return;
+      selectTrackerCell(nextRow,nextLane,{shiftKey:event.shiftKey&&(event.key.startsWith('Arrow')||trackerJumpKeys.includes(event.key)),ctrlKey:false,metaKey:false},nextRow===row&&nextLane===lane&&!event.shiftKey?pattern.events.find(h=>h.id===id):undefined,false);focusTrackerField(nextRow,nextLane,nextField);return;
     }
     if(field==='instrument'&&(event.key==='Enter'||event.key===' ')){event.preventDefault();event.stopPropagation();if(id)openHitSoundPicker(id);else{const panel=el('grid').querySelector<HTMLDetailsElement>(`.track-instrument-panel[data-role="${lane}"]`);if(panel)openInstrumentPanel(panel);}return;}
     if(event.key==='Delete'||event.key==='Backspace'){
@@ -1185,6 +1188,12 @@ el('grid').addEventListener('keydown', event => {
     const total=transfer.timing.lines*ROLES.length,current=rowAnchor*ROLES.length+ROLES.indexOf(cursorLane),next=current+(event.key==='ArrowRight'?1:event.key==='ArrowLeft'?-1:event.key==='ArrowDown'?ROLES.length:event.key==='ArrowUp'?-ROLES.length:0),wrapped=(next+total)%total;
     const row=Math.floor(wrapped/ROLES.length),lane=ROLES[wrapped%ROLES.length]!;
     selectTrackerCell(row,lane,{shiftKey:event.shiftKey,ctrlKey:false,metaKey:false},undefined,false);
+    const rowEl=el('grid').querySelector(`[data-play-row="${row}"]`);if(rowEl)revealPlaybackItem(el('grid'),rowEl,el('grid').querySelector('thead')?.getBoundingClientRect().height??0);
+    return;
+  }
+  if(trackerJumpKeys.includes(event.key)){
+    event.preventDefault();const row=trackerJumpRow(event.key,rowAnchor);
+    selectTrackerCell(row,cursorLane,{shiftKey:event.shiftKey,ctrlKey:false,metaKey:false},undefined,false);
     const rowEl=el('grid').querySelector(`[data-play-row="${row}"]`);if(rowEl)revealPlaybackItem(el('grid'),rowEl,el('grid').querySelector('thead')?.getBoundingClientRect().height??0);
     return;
   }

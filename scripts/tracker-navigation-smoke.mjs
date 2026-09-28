@@ -19,6 +19,11 @@ try{
  const nextRow=page.locator('[data-cell-row="1"][data-cell-lane="kick"][data-field="note"]').first();
  assert.equal(await nextRow.getAttribute('aria-current'),'location');
  await page.keyboard.press('ArrowUp');assert.equal(await first.getAttribute('aria-current'),'location');
+ await page.keyboard.press('End');assert.equal(await page.locator(`[data-cell-row="${lastRow}"][data-cell-lane="kick"][data-field="note"]`).first().getAttribute('aria-current'),'location');
+ await page.keyboard.press('Home');assert.equal(await first.getAttribute('aria-current'),'location');
+ const barRows=Number(await page.inputValue('#tracker-lpb'))*4;
+ await page.keyboard.press('PageDown');assert.equal(await page.locator(`[data-cell-row="${barRows}"][data-cell-lane="kick"][data-field="note"]`).first().getAttribute('aria-current'),'location');
+ await page.keyboard.press('PageUp');assert.equal(await first.getAttribute('aria-current'),'location');
  const startingRows=await page.locator('#grid tbody tr').count(),startingLpb=await page.inputValue('#tracker-lpb');
  await page.selectOption('#tracker-lpb','2');await page.waitForFunction(()=>document.querySelector('#summary').textContent.includes('LPB 2'));
  assert.equal(await page.locator('#grid tbody tr').count(),startingRows/Number(startingLpb)*2);
