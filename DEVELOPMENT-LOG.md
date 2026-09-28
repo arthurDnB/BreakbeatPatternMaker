@@ -73,6 +73,10 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-28] - Extend Waveform Zoom to 128× (Codex)
+- **Waveform zoom (`tools/break-review/app.js`):** Raised the maximum magnification from 32× to 128×.
+- **Verification (`scripts/break-review-smoke.mjs`, `docs/REAL-BREAK-BENCHMARK.md`):** Updated the browser check to zoom to 128×, confirm the control stops at its maximum, and reset to Fit.
+
 ### [2026-09-28] - Zoomable Break Review Waveform (Codex)
 - **Waveform inspection (`tools/break-review/index.html`, `tools/break-review/app.js`, `tools/break-review/style.css`):** Added 1×–32× zoom by mouse wheel or buttons, pointer-anchored zoom, Fit reset, and a navigator slider for moving through the zoomed view. Waveform samples, marker hit targets, timing grid, cursor, and playhead now use the visible time range; selecting an onset in the list brings it into view.
 - **Verification (`scripts/break-review-smoke.mjs`, `docs/REAL-BREAK-BENCHMARK.md`):** Browser smoke covers button and wheel zoom, navigator movement, Fit reset, playback windows, autosave, reload, and mobile layout.

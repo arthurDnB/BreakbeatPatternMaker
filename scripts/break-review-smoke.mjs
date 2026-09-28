@@ -29,6 +29,10 @@ try {
   await page.locator('#zoom-fit').click();
   assert.equal(await page.locator('#zoom-level').textContent(), '1×');
   assert.equal(await page.locator('#wave-pan').isDisabled(), true);
+  for (let index = 0; index < 7; index++) await page.locator('#zoom-in').click();
+  assert.equal(await page.locator('#zoom-level').textContent(), '128×');
+  assert.equal(await page.locator('#zoom-in').isDisabled(), true);
+  await page.locator('#zoom-fit').click();
   await page.evaluate(() => {
     const original = AudioBufferSourceNode.prototype.start;
     window.__playWindows = [];

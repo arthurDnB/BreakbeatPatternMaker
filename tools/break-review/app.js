@@ -99,13 +99,13 @@ function updateZoomControls() {
   const [start, end] = viewRange();
   element('zoom-level').textContent = `${zoomFactor}×`;
   element('zoom-out').disabled = zoomFactor <= 1;
-  element('zoom-in').disabled = zoomFactor >= 32;
+  element('zoom-in').disabled = zoomFactor >= 128;
   const pan = element('wave-pan');
   pan.disabled = zoomFactor <= 1;
   pan.value = String(Math.round((start - regionStart) / Math.max(.000001, regionEnd - regionStart - (end - start)) * 100));
 }
 function setZoom(factor, anchorTime = viewCenter, anchorRatio = .5) {
-  zoomFactor = Math.max(1, Math.min(32, factor));
+  zoomFactor = Math.max(1, Math.min(128, factor));
   const [regionStart, regionEnd] = activeCase().regionSeconds;
   const duration = (regionEnd - regionStart) / zoomFactor;
   const start = Math.max(regionStart, Math.min(regionEnd - duration, anchorTime - anchorRatio * duration));
