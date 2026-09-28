@@ -73,6 +73,11 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-29] - Clear Save and Export Feedback (Codex)
+- **Project and WAV downloads (`public/index.html`, `public/workspace.css`, `src/web.ts`):** Renamed the manual project action to **Download project + samples** to distinguish portable backups from local autosave. Added a persistent accessible file-action message naming the downloaded file, embedded content, active pattern/song target, bar count, BPM, duration, loop/tail behavior, master trim when applied, and that the browser controls download location. Errors appear in the same feedback area with error styling.
+- **Browser checks (`scripts/site-browser-smoke.mjs`, `scripts/song-browser-smoke.mjs`):** Verified active-pattern WAV and project-backup messaging plus full-song and active-pattern target summaries. Corrected the song smoke test to read the editable HUD tempo input's value rather than its empty `textContent`, allowing the song export assertions to run.
+- **Verification:** `npm.cmd test` passed 177/177; `npm.cmd run test:site` passed at root and GitHub Pages subpath; `node scripts/song-browser-smoke.mjs` passed transport, arrangement export, tempo, lock, and responsive checks.
+
 ### [2026-09-29] - Keyboard Shortcut Reference (Codex)
 - **Shortcut overlay (`public/index.html`, `public/workspace.css`, `src/web.ts`):** Added a compact, responsive keyboard reference organized by tracker editing, playback/history and workspace navigation. It opens from the header Shortcuts button or `?`, and closes with Escape, Done, the close control or backdrop; native dialog focus handling returns to the opener.
 - **Coverage (`scripts/site-browser-smoke.mjs`):** Added browser checks for displayed shortcut sections, button and `?` opening, and Escape/Done closing. Existing bindings are documented from their current handlers; no tracker shortcut semantics changed.

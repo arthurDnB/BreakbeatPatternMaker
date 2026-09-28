@@ -102,6 +102,7 @@ const playingSources=new Set<AudioBufferSourceNode>();
 let refreshKitTempo=()=>{};
 function showHitEditor(){if(matchMedia('(max-width:800px)').matches)requestAnimationFrame(()=>el('hit-editor').scrollIntoView({behavior:'smooth',block:'start'}));}
 function status(message:string,error=false){el('status').textContent=message;el('status').classList.toggle('error',error);}
+function fileFeedback(message:string,error=false){const output=el<HTMLOutputElement>('file-action-feedback');output.textContent=message;output.hidden=false;output.dataset.state=error?'error':'success';}
 function syncHud() {
   const bpmVal = document.getElementById('hud-bpm-val');
   if (bpmVal && Number.isFinite(Number(input('bpm').value))) {
@@ -715,12 +716,15 @@ async function playArrangement(){
 async function exportArrangement(){
  await vinylOptions();
  const audio=arrangementAudio(44100);
- downloadBytes(encodeWav(audio.channels,audio.sampleRate),'breakbeat-arrangement.wav');
- status('Full song exported at '+bank!.songBpm+' BPM with continuous effects and final tails.'+masterTrimNote(audio.attenuation));
+ const filename='breakbeat-arrangement.wav',bars=bank!.sequence.reduce((n,step)=>n+bank!.slots[step.slot]!.editor!.pattern.settings.bars*step.repeats,0);
+ downloadBytes(encodeWav(audio.channels,audio.sampleRate),filename);
+ const duration=audio.channels[0]!.length/audio.sampleRate;
+ fileFeedback(`${filename} downloaded · Full song arrangement · ${bars} bars · ${bank!.songBpm} BPM · ${duration.toFixed(2)} s with effect tails. Browser controls the download location.${masterTrimNote(audio.attenuation)}`);
+ status('Full song arrangement WAV downloaded.');
 }
 function masterTrimNote(attenuation:number){return attenuation<.999?` Master peak protection trimmed ${(20*Math.log10(1/attenuation)).toFixed(1)} dB.`:'';}
 el('play-arrangement').onclick=()=>{playArrangement().catch(e=>{stop();status(String(e),true);});};
-el('export-arrangement').onclick=()=>{exportArrangement().catch(e=>status(String(e),true));};
+el('export-arrangement').onclick=()=>{exportArrangement().catch(e=>{fileFeedback('WAV export failed: '+String(e),true);status(String(e),true);});};
 el('transport-target').onchange=()=>{stop();syncHud();};
 el('export-target').onchange=()=>{input('export-mode').disabled=input('export-target').value==='song';};
 function setTransportTempo(bpm:number){
@@ -864,12 +868,14 @@ el('export-wav').onclick=async()=>{
     );
     const filename=isLoop?transfer.genre+'-pattern.wav':transfer.genre+'-pattern-tail.wav';
     downloadBytes(encodeWav(audio.channels,audio.sampleRate),filename);
+    const duration=audio.channels[0]!.length/audio.sampleRate;
+    fileFeedback(`${filename} downloaded · Active pattern · ${pattern.settings.bars} bars · ${pattern.settings.bpm.toFixed(1)} BPM · ${duration.toFixed(2)} s · ${isLoop?'seamless loop with wrapped tails':'one-shot with natural decay tail'}. Browser controls the download location.${masterTrimNote(audio.attenuation)}`);
     status(isLoop
-      ? `Seamless loop WAV exported (${pattern.settings.bars} bars, ${(audio.channels[0]!.length/audio.sampleRate).toFixed(2)}s) with wrapped tails.${masterTrimNote(audio.attenuation)}`
-      : `Pattern WAV exported with natural decay tail (${(audio.channels[0]!.length/audio.sampleRate).toFixed(2)}s).${masterTrimNote(audio.attenuation)}`
+      ? `Seamless loop WAV downloaded (${pattern.settings.bars} bars, ${duration.toFixed(2)} s) with wrapped tails.`
+      : `One-shot WAV downloaded with natural decay tail (${duration.toFixed(2)} s).`
     );
   }
-  catch(e){status((e as Error).message,true);}
+  catch(e){fileFeedback('WAV export failed: '+(e as Error).message,true);status((e as Error).message,true);}
 };
 el('export').onclick=download;el('play').onclick=()=>{play().catch(e=>status(String(e),true));};
 el('copy').onclick=async()=>{
@@ -1324,7 +1330,7 @@ async function applyProject(raw:unknown){
   for(const [key,value] of Object.entries(p.draft))if(key!=='enabledRoles'&&key!=='laneDensity')input(key).value=String(value);
   presets();refresh();syncVinylGenreAccent();if(migrated)status('Older project sound updated: scratch and vinyl instrument hits now use Lo-Fi Percussion 02. Vinyl texture moved to background where available.');return true;
 }
-el('project-save').onclick=()=>{try{if(pendingCount())throw Error('Apply or Revert pending hit edits before saving a project backup.');const data=snapshot();downloadBytes(new TextEncoder().encode(JSON.stringify(data)).buffer,'breakbeat-project.bbproject','application/json');status('Project saved with sample audio, kit, pattern and settings.');}catch(e){status(String(e),true);}};
+el('project-save').onclick=()=>{try{if(pendingCount())throw Error('Apply or Revert pending hit edits before saving a project backup.');const data=snapshot(),filename='breakbeat-project.bbproject';downloadBytes(new TextEncoder().encode(JSON.stringify(data)).buffer,filename,'application/json');fileFeedback(`Downloaded ${filename} · portable backup with embedded samples, kit, patterns and settings. Local autosave remains active in this browser. Your browser controls the download location.`);status('Portable project backup downloaded.');}catch(e){fileFeedback('Project backup failed: '+String(e),true);status(String(e),true);}};
 el('project-open').onchange=async e=>{const field=e.target as HTMLInputElement,file=field.files?.[0];field.value='';if(!file)return;
   try{if(file.size>384*1024*1024)throw Error('Project exceeds 384 MB.');const raw=JSON.parse(await file.text());if(await applyProject(raw)){scheduleSave();if(!needsVinylMigration(raw))status('Project opened. Samples and instrument choices restored.');}}catch(e){status('Could not open project: '+String(e),true);}
 };

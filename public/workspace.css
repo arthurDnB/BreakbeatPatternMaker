@@ -327,6 +327,9 @@ main.daw-chassis {
   font-family: var(--font-mono);
   margin-left: 4px;
 }
+.file-action-feedback { flex:1 0 100%; margin:2px 0 0; padding:5px 8px; border:1px solid #25443c; border-radius:4px; background:#07110e; color:#9ee7d2; font:10px/1.4 var(--font-mono); white-space:normal; }
+.file-action-feedback[data-state="error"] { border-color:#63353a; background:#17090b; color:#ff9aa5; }
+.file-action-feedback[hidden] { display:none; }
 
 .help-link {
   font-size: 11px;

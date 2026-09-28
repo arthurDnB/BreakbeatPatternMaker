@@ -32,7 +32,7 @@ try {
  assert.equal(await page.inputValue('#song-bpm'),'240');
  await page.click('#slot-1');assert.equal(await page.inputValue('#song-bpm'),'240');
  await page.selectOption('#transport-target','song');
- assert.equal(await page.locator('#hud-bpm-val').textContent(),'240.0');
+ assert.equal(await page.inputValue('#hud-bpm-val'),'240.0');
  await page.click('#play');
  await page.waitForFunction(()=>document.querySelector('[data-step="0"]').classList.contains('playing-step'));
  assert.equal(await page.locator('#song-timeline [data-timeline-step="0"]').evaluate(e=>e.classList.contains('playing-step')),true);
@@ -47,10 +47,11 @@ try {
  const dl=async id=>{const pending=page.waitForEvent('download');await page.click(id);return readFile(await(await pending).path());};
  await page.selectOption('#export-target','song');assert.equal(await page.locator('#export-mode').isDisabled(),true);
  const wav=await dl('#export-wav');
+ assert.match(await page.locator('#file-action-feedback').textContent(),/Full song arrangement/);assert.match(await page.locator('#file-action-feedback').textContent(),/effect tails/);
  const rendered=renderSequence(arrange(bank).map(p=>withDrumKit(p,new Map(),kit)),new Map(),44100,Object.fromEntries(Object.entries(kit).map(([role,s])=>[role,s.effects])));
  assert.deepEqual(wav,Buffer.from(encodeWav(rendered.channels,rendered.sampleRate)));
  await page.selectOption('#export-target','pattern');assert.equal(await page.locator('#export-mode').isDisabled(),false);
- const patternWav=await dl('#export-wav');assert.notDeepEqual(wav,patternWav);
+ const patternWav=await dl('#export-wav');assert.notDeepEqual(wav,patternWav);assert.match(await page.locator('#file-action-feedback').textContent(),/Active pattern/);
  await page.locator('#song-timeline').evaluate(e=>e.scrollLeft=0);
  await page.locator('[data-timeline-step="1"]').dragTo(page.locator('.timeline-insert').first());
  assert.match(await page.locator('[data-step="0"] > span').textContent(),/B/);

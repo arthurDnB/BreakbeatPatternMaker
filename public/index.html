@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Breakbeat Pattern Maker</title><link rel="stylesheet" href="./public/style.css?v=0.4.1-trackerfx"><link rel="stylesheet" href="./public/workspace.css?v=0.4.11-shortcuts"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Breakbeat Pattern Maker</title><link rel="stylesheet" href="./public/style.css?v=0.4.1-trackerfx"><link rel="stylesheet" href="./public/workspace.css?v=0.4.12-file-feedback"></head>
 <body><main class="daw-chassis">
 <svg class="icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><symbol id="icon-shuffle" viewBox="0 0 24 24"><path d="M3 6h3c6 0 6 12 12 12h3m-3-3 3 3-3 3M3 18h3c2 0 3-1 4-3m4-6c1-2 2-3 4-3h3m-3-3 3 3-3 3"/></symbol><symbol id="icon-sliders" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16M9 2v6m6 1v6m-5 1v6"/></symbol><symbol id="icon-variation" viewBox="0 0 24 24"><path d="M4 7h12a4 4 0 0 1 4 4v2m-3-3 3 3 3-3M20 17H8a4 4 0 0 1-4-4v-2m3 3-3-3-3 3"/></symbol><symbol id="icon-grid" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 10h16M4 15h16M10 4v16m5-16v16"/></symbol><symbol id="icon-wave" viewBox="0 0 24 24"><path d="M2 12h3l2-7 4 14 3-10 2 5 2-2h4"/></symbol><symbol id="icon-follow" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M12 2v5m0 10v5M2 12h5m10 0h5"/></symbol></svg>
 
@@ -25,14 +25,14 @@
 
   <section class="project-bar">
     <button id="import-break" type="button">Import break</button>
-    <button id="project-save">Save project + samples</button>
+    <button id="project-save" type="button" title="Download a portable project backup with embedded samples">Download project + samples</button>
     <label class="open-project" for="project-open">Open project<input id="project-open" type="file" accept=".bbproject,application/json"></label>
     <button id="project-new">New project</button>
     <button id="quick-start-toggle" class="quick-start-toggle" type="button" aria-controls="quick-start" aria-expanded="true">Hide guide</button>
     <button id="layout-stack" type="button" aria-pressed="false" title="Stack or unstack workspace panels">Stack panels</button>
     <div class="output-group">
       <select id="export-target" aria-label="WAV export target"><option value="pattern">Active pattern</option><option value="song">Full song arrangement</option></select>
-      <button id="export-wav" class="export">Export WAV ↓</button>
+      <button id="export-wav" class="export" title="Render and download the selected pattern or song as a WAV file">Export WAV ↓</button>
       <select id="export-mode" class="export-mode-select" title="WAV export mode">
         <option value="loop" selected>Seamless loop · exact bars</option>
         <option value="tail">One shot · natural tail</option>
@@ -46,6 +46,7 @@
       </details>
     </div>
     <span id="save-status" role="status">Local autosave ready</span>
+    <output id="file-action-feedback" class="file-action-feedback" role="status" aria-live="polite" hidden></output>
   </section>
   <a href="./README.md" target="_blank" class="help-link">Help ↗</a>
   <button id="shortcut-help-open" class="quick-start-toggle shortcut-help-open" type="button" aria-haspopup="dialog" title="Keyboard shortcuts (?)">Shortcuts <kbd>?</kbd></button>
@@ -438,4 +439,4 @@
   </div>
   <p class="footer-note" hidden>Single-shot tracker · Audio stays local. Save project includes your samples and settings; autosave restores your latest workspace on this browser. WAV includes tails; muted lanes are excluded. Pitch repitches the sound. MP3 export remains planned.</p>
 </footer>
-</main><script type="module" src="./dist/web.js?v=0.4.11-shortcuts"></script></body></html>
+</main><script type="module" src="./dist/web.js?v=0.4.12-file-feedback"></script></body></html>
