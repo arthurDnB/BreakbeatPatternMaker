@@ -73,6 +73,11 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-28] - Blind Second-Listener Break Review (Codex)
+- **Independent review path (`scripts/break-review-server.mjs`, `scripts/break-review-state.mjs`, `tools/break-review/`):** Added a separate `--blind` mode on localhost port 4175 with a blank marker draft, no first-review onset values in the state response, reviewer-mode validation, and a distinct second-review export. The original reviewer draft/export remain separate.
+- **Agreement analysis (`scripts/break-review-agreement.mjs`, `scripts/compare-break-reviews.mjs`):** Added source-identity validation and per-recording comparisons at ±5/10/20 ms, including matched, missed and extra onsets, timing error, precision/recall/F1, micro summaries, and family-macro F1. The output labels these as human agreement rather than detector accuracy.
+- **Documentation and verification (`docs/VERIFIED-BREAK-BENCHMARK.md`, `tests/break-review.test.mjs`, `scripts/break-review-smoke.mjs`):** Added launch/use/compare steps and tests for empty blind starts, isolated export, report metrics, mismatched sources, autosave, and UI blank state. `npm.cmd test` passed 171/171, local break review browser smoke passed for normal and blind modes, and `npm.cmd run test:site` passed at root and project subpath.
+
 ### [2026-09-28] - Tracker Resolution and LPB Controls (Codex)
 - **In-tracker grid controls (`public/index.html`, `public/workspace.css`, `src/web.ts`):** Added Resolution and Lines Per Beat selectors to the tracker toolbar so users can reduce the visible row density directly after importing a chopped break. Resolution selects 1/8–1/64 and sets a matching LPB; LPB can then be tuned independently from 1 to 32.
 - **Timing and persistence (`src/core/model.ts`, `src/core/compile.ts`, `src/core/settings.ts`, `src/core/editor.ts`, `src/core/bank.ts`, `src/audio/project.ts`):** Persist per-pattern LPB, keep absolute hit ticks intact when changing the grid, and make tracker row-based entry, copy/move, delay, fills and selection validation follow the active LPB. Resolution and LPB edits use normal pattern Undo/Redo. Clipboard paste now checks both settings.

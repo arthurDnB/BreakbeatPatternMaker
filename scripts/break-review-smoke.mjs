@@ -67,3 +67,34 @@ try {
   await new Promise(resolve => server.close(resolve));
   await rm(draftFile, { force: true });
 }
+
+const blindDraft = `test-results/break-transcription/blind-smoke-${randomUUID()}.json`;
+const blindExport = `test-results/break-transcription/blind-export-${randomUUID()}.json`;
+const blindServer = await startBreakReviewServer({ port: 0, draftFile: blindDraft, exportFile: blindExport, blindReview: true });
+let blindBrowser;
+try {
+  const stateResponse = await fetch(blindServer.url + 'api/state');
+  const state = await stateResponse.json();
+  assert.equal(state.mode, 'blind-second-review');
+  assert.equal(state.cases.some(item => 'onsetsSeconds' in item), false);
+  assert.ok(state.review.cases.every(item => item.markers.length === 0));
+  blindBrowser = await chromium.launch({ headless: true, channel: process.env.BROWSER_CHANNEL ?? 'msedge' });
+  const page = await blindBrowser.newPage();
+  await page.goto(blindServer.url);
+  assert.match(await page.locator('#review-guidance').textContent(), /first-review labels are hidden/);
+  assert.equal(await page.locator('#marker-list .marker-item').count(), 0);
+  await page.locator('#play-full').click();
+  await page.getByText('Full passage played').waitFor({ timeout: 10000 });
+  await page.locator('#add').click();
+  await page.getByText('1 total · 0 open').waitFor();
+  await page.getByText('Saved locally').waitFor();
+  const saved = await (await fetch(blindServer.url + 'api/state')).json();
+  assert.equal(saved.review.cases[0].markers.length, 1);
+  assert.deepEqual(await page.locator('#export').isDisabled(), true);
+  console.log('Blind second review: zero exposed reference labels, manual onset creation and separate autosave passed.');
+} finally {
+  await blindBrowser?.close();
+  await new Promise(resolve => blindServer.server.close(resolve));
+  await rm(blindDraft, { force: true });
+  await rm(blindExport, { force: true });
+}

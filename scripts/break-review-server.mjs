@@ -9,6 +9,8 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const defaultPaths = resolve(root, 'test-results/break-transcription/real-source-paths.json');
 const defaultDraft = resolve(root, 'test-results/break-transcription/review-draft.json');
 const defaultExport = resolve(root, 'test-results/break-transcription/verified-real-breaks.json');
+const blindDraft = resolve(root, 'test-results/break-transcription/second-review-draft.json');
+const blindExport = resolve(root, 'test-results/break-transcription/second-review-labels.json');
 const ui = new Map([['/', 'index.html'], ['/app.js', 'app.js'], ['/style.css', 'style.css']]);
 
 function respond(response, status, body, type = 'application/json; charset=utf-8') {
@@ -27,7 +29,9 @@ async function readJsonRequest(request) {
   return JSON.parse(Buffer.concat(chunks).toString('utf8'));
 }
 
-export async function startBreakReviewServer({ port = 4174, pathMap = defaultPaths, draftFile = defaultDraft, exportFile = defaultExport } = {}) {
+export async function startBreakReviewServer({ port = 4174, pathMap = defaultPaths, draftFile, exportFile, blindReview = false } = {}) {
+  draftFile ??= blindReview ? blindDraft : defaultDraft;
+  exportFile ??= blindReview ? blindExport : defaultExport;
   const annotations = JSON.parse(await readFile(resolve(root, 'benchmarks/real-breaks.json'), 'utf8'));
   const localSources = JSON.parse(await readFile(pathMap, 'utf8'));
   const sourceById = new Map(localSources.map(source => [source.id, source]));
@@ -40,10 +44,10 @@ export async function startBreakReviewServer({ port = 4174, pathMap = defaultPat
     audio.set(item.id, bytes);
   }
   let review;
-  try { review = validateReview(JSON.parse(await readFile(draftFile, 'utf8')), annotations); }
+  try { review = validateReview(JSON.parse(await readFile(draftFile, 'utf8')), annotations, { blind: blindReview }); }
   catch (error) {
     if (error.code !== 'ENOENT') throw error;
-    review = initialReview(annotations);
+    review = initialReview(annotations, { blind: blindReview });
   }
   const server = createServer(async (request, response) => {
     try {
@@ -57,7 +61,7 @@ export async function startBreakReviewServer({ port = 4174, pathMap = defaultPat
         return respond(response, 200, await readFile(resolve(root, 'tools/break-review', file)), type);
       }
       if (request.method === 'GET' && pathname === '/api/state') {
-        return respond(response, 200, JSON.stringify({ baselineHash: baselineHash(annotations), cases: annotations.cases.map(({ id, family, filename, regionSeconds }) => ({ id, family, filename, regionSeconds })), review }));
+        return respond(response, 200, JSON.stringify({ mode: blindReview ? 'blind-second-review' : 'review', baselineHash: baselineHash(annotations), cases: annotations.cases.map(({ id, family, filename, regionSeconds }) => ({ id, family, filename, regionSeconds })), review }));
       }
       if (request.method === 'GET' && pathname.startsWith('/api/audio/')) {
         const id = decodeURIComponent(pathname.slice('/api/audio/'.length));
@@ -65,17 +69,18 @@ export async function startBreakReviewServer({ port = 4174, pathMap = defaultPat
         return respond(response, 200, audio.get(id), 'audio/wav');
       }
       if (request.method === 'POST' && pathname === '/api/draft') {
-        const next = validateReview(await readJsonRequest(request), annotations);
+        const next = validateReview(await readJsonRequest(request), annotations, { blind: blindReview });
         await mkdir(dirname(draftFile), { recursive: true });
         await writeFile(draftFile, JSON.stringify(next, null, 2) + '\n');
         review = next;
         return respond(response, 200, JSON.stringify({ saved: true }));
       }
       if (request.method === 'POST' && pathname === '/api/export') {
-        const verified = verifiedAnnotations(review, annotations);
+        const verified = verifiedAnnotations(review, annotations, { reviewer: blindReview ? 'independent-blind-listener' : 'primary-listener' });
         await mkdir(dirname(exportFile), { recursive: true });
         await writeFile(exportFile, JSON.stringify(verified, null, 2) + '\n');
-        response.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Content-Disposition': 'attachment; filename="verified-real-breaks.json"', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' });
+        const filename = blindReview ? 'second-review-labels.json' : 'verified-real-breaks.json';
+        response.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Content-Disposition': `attachment; filename="${filename}"`, 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' });
         return response.end(JSON.stringify(verified, null, 2) + '\n');
       }
       return respond(response, 404, JSON.stringify({ error: 'Not found.' }));
@@ -87,8 +92,11 @@ export async function startBreakReviewServer({ port = 4174, pathMap = defaultPat
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
-    const result = await startBreakReviewServer({ port: Number(process.argv[2] ?? 4174) });
-    console.log(`Break review ready: ${result.url}`);
+    const args = process.argv.slice(2);
+    const blindReview = args.includes('--blind');
+    const port = Number(args.find(arg => /^\d+$/.test(arg)) ?? (blindReview ? 4175 : 4174));
+    const result = await startBreakReviewServer({ port, blindReview });
+    console.log(`${blindReview ? 'Blind second review' : 'Break review'} ready: ${result.url}`);
     console.log('Draft saves to: ' + result.draftFile);
   } catch (error) { console.error(error.message); process.exitCode = 1; }
 }

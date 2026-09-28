@@ -6,21 +6,23 @@ export function baselineHash(annotations) {
   return createHash('sha256').update(JSON.stringify(annotations.cases)).digest('hex');
 }
 
-export function initialReview(annotations) {
+export function initialReview(annotations, { blind = false } = {}) {
   return {
     version: 1,
+    reviewMode: blind ? 'blind-second-review' : 'reference-review',
     baselineHash: baselineHash(annotations),
     cases: annotations.cases.map(item => ({
       id: item.id, reviewed: false, listenedFull: false,
-      markers: item.onsetsSeconds.map((time, index) => ({ id: `ref-${index}`, time, status: 'pending' })),
+      markers: blind ? [] : item.onsetsSeconds.map((time, index) => ({ id: `ref-${index}`, time, status: 'pending' })),
     })),
   };
 }
 
-export function validateReview(review, annotations) {
+export function validateReview(review, annotations, { blind = false } = {}) {
   if (review?.version !== 1 || review.baselineHash !== baselineHash(annotations) || !Array.isArray(review.cases) || review.cases.length !== annotations.cases.length) {
     throw Error('Review draft does not match the current benchmark references.');
   }
+  if (blind && review.reviewMode !== 'blind-second-review' || !blind && review.reviewMode === 'blind-second-review') throw Error('Review draft mode does not match this reviewer. Use the separate blind second-review draft.');
   const expected = new Map(annotations.cases.map(item => [item.id, item]));
   const seen = new Set();
   for (const item of review.cases) {
@@ -39,13 +41,16 @@ export function validateReview(review, annotations) {
   return structuredClone(review);
 }
 
-export function verifiedAnnotations(review, annotations) {
-  const valid = validateReview(review, annotations);
+export function verifiedAnnotations(review, annotations, { reviewer = 'primary-listener' } = {}) {
+  const valid = validateReview(review, annotations, { blind: reviewer === 'independent-blind-listener' });
   if (valid.cases.some(item => !item.reviewed)) throw Error('Review all eight passages before exporting verified labels.');
   const byId = new Map(valid.cases.map(item => [item.id, item]));
   return {
     ...annotations,
-    annotationMethod: 'Listener-reviewed onset references from the local Break Review tool; each passage was played in full and every retained marker was accepted by the reviewer.',
+    annotationMethod: reviewer === 'independent-blind-listener'
+      ? 'Independent blind second-listener onset references from the local Break Review tool; labels were entered without access to the first review.'
+      : 'Listener-reviewed onset references from the local Break Review tool; each passage was played in full and every retained marker was accepted by the reviewer.',
+    reviewer,
     reviewComplete: true,
     reviewedAt: new Date().toISOString(),
     cases: annotations.cases.map(item => ({

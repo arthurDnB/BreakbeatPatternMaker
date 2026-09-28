@@ -37,3 +37,23 @@ Think is the most consequential change: the reviewer accepted 15 total onsets ra
 The current global settings are sensitivity **0.35** and minimum spacing **35 ms**. A grid search on these same verified labels favors 0.20/50 ms at 0.632 macro F1, but that is an in-sample maximum. Leave-one-break-family-out selection scores **0.625** against the fixed default's **0.613**, a gain of only 0.013; it improves Amen, Apache and Think holdouts but reduces Funky Drummer from 0.726 to 0.701. This is insufficient evidence to change the shipped settings.
 
 **Recommendation:** Keep the production detector and defaults as they are. The next research iteration should inspect the 10–20 ms onset offsets and extra cuts, particularly Think and Apache, then measure any attack-localization or duplicate-suppression change on longer excerpts with a second independent listener. Keep the existing manual marker editor as the user correction path. One listener, four related break families and two-second regions do not establish industry-standard transcription accuracy.
+
+## Independent blind second review
+
+The second reviewer should annotate each passage from scratch without seeing the first review's onset markers. The local tool has a separate blank draft and export for that purpose. The server only binds to loopback and reads the existing local WAV path map; no WAVs or labels are uploaded.
+
+From the repository root, start the tool with:
+
+```powershell
+node scripts/break-review-server.mjs --blind
+```
+
+It opens at `http://127.0.0.1:4175/`. Give that address to the second listener at the same computer. They should play each full passage, click each audible onset in the waveform, choose **Add hit here**, and mark every passage reviewed. The UI begins with no onset markers and saves separately to the ignored `test-results/break-transcription/second-review-draft.json`. The export downloads as `second-review-labels.json`; it does not replace the first listener's labels.
+
+After receiving that export, compare the two completed JSON files:
+
+```powershell
+node scripts/compare-break-reviews.mjs benchmarks/verified-real-breaks.json "$env:USERPROFILE\Downloads\second-review-labels.json" test-results/break-transcription/inter-review-agreement.json
+```
+
+The report includes per-recording matched, missed and extra onsets; precision, recall, F1 and absolute timing error at ±5, ±10 and ±20 ms; and event-weighted and family-macro summaries. These are human-to-human agreement measures, not detector-accuracy results. A second listener should work in person at the review computer; this loopback-only tool is not remotely shareable over a network.

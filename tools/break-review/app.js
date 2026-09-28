@@ -345,9 +345,10 @@ element('export').onclick = async () => {
     const response = await fetch('/api/export', { method: 'POST' });
     if (!response.ok) throw Error((await response.json()).error ?? 'Export failed.');
     const url = URL.createObjectURL(await response.blob());
-    const link = document.createElement('a'); link.href = url; link.download = 'verified-real-breaks.json'; link.click();
+    const blind = element('review-guidance').textContent.startsWith('Independent second review');
+    const link = document.createElement('a'); link.href = url; link.download = blind ? 'second-review-labels.json' : 'verified-real-breaks.json'; link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    setSaveMessage('Verified labels saved locally and downloaded');
+    setSaveMessage(blind ? 'Second-review labels saved locally and downloaded' : 'Verified labels saved locally and downloaded');
   } catch (error) { setSaveMessage(error.message, true); }
 };
 document.addEventListener('keydown', event => {
@@ -370,6 +371,11 @@ try {
   const response = await fetch('/api/state');
   if (!response.ok) throw Error((await response.json()).error ?? 'Could not load review state.');
   const data = await response.json(); catalogue = data.cases; review = data.review;
+  if (data.mode === 'blind-second-review') {
+    element('review-guidance').textContent = 'Independent second review · first-review labels are hidden. Listen to each full passage, place every onset yourself, then mark the passage reviewed.';
+    element('export').textContent = 'Download second-review labels';
+    document.title = 'Blind second break onset review';
+  }
   setSaveMessage('Saved locally');
   await switchCase(review.cases.find(item => !item.reviewed)?.id ?? catalogue[0].id);
 } catch (error) { setSaveMessage(error.message, true); element('clip-title').textContent = 'Review could not start'; }
