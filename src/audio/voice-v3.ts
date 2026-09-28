@@ -65,7 +65,7 @@ export function planV3Voices(pattern:Pattern,hit:Hit,channels:Float32Array[],sou
 export function applyV3Chokes(voices:RenderVoice[],rate:number,loopDuration?:number):void {
   const hats=voices.filter(v=>v.chokeGroup==='hat'||!v.hit.mapped&&v.hit.role==='hat').sort((a,b)=>a.start-b.start);
   for(let i=0;i<hats.length;i++){
-    const previous=hats[i]!,next=hats[i+1];
+    const previous=hats[i]!,next=hats.find((voice,index)=>index>i&&(voice.hit.layerOf??voice.hit.id)!==(previous.hit.layerOf??previous.hit.id)&&Math.round(voice.start*rate)>Math.round(previous.start*rate));
     const nextStart=next?.start??(loopDuration!==undefined?hats[0]!.start+loopDuration:undefined);
     if(nextStart===undefined)continue;
     if(previous.v3&&previous.chokeGroup==='hat'){
@@ -76,7 +76,7 @@ export function applyV3Chokes(voices:RenderVoice[],rate:number,loopDuration?:num
 
   const kicks=voices.filter(v=>!v.hit.mapped&&v.hit.role==='kick').sort((a,b)=>a.start-b.start);
   for(let i=0;i<kicks.length;i++){
-    const previous=kicks[i]!,next=kicks[i+1];
+    const previous=kicks[i]!,next=kicks.find((voice,index)=>index>i&&(voice.hit.layerOf??voice.hit.id)!==(previous.hit.layerOf??previous.hit.id)&&Math.round(voice.start*rate)>Math.round(previous.start*rate));
     const nextStart=next?.start??(loopDuration!==undefined?kicks[0]!.start+loopDuration:undefined);
     if(nextStart===undefined)continue;
     if(previous.v3){
@@ -87,7 +87,7 @@ export function applyV3Chokes(voices:RenderVoice[],rate:number,loopDuration?:num
 
   const snares=voices.filter(v=>!v.hit.mapped&&v.hit.role==='snare').sort((a,b)=>a.start-b.start);
   for(let i=0;i<snares.length;i++){
-    const previous=snares[i]!,next=snares[i+1];
+    const previous=snares[i]!,next=snares.find((voice,index)=>index>i&&(voice.hit.layerOf??voice.hit.id)!==(previous.hit.layerOf??previous.hit.id)&&Math.round(voice.start*rate)>Math.round(previous.start*rate));
     const nextStart=next?.start??(loopDuration!==undefined?snares[0]!.start+loopDuration:undefined);
     if(nextStart===undefined)continue;
     if(previous.v3){
@@ -100,7 +100,7 @@ export function applyV3Chokes(voices:RenderVoice[],rate:number,loopDuration?:num
 export function renderV3Voice(v:RenderVoice,bus:Float32Array[],rate:number):void {
   const offset=Math.round(v.start*rate),pan=v.hit.pan;
   const gains=v.channels.length===1?[Math.cos((pan+1)*Math.PI/4),Math.sin((pan+1)*Math.PI/4)]:[pan>0?1-pan:1,pan<0?1+pan:1];
-  const level=v.hit.gain*(v.repeatGain??1)*(v.hit.slice?(v.channels.length===1?Math.SQRT2:1):.65);
+  const level=v.hit.gain*(v.hit.phaseInvert?-1:1)*(v.repeatGain??1)*(v.hit.slice?(v.channels.length===1?Math.SQRT2:1):.65);
   const fade=Math.max(1,Math.min(Math.round(rate*.002),Math.floor(v.length/2)));
   const shape=sampleShaper(v.hit,rate);
   let phase=v.sourceOffset??0;

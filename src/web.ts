@@ -528,7 +528,7 @@ soundBrowser=setupSoundBrowser();
 refreshKitTempo=()=>kitPanel.refreshTempo();
 const drumKit=kitPanel.kit;
 function effectMap(){return Object.fromEntries(ROLES.map(r=>[r,kitPanel.mix[r].effects]));}
-function audioBuffer(audio:ReturnType<typeof renderPerformance>){const b=context!.createBuffer(2,audio.channels[0]!.length,audio.sampleRate);audio.channels.forEach((c,i)=>b.copyToChannel(new Float32Array(c),i));return b;}
+function audioBuffer(audio:{channels:Float32Array[];sampleRate:number;duration?:number;attenuation?:number}){const b=context!.createBuffer(2,audio.channels[0]!.length,audio.sampleRate);audio.channels.forEach((c,i)=>b.copyToChannel(new Float32Array(c),i));return b;}
 function startSource(buffer:AudioBuffer,at:number,loop=false){const s=context!.createBufferSource();s.buffer=buffer;s.loop=loop;s.connect(context!.destination);playingSources.add(s);s.onended=()=>{playingSources.delete(s);s.disconnect();};s.start(at);return s;}
 async function auditionCursor(role:Role){
  const hit=editor.state.pattern.events.find(h=>h.role===role&&editor.state.selection.ids.includes(h.id));
@@ -716,8 +716,9 @@ async function exportArrangement(){
  await vinylOptions();
  const audio=arrangementAudio(44100);
  downloadBytes(encodeWav(audio.channels,audio.sampleRate),'breakbeat-arrangement.wav');
- status('Full song exported at '+bank!.songBpm+' BPM with continuous effects and final tails.');
+ status('Full song exported at '+bank!.songBpm+' BPM with continuous effects and final tails.'+masterTrimNote(audio.attenuation));
 }
+function masterTrimNote(attenuation:number){return attenuation<.999?` Master peak protection trimmed ${(20*Math.log10(1/attenuation)).toFixed(1)} dB.`:'';}
 el('play-arrangement').onclick=()=>{playArrangement().catch(e=>{stop();status(String(e),true);});};
 el('export-arrangement').onclick=()=>{exportArrangement().catch(e=>status(String(e),true));};
 el('transport-target').onchange=()=>{stop();syncHud();};
@@ -854,8 +855,8 @@ el('export-wav').onclick=async()=>{
     const filename=isLoop?transfer.genre+'-pattern.wav':transfer.genre+'-pattern-tail.wav';
     downloadBytes(encodeWav(audio.channels,audio.sampleRate),filename);
     status(isLoop
-      ? `Seamless loop WAV exported (${pattern.settings.bars} bars, ${(audio.channels[0]!.length/audio.sampleRate).toFixed(2)}s) with wrapped tails.`
-      : `Pattern WAV exported with natural decay tail (${(audio.channels[0]!.length/audio.sampleRate).toFixed(2)}s).`
+      ? `Seamless loop WAV exported (${pattern.settings.bars} bars, ${(audio.channels[0]!.length/audio.sampleRate).toFixed(2)}s) with wrapped tails.${masterTrimNote(audio.attenuation)}`
+      : `Pattern WAV exported with natural decay tail (${(audio.channels[0]!.length/audio.sampleRate).toFixed(2)}s).${masterTrimNote(audio.attenuation)}`
     );
   }
   catch(e){status((e as Error).message,true);}

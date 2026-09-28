@@ -6,6 +6,8 @@ import {planV3Voices,applyV3Chokes,renderV3Voice,type RenderVoice} from './voice
 import {sampleShaper} from './sample-shaping.js';
 import {mixVinylTexture} from './vinyl-texture.js';
 import {resolvePatternSlices} from '../core/slice-instrument.js';
+import {stretchAudio} from './time-stretch.js';
+import {protectMaster} from './audio-quality.js';
 // @ts-expect-error Shared original synth.
 import {synthesize} from '../../public/synth.js';
 export interface RenderOptions {
@@ -27,6 +29,7 @@ export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,
   if(duration>170)throw Error('Arrangement limit is 170 seconds plus effect tails.');
   let position=0;
   const kit=new Map<string,Float32Array>();
+  const stretched=new Map<string,Float32Array[]>();
   const voices:RenderVoice[]=patterns.flatMap(pattern=>{
   const origin=position;position+=pattern.settings.bars*240/pattern.settings.bpm;
   const secondsPerTick=60/pattern.settings.bpm/960;
@@ -39,6 +42,12 @@ export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,
       if(asset.sampleRate!==hit.slice.sampleRate||hit.slice.endFrame>asset.channels[0]!.length)throw Error('Slice audio does not match its saved boundaries.');
       channels=asset.channels;sourceRate=asset.sampleRate;from=hit.slice.startFrame;to=hit.slice.endFrame;
     }else{if(!kit.has(hit.role))kit.set(hit.role,synthesize(hit.role,rate));channels=[kit.get(hit.role)!];to=channels[0]!.length;}
+    if(hit.stretchRate&&hit.stretchRate!==1){
+      const key=`${hit.slice?.assetId??`synth-${hit.role}`}:${from}:${to}:${hit.stretchRate}:${sourceRate}`;
+      let prepared=stretched.get(key);
+      if(!prepared){prepared=stretchAudio(channels.map(c=>c.subarray(from,to)),sourceRate,hit.stretchRate);stretched.set(key,prepared);}
+      channels=prepared;from=0;to=prepared[0]!.length;
+    }
     if(hit.effect){
       const command=hit.effect.command,param=hit.effect.param,fxHit={...hit,ratchets:1,articulation:undefined};
       const effectVoices=planV3Voices(pattern,fxHit,channels,sourceRate,from,to,origin,options.loop ? Infinity : position,rate);
@@ -107,7 +116,7 @@ export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,
     const offset=Math.round(v.start*rate),pan=v.hit.pan;
     const gains=v.channels.length===1?[Math.cos((pan+1)*Math.PI/4),Math.sin((pan+1)*Math.PI/4)]:[pan>0?1-pan:1,pan<0?1+pan:1];
     // Mono slices stay at unity at centre, demo drums retain the established kit level.
-    const level=v.hit.gain*(v.hit.slice?(v.channels.length===1?Math.SQRT2:1):.65);
+    const level=v.hit.gain*(v.hit.phaseInvert?-1:1)*(v.hit.slice?(v.channels.length===1?Math.SQRT2:1):.65);
     for(let i=0;i<v.length&&offset+i<busLength;i++){
       const pos=v.hit.reverse?v.to-1-i*v.step:v.from+i*v.step,index=Math.floor(pos),fraction=pos-index;if(index>=v.to||index<v.from)break;
       for(let c=0;c<2;c++){const data=v.channels[Math.min(c,v.channels.length-1)]!;
@@ -149,20 +158,19 @@ export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,
     }
   }
   if(options.vinylTexture)mixVinylTexture(channels,rate,options.vinylTexture.asset,options.vinylTexture.levelDb,!!options.loop);
-  const transparent=patterns.every(p=>p.events.every(h=>h.mapped));
-  // Master bus glue & soft saturation: warm analog tape curve for peaks above 0.7
-  for(let c=0;c<2;c++){
-    const ch=channels[c]!;
-    for(let i=0;i<ch.length;i++){
+  // Preserve published V1–V3 PCM exactly. The cleaner linear output guard is
+  // available to new Groove V4 work without rewriting older saved exports.
+  if(patterns.some(p=>p.settings.algorithm!=='groove-v4')){
+    const transparent=patterns.every(p=>p.events.every(h=>h.mapped));
+    for(const ch of channels)for(let i=0;i<ch.length;i++){
       const v=ch[i]!,abs=Math.abs(v);
-      if(abs>0.7&&!transparent){
-        const sign=v<0?-1:1;
-        ch[i]=sign*(0.7+0.28*Math.tanh((abs-0.7)/0.28));
-      }
+      if(abs>.7&&!transparent)ch[i]=Math.sign(v)*(.7+.28*Math.tanh((abs-.7)/.28));
     }
+    let peak=0;for(const channel of channels)for(const value of channel)peak=Math.max(peak,Math.abs(value));
+    const attenuation=peak>1?.98/peak:1;
+    if(attenuation<1)for(const channel of channels)for(let i=0;i<channel.length;i++)channel[i]!*=attenuation;
+    return {channels,sampleRate:rate,duration,attenuation,quality:undefined};
   }
-  let peak=0;for(const channel of channels)for(const value of channel)peak=Math.max(peak,Math.abs(value));
-  const attenuation=peak>1?.98/peak:1;
-  if(attenuation<1)for(const channel of channels)for(let i=0;i<channel.length;i++)channel[i]!*=attenuation;
-  return {channels,sampleRate:rate,duration,attenuation};
+  const quality=protectMaster(channels);
+  return {channels,sampleRate:rate,duration,attenuation:quality.attenuation,quality};
 }

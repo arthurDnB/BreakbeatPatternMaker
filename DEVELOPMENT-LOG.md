@@ -26,7 +26,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.3.0-alpha`
-* **Test Status:** 167 / 167 unit tests passing (`npm.cmd test`).
+* **Test Status:** 177 / 177 unit tests passing (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -72,6 +72,12 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-09-29] - Pitch-Preserving Playback, Sound Layers, and Audio Quality Checks (Codex)
+- **Sample speed (`src/audio/time-stretch.ts`, `src/audio/drum-kit.ts`, `src/audio/performance.ts`, `src/core/model.ts`, `src/core/compile.ts`):** Added a per-sample Repitch/Preserve pitch choice. The latter uses bounded, deterministic waveform-similarity overlap/add for 0.5×–2× speed, shares the same renderer for Preview and WAV, and leaves source PCM intact. The default remains Repitch; saved projects and sample profiles retain the chosen mode.
+- **Layering and mono checks (`src/audio/drum-kit.ts`, `src/audio/audio-quality.ts`, `src/audio/voice-v3.ts`, `src/audio/project.ts`):** Added an optional second catalog/uploaded sound per lane with relative level, ±10 ms offset, polarity inversion, and a first-100-ms mono-cancellation warning. Layer voices share a trigger for kick/snare/hat choking; projects embed the layer audio and validate its mapping.
+- **Master output (`src/audio/audio-quality.ts`, `src/audio/performance.ts`, `src/web.ts`):** Groove V4 uses linked, linear peak trim against a conservative 0.96 ceiling informed by a 4× interpolated estimate, with the applied trim shown after WAV export. V1–V3 retain their published PCM/master behavior. This is not a certified true-peak or loudness mastering stage.
+- **Verification and limits (`tests/audio-quality.test.mjs`, `scripts/audio-quality-browser-smoke.mjs`, `docs/AUDIO-QUALITY.md`, `PROJECT-SCOPE.md`):** Added tests for duration/pitch, stereo alignment, headroom, mono cancellation, layer timing/choke, save/reopen, deterministic WAV data, and a packaged browser workflow including upload replacement/removal. `npm.cmd test` passed 177/177; `npm.cmd run test:site` passed at root and subpath; the focused audio-quality browser smoke passed. Stretch artifacts on complex percussion remain a listening-review risk.
 
 ### [2026-09-28] - Blind Second-Listener Break Review (Codex)
 - **Independent review path (`scripts/break-review-server.mjs`, `scripts/break-review-state.mjs`, `tools/break-review/`):** Added a separate `--blind` mode on localhost port 4175 with a blank marker draft, no first-review onset values in the state response, reviewer-mode validation, and a distinct second-review export. The original reviewer draft/export remain separate.
