@@ -69,21 +69,23 @@ let vinylTexture:VinylTexture={...DEFAULT_VINYL_TEXTURE};
 const vinylCache=new Map<string,AudioAsset>();
 let followPlayhead=true;
 type WorkspaceView='renoise'|'hybrid'|'beginner';
-type WorkspacePreferences={view:WorkspaceView;gridScrollTop:number;gridScrollLeft:number;timelineScrollLeft:number;pageScrollTop:number;openPanels:Record<string,boolean>;openTrackRoles:Role[]};
+type WorkspacePreferences={view:WorkspaceView;gridScrollTop:number;gridScrollLeft:number;timelineScrollLeft:number;pageScrollTop:number;openPanels:Record<string,boolean>;openTrackRoles:Role[];cursorRow:number;cursorLane:Role;cursorField:typeof trackerFields[number];stepAdvance:number};
 const WORKSPACE_PREFS_KEY='bpm_workspace_preferences_v1';
 const workspacePanelIds=['pattern-history-panel','arranger','advanced-generation','master-dsp-rack','hit-editor'] as const;
 const validWorkspaceView=(value:unknown):value is WorkspaceView=>value==='renoise'||value==='hybrid'||value==='beginner';
 function readWorkspacePreferences():WorkspacePreferences{
- const fallback:WorkspacePreferences={view:'renoise',gridScrollTop:0,gridScrollLeft:0,timelineScrollLeft:0,pageScrollTop:0,openPanels:{},openTrackRoles:[]};
- try{const saved=JSON.parse(localStorage.getItem(WORKSPACE_PREFS_KEY)??'{}');return {...fallback,...saved,view:validWorkspaceView(saved.view)?saved.view:fallback.view,openPanels:saved.openPanels&&typeof saved.openPanels==='object'?saved.openPanels:{},openTrackRoles:Array.isArray(saved.openTrackRoles)?saved.openTrackRoles.filter((role:unknown):role is Role=>ROLES.includes(role as Role)):[]};}catch{return fallback;}
+ const fallback:WorkspacePreferences={view:'renoise',gridScrollTop:0,gridScrollLeft:0,timelineScrollLeft:0,pageScrollTop:0,openPanels:{},openTrackRoles:[],cursorRow:0,cursorLane:'kick',cursorField:'note',stepAdvance:1};
+ try{const saved=JSON.parse(localStorage.getItem(WORKSPACE_PREFS_KEY)??'{}');return {...fallback,...saved,view:validWorkspaceView(saved.view)?saved.view:fallback.view,openPanels:saved.openPanels&&typeof saved.openPanels==='object'?saved.openPanels:{},openTrackRoles:Array.isArray(saved.openTrackRoles)?saved.openTrackRoles.filter((role:unknown):role is Role=>ROLES.includes(role as Role)):[],cursorRow:Number.isInteger(saved.cursorRow)&&saved.cursorRow>=0?saved.cursorRow:0,cursorLane:ROLES.includes(saved.cursorLane)?saved.cursorLane:'kick',cursorField:trackerFields.includes(saved.cursorField)?saved.cursorField:'note',stepAdvance:[0,1,2,4].includes(saved.stepAdvance)?saved.stepAdvance:1};}catch{return fallback;}
 }
 const workspacePreferences=readWorkspacePreferences();
 input('view').value=workspacePreferences.view;
+el<HTMLSelectElement>('tracker-step-select').value=String(workspacePreferences.stepAdvance);input('edit-step').value=String(workspacePreferences.stepAdvance);
 let workspaceRestoreTracks=true,workspaceSaveFrame=0,workspaceReady=false;
 function saveWorkspacePreferences(){
  try{
   workspacePreferences.view=validWorkspaceView(input('view').value)?input('view').value as WorkspaceView:'renoise';
   const grid=el('grid'),timeline=el('song-timeline');workspacePreferences.gridScrollTop=grid.scrollTop;workspacePreferences.gridScrollLeft=grid.scrollLeft;workspacePreferences.timelineScrollLeft=timeline.scrollLeft;workspacePreferences.pageScrollTop=window.scrollY;
+  workspacePreferences.cursorRow=rowAnchor;workspacePreferences.cursorLane=cursorLane;workspacePreferences.cursorField=cursorField;workspacePreferences.stepAdvance=getTrackerStep();
   for(const id of workspacePanelIds){const panel=document.getElementById(id);if(panel instanceof HTMLDetailsElement)workspacePreferences.openPanels[id]=panel.open;}
   workspacePreferences.openTrackRoles=Array.from(document.querySelectorAll<HTMLDetailsElement>('.track-instrument-panel[open]')).map(panel=>panel.dataset.role as Role).filter(role=>ROLES.includes(role));
   localStorage.setItem(WORKSPACE_PREFS_KEY,JSON.stringify(workspacePreferences));
@@ -92,6 +94,7 @@ function saveWorkspacePreferences(){
 function scheduleWorkspaceSave(){if(!workspaceReady||workspaceSaveFrame)return;workspaceSaveFrame=requestAnimationFrame(()=>{workspaceSaveFrame=0;saveWorkspacePreferences();});}
 function restoreWorkspacePreferences(){
  const restored={...workspacePreferences,openPanels:{...workspacePreferences.openPanels},openTrackRoles:[...workspacePreferences.openTrackRoles]};
+ rowAnchor=Math.min(restored.cursorRow,Math.max(0,transfer.timing.lines-1));cursorLane=restored.cursorLane;cursorField=restored.cursorField;el<HTMLSelectElement>('tracker-step-select').value=String(restored.stepAdvance);input('edit-step').value=String(restored.stepAdvance);
  workspaceRestoreTracks=true;render();
  for(const id of workspacePanelIds){const panel=document.getElementById(id);if(panel instanceof HTMLDetailsElement&&typeof restored.openPanels[id]==='boolean')panel.open=restored.openPanels[id]!;}
  requestAnimationFrame(()=>requestAnimationFrame(()=>setTimeout(()=>{const grid=el('grid'),timeline=el('song-timeline');grid.scrollTop=restored.gridScrollTop;grid.scrollLeft=restored.gridScrollLeft;timeline.scrollLeft=restored.timelineScrollLeft;window.scrollTo(0,restored.pageScrollTop);workspaceReady=true;saveWorkspacePreferences();},400)));
@@ -418,8 +421,8 @@ function render(){
   syncHud();
 }
 function markTrackerCursor(target:HTMLElement|null|undefined){el('grid').querySelectorAll<HTMLElement>('.tracker-value.is-cursor-field').forEach(value=>{value.classList.remove('is-cursor-field');value.removeAttribute('aria-current');});if(target?.matches('.tracker-value')){target.classList.add('is-cursor-field');target.setAttribute('aria-current','location');}}
-function focusTrackerCell(row:number,lane:Role){cursorField='note';const selected=editor.state.selection.ids.length===1?editor.state.selection.ids[0]:'';const base=`[data-cell-row="${row}"][data-cell-lane="${lane}"]`;const target=el('grid').querySelector<HTMLElement>(base+`[data-hit="${selected}"]`)??el('grid').querySelector<HTMLElement>(base),field=el('grid').querySelector<HTMLElement>(base+`[data-hit="${selected}"][data-field="note"]`)??el('grid').querySelector<HTMLElement>(base+'[data-field="note"]');markTrackerCursor(field);target?.focus({preventScroll:true});}
-function focusTrackerField(row:number,lane:Role,field:string){cursorField=field as typeof trackerFields[number];const selected=editor.state.selection.ids.length===1?editor.state.selection.ids[0]:'';const base=`[data-cell-row="${row}"][data-cell-lane="${lane}"][data-field="${field}"]`;const target=el('grid').querySelector<HTMLElement>(base+`[data-hit="${selected}"]`)??el('grid').querySelector<HTMLElement>(base);markTrackerCursor(target);target?.focus({preventScroll:true});}
+function focusTrackerCell(row:number,lane:Role){cursorField='note';const selected=editor.state.selection.ids.length===1?editor.state.selection.ids[0]:'';const base=`[data-cell-row="${row}"][data-cell-lane="${lane}"]`;const target=el('grid').querySelector<HTMLElement>(base+`[data-hit="${selected}"]`)??el('grid').querySelector<HTMLElement>(base),field=el('grid').querySelector<HTMLElement>(base+`[data-hit="${selected}"][data-field="note"]`)??el('grid').querySelector<HTMLElement>(base+'[data-field="note"]');markTrackerCursor(field);target?.focus({preventScroll:true});scheduleWorkspaceSave();}
+function focusTrackerField(row:number,lane:Role,field:string){cursorField=field as typeof trackerFields[number];const selected=editor.state.selection.ids.length===1?editor.state.selection.ids[0]:'';const base=`[data-cell-row="${row}"][data-cell-lane="${lane}"][data-field="${field}"]`;const target=el('grid').querySelector<HTMLElement>(base+`[data-hit="${selected}"]`)??el('grid').querySelector<HTMLElement>(base);markTrackerCursor(target);target?.focus({preventScroll:true});scheduleWorkspaceSave();}
 let soundBrowser:ReturnType<typeof setupSoundBrowser>;
 function openHitSoundPicker(id:string){
  const hit=pattern.events.find(h=>h.id===id);if(!hit)return;
@@ -440,7 +443,7 @@ async function applyHitSound(id:string,choice:string){
   edit(()=>editor.write(revised,hit.id),'Hit instrument changed. Undo restores the previous sound.');
 }
 function selectTrackerCell(row:number,lane:Role,event?:{shiftKey:boolean;ctrlKey:boolean;metaKey:boolean},hit?:Hit,audition=true){
- const cell={row,lane},key=`${row}:${lane}`;rowAnchor=row;cursorLane=lane;
+ const cell={row,lane},key=`${row}:${lane}`;rowAnchor=row;cursorLane=lane;scheduleWorkspaceSave();
  let cells:{row:number;lane:Role}[];
  if(event?.shiftKey){
    const anchor=cellAnchor??cell,startRow=Math.min(anchor.row,row),endRow=Math.max(anchor.row,row),left=Math.min(ROLES.indexOf(anchor.lane),ROLES.indexOf(lane)),right=Math.max(ROLES.indexOf(anchor.lane),ROLES.indexOf(lane));cells=[];
@@ -460,7 +463,7 @@ function selectTrackerCell(row:number,lane:Role,event?:{shiftKey:boolean;ctrlKey
 function selectRows(start:number,end:number,anchor=true){
   if(!Number.isInteger(start)||!Number.isInteger(end)||Math.min(start,end)<0||Math.max(start,end)>=transfer.timing.lines){status('Choose row numbers within this pattern.',true);return;}
   cellAnchor=undefined;
-  if(anchor){rowAnchor=start;cellAnchor=undefined;}
+  if(anchor){rowAnchor=start;cellAnchor=undefined;scheduleWorkspaceSave();}
   editor.state.selection={ids:[],rows:[Math.min(start,end),Math.max(start,end)]};render();
 }
 function syncControls(){
@@ -1435,10 +1438,12 @@ function initTrackerLiveBar() {
   if (stepSelect) {
     stepSelect.addEventListener('change', () => {
       input('edit-step').value = stepSelect.value;
+      scheduleWorkspaceSave();
       el('grid').focus();
     });
     input('edit-step').addEventListener('input', () => {
       stepSelect.value = input('edit-step').value;
+      scheduleWorkspaceSave();
     });
   }
 

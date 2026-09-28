@@ -73,6 +73,12 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-29] - Tracker Cursor and Step Persistence (Codex)
+- **Editing preferences (`src/web.ts`):** Extend browser-local workspace state to remember tracker cursor row, lane, inner field (note/instrument/volume/pan/delay/effect), and step advance. Restore the cursor within the active pattern's valid row range; retain compatible defaults for older preference records.
+- **Browser regression (`scripts/workspace-state-browser-smoke.mjs`):** Verify selected volume field, Kick lane, row, and four-row advance survive reload alongside existing workspace state.
+- **Cache keys (`public/index.html`):** Bumped app stylesheet and module cache identifiers.
+- **Verification:** Focused workspace state browser smoke passed; `npm.cmd test` passed 177/177; `npm.cmd run test:site` passed at root and GitHub Pages subpath.
+
 ### [2026-09-29] - Workspace State Restoration (Codex)
 - **Workspace preferences (`src/web.ts`):** Persist the selected tracker view, open workspace panels, expanded instrument accordions, and grid/timeline/page scroll positions in browser-local preferences. Restore these after project startup without racing the initial render or overwriting saved preferences with default state.
 - **Browser regression (`scripts/workspace-state-browser-smoke.mjs`):** Added reload coverage for view, panels, instrument accordion, and scroll positions.
