@@ -3342,3 +3342,30 @@ tr.playing-row td { background:#0b1c18; }
 .sound-browser footer span { margin-right:auto; }
 .sound-browser button:focus-visible,.sound-browser input:focus-visible,.sound-browser select:focus-visible { outline:2px solid #41e5be; outline-offset:2px; }
 @media(max-width:560px){.sound-browser-shell{padding:12px}.sound-browser-tools{grid-template-columns:1fr}.sound-browser footer{flex-wrap:wrap}.sound-browser footer span{width:100%}.sound-browser-row span{display:none}.sound-browser-row{grid-template-columns:minmax(0,1fr) 36px}}
+
+/* Tracker chrome: keep navigation and edit controls compact without clipping focus. */
+.workspace > .grid-heading { gap:8px; border-bottom:1px solid #21302b; }
+.workspace > .grid-heading .legend { justify-content:flex-end; max-width:340px; }
+.workspace > .grid-heading .workspace-header-actions { order:3; }
+.tracker-live-bar .tracker-quick-actions { align-items:center; }
+.tracker-live-bar .tracker-quick-actions button { flex:none; border-radius:4px; }
+.tracker-live-bar #tracker-copy,.tracker-live-bar #quick-roll-2,.tracker-live-bar #quick-pitch-up { margin-left:5px; box-shadow:-5px 0 0 -4px #4b655e; }
+.tracker-live-bar button:focus-visible,.tracker-live-bar select:focus-visible { outline:2px solid #77f4d5; outline-offset:1px; }
+#inspector-host { container-type:inline-size; }
+#hit-editor[open] { border-color:#355b51; background:#07110e; }
+#hit-editor .hit-pitch-group,#hit-editor .hit-mix-group,#hit-editor #hit-articulation .chop-options { display:inline-flex; align-items:center; gap:5px; padding-right:8px; border-right:1px solid #2b433b; }
+#hit-editor .hit-pitch-group>label,#hit-editor .hit-mix-group>label,#hit-editor #hit-articulation .chop-options>label { color:#9cbdb3; }
+#hit-editor .actions { padding-left:2px; }
+#hit-editor .actions #hit-apply { color:#07120e; background:#9ee7c3; border-color:#9ee7c3; font-weight:700; }
+#hit-editor .actions #hit-apply:disabled { opacity:.45; }
+#hit-editor :is(button,input,select,summary):focus-visible { outline:2px solid #77f4d5; outline-offset:2px; }
+@media (min-width:801px) {
+  @container (max-width:1100px) {
+    #hit-editor[open] { flex-wrap:wrap; overflow:visible !important; white-space:normal; }
+    #hit-editor .tracker-edit { width:100%; min-width:0; flex-wrap:wrap; }
+  }
+}
+@media (max-width:800px) {
+  .workspace > .grid-heading .legend { display:none; }
+  #hit-editor .hit-pitch-group,#hit-editor .hit-mix-group,#hit-editor #hit-articulation .chop-options { flex-wrap:wrap; max-width:100%; padding-right:0; border-right:0; }
+}

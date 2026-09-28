@@ -70,6 +70,11 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-28] - Tracker Header and Hit Inspector Polish (Codex)
+- **Tracker layout (`src/web.ts`, `public/workspace.css`):** Docked the drum legend in the tracker heading rather than the pattern-bank heading. Added subtle separators between quick-action groups and clear keyboard focus rings.
+- **Hit inspector (`public/index.html`, `public/workspace.css`):** Grouped pitch, mix, articulation, and action controls visually; emphasized Apply, retained every existing control, and let the inspector wrap at narrower desktop widths instead of clipping its controls. Updated asset cache keys.
+- **Verification (`scripts/site-browser-smoke.mjs`):** Added checks for legend placement and no mobile page overflow while the inspector is open. `npm.cmd test` passed 150/150; `npm.cmd run test:site` passed at root and GitHub Pages subpath.
+
 ### [2026-09-28] - Sleek Compact Vinyl Texture Rack, Lo-Fi Auto-Activation & Randomizer (Antigravity)
 - **Compact & Sleek Single-Row Layout (`public/workspace.css`, `public/index.html`):** Overhauled `#vinyl-texture-rack` from a bulky panel into a slim 28px single-row strip with subtle warm amber accents (`#9c825a`), compact dropdown, tactile Preview button, concise inline label (`Continuous ambience`), and responsive wrap on mobile devices.
 - **Lo-Fi Exclusivity & Auto-Activation (`src/web.ts`, `public/index.html`):** Configured `#vinyl-texture-rack` to be hidden by default across other genres and visible strictly when Lo-Fi Hip-Hop (`lofihiphop`) is selected. Switching to Lo-Fi Hip-Hop automatically enables vinyl ambience and selects a texture; switching away from Lo-Fi disables and hides it.

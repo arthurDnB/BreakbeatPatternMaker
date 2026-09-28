@@ -30,7 +30,7 @@ const input=(id:string)=>el<HTMLInputElement>(id);
 const trackerBar=document.querySelector<HTMLElement>('.tracker-live-bar')!;
 const selectionMenu=document.createElement('details');selectionMenu.id='tracker-selection-menu';
 const selectionSummary=document.createElement('summary');selectionSummary.textContent='Selection & locks';selectionSummary.title='Click a cell to select it, Ctrl/Cmd-click to add cells, or Shift-click to extend a range.';selectionMenu.append(selectionSummary,document.querySelector<HTMLElement>('.editor-tools')!);trackerBar.append(selectionMenu);
-document.querySelector<HTMLElement>('.grid-heading')!.append(document.querySelector<HTMLElement>('.legend')!);
+document.querySelector<HTMLElement>('.workspace > .grid-heading')!.append(document.querySelector<HTMLElement>('.workspace > .legend')!);
 el<HTMLDetailsElement>('hit-articulation').open=true;
 // Keep the existing audio/editor controls, but dock them beside the work they edit.
 el('tray-bottom').prepend(el('transport'));
