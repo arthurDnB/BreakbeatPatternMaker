@@ -26,7 +26,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.3.0-alpha`
-* **Test Status:** 163 / 163 unit tests passing (`npm.cmd test`).
+* **Test Status:** 166 / 166 unit tests passing (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -72,6 +72,11 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-09-28] - Local Break Onset Listening Review (Codex)
+- **Review tool (`tools/break-review/`, `scripts/break-review-server.mjs`):** Added a loopback-only waveform and audio review screen for all eight source recordings. A reviewer can play each complete passage or a hit context, keep/reject/adjust onset markers, add missed hits, and resume from an autosaved local draft. The server checks each WAV against its benchmark SHA-256 and serves only whitelisted recordings; neither audio nor draft is committed.
+- **Verified-label gate (`scripts/break-review-state.mjs`, `scripts/real-break-benchmark.mjs`):** Export remains disabled until every passage has been played in full and all markers have decisions. Accepted onset times export to a separate ignored verified-label file, and the benchmark accepts that file as an explicit third argument; the provisional tracked annotations remain intact. This tool enables listening verification but does not itself make the detector industry-standard.
+- **Verification (`tests/break-review.test.mjs`, `scripts/break-review-smoke.mjs`, `docs/REAL-BREAK-BENCHMARK.md`):** Added state/export tests and a local browser check of audio playback, decisions, autosave, reload, and mobile layout. `npm.cmd test` passed 166/166; `npm.cmd run test:site` passed; local review smoke passed.
 
 ### [2026-09-28] - Continuous Break Benchmark and Detector Tuning Audit (Codex)
 - **Real recording references (`benchmarks/real-breaks.json`, `docs/REAL-BREAK-BENCHMARK.md`):** Reviewed onset proposals against waveform/novelty plots for the first two seconds of all eight user-supplied WAVs, covering 152 candidate attacks across Amen, Apache, Funky Drummer and Think families. Stored SHA-256 hashes and onset times without adding the recordings or private local paths to Git. Labels are visually reviewed but still require independent listening confirmation.

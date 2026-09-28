@@ -12,6 +12,14 @@ npm.cmd run audit:breaks
 
 The real-break script writes `test-results/break-transcription/real-report.json`. It reports per-file precision, recall, F1, one-to-one match counts, timing error, missed times and false-marker times at ±5, ±10 and ±20 ms. Four leave-one-break-family-out folds choose sensitivity from 0.20/0.35/0.50/0.65 and minimum spacing from 20/35/50 ms using only the other families. Apache variants stay together; Funky Drummer variants stay together. Family macro averaging prevents the multi-variant families from dominating. The previous energy-rise detector is scored on the same audio as a reference baseline.
 
+For an independent listening pass, run `node scripts/break-review-server.mjs` and open the printed local URL. The review screen plays each two-second passage and individual hit contexts. Keep, reject, nudge, or add markers; progress autosaves under ignored `test-results/`. Listen through each full passage and decide every marker before marking it reviewed. When all eight are done, **Download verified labels** also writes `test-results/break-transcription/verified-real-breaks.json`. Rerun the benchmark against that file with:
+
+```powershell
+node scripts/real-break-benchmark.mjs test-results/break-transcription/real-source-paths.json test-results/break-transcription/verified-report.json test-results/break-transcription/verified-real-breaks.json
+```
+
+The verified file is kept separate from the provisional tracked references until a reviewer has completed the listening pass and the benchmark can be assessed again.
+
 | Recording, first 2 s | Reference onsets | Current precision | Current recall | Current F1 | Previous F1 |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | Amen SU700 | 20 | 0.71 | 0.60 | 0.65 | 0.48 |

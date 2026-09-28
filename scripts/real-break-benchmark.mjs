@@ -7,7 +7,7 @@ import { scoreOnsets, familyMacroF1, chooseSettings } from './real-break-metrics
 import { decodePcmWav } from './real-break-wav.mjs';
 
 // The audio files stay outside Git. Pass the ignored local ID/path mapping as argv[2].
-const annotationPath = new URL('../benchmarks/real-breaks.json', import.meta.url);
+const annotationPath = resolve(process.argv[4] ?? 'benchmarks/real-breaks.json');
 const pathsFile = resolve(process.argv[2] ?? 'test-results/break-transcription/real-source-paths.json');
 const outputFile = resolve(process.argv[3] ?? 'test-results/break-transcription/real-report.json');
 const annotations = JSON.parse(await readFile(annotationPath, 'utf8'));
@@ -67,7 +67,9 @@ const results = clips.map(clip => {
 const macro = method => familyMacroF1(results.map(row => ({ family: row.family, f1: row[method].scores[10].f1 })), families);
 const gridResults = settings.map(setting => ({ ...setting, macroF1At10Ms: familyMacroF1(rowsFor(setting), families),
   familyF1At10Ms: Object.fromEntries(families.map(family => [family, familyMacroF1(rowsFor(setting), [family])])) }));
-const report = { dataset: 'Eight user-supplied continuous break recordings; independent waveform-assisted annotations of selected two-second regions; listening verification pending',
+const report = { dataset: annotations.reviewComplete
+    ? 'Eight user-supplied continuous break recordings; listener-reviewed onsets in selected two-second regions'
+    : 'Eight user-supplied continuous break recordings; independent waveform-assisted annotations of selected two-second regions; listening verification pending',
   annotationMethod: annotations.annotationMethod, toleranceMs: tolerancesMs, defaults, settingsGrid: gridResults, folds,
   macroF1At10Ms: { default: macro('default'), crossValidated: macro('tuned'), previous: macro('previous') }, results };
 await mkdir(resolve(outputFile, '..'), { recursive: true });
