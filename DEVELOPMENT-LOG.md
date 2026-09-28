@@ -26,7 +26,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.3.0-alpha`
-* **Test Status:** 159 / 159 unit tests passing (`npm.cmd test`).
+* **Test Status:** 163 / 163 unit tests passing (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -72,6 +72,12 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-09-28] - Continuous Break Benchmark and Detector Tuning Audit (Codex)
+- **Real recording references (`benchmarks/real-breaks.json`, `docs/REAL-BREAK-BENCHMARK.md`):** Reviewed onset proposals against waveform/novelty plots for the first two seconds of all eight user-supplied WAVs, covering 152 candidate attacks across Amen, Apache, Funky Drummer and Think families. Stored SHA-256 hashes and onset times without adding the recordings or private local paths to Git. Labels are visually reviewed but still require independent listening confirmation.
+- **Reproducible harness (`scripts/real-break-benchmark.mjs`, `real-break-metrics.mjs`, `real-break-wav.mjs`):** Added PCM16/PCM24 mono/stereo decoding, one-to-one precision/recall/F1 at ±5/10/20 ms, timing errors and missed/false marker times. A 12-setting sweep uses leave-one-break-family-out validation so Apache and Funky variants cannot leak between tuning and evaluation. Four focused unit tests verify 24-bit decoding, matching, family weighting and reference integrity.
+- **Result and decision:** The current 0.35 sensitivity / 35 ms spacing scores 0.670 family-macro F1 at ±10 ms; the previous detector scores 0.446, and cross-validated parameter choices score 0.650. The current defaults are the best overall setting in the sweep, so no detector or UI default change was justified. Funky Drummer soft accents and overlapping Apache part 2 attacks remain difficult. Synthetic assembled fixtures remain at 0.933 F1; these figures must not be combined or presented as industry-standard accuracy.
+- **Verification and scope:** `npm.cmd test` passed 163/163; `npm.cmd run test:site` passed root/subpath and sound/browser checks; `npm.cmd run audit:breaks` passed. Updated `docs/BREAK-TRANSCRIPTION.md` and `PROJECT-SCOPE.md` to link the real-break report and retain the listening/full-loop quality gate.
 
 ### [2026-09-28] - Automatic Break Transcription Preview (Codex)
 - **Analysis and review (src/audio/break-analysis.ts, break-analysis-worker.ts, break-panel.ts):** Added cancellable local multiband/spectral onset detection and an Import break dialog. Users can select a region/bar count, zoom, edit/pin markers, undo/redo, audition slices and compare dry Original/Reconstructed playback. Imports create a new bank slot without overwriting the active pattern or song tempo. Explicit 120-slice overflow handling keeps existing cuts.

@@ -1,0 +1,254 @@
+{
+  "version": 1,
+  "annotationMethod": "Separate log-spectral-flux proposals, visually reviewed against source waveform and novelty plots by Codex. Ambiguous tail candidates were removed; independent listening verification is pending.",
+  "cases": [
+    {
+      "id": "amen-su700",
+      "family": "amen",
+      "filename": "SU7000 - Amen Brother Original EQ+Comp1 137.5 BPM.wav",
+      "sha256": "d1ce72b0ede05781f4921edda0c8cb1c0f429fbc4dd30d136991fdc99e042f29",
+      "regionSeconds": [
+        0,
+        2
+      ],
+      "onsetsSeconds": [
+        0.11474,
+        0.25442,
+        0.31927,
+        0.36916,
+        0.40907,
+        0.4839,
+        0.61859,
+        0.71338,
+        0.80317,
+        0.92789,
+        1.03265,
+        1.13741,
+        1.21723,
+        1.26213,
+        1.35193,
+        1.51655,
+        1.57642,
+        1.68617,
+        1.79592,
+        1.90068
+      ]
+    },
+    {
+      "id": "apache-mono",
+      "family": "apache",
+      "filename": "apache.wav",
+      "sha256": "0a007b619ae3cc97916759119d5d79cb690b2ee703db152b2c8a5c408aa030cc",
+      "regionSeconds": [
+        0,
+        2
+      ],
+      "onsetsSeconds": [
+        0.06984,
+        0.59864,
+        0.77823,
+        0.87302,
+        0.95782,
+        1.02766,
+        1.13243,
+        1.24717,
+        1.37188,
+        1.64626,
+        1.75102,
+        1.90068
+      ]
+    },
+    {
+      "id": "funky-mono",
+      "family": "funky-drummer",
+      "filename": "funky_drummer.wav",
+      "sha256": "388c9b3b3abb37b2fb271c333914fefcf9cfb3779c02d3e208df3616692f747f",
+      "regionSeconds": [
+        0,
+        2
+      ],
+      "onsetsSeconds": [
+        0.16463,
+        0.23447,
+        0.3093,
+        0.41406,
+        0.46395,
+        0.52381,
+        0.61361,
+        0.67846,
+        0.75828,
+        0.90794,
+        0.97279,
+        1.05261,
+        1.20227,
+        1.27211,
+        1.32698,
+        1.47166,
+        1.55646,
+        1.6263,
+        1.68118,
+        1.761,
+        1.92063,
+        1.97052
+      ]
+    },
+    {
+      "id": "think-all5",
+      "family": "think",
+      "filename": "think--all5.wav",
+      "sha256": "c920719b0bd350fbd30f1f7bea985399e849cccaf4245c189b30b8b54f0407c3",
+      "regionSeconds": [
+        0,
+        2
+      ],
+      "onsetsSeconds": [
+        0.09478,
+        0.18458,
+        0.27438,
+        0.33923,
+        0.41406,
+        0.54376,
+        0.6585,
+        0.71338,
+        0.80317,
+        0.95283,
+        1.06259,
+        1.24717,
+        1.32698,
+        1.42177,
+        1.48662,
+        1.59138,
+        1.76599,
+        1.86077,
+        1.99048
+      ]
+    },
+    {
+      "id": "funky-ver1",
+      "family": "funky-drummer",
+      "filename": "James Brown - Funky Drummer (ver.1).wav",
+      "sha256": "a45f122ec59f9a0476fe5a67dd413c9121240b152a07c741a4e169344296decb",
+      "regionSeconds": [
+        0,
+        2
+      ],
+      "onsetsSeconds": [
+        0.07483,
+        0.16463,
+        0.22948,
+        0.31429,
+        0.38413,
+        0.43401,
+        0.47392,
+        0.5288,
+        0.62358,
+        0.72336,
+        0.78322,
+        0.85805,
+        0.9229,
+        0.99274,
+        1.06757,
+        1.19728,
+        1.25714,
+        1.34694,
+        1.4966,
+        1.58141,
+        1.65125,
+        1.78095,
+        1.8907,
+        1.94558
+      ]
+    },
+    {
+      "id": "funky-ver2",
+      "family": "funky-drummer",
+      "filename": "James Brown - Funky Drummer (ver.2).wav",
+      "sha256": "4e6ac6261744dca55d809dccc75b01030b1873a44e8d7e10338fa21c15aa291c",
+      "regionSeconds": [
+        0,
+        2
+      ],
+      "onsetsSeconds": [
+        0.09977,
+        0.1746,
+        0.2644,
+        0.33923,
+        0.38912,
+        0.45397,
+        0.49887,
+        0.54875,
+        0.64853,
+        0.71837,
+        0.81315,
+        0.88798,
+        0.95782,
+        1.02766,
+        1.10748,
+        1.23719,
+        1.39683,
+        1.54649,
+        1.63129,
+        1.70612,
+        1.76599,
+        1.8458,
+        1.91565
+      ]
+    },
+    {
+      "id": "apache-part2",
+      "family": "apache",
+      "filename": "Michael Viner's Incredible Bongo Band - Apache (part2).wav",
+      "sha256": "8cd89d4a4dfa269a76d9c4d162f65ec1f43012c09a017334a7106d3b47b48aef",
+      "regionSeconds": [
+        0,
+        2
+      ],
+      "onsetsSeconds": [
+        0.14966,
+        0.3542,
+        0.42404,
+        0.58866,
+        0.64354,
+        0.68345,
+        0.78322,
+        0.86304,
+        0.94785,
+        1.06259,
+        1.1873,
+        1.31701,
+        1.44671,
+        1.70113,
+        1.77098,
+        1.84082,
+        1.97052
+      ]
+    },
+    {
+      "id": "apache-part1",
+      "family": "apache",
+      "filename": "Michael Viner's Incredible Bongo Band - Apache (part1).wav",
+      "sha256": "6620355a086e618ab480e09ccd1fd644e8a6270e8f2ac78f438bd5affd0ed155",
+      "regionSeconds": [
+        0,
+        2
+      ],
+      "onsetsSeconds": [
+        0.0449,
+        0.53379,
+        0.70839,
+        0.80816,
+        0.878,
+        0.94785,
+        1.06757,
+        1.18231,
+        1.25215,
+        1.30703,
+        1.42177,
+        1.47664,
+        1.57642,
+        1.83084,
+        1.96553
+      ]
+    }
+  ]
+}
