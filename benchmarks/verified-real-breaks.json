@@ -1,0 +1,205 @@
+{
+  "version": 1,
+  "annotationMethod": "Listener-reviewed onset references from the local Break Review tool; each passage was played in full and every retained marker was accepted by the reviewer.",
+  "cases": [
+    {
+      "id": "amen-su700",
+      "family": "amen",
+      "filename": "SU7000 - Amen Brother Original EQ+Comp1 137.5 BPM.wav",
+      "sha256": "d1ce72b0ede05781f4921edda0c8cb1c0f429fbc4dd30d136991fdc99e042f29",
+      "regionSeconds": [
+        0,
+        2
+      ],
+      "onsetsSeconds": [
+        0.00001,
+        0.46079,
+        0.71195,
+        0.8278,
+        0.92476,
+        1.03265,
+        1.13379,
+        1.26175,
+        1.34343,
+        1.57704,
+        1.68619,
+        1.79147
+      ]
+    },
+    {
+      "id": "apache-mono",
+      "family": "apache",
+      "filename": "apache.wav",
+      "sha256": "0a007b619ae3cc97916759119d5d79cb690b2ee703db152b2c8a5c408aa030cc",
+      "regionSeconds": [
+        0,
+        2
+      ],
+      "onsetsSeconds": [
+        0.06984,
+        0.59864,
+        0.87302,
+        1.01334,
+        1.13243,
+        1.24717,
+        1.37188,
+        1.64626,
+        1.82267,
+        1.90068
+      ]
+    },
+    {
+      "id": "funky-mono",
+      "family": "funky-drummer",
+      "filename": "funky_drummer.wav",
+      "sha256": "388c9b3b3abb37b2fb271c333914fefcf9cfb3779c02d3e208df3616692f747f",
+      "regionSeconds": [
+        0,
+        2
+      ],
+      "onsetsSeconds": [
+        0.00001,
+        0.16611,
+        0.29349,
+        0.46395,
+        0.60974,
+        0.90794,
+        1.05261,
+        1.16607,
+        1.32698,
+        1.47166,
+        1.6263,
+        1.761,
+        1.92063
+      ]
+    },
+    {
+      "id": "think-all5",
+      "family": "think",
+      "filename": "think--all5.wav",
+      "sha256": "c920719b0bd350fbd30f1f7bea985399e849cccaf4245c189b30b8b54f0407c3",
+      "regionSeconds": [
+        0,
+        2
+      ],
+      "onsetsSeconds": [
+        0.00001,
+        0.18458,
+        0.27147,
+        0.33923,
+        0.41406,
+        0.52571,
+        0.65496,
+        0.78226,
+        1.04597,
+        1.20899,
+        1.3264,
+        1.47371,
+        1.57979,
+        1.74898,
+        1.84803
+      ]
+    },
+    {
+      "id": "funky-ver1",
+      "family": "funky-drummer",
+      "filename": "James Brown - Funky Drummer (ver.1).wav",
+      "sha256": "a45f122ec59f9a0476fe5a67dd413c9121240b152a07c741a4e169344296decb",
+      "regionSeconds": [
+        0,
+        2
+      ],
+      "onsetsSeconds": [
+        0.00001,
+        0.31429,
+        0.38413,
+        0.47392,
+        0.62358,
+        0.9229,
+        1.06757,
+        1.18213,
+        1.34694,
+        1.4966,
+        1.58141,
+        1.65125,
+        1.78095,
+        1.94558
+      ]
+    },
+    {
+      "id": "funky-ver2",
+      "family": "funky-drummer",
+      "filename": "James Brown - Funky Drummer (ver.2).wav",
+      "sha256": "4e6ac6261744dca55d809dccc75b01030b1873a44e8d7e10338fa21c15aa291c",
+      "regionSeconds": [
+        0,
+        2
+      ],
+      "onsetsSeconds": [
+        0.00001,
+        0.32593,
+        0.49887,
+        0.64067,
+        0.81315,
+        0.95782,
+        1.10748,
+        1.22737,
+        1.39683,
+        1.54649,
+        1.63129,
+        1.70612,
+        1.8458
+      ]
+    },
+    {
+      "id": "apache-part2",
+      "family": "apache",
+      "filename": "Michael Viner's Incredible Bongo Band - Apache (part2).wav",
+      "sha256": "8cd89d4a4dfa269a76d9c4d162f65ec1f43012c09a017334a7106d3b47b48aef",
+      "regionSeconds": [
+        0,
+        2
+      ],
+      "onsetsSeconds": [
+        0.00001,
+        0.14224,
+        0.42062,
+        0.68345,
+        0.86304,
+        0.94785,
+        1.06499,
+        1.1873,
+        1.31701,
+        1.44671,
+        1.70113,
+        1.97052
+      ]
+    },
+    {
+      "id": "apache-part1",
+      "family": "apache",
+      "filename": "Michael Viner's Incredible Bongo Band - Apache (part1).wav",
+      "sha256": "6620355a086e618ab480e09ccd1fd644e8a6270e8f2ac78f438bd5affd0ed155",
+      "regionSeconds": [
+        0,
+        2
+      ],
+      "onsetsSeconds": [
+        0.00001,
+        0.24916,
+        0.53379,
+        0.70839,
+        0.8021,
+        0.94785,
+        1.06757,
+        1.16854,
+        1.30703,
+        1.57642,
+        1.83084,
+        1.95062
+      ]
+    }
+  ],
+  "reviewComplete": true,
+  "reviewedAt": "2026-09-28T09:42:35.647Z"
+}

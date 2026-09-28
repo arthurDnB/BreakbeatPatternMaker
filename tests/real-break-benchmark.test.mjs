@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { scoreOnsets, familyMacroF1, chooseSettings } from '../scripts/real-break-metrics.mjs';
+import { scoreOnsets, familyMacroF1, chooseSettings, interiorOnsets } from '../scripts/real-break-metrics.mjs';
 import { decodePcmWav } from '../scripts/real-break-wav.mjs';
 
 function wav(depth, channels, samples) {
@@ -37,6 +37,12 @@ test('onset scoring uses unique matches and exposes timing failures', () => {
   assert.deepEqual(result.missedSeconds, [.2]);
   assert.equal(scoreOnsets([.120], [.101], 10).tp, 0);
   assert.equal(scoreOnsets([.120], [.101], 20).tp, 1);
+});
+
+test('benchmark excludes only the fixed start boundary from detected-onset scoring', () => {
+  assert.deepEqual(interiorOnsets([0.00001, .1, .3], 0), [.1, .3]);
+  assert.deepEqual(interiorOnsets([1.00001, 1.0008, 1.002, 1.1], 1), [1.002, 1.1]);
+  assert.equal(scoreOnsets([.1, .3], interiorOnsets([.00001, .1, .3], 0), 5).f1, 1);
 });
 
 test('family macro gives each source break equal weight and fold selection ignores its holdout', () => {

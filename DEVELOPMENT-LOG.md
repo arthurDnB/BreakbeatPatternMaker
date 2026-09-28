@@ -26,7 +26,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.3.0-alpha`
-* **Test Status:** 166 / 166 unit tests passing (`npm.cmd test`).
+* **Test Status:** 167 / 167 unit tests passing (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -64,7 +64,7 @@ This document maintains the running project state and change log so that multipl
 * [x] **A/B pattern comparison:** Capture current or recent beats as A and B, preview either with the current kit, and keep a winner with Undo support.
 * [x] **Vinyl Texture Rack (Complete):** Nine bundled textures have a user-controlled background playback layer, independent of genre, with loop crossfades and WAV/project support.
 * [x] **Break Transcription (Preview):** Local automatic slicing, mapped slice instruments, original-timing reconstruction, marker review and project v4. See `docs/BREAK-TRANSCRIPTION.md`.
-* [ ] **Break Transcription Production Gate:** Independently annotated continuous drum performances and listening review; assembled fixtures alone do not establish industry-standard accuracy.
+* [ ] **Break Transcription Production Gate:** One listener verified onset labels for eight two-second excerpts. Longer excerpts, a second independent annotator, additional unrelated breaks and full-loop listening remain before any industry-standard claim.
 * [ ] **Future Audio Roadmaps:** MP3 export, velocity-layered drum kits.
 * [x] **Sound Library Browser:** Shared searchable and filterable audition/selection for lanes and tracker hits, with browser-local Favorites and Recently used sounds.
 * [ ] *Note: Renoise integration has been retired in favor of the standalone in-browser instrument.*
@@ -72,6 +72,12 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-09-28] - Listener-Verified Break Benchmark (Codex)
+- **Verified references (`benchmarks/verified-real-breaks.json`, `docs/VERIFIED-BREAK-BENCHMARK.md`):** Validated the user's completed review export against the eight source identities and SHA hashes, then recorded 101 accepted labels (94 interior onsets and seven fixed-start hits) without committing source WAVs or local paths. Reran the provisional and verified reports on the same recordings and detector build.
+- **Scoring correction (`scripts/real-break-metrics.mjs`, `scripts/real-break-benchmark.mjs`, `tests/real-break-benchmark.test.mjs`):** Excluded reference hits within 1 ms of the region start from onset-detector scoring because both slicers create that boundary without detection. Reports now show scored and fixed-start counts separately; the detector and its shipped defaults were not changed.
+- **Result and decision:** The verified references yield family-macro F1 of 0.613 at ±10 ms for the current defaults, versus 0.360 for the previous detector. Provisional F1 was 0.670; the label set changed while the detector did not. Grouped cross-validation yields 0.625, only 0.013 above the fixed defaults and worse on the Funky Drummer holdout. Keep current detector settings; inspect onset timing and extra cuts in Think and Apache before proposing production changes. Updated `docs/REAL-BREAK-BENCHMARK.md`, `docs/BREAK-TRANSCRIPTION.md`, and `PROJECT-SCOPE.md` to distinguish historical provisional results from the listener-reviewed audit.
+- **Verification:** The repository copy of the verified labels matches the user's export byte-for-byte. `npm.cmd test` passed 167/167 and `npm.cmd run test:site` passed at root and project subpath, including sound-browser and break-transcription smoke checks.
 
 ### [2026-09-28] - Extend Waveform Zoom to 128× (Codex)
 - **Waveform zoom (`tools/break-review/app.js`):** Raised the maximum magnification from 32× to 128×.

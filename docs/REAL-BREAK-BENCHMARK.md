@@ -1,6 +1,6 @@
 # Real-break onset benchmark (2026-09-28)
 
-Eight locally supplied WAVs were measured: one Amen, one Think, three Apache variants, and three Funky Drummer variants. The original audio stays outside the repository. `benchmarks/real-breaks.json` contains source hashes, break families, and 152 onset references across the **first two seconds of each recording**. References came from a separate log-spectral-flux pass followed by Codex visual review of the waveforms; ambiguous decay peaks were removed. They have **not** been independently checked by listening, and the remaining duration of each recording has not been annotated. A near-start hit within 30 ms of the mandatory region-start slice boundary is excluded from scoring.
+Eight locally supplied WAVs were measured: one Amen, one Think, three Apache variants, and three Funky Drummer variants. The original audio stays outside the repository. `benchmarks/real-breaks.json` contains source hashes, break families, and 152 provisional onset references across the **first two seconds of each recording**. References came from a separate log-spectral-flux pass followed by Codex visual review of the waveforms; ambiguous decay peaks were removed. They were later checked by a listener; the resulting 101 accepted labels and results are in [VERIFIED-BREAK-BENCHMARK.md](VERIFIED-BREAK-BENCHMARK.md). An onset within 1 ms of the mandatory region-start slice boundary is excluded from detector scoring because the tracker creates that slice without onset detection.
 
 To rerun locally, create `test-results/break-transcription/real-source-paths.json` with one `{ "id", "family", "path" }` object for each of the eight IDs in `benchmarks/real-breaks.json`. Paths may be absolute; the file is Git-ignored. The benchmark validates each source's SHA-256 against the annotations and accepts PCM16 or PCM24 mono/stereo WAVs.
 
@@ -18,7 +18,9 @@ For an independent listening pass, run `node scripts/break-review-server.mjs` an
 node scripts/real-break-benchmark.mjs test-results/break-transcription/real-source-paths.json test-results/break-transcription/verified-report.json test-results/break-transcription/verified-real-breaks.json
 ```
 
-The verified file is kept separate from the provisional tracked references until a reviewer has completed the listening pass and the benchmark can be assessed again.
+The completed listener-reviewed labels are tracked separately at `benchmarks/verified-real-breaks.json`; the local draft and downloaded copy remain ignored.
+
+## Historical provisional result
 
 | Recording, first 2 s | Reference onsets | Current precision | Current recall | Current F1 | Previous F1 |
 | --- | ---: | ---: | ---: | ---: | ---: |

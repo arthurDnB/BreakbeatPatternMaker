@@ -1,4 +1,8 @@
 /** One-to-one onset matching. Times are source-relative seconds. */
+export function interiorOnsets(reference, regionStartSeconds, boundaryMs = 1) {
+  return reference.filter(time => time > regionStartSeconds + boundaryMs / 1000);
+}
+
 export function scoreOnsets(detected, reference, toleranceMs) {
   const tolerance = toleranceMs / 1000;
   const predictions = [...detected].sort((a, b) => a - b);
