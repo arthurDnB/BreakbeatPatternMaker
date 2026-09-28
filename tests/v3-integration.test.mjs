@@ -24,7 +24,7 @@ test('v3 dispatch, mixed-engine project v3 and legacy project migration retain e
   assert.equal(legacy.version,2);legacy.version=1;
   const oldSnapshot=structuredClone(legacy),loaded=readProject(legacy).project;
   assert.equal(loaded.version,2);assert.deepEqual(loaded.editor,old.state);assert.deepEqual(legacy,oldSnapshot);
-  assert.throws(()=>readProject({...file,version:5}),/supported/);
+  assert.throws(()=>readProject({...file,version:6}),/supported/);
 });
 
 test('v3 editing preserves exact lane/hit locks, anchors, engine and reversible history',()=>{

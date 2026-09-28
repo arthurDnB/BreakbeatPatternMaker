@@ -20,8 +20,8 @@ import {BREAKS} from './core/breaks.js';
 import {defaults,genreDefaults,PROFILES} from './core/profiles.js';
 import {generate} from './core/generate.js';
 import {compile,serialize} from './core/compile.js';
-import {ROLES,hex,noteName,type Hit,type Role,type Genre,type BreakStyle,type Pattern,type Transfer,type EffectCommand,type Settings} from './core/model.js';
-import {Editor,emptySelection,locked,selectedIds,type EditorState,type TrackerClipboard} from './core/editor.js';
+import {ROLES,hex,noteName,type Hit,type Role,type Genre,type BreakStyle,type Pattern,type Transfer,type EffectCommand,type Settings,type UserTrack} from './core/model.js';
+import {Editor,emptySelection,locked,selectedIds,type EditorState,type TrackerClipboard,type CellPosition} from './core/editor.js';
 import {defaultEffects,type Effects} from './audio/effects.js';
 import {ArrangementHistory} from './core/arrangement-history.js';
 
@@ -56,10 +56,10 @@ let comparisonPlaying:CompareSide|undefined;
 const slotEditors=new Map<number,Editor>();
 let persistenceReady=false,saveTimer:ReturnType<typeof setTimeout>|undefined;
 let saveQueue:Promise<unknown>=Promise.resolve();
-let rowAnchor=0,cursorLane:Role='kick',playToken=0;
-let cellAnchor:{row:number;lane:Role}|undefined;
+let rowAnchor=0,cursorLane:Role='kick',cursorTrackId:string|undefined,playToken=0;
+let cellAnchor:{row:number;lane:string}|undefined;
 let trackerClipboard:TrackerClipboard|undefined;
-let draggingTrackerCells:{row:number;lane:Role}[]|undefined;
+let draggingTrackerCells:CellPosition[]|undefined;
 let trackerFieldDraft:{id:string;field:string;digits:string}|undefined;
 let trackerEffectDraft:{id:string;command?:EffectCommand['command'];digits:string;prefix:boolean}|undefined;
 const trackerFields=['note','instrument','volume','pan','delay','effect'] as const;
@@ -69,7 +69,7 @@ let vinylTexture:VinylTexture={...DEFAULT_VINYL_TEXTURE};
 const vinylCache=new Map<string,AudioAsset>();
 let followPlayhead=true;
 type WorkspaceView='renoise'|'hybrid'|'beginner';
-type WorkspacePreferences={view:WorkspaceView;gridScrollTop:number;gridScrollLeft:number;timelineScrollLeft:number;pageScrollTop:number;openPanels:Record<string,boolean>;openTrackRoles:Role[];cursorRow:number;cursorLane:Role;cursorField:typeof trackerFields[number];stepAdvance:number};
+type WorkspacePreferences={view:WorkspaceView;gridScrollTop:number;gridScrollLeft:number;timelineScrollLeft:number;pageScrollTop:number;openPanels:Record<string,boolean>;openTrackRoles:Role[];cursorRow:number;cursorLane:Role;cursorTrackId?:string;cursorField:typeof trackerFields[number];stepAdvance:number};
 const WORKSPACE_PREFS_KEY='bpm_workspace_preferences_v1';
 const workspacePanelIds=['pattern-history-panel','arranger','advanced-generation','master-dsp-rack','hit-editor'] as const;
 const validWorkspaceView=(value:unknown):value is WorkspaceView=>value==='renoise'||value==='hybrid'||value==='beginner';
@@ -85,7 +85,7 @@ function saveWorkspacePreferences(){
  try{
   workspacePreferences.view=validWorkspaceView(input('view').value)?input('view').value as WorkspaceView:'renoise';
   const grid=el('grid'),timeline=el('song-timeline');workspacePreferences.gridScrollTop=grid.scrollTop;workspacePreferences.gridScrollLeft=grid.scrollLeft;workspacePreferences.timelineScrollLeft=timeline.scrollLeft;workspacePreferences.pageScrollTop=window.scrollY;
-  workspacePreferences.cursorRow=rowAnchor;workspacePreferences.cursorLane=cursorLane;workspacePreferences.cursorField=cursorField;workspacePreferences.stepAdvance=getTrackerStep();
+  workspacePreferences.cursorRow=rowAnchor;workspacePreferences.cursorLane=cursorLane;workspacePreferences.cursorTrackId=cursorTrackId;workspacePreferences.cursorField=cursorField;workspacePreferences.stepAdvance=getTrackerStep();
   for(const id of workspacePanelIds){const panel=document.getElementById(id);if(panel instanceof HTMLDetailsElement)workspacePreferences.openPanels[id]=panel.open;}
   workspacePreferences.openTrackRoles=Array.from(document.querySelectorAll<HTMLDetailsElement>('.track-instrument-panel[open]')).map(panel=>panel.dataset.role as Role).filter(role=>ROLES.includes(role));
   localStorage.setItem(WORKSPACE_PREFS_KEY,JSON.stringify(workspacePreferences));
@@ -94,7 +94,7 @@ function saveWorkspacePreferences(){
 function scheduleWorkspaceSave(){if(!workspaceReady||workspaceSaveFrame)return;workspaceSaveFrame=requestAnimationFrame(()=>{workspaceSaveFrame=0;saveWorkspacePreferences();});}
 function restoreWorkspacePreferences(){
  const restored={...workspacePreferences,openPanels:{...workspacePreferences.openPanels},openTrackRoles:[...workspacePreferences.openTrackRoles]};
- rowAnchor=Math.min(restored.cursorRow,Math.max(0,transfer.timing.lines-1));cursorLane=restored.cursorLane;cursorField=restored.cursorField;el<HTMLSelectElement>('tracker-step-select').value=String(restored.stepAdvance);input('edit-step').value=String(restored.stepAdvance);
+ rowAnchor=Math.min(restored.cursorRow,Math.max(0,transfer.timing.lines-1));cursorLane=restored.cursorLane;cursorTrackId=pattern.userTracks?.some(track=>track.id===restored.cursorTrackId)?restored.cursorTrackId:undefined;cursorField=restored.cursorField;el<HTMLSelectElement>('tracker-step-select').value=String(restored.stepAdvance);input('edit-step').value=String(restored.stepAdvance);
  workspaceRestoreTracks=true;render();
  for(const id of workspacePanelIds){const panel=document.getElementById(id);if(panel instanceof HTMLDetailsElement&&typeof restored.openPanels[id]==='boolean')panel.open=restored.openPanels[id]!;}
  requestAnimationFrame(()=>requestAnimationFrame(()=>setTimeout(()=>{const grid=el('grid'),timeline=el('song-timeline');grid.scrollTop=restored.gridScrollTop;grid.scrollLeft=restored.gridScrollLeft;timeline.scrollLeft=restored.timelineScrollLeft;window.scrollTo(0,restored.pageScrollTop);workspaceReady=true;saveWorkspacePreferences();},400)));
@@ -313,6 +313,17 @@ function render(){
     }
     header.append(th);
   }
+  for(const track of pattern.userTracks??[]){
+    const th=document.createElement('th');th.className=`track-col-header user-track-col track-${track.role}`;th.dataset.trackId=track.id;
+    const strip=document.createElement('div');strip.className='track-strip';
+    const top=document.createElement('div');top.className='track-strip-top';
+    const name=document.createElement('button');name.className='lane-settings user-track-name';name.textContent=track.name;name.title='Rename sample track';name.setAttribute('aria-label','Rename '+track.name);name.onclick=()=>{const value=prompt('Sample track name',track.name);if(value!==null)try{editor.renameUserTrack(track.id,value);refresh();}catch(e){status(String(e),true);}};top.append(name);
+    const actions=document.createElement('div');actions.className='track-strip-btns';
+    for(const [label,delta] of [['←',-1],['→',1]] as const){const button=document.createElement('button');button.textContent=label;button.title=delta<0?'Move track left':'Move track right';button.setAttribute('aria-label',button.title);button.onclick=()=>{if(editor.reorderUserTrack(track.id,delta as -1|1))refresh();};actions.append(button);}
+    for(const [label,key] of [['M','mute'],['S','solo']] as const){const button=document.createElement('button');button.textContent=label;button.title=(track[key]?'Disable ':'Enable ')+(key==='mute'?'mute':'solo')+' for '+track.name;button.setAttribute('aria-pressed',String(track[key]));button.classList.toggle('is-muted',key==='mute'&&track.mute);button.classList.toggle('is-soloed',key==='solo'&&track.solo);button.onclick=()=>{editor.setUserTrackMixer(track.id,{[key]:!track[key]});refresh();};actions.append(button);}
+    const remove=document.createElement('button');remove.textContent='×';remove.title='Delete sample track';remove.setAttribute('aria-label','Delete '+track.name);remove.onclick=()=>{if(!confirm(`Delete “${track.name}” and its hits?`))return;try{editor.deleteUserTrack(track.id);if(cursorTrackId===track.id){cursorTrackId=undefined;cursorLane='kick';}refresh();}catch(e){status(String(e),true);}};actions.append(remove);top.append(actions);
+    const mixer=document.createElement('div');mixer.className='track-strip-mixer';const fader=document.createElement('input');fader.type='range';fader.min='0';fader.max='2';fader.step='0.01';fader.value=String(track.level);fader.title=track.name+' level';fader.setAttribute('aria-label',track.name+' level');fader.onchange=()=>{editor.setUserTrackMixer(track.id,{level:Number(fader.value)});refresh();};const pan=document.createElement('input');pan.type='range';pan.min='-1';pan.max='1';pan.step='0.01';pan.value=String(track.pan);pan.title=track.name+' pan';pan.setAttribute('aria-label',track.name+' pan');pan.onchange=()=>{editor.setUserTrackMixer(track.id,{pan:Number(pan.value)});refresh();};mixer.append(fader,pan);strip.append(top,mixer);th.append(strip);header.append(th);
+  }
   head.append(header);table.append(head);
   const body=document.createElement('tbody');
   const view=input('view').value;
@@ -332,8 +343,9 @@ function render(){
       }else td.textContent=value;
       tr.append(td);
     }
-    for(const lane of ROLES.map(id=>({id,name:id[0]!.toUpperCase()+id.slice(1)}))){
-      const td=document.createElement('td');td.classList.toggle('cursor-cell',row===rowAnchor&&lane.id===cursorLane);td.classList.toggle('tracker-cell-selected',selectedCells.has(`${row}:${lane.id}`));
+    const visibleLanes=[...ROLES.map(id=>({id,name:id[0]!.toUpperCase()+id.slice(1),role:id as Role,track:undefined as UserTrack|undefined})),...(pattern.userTracks??[]).map(track=>({id:track.id,name:track.name,role:track.role,track}))];
+    for(const lane of visibleLanes){
+      const td=document.createElement('td');td.classList.add('track-'+lane.role);td.classList.toggle('cursor-cell',row===rowAnchor&&lane.id===(cursorTrackId??cursorLane));td.classList.toggle('tracker-cell-selected',selectedCells.has(`${row}:${lane.id}`));
       td.dataset.dropRow=String(row);td.dataset.dropLane=lane.id;
       td.ondragover=e=>{if(!draggingTrackerCells)return;e.preventDefault();td.classList.add('tracker-drop-target');if(e.dataTransfer)e.dataTransfer.dropEffect='move';};
       td.ondragleave=()=>td.classList.remove('tracker-drop-target');
@@ -346,17 +358,17 @@ function render(){
         empty.textContent=view==='beginner'?'····':'···';
         empty.setAttribute('aria-label','Enter '+lane.id+' at row '+row);
         empty.classList.toggle('cell-selected',selectedCells.has(`${row}:${lane.id}`));
-        empty.onclick=e=>selectTrackerCell(row,lane.id,e);
+        empty.onclick=e=>selectTrackerCell(row,lane.role,e,undefined,true,lane.track?.id);
         empty.ondblclick=()=>{
-          selectTrackerCell(row,lane.id,undefined,undefined,false);
+          selectTrackerCell(row,lane.role,undefined,undefined,false,lane.track?.id);
           updateEntry();
           writeEntry(false);
           render();
           focusTrackerCell(row,lane.id);
-          void auditionCursor(lane.id);
+          if(lane.track)void auditionUserTrack(lane.track);else void auditionCursor(lane.role);
         };
         td.append(empty);
-        if(view!=='beginner'){const fields=document.createElement('div');fields.className='tracker-values is-empty';for(const field of trackerFields){const cell=document.createElement('button');cell.type='button';cell.className='tracker-value';cell.dataset.cellRow=String(row);cell.dataset.cellLane=lane.id;cell.dataset.field=field;cell.textContent=field==='note'?'---':field==='effect'?'----':'··';cell.title=`${field} at ${lane.id} row ${row}; enter a note first`;cell.onclick=e=>{e.stopPropagation();selectTrackerCell(row,lane.id,undefined,undefined,false);focusTrackerField(row,lane.id,field);};fields.append(cell);}td.append(fields);}
+        if(view!=='beginner'){const fields=document.createElement('div');fields.className='tracker-values is-empty';for(const field of trackerFields){const cell=document.createElement('button');cell.type='button';cell.className='tracker-value';cell.dataset.cellRow=String(row);cell.dataset.cellLane=lane.id;cell.dataset.field=field;cell.textContent=field==='note'?'---':field==='effect'?'----':'··';cell.title=`${field} at ${lane.name} row ${row}; enter a note first`;cell.onclick=e=>{e.stopPropagation();selectTrackerCell(row,lane.role,undefined,undefined,false,lane.track?.id);focusTrackerField(row,lane.id,field);};fields.append(cell);}td.append(fields);}
       }
       for(const n of notes){
         const hit=pattern.events.find(e=>e.id===n.id)!;
@@ -372,16 +384,16 @@ function render(){
         const badge=(articulation?articulation+' ':'')+(reverse?'↶ ':'')+(locked(editor.state,hit)?'🔒 ':'');
         button.textContent=badge+(view==='beginner'?(hit.ghost?'Ghost':lane.name):label);
         button.title=`${label}, row ${row}, volume ${hex(n.volume)}, delay ${hex(n.delay)} · ${articulation} · ${articulationLabel(hit)} · ${hit.reason}`;
-        button.onclick=e=>{selectTrackerCell(row,lane.id,e,hit);};
+        button.onclick=e=>{selectTrackerCell(row,lane.role,e,hit,true,lane.track?.id);};
         button.draggable=true;button.title+=' · Drag to move the entire hit';
         button.ondragstart=e=>{const selectedCells=editor.state.selection.cells??[];draggingTrackerCells=selectedCells.some(c=>c.row===row&&c.lane===lane.id)?selectedCells:[{row,lane:lane.id}];if(e.dataTransfer){e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',`${row}:${lane.id}`);}};
         button.ondragend=()=>{draggingTrackerCells=undefined;container.querySelectorAll('.tracker-drop-target').forEach(node=>node.classList.remove('tracker-drop-target'));};
-        const card=document.createElement('div');card.className=`tracker-hit-card ${lane.id}`;card.append(button);
+        const card=document.createElement('div');card.className=`tracker-hit-card track-${lane.role}`;card.append(button);
         if(view!=='beginner'){
           const fields=document.createElement('div');fields.className='tracker-values';
           const soundIndex=hit.slice?LIBRARY.findIndex(entry=>hit.slice?.assetId==='library-'+entry.id):-1;
           const values=[noteName(hit.mapped?.note??source.note+(hit.pitch??0)),hit.mapped?'BRK':hit.slice?(soundIndex>=0?String(soundIndex+1).padStart(3,'0'):'USR'):'KIT',hex(n.volume),hex(n.pan),hex(n.delay),hit.effect?hit.effect.command+hex(hit.effect.param):'----'];
-          trackerFields.forEach((field,index)=>{const value=document.createElement('button');value.type='button';value.className='tracker-value';value.dataset.cellRow=String(row);value.dataset.cellLane=lane.id;value.dataset.hit=hit.id;value.dataset.field=field;value.textContent=values[index]!;value.title=field==='effect'?`FX ${values[index]} · type S/9 offset, B reverse, U/1 up, D/2 down, C cut or R retrigger, then two hex digits`: `${field}: ${values[index]} — click to edit`;value.setAttribute('aria-label',`${field} ${values[index]} for ${lane.id} at row ${row}`);value.onclick=e=>{e.stopPropagation();selectTrackerCell(row,lane.id,undefined,hit,false);focusTrackerField(row,lane.id,field);if(field==='instrument'){if(hit.mapped)breakPanel.open(pattern.sliceInstruments!.find(i=>i.id===hit.mapped!.instrumentId)!);else openHitSoundPicker(hit.id);}};fields.append(value);});
+          trackerFields.forEach((field,index)=>{const value=document.createElement('button');value.type='button';value.className='tracker-value';value.dataset.cellRow=String(row);value.dataset.cellLane=lane.id;value.dataset.hit=hit.id;value.dataset.field=field;value.textContent=values[index]!;value.title=field==='effect'?`FX ${values[index]} · type S/9 offset, B reverse, U/1 up, D/2 down, C cut or R retrigger, then two hex digits`: `${field}: ${values[index]} — click to edit`;value.setAttribute('aria-label',`${field} ${values[index]} for ${lane.name} at row ${row}`);value.onclick=e=>{e.stopPropagation();selectTrackerCell(row,lane.role,undefined,hit,false,lane.track?.id);focusTrackerField(row,lane.id,field);if(field==='instrument'){if(hit.mapped)breakPanel.open(pattern.sliceInstruments!.find(i=>i.id===hit.mapped!.instrumentId)!);else openHitSoundPicker(hit.id);}};fields.append(value);});
           card.prepend(fields);
         }
         td.append(card);
@@ -393,7 +405,7 @@ function render(){
   table.append(body);container.append(table);
   container.scrollTop=scrollTop;container.scrollLeft=scrollLeft;
   positionOpenInstrumentPanels();
-  markTrackerCursor(container.querySelector<HTMLElement>(`[data-cell-row="${rowAnchor}"][data-cell-lane="${cursorLane}"][data-field="${cursorField}"]`));
+  markTrackerCursor(container.querySelector<HTMLElement>(`[data-cell-row="${rowAnchor}"][data-cell-lane="${cursorTrackId??cursorLane}"][data-field="${cursorField}"]`));
   if(focusCellRow!==undefined&&focusCellLane)(container.querySelector<HTMLElement>(`[data-hit="${focusHit??''}"][data-cell-row="${focusCellRow}"][data-cell-lane="${focusCellLane}"]${focusField?`[data-field="${focusField}"]`:''}`)??container.querySelector<HTMLElement>(`[data-cell-row="${focusCellRow}"][data-cell-lane="${focusCellLane}"]${focusField?`[data-field="${focusField}"]`:''}`)??container.querySelector<HTMLElement>(`[data-cell-row="${focusCellRow}"][data-cell-lane="${focusCellLane}"]`))?.focus({preventScroll:true});
   else if(focusHit)container.querySelector<HTMLElement>(`[data-hit="${focusHit}"]`)?.focus({preventScroll:true});
   else if(focusRow)container.querySelector<HTMLElement>(`[data-row="${focusRow}"]`)?.focus({preventScroll:true});
@@ -421,8 +433,8 @@ function render(){
   syncHud();
 }
 function markTrackerCursor(target:HTMLElement|null|undefined){el('grid').querySelectorAll<HTMLElement>('.tracker-value.is-cursor-field').forEach(value=>{value.classList.remove('is-cursor-field');value.removeAttribute('aria-current');});if(target?.matches('.tracker-value')){target.classList.add('is-cursor-field');target.setAttribute('aria-current','location');}}
-function focusTrackerCell(row:number,lane:Role){cursorField='note';const selected=editor.state.selection.ids.length===1?editor.state.selection.ids[0]:'';const base=`[data-cell-row="${row}"][data-cell-lane="${lane}"]`;const target=el('grid').querySelector<HTMLElement>(base+`[data-hit="${selected}"]`)??el('grid').querySelector<HTMLElement>(base),field=el('grid').querySelector<HTMLElement>(base+`[data-hit="${selected}"][data-field="note"]`)??el('grid').querySelector<HTMLElement>(base+'[data-field="note"]');markTrackerCursor(field);target?.focus({preventScroll:true});scheduleWorkspaceSave();}
-function focusTrackerField(row:number,lane:Role,field:string){cursorField=field as typeof trackerFields[number];const selected=editor.state.selection.ids.length===1?editor.state.selection.ids[0]:'';const base=`[data-cell-row="${row}"][data-cell-lane="${lane}"][data-field="${field}"]`;const target=el('grid').querySelector<HTMLElement>(base+`[data-hit="${selected}"]`)??el('grid').querySelector<HTMLElement>(base);markTrackerCursor(target);target?.focus({preventScroll:true});scheduleWorkspaceSave();}
+function focusTrackerCell(row:number,lane:string){cursorField='note';const selected=editor.state.selection.ids.length===1?editor.state.selection.ids[0]:'';const base=`[data-cell-row="${row}"][data-cell-lane="${lane}"]`;const target=el('grid').querySelector<HTMLElement>(base+`[data-hit="${selected}"]`)??el('grid').querySelector<HTMLElement>(base),field=el('grid').querySelector<HTMLElement>(base+`[data-hit="${selected}"][data-field="note"]`)??el('grid').querySelector<HTMLElement>(base+'[data-field="note"]');markTrackerCursor(field);target?.focus({preventScroll:true});scheduleWorkspaceSave();}
+function focusTrackerField(row:number,lane:string,field:string){cursorField=field as typeof trackerFields[number];const selected=editor.state.selection.ids.length===1?editor.state.selection.ids[0]:'';const base=`[data-cell-row="${row}"][data-cell-lane="${lane}"][data-field="${field}"]`;const target=el('grid').querySelector<HTMLElement>(base+`[data-hit="${selected}"]`)??el('grid').querySelector<HTMLElement>(base);markTrackerCursor(target);target?.focus({preventScroll:true});scheduleWorkspaceSave();}
 let soundBrowser:ReturnType<typeof setupSoundBrowser>;
 function openHitSoundPicker(id:string){
  const hit=pattern.events.find(h=>h.id===id);if(!hit)return;
@@ -442,23 +454,29 @@ async function applyHitSound(id:string,choice:string){
   const revised={...hit,sourceKind:'oneShot' as const};delete revised.mapped;if(slice)revised.slice=slice;else delete revised.slice;
   edit(()=>editor.write(revised,hit.id),'Hit instrument changed. Undo restores the previous sound.');
 }
-function selectTrackerCell(row:number,lane:Role,event?:{shiftKey:boolean;ctrlKey:boolean;metaKey:boolean},hit?:Hit,audition=true){
- const cell={row,lane},key=`${row}:${lane}`;rowAnchor=row;cursorLane=lane;scheduleWorkspaceSave();
- let cells:{row:number;lane:Role}[];
+function trackerLaneIds(){return [...ROLES,...(pattern.userTracks??[]).map(track=>track.id)];}
+function trackerRole(laneId:string):Role{return ROLES.includes(laneId as Role)?laneId as Role:pattern.userTracks?.find(track=>track.id===laneId)?.role??'percussion';}
+function selectTrackerLane(row:number,laneId:string,event?:{shiftKey:boolean;ctrlKey:boolean;metaKey:boolean},audition=false){
+ const track=pattern.userTracks?.find(item=>item.id===laneId);
+ selectTrackerCell(row,trackerRole(laneId),event,undefined,audition,track?.id);
+}
+function selectTrackerCell(row:number,lane:Role,event?:{shiftKey:boolean;ctrlKey:boolean;metaKey:boolean},hit?:Hit,audition=true,trackId?:string){
+ const laneId=trackId??lane,cell={row,lane:laneId},key=`${row}:${laneId}`;rowAnchor=row;cursorLane=lane;cursorTrackId=trackId;scheduleWorkspaceSave();input('edit-lane').value=lane;
+ let cells:CellPosition[];
  if(event?.shiftKey){
-   const anchor=cellAnchor??cell,startRow=Math.min(anchor.row,row),endRow=Math.max(anchor.row,row),left=Math.min(ROLES.indexOf(anchor.lane),ROLES.indexOf(lane)),right=Math.max(ROLES.indexOf(anchor.lane),ROLES.indexOf(lane));cells=[];
-   for(let r=startRow;r<=endRow;r++)for(let l=left;l<=right;l++)cells.push({row:r,lane:ROLES[l]!});
+   const anchor=cellAnchor??cell,order=trackerLaneIds(),startRow=Math.min(anchor.row,row),endRow=Math.max(anchor.row,row),left=Math.min(order.indexOf(anchor.lane),order.indexOf(laneId)),right=Math.max(order.indexOf(anchor.lane),order.indexOf(laneId));cells=[];
+   for(let r=startRow;r<=endRow;r++)for(let l=left;l<=right;l++)cells.push({row:r,lane:order[l]!});
  }else if(event?.ctrlKey||event?.metaKey){
   cells=[...(editor.state.selection.cells??[])];const index=cells.findIndex(c=>`${c.row}:${c.lane}`===key);if(index>=0)cells.splice(index,1);else cells.push(cell);
   if(!cellAnchor)cellAnchor=cell;
  }else{cells=[cell];cellAnchor=cell;}
  if(cells.length){editor.state.selection={ids:[],rows:null,cells};editor.state.selection.ids=[...selectedIds(editor.state)];}
  else editor.state.selection=emptySelection();
- if(hit&&!event?.shiftKey&&!event?.ctrlKey&&!event?.metaKey&&transfer.notes.filter(n=>n.row===row&&n.lane===lane).length>1)editor.state.selection={ids:[hit.id],rows:null};
- const selectedHit=hit??pattern.events.find(h=>{const n=transfer.notes.find(note=>note.id===h.id);return n?.row===row&&n.lane===lane;});
+  if(hit&&!event?.shiftKey&&!event?.ctrlKey&&!event?.metaKey&&transfer.notes.filter(n=>n.row===row&&n.lane===laneId).length>1)editor.state.selection={ids:[hit.id],rows:null};
+ const selectedHit=hit??pattern.events.find(h=>{const n=transfer.notes.find(note=>note.id===h.id);return n?.row===row&&n.lane===laneId;});
  const remainingHit=cells.length===1?pattern.events.find(h=>{const n=transfer.notes.find(note=>note.id===h.id);return n?.row===cells[0]!.row&&n.lane===cells[0]!.lane;}):undefined;
- updateEntry(hit??remainingHit);render();focusTrackerCell(row,lane);
- if(audition){if(selectedHit)void auditionHit(selectedHit);else void auditionRole(lane);}
+ updateEntry(hit??remainingHit);render();focusTrackerCell(row,laneId);
+  if(audition){if(selectedHit)void auditionHit(selectedHit);else if(trackId){const track=pattern.userTracks?.find(item=>item.id===trackId);if(track)void auditionUserTrack(track);}else void auditionRole(lane);}
 }
 function selectRows(start:number,end:number,anchor=true){
   if(!Number.isInteger(start)||!Number.isInteger(end)||Math.min(start,end)<0||Math.max(start,end)>=transfer.timing.lines){status('Choose row numbers within this pattern.',true);return;}
@@ -477,7 +495,7 @@ function syncControls(){
   for(const r of ROLES)kitPanel.mix[r].include=!s.enabledRoles||s.enabledRoles.includes(r);kitPanel.restore(kitPanel.snapshot());
   presets();
 }
-function refresh(){for(const [owner,drafts] of hitDrafts)for(const id of drafts.keys())if(!owner.state.pattern.events.some(h=>h.id===id))drafts.delete(id);pattern=editor.state.pattern;transfer=compile(pattern);render();stashSlot();renderBank();scheduleSave();}
+function refresh(){for(const [owner,drafts] of hitDrafts)for(const id of drafts.keys())if(!owner.state.pattern.events.some(h=>h.id===id))drafts.delete(id);pattern=editor.state.pattern;if(cursorTrackId&&!pattern.userTracks?.some(track=>track.id===cursorTrackId))cursorTrackId=undefined;transfer=compile(pattern);render();stashSlot();renderBank();scheduleSave();}
 function edit(action:()=>boolean,message:string,historyLabel?:string){
   try{stop();const before=historyLabel?structuredClone(editor.state):undefined;const changed=action();refresh();if(changed&&before)rememberActivePattern(before,historyLabel!);status(changed?message:'No editable change: selected hits may be locked or protected anchors.');}
   catch(e){status((e as Error).message,true);}
@@ -566,12 +584,18 @@ function effectMap(){return Object.fromEntries(ROLES.map(r=>[r,kitPanel.mix[r].e
 function audioBuffer(audio:{channels:Float32Array[];sampleRate:number;duration?:number;attenuation?:number}){const b=context!.createBuffer(2,audio.channels[0]!.length,audio.sampleRate);audio.channels.forEach((c,i)=>b.copyToChannel(new Float32Array(c),i));return b;}
 function startSource(buffer:AudioBuffer,at:number,loop=false){const s=context!.createBufferSource();s.buffer=buffer;s.loop=loop;s.connect(context!.destination);playingSources.add(s);s.onended=()=>{playingSources.delete(s);s.disconnect();};s.start(at);return s;}
 async function auditionCursor(role:Role){
- const hit=editor.state.pattern.events.find(h=>h.role===role&&editor.state.selection.ids.includes(h.id));
- if(hit)return auditionHit(hit);return auditionRole(role);
+ const hit=editor.state.pattern.events.find(h=>editor.state.selection.ids.includes(h.id))??editor.state.pattern.events.find(h=>h.role===role&&h.trackId===cursorTrackId);
+ if(hit)return auditionHit(hit);const track=cursorTrackId?pattern.userTracks?.find(item=>item.id===cursorTrackId):undefined;if(track)return auditionUserTrack(track);return auditionRole(role);
+}
+async function auditionUserTrack(track:UserTrack){
+ context??=new AudioContext();const token=playToken;await context.resume();if(token!==playToken)return;
+ const note:Hit={id:'track-preview',role:track.role,trackId:track.id,sourceId:'kit.'+track.role,baseTick:0,offsetTick:0,gain:1,pan:0,anchor:false,ghost:false,slice:{...track.sample},reason:'User sample track preview.'};
+ const one={...structuredClone(pattern),events:[note],userTracks:[{...track,mute:false,solo:true}]},mix=kitPanel.snapshot();mix[track.role].mute=false;for(const role of ROLES)mix[role].solo=false;
+ const audio=renderPerformance(withDrumKit(one,drumKit,mix),assets,context.sampleRate,effectMap());startSource(audioBuffer(audio),context.currentTime);status(`Previewing sample track “${track.name}”.`);
 }
 async function auditionHit(hit:Hit){
  flashTrackMeter(hit.role,(hit.gain??1)*kitPanel.mix[hit.role].level);stop();samplePanel.stop();context??=new AudioContext();const token=playToken;await context.resume();if(token!==playToken)return;
- const one=structuredClone(pattern),mix=kitPanel.snapshot();if(input('transport-target').value==='song'&&bank)one.settings.bpm=bank.songBpm;one.events=[{...hit,baseTick:0,offsetTick:0,fineOffset:0}];mix[hit.role].mute=false;mix[hit.role].solo=true;const audio=renderPerformance(withDrumKit(one,drumKit,mix),assets,context.sampleRate,effectMap());
+ const one=structuredClone(pattern),mix=kitPanel.snapshot();if(input('transport-target').value==='song'&&bank)one.settings.bpm=bank.songBpm;one.events=[{...hit,baseTick:0,offsetTick:0,fineOffset:0}];mix[hit.role].mute=false;mix[hit.role].solo=true;if(hit.trackId){one.userTracks=one.userTracks?.map(track=>({...track,solo:track.id===hit.trackId,mute:false}));}const audio=renderPerformance(withDrumKit(one,drumKit,mix),assets,context.sampleRate,effectMap());
  startSource(audioBuffer(audio),context.currentTime);status(`Auditioning ${hit.ghost?'ghost ':''}${hit.role} hit. Press Play to hear the full pattern.`);
 }
 async function play(){
@@ -610,12 +634,12 @@ async function play(){
   }
   if(row!==lastMeterRow){
     lastMeterRow=row;
-    const hasSolo=ROLES.some(r=>kitPanel.mix[r].solo);
+    const hasSolo=ROLES.some(r=>kitPanel.mix[r].solo)||(pattern.userTracks??[]).some(track=>track.solo);
     for(const n of transfer.notes.filter(note=>note.row===row)){
-      const audible=hasSolo?(kitPanel.mix[n.lane].solo&&!kitPanel.mix[n.lane].mute):!kitPanel.mix[n.lane].mute;
+      const hit=pattern.events.find(e=>e.id===n.id),track=hit?.trackId?pattern.userTracks?.find(item=>item.id===hit.trackId):undefined;
+      const audible=track?(hasSolo?track.solo&&!track.mute:!track.mute):hasSolo?(kitPanel.mix[hit?.role??'percussion'].solo&&!kitPanel.mix[hit?.role??'percussion'].mute):!kitPanel.mix[hit?.role??'percussion'].mute;
       if(audible){
-        const hit=pattern.events.find(e=>e.id===n.id);
-        flashTrackMeter(n.lane,(hit?.gain??1)*kitPanel.mix[n.lane].level);
+        flashTrackMeter(hit?.role??'percussion',(hit?.gain??1)*(track?.level??1)*kitPanel.mix[hit?.role??'percussion'].level);
       }
     }
   }
@@ -738,8 +762,8 @@ async function playArrangement(){
     const tray=document.querySelector<HTMLElement>('#tray-left .tray-body');if(followPlayhead&&tray)revealPlaybackItem(tray,document.querySelector('#sequence .playing-step'));
     el('transport-state').textContent='Song · Step '+(position.step+1)+' / '+bank!.sequence.length;
     el('song-position').textContent='Step '+(position.step+1)+' / '+bank!.sequence.length+' · '+(position.section?position.section+' · ':'')+bank!.slots[position.slot]!.name+' · Repeat '+(position.repeat+1)+' / '+bank!.sequence[position.step]!.repeats;
-    const solo=ROLES.some(r=>kitPanel.mix[r].solo);
-    for(const note of transfer.notes.filter(n=>n.row===position.row))if(!kitPanel.mix[note.lane].mute&&(!solo||kitPanel.mix[note.lane].solo))flashTrackMeter(note.lane,kitPanel.mix[note.lane].level*(pattern.events.find(h=>h.id===note.id)?.gain??1));
+     const solo=ROLES.some(r=>kitPanel.mix[r].solo)||(pattern.userTracks??[]).some(track=>track.solo);
+     for(const note of transfer.notes.filter(n=>n.row===position.row)){const hit=pattern.events.find(h=>h.id===note.id),track=hit?.trackId?pattern.userTracks?.find(item=>item.id===hit.trackId):undefined,role=hit?.role??'percussion';if(track?(!track.mute&&(!solo||track.solo)):(!kitPanel.mix[role].mute&&(!solo||kitPanel.mix[role].solo)))flashTrackMeter(role,kitPanel.mix[role].level*(track?.level??1)*(hit?.gain??1));}
    }
   }else{
    document.querySelectorAll('.playing-step,.playing-row').forEach(e=>e.classList.remove('playing-step','playing-row'));
@@ -1105,10 +1129,11 @@ function updateEntry(hit?:Hit){
 function entryHit(replace:boolean,pitchOverride?:number){
   const row=Number(input('edit-row').value),delay=Number(input('edit-delay').value),volume=Number(input('edit-volume').value),pan=Number(input('edit-pan').value),pitch=pitchOverride??Number(input('edit-pitch').value);
   if(!Number.isInteger(row)||row<0||row>=transfer.timing.lines||!Number.isInteger(delay)||delay<0||delay>255||!Number.isInteger(volume)||volume<0||volume>128||!Number.isInteger(pan)||pan<0||pan>128)throw Error('Use valid integer row, delay, volume and pan values.');
-  const role=input('edit-lane').value as Role,prior=replace?pattern.events.find(h=>h.id===editor.state.selection.ids[0]):undefined;
+  const prior=replace?pattern.events.find(h=>h.id===editor.state.selection.ids[0]):undefined,trackId=prior?.trackId??cursorTrackId,track=trackId?pattern.userTracks?.find(item=>item.id===trackId):undefined,role=track?.role??prior?.role??input('edit-lane').value as Role;
   if(replace&&!prior)throw Error('Select one hit to edit.');
   const tick=(row+delay/256)*960/transfer.timing.lpb;
-  const hit:Hit={id:prior?.id??'entry-'+crypto.randomUUID(),role,sourceId:'kit.'+role,baseTick:Math.floor(tick),fineOffset:tick-Math.floor(tick),offsetTick:0,gain:volume/128,pan:pan/64-1,pitch,reverse:input('edit-reverse').checked,ratchets:Number(input('edit-ratchets').value),...(Number(input('edit-gate').value)?{gate:Number(input('edit-gate').value)}:{}),...(prior?.effect?{effect:{...prior.effect}}:{}),anchor:prior?.anchor??false,ghost:prior?.ghost??false,reason:'A manually entered tracker hit.'};
+  const hit:Hit={id:prior?.id??'entry-'+crypto.randomUUID(),role,...(trackId?{trackId}:{}),sourceId:'kit.'+role,baseTick:Math.floor(tick),fineOffset:tick-Math.floor(tick),offsetTick:0,gain:volume/128,pan:pan/64-1,pitch,reverse:input('edit-reverse').checked,ratchets:Number(input('edit-ratchets').value),...(Number(input('edit-gate').value)?{gate:Number(input('edit-gate').value)}:{}),...(prior?.effect?{effect:{...prior.effect}}:{}),anchor:prior?.anchor??false,ghost:prior?.ghost??false,reason:'A manually entered tracker hit.'};
+  if(track)hit.slice={...track.sample};else if(prior?.slice)hit.slice={...prior.slice};
   if(input('edit-speed-override').checked)hit.playbackRate=Number(input('edit-speed').value);
   if(input('edit-lowpass-override').checked)hit.lowpassHz=Number(input('edit-lowpass').value);
   if(input('edit-attack-override').checked)hit.attackMs=Number(input('edit-attack').value);
@@ -1159,8 +1184,8 @@ el('hit-insert').onclick=()=>edit(()=>writeEntry(false),'Inserted tracker hit.')
 el('hit-apply').onclick=()=>edit(()=>writeEntry(true),'Updated tracker hit.');
 el('hit-delete').onclick=()=>edit(()=>editor.deleteSelected(),'Deleted unlocked selected hits.');
 function copyTrackerCells(){try{trackerClipboard=editor.copySelection();status(`Copied ${trackerClipboard.cells.length} tracker cells. Select a destination and paste.`);}catch(e){status((e as Error).message,true);}}
-function pasteTrackerCells(){if(!trackerClipboard){status('Copy tracker cells first.',true);return;}edit(()=>editor.pasteCells(trackerClipboard!,rowAnchor,cursorLane),'Pasted tracker cells. Undo restores the previous cells.');focusTrackerCell(rowAnchor,cursorLane);}
-function duplicateTrackerCells(){try{const clip=editor.copySelection(),positions=editor.state.selection.cells?.length?editor.state.selection.cells:editor.state.selection.rows?Array.from({length:editor.state.selection.rows[1]-editor.state.selection.rows[0]+1},(_,i)=>({row:editor.state.selection.rows![0]+i,lane:ROLES[0]})):transfer.notes.filter(n=>editor.state.selection.ids.includes(n.id)).map(n=>({row:n.row,lane:n.lane}));const row=Math.min(...positions.map(c=>c.row))+clip.height,lane=ROLES[Math.min(...positions.map(c=>ROLES.indexOf(c.lane)))]!;edit(()=>editor.pasteCells(clip,row,lane),'Duplicated tracker cells below the selection.');focusTrackerCell(row,lane);}catch(e){status((e as Error).message,true);}}
+function pasteTrackerCells(){if(!trackerClipboard){status('Copy tracker cells first.',true);return;}const lane=cursorTrackId??cursorLane;edit(()=>editor.pasteCells(trackerClipboard!,rowAnchor,lane),'Pasted tracker cells. Undo restores the previous cells.');focusTrackerCell(rowAnchor,lane);}
+function duplicateTrackerCells(){try{const clip=editor.copySelection(),order=trackerLaneIds(),positions=editor.state.selection.cells?.length?editor.state.selection.cells:editor.state.selection.rows?Array.from({length:editor.state.selection.rows[1]-editor.state.selection.rows[0]+1},(_,i)=>({row:editor.state.selection.rows![0]+i,lane:order[0]!})):transfer.notes.filter(n=>editor.state.selection.ids.includes(n.id)).map(n=>({row:n.row,lane:n.lane}));const row=Math.min(...positions.map(c=>c.row))+clip.height,lane=order[Math.min(...positions.map(c=>order.indexOf(c.lane)))]!;edit(()=>editor.pasteCells(clip,row,lane),'Duplicated tracker cells below the selection.');focusTrackerCell(row,lane);}catch(e){status((e as Error).message,true);}}
 el('tracker-copy').onclick=copyTrackerCells;el('tracker-paste').onclick=pasteTrackerCells;el('tracker-duplicate').onclick=duplicateTrackerCells;
 function trackerJumpRow(key:string,row:number){const last=transfer.timing.lines-1;if(key==='Home')return 0;if(key==='End')return last;const barRows=transfer.timing.lpb*4;if(key==='PageUp')return Math.max(0,row-barRows);if(key==='PageDown')return Math.min(last,row+barRows);return row;}
 const trackerJumpKeys=['Home','End','PageUp','PageDown'];
@@ -1169,16 +1194,16 @@ el('grid').addEventListener('keydown', event => {
   if(event.ctrlKey||event.metaKey){const key=event.key.toLowerCase();if(key==='c'||key==='v'||key==='d'){event.preventDefault();if(key==='c')copyTrackerCells();else if(key==='v')pasteTrackerCells();else duplicateTrackerCells();}return;}
   const focused=event.target as HTMLElement,field=focused.dataset.field as typeof trackerFields[number]|undefined;
   if(field){
-    const row=Number(focused.dataset.cellRow),lane=focused.dataset.cellLane as Role,id=focused.dataset.hit;
+    const row=Number(focused.dataset.cellRow),lane=focused.dataset.cellLane??cursorTrackId??cursorLane,id=focused.dataset.hit;
     if(event.key==='Escape'){trackerFieldDraft=undefined;trackerEffectDraft=undefined;event.preventDefault();event.stopPropagation();render();return;}
     if(event.key==='Tab'||event.key.startsWith('Arrow')||trackerJumpKeys.includes(event.key)){
       event.preventDefault();event.stopPropagation();trackerFieldDraft=undefined;trackerEffectDraft=undefined;
       let nextRow=row,nextLane=lane,nextField:string=field;
       if(event.key==='ArrowUp'||event.key==='ArrowDown')nextRow=(row+(event.key==='ArrowDown'?1:-1)+transfer.timing.lines)%transfer.timing.lines;
       else if(trackerJumpKeys.includes(event.key))nextRow=trackerJumpRow(event.key,row);
-      else if(event.key==='Tab'){const position=ROLES.indexOf(lane)*trackerFields.length+trackerFields.indexOf(field)+(event.shiftKey?-1:1);const wrapped=(position+ROLES.length*trackerFields.length)%(ROLES.length*trackerFields.length);nextLane=ROLES[Math.floor(wrapped/trackerFields.length)]!;nextField=trackerFields[wrapped%trackerFields.length]!;}
-      else {const perRow=ROLES.length*trackerFields.length,total=transfer.timing.lines*perRow,current=row*perRow+ROLES.indexOf(lane)*trackerFields.length+trackerFields.indexOf(field),wrapped=(current+(event.key==='ArrowRight'?1:-1)+total)%total;nextRow=Math.floor(wrapped/perRow);const column=wrapped%perRow;nextLane=ROLES[Math.floor(column/trackerFields.length)]!;nextField=trackerFields[column%trackerFields.length]!;}
-      selectTrackerCell(nextRow,nextLane,{shiftKey:event.shiftKey&&(event.key.startsWith('Arrow')||trackerJumpKeys.includes(event.key)),ctrlKey:false,metaKey:false},nextRow===row&&nextLane===lane&&!event.shiftKey?pattern.events.find(h=>h.id===id):undefined,false);focusTrackerField(nextRow,nextLane,nextField);return;
+      else if(event.key==='Tab'){const lanes=trackerLaneIds(),position=lanes.indexOf(lane)*trackerFields.length+trackerFields.indexOf(field)+(event.shiftKey?-1:1),total=lanes.length*trackerFields.length,wrapped=(position+total)%total;nextLane=lanes[Math.floor(wrapped/trackerFields.length)]!;nextField=trackerFields[wrapped%trackerFields.length]!;}
+      else {const lanes=trackerLaneIds(),perRow=lanes.length*trackerFields.length,total=transfer.timing.lines*perRow,current=row*perRow+lanes.indexOf(lane)*trackerFields.length+trackerFields.indexOf(field),wrapped=(current+(event.key==='ArrowRight'?1:-1)+total)%total;nextRow=Math.floor(wrapped/perRow);const column=wrapped%perRow;nextLane=lanes[Math.floor(column/trackerFields.length)]!;nextField=trackerFields[column%trackerFields.length]!;}
+      selectTrackerLane(nextRow,nextLane,{shiftKey:event.shiftKey&&(event.key.startsWith('Arrow')||trackerJumpKeys.includes(event.key)),ctrlKey:false,metaKey:false},false);focusTrackerField(nextRow,nextLane,nextField);return;
     }
     if(field==='instrument'&&(event.key==='Enter'||event.key===' ')){event.preventDefault();event.stopPropagation();if(id)openHitSoundPicker(id);else{const panel=el('grid').querySelector<HTMLDetailsElement>(`.track-instrument-panel[data-role="${lane}"]`);if(panel)openInstrumentPanel(panel);}return;}
     if(event.key==='Delete'||event.key==='Backspace'){
@@ -1202,7 +1227,7 @@ el('grid').addEventListener('keydown', event => {
         if(current.digits.length<2){trackerEffectDraft=current;focused.textContent=current.command+current.digits+'_';return;}
         trackerEffectDraft=undefined;
         edit(()=>editor.editTrackerEffect(id,{command:current.command!,param:parseInt(current.digits.slice(-2),16)}),'Updated tracker FX.');
-        const nextRow=(row+getTrackerStep())%transfer.timing.lines;selectTrackerCell(nextRow,lane,undefined,undefined,false);focusTrackerField(nextRow,lane,field);return;
+        const nextRow=(row+getTrackerStep())%transfer.timing.lines;selectTrackerLane(nextRow,lane,undefined,false);focusTrackerField(nextRow,lane,field);return;
       }
       if(event.key.length===1){event.preventDefault();event.stopPropagation();return;}
     }
@@ -1213,7 +1238,7 @@ el('grid').addEventListener('keydown', event => {
         if(digits.length<2){trackerFieldDraft={id,field,digits};focused.textContent=digits+'_';status(`Enter the second hexadecimal digit for ${field}. Esc cancels.`);return;}
         trackerFieldDraft=undefined;const value=parseInt(digits.slice(-2),16);
         edit(()=>editor.editTrackerValue(id,field,value),`Updated tracker ${field}.`);
-        const nextRow=(row+getTrackerStep())%transfer.timing.lines;selectTrackerCell(nextRow,lane,undefined,undefined,false);focusTrackerField(nextRow,lane,field);return;
+        const nextRow=(row+getTrackerStep())%transfer.timing.lines;selectTrackerLane(nextRow,lane,undefined,false);focusTrackerField(nextRow,lane,field);return;
       }
     }
   }
@@ -1224,22 +1249,21 @@ el('grid').addEventListener('keydown', event => {
   }
   if (event.key === 'Tab') {
     event.preventDefault();
-    const curIdx = ROLES.indexOf(cursorLane);
-    const nextIdx = event.shiftKey ? (curIdx + ROLES.length - 1) % ROLES.length : (curIdx + 1) % ROLES.length;
-    selectTrackerCell(rowAnchor,ROLES[nextIdx]!,undefined,undefined,false);
+    const lanes=trackerLaneIds(),curIdx=lanes.indexOf(cursorTrackId??cursorLane),nextIdx=(curIdx+(event.shiftKey?-1:1)+lanes.length)%lanes.length;
+    selectTrackerLane(rowAnchor,lanes[nextIdx]!,undefined,false);
     return;
   }
   if (event.key.startsWith('Arrow')) {
     event.preventDefault();
-    const total=transfer.timing.lines*ROLES.length,current=rowAnchor*ROLES.length+ROLES.indexOf(cursorLane),next=current+(event.key==='ArrowRight'?1:event.key==='ArrowLeft'?-1:event.key==='ArrowDown'?ROLES.length:event.key==='ArrowUp'?-ROLES.length:0),wrapped=(next+total)%total;
-    const row=Math.floor(wrapped/ROLES.length),lane=ROLES[wrapped%ROLES.length]!;
-    selectTrackerCell(row,lane,{shiftKey:event.shiftKey,ctrlKey:false,metaKey:false},undefined,false);
+    const lanes=trackerLaneIds(),laneIndex=lanes.indexOf(cursorTrackId??cursorLane),total=transfer.timing.lines*lanes.length,current=rowAnchor*lanes.length+laneIndex,next=current+(event.key==='ArrowRight'?1:event.key==='ArrowLeft'?-1:event.key==='ArrowDown'?lanes.length:event.key==='ArrowUp'?-lanes.length:0),wrapped=(next+total)%total;
+    const row=Math.floor(wrapped/lanes.length),lane=lanes[wrapped%lanes.length]!;
+    selectTrackerLane(row,lane,{shiftKey:event.shiftKey,ctrlKey:false,metaKey:false},false);
     const rowEl=el('grid').querySelector(`[data-play-row="${row}"]`);if(rowEl)revealPlaybackItem(el('grid'),rowEl,el('grid').querySelector('thead')?.getBoundingClientRect().height??0);
     return;
   }
   if(trackerJumpKeys.includes(event.key)){
     event.preventDefault();const row=trackerJumpRow(event.key,rowAnchor);
-    selectTrackerCell(row,cursorLane,{shiftKey:event.shiftKey,ctrlKey:false,metaKey:false},undefined,false);
+    selectTrackerLane(row,cursorTrackId??cursorLane,{shiftKey:event.shiftKey,ctrlKey:false,metaKey:false},false);
     const rowEl=el('grid').querySelector(`[data-play-row="${row}"]`);if(rowEl)revealPlaybackItem(el('grid'),rowEl,el('grid').querySelector('thead')?.getBoundingClientRect().height??0);
     return;
   }
@@ -1249,7 +1273,7 @@ el('grid').addEventListener('keydown', event => {
     if (editor.state.selection.ids.length === 0) {
       const hitAtCursor = pattern.events.find(e => {
         const n = transfer.notes.find(note => note.id === e.id);
-        return n && n.row === rowAnchor && n.lane === cursorLane;
+        return n && n.row === rowAnchor && n.lane === (cursorTrackId??cursorLane);
       });
       if (hitAtCursor) {
         editor.state.selection = {ids: [hitAtCursor.id], rows: null}; edit(() => editor.deleteSelected(), 'Deleted hit at row ' + rowAnchor + '.');
@@ -1266,7 +1290,7 @@ el('grid').addEventListener('keydown', event => {
     const step = getTrackerStep();
     const hitAtCursor = pattern.events.find(e => {
       const n = transfer.notes.find(note => note.id === e.id);
-      return n && n.row === rowAnchor && n.lane === cursorLane;
+      return n && n.row === rowAnchor && n.lane === (cursorTrackId??cursorLane);
     });
     try {
       stop();
@@ -1286,7 +1310,7 @@ el('grid').addEventListener('keydown', event => {
   if (velMap[event.key] && field!=='note') {
     const hitAtCursor = pattern.events.find(e => {
       const n = transfer.notes.find(note => note.id === e.id);
-      return n && n.row === rowAnchor && n.lane === cursorLane;
+      return n && n.row === rowAnchor && n.lane === (cursorTrackId??cursorLane);
     });
     if (hitAtCursor && !locked(editor.state, hitAtCursor)) {
       event.preventDefault();
@@ -1302,7 +1326,7 @@ el('grid').addEventListener('keydown', event => {
   if (event.key === '+' || event.key === '=' || event.key === '-' || event.key === '_') {
     const hitAtCursor = pattern.events.find(e => {
       const n = transfer.notes.find(note => note.id === e.id);
-      return n && n.row === rowAnchor && n.lane === cursorLane;
+      return n && n.row === rowAnchor && n.lane === (cursorTrackId??cursorLane);
     });
     if (hitAtCursor && !locked(editor.state, hitAtCursor)) {
       event.preventDefault();
@@ -1335,9 +1359,9 @@ el('grid').addEventListener('keydown', event => {
     stop();
     const hitAtCursor = pattern.events.find(e => {
       const n = transfer.notes.find(note => note.id === e.id);
-      return n && n.row === rowAnchor && n.lane === cursorLane;
+      return n && n.row === rowAnchor && n.lane === (cursorTrackId??cursorLane);
     });
-    const selectedHit=pattern.events.find(h=>editor.state.selection.ids.includes(h.id)&&h.role===cursorLane)??hitAtCursor;
+    const selectedHit=pattern.events.find(h=>editor.state.selection.ids.includes(h.id)&&h.role===cursorLane&&h.trackId===cursorTrackId)??hitAtCursor;
     const instrument=pattern.sliceInstruments?.find(i=>i.id===selectedHit?.mapped?.instrumentId)??(cursorLane==='percussion'?pattern.sliceInstruments?.[0]:undefined);
     let changed:boolean;
     if(instrument){
@@ -1434,6 +1458,16 @@ document.querySelector('.tracker-edit')!.addEventListener('keydown',event=>{cons
 // ============================================================================
 
 function initTrackerLiveBar() {
+  const addTrack=el<HTMLButtonElement>('add-user-track'),trackFile=el<HTMLInputElement>('user-track-file');
+  addTrack.onclick=()=>{trackFile.value='';trackFile.click();};
+  trackFile.onchange=async()=>{const file=trackFile.files?.[0];if(!file)return;try{
+    if(file.size>128*1024*1024)throw Error('Sample track WAVs must be under 128 MB.');
+    context??=new AudioContext();const decoded=await context.decodeAudioData(await file.arrayBuffer());if(decoded.duration>120||!decoded.numberOfChannels)throw Error('Choose a WAV no longer than 120 seconds.');
+    const id='track-'+crypto.randomUUID(),channels=Array.from({length:Math.min(2,decoded.numberOfChannels)},(_,i)=>{const out=new Float32Array(decoded.length);decoded.copyFromChannel(out,i);return out;});
+    const asset:AudioAsset={id,name:file.name,sampleRate:decoded.sampleRate,channels};assets.set(id,asset);
+    const track:UserTrack={id,name:file.name.replace(/\.wav$/i,'').slice(0,80)||'Sample Track',role:'percussion',sample:{assetId:id,startFrame:0,endFrame:channels[0]!.length,sampleRate:decoded.sampleRate,label:file.name},level:1,pan:0,mute:false,solo:false};
+    editor.addUserTrack(track);rowAnchor=Math.min(rowAnchor,transfer.timing.lines-1);cursorLane='percussion';cursorTrackId=id;refresh();scheduleSave();status(`Added sample track “${track.name}”. Select a cell and press + Note to place its sample.`);
+  }catch(e){status('Could not add sample track: '+String(e),true);}};
   const stepSelect = document.getElementById('tracker-step-select') as HTMLSelectElement | null;
   if (stepSelect) {
     stepSelect.addEventListener('change', () => {
@@ -1453,7 +1487,7 @@ function initTrackerLiveBar() {
       const step = getTrackerStep();
       const hitAtCursor = pattern.events.find(e => {
         const n = transfer.notes.find(note => note.id === e.id);
-        return n && n.row === rowAnchor && n.lane === cursorLane;
+        return n && n.row === rowAnchor && n.lane === (cursorTrackId??cursorLane);
       });
       try {
         stop();
@@ -1478,7 +1512,7 @@ function initTrackerLiveBar() {
       if (editor.state.selection.ids.length === 0) {
         const hitAtCursor = pattern.events.find(e => {
           const n = transfer.notes.find(note => note.id === e.id);
-          return n && n.row === rowAnchor && n.lane === cursorLane;
+          return n && n.row === rowAnchor && n.lane === (cursorTrackId??cursorLane);
         });
         if (hitAtCursor) {
           editor.state.selection = {ids: [hitAtCursor.id], rows: null}; edit(() => editor.deleteSelected(), 'Deleted hit at row ' + rowAnchor + '.');
@@ -1496,7 +1530,7 @@ function initTrackerLiveBar() {
     quickGhost.onclick = () => {
       const hitAtCursor = pattern.events.find(e => {
         const n = transfer.notes.find(note => note.id === e.id);
-        return n && n.row === rowAnchor && n.lane === cursorLane;
+        return n && n.row === rowAnchor && n.lane === (cursorTrackId??cursorLane);
       });
       if (hitAtCursor && !locked(editor.state, hitAtCursor)) {
         editor.write({ ...hitAtCursor, ghost: !hitAtCursor.ghost }, hitAtCursor.id);
@@ -1514,7 +1548,7 @@ function initTrackerLiveBar() {
     quickRoll2.onclick = () => {
       const hitAtCursor = pattern.events.find(e => {
         const n = transfer.notes.find(note => note.id === e.id);
-        return n && n.row === rowAnchor && n.lane === cursorLane;
+        return n && n.row === rowAnchor && n.lane === (cursorTrackId??cursorLane);
       });
       if (hitAtCursor && !locked(editor.state, hitAtCursor)) {
         const nextRatchets = hitAtCursor.ratchets === 2 ? 1 : 2;
@@ -1533,7 +1567,7 @@ function initTrackerLiveBar() {
     quickRoll4.onclick = () => {
       const hitAtCursor = pattern.events.find(e => {
         const n = transfer.notes.find(note => note.id === e.id);
-        return n && n.row === rowAnchor && n.lane === cursorLane;
+        return n && n.row === rowAnchor && n.lane === (cursorTrackId??cursorLane);
       });
       if (hitAtCursor && !locked(editor.state, hitAtCursor)) {
         const nextRatchets = hitAtCursor.ratchets === 4 ? 1 : 4;
@@ -1550,7 +1584,7 @@ function initTrackerLiveBar() {
   const shiftPitch = (delta: number) => {
     const hitAtCursor = pattern.events.find(e => {
       const n = transfer.notes.find(note => note.id === e.id);
-      return n && n.row === rowAnchor && n.lane === cursorLane;
+      return n && n.row === rowAnchor && n.lane === (cursorTrackId??cursorLane);
     });
     if (hitAtCursor && !locked(editor.state, hitAtCursor)) {
       const pitch = (hitAtCursor.pitch ?? 0) + delta;

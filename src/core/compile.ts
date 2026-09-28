@@ -12,6 +12,16 @@ export function compile(pattern: Pattern, sources: Source[] = DEFAULT_SOURCES, l
   const lines=pattern.settings.bars*4*lpb;
   if(lines>512) throw new Error('This exporter supports at most 512 rows.');
   const sourceMap=new Map<string, Source>();
+  const trackMap=new Map((pattern.userTracks??[]).map(track=>[track.id,track]));
+  if(!Array.isArray(pattern.userTracks??[])||(pattern.userTracks?.length??0)>128)throw Error('A pattern supports up to 128 user tracks.');
+  for(const track of pattern.userTracks??[]){
+    identifier(track.id,'track ID');text(track.name,'track name',80);
+    if(trackMap.size!==(pattern.userTracks?.length??0)||ROLES.includes(track.id as typeof ROLES[number])||!ROLES.includes(track.role))throw Error('Invalid or duplicate user track.');
+    bounded(track.sample.startFrame,0,23040000,'track sample start',true);bounded(track.sample.endFrame,track.sample.startFrame+1,23040000,'track sample end',true);bounded(track.sample.sampleRate,8000,192000,'track sample rate',true);
+    identifier(track.sample.assetId,'track sample asset');text(track.sample.label,'track sample label',120);
+    bounded(track.level,0,2,'track level');bounded(track.pan,-1,1,'track pan');
+    if(typeof track.mute!=='boolean'||typeof track.solo!=='boolean')throw Error('Invalid user track mixer state.');
+  }
   if(!Array.isArray(sources) || sources.length<1 || sources.length>32) throw new Error('Expected 1–32 sources.');
   for(const source of sources) {
     identifier(source.id,'source ID'); text(source.label,'source label',80);
@@ -26,6 +36,7 @@ export function compile(pattern: Pattern, sources: Source[] = DEFAULT_SOURCES, l
     timing:{bpm:pattern.settings.bpm,lpb,tpl:12,bars:pattern.settings.bars,beatsPerBar:4,lines},
     sources:[],lanes:[],notes:[],warnings:[]};
   const usedSources=new Set<string>(), counts=new Map<string,number>(), columns=new Map<string,number>(), ids=new Set<string>();
+  const laneOrder=(lane:string)=>{const standard=ROLES.indexOf(lane as typeof ROLES[number]);if(standard>=0)return standard;const custom=(pattern.userTracks??[]).findIndex(track=>track.id===lane);return ROLES.length+Math.max(0,custom);};
   const notes=pattern.events.map(hit=>{
     if(hit.mapped)resolveSlice(pattern,hit);
     validateArticulation(hit);
@@ -50,6 +61,8 @@ export function compile(pattern: Pattern, sources: Source[] = DEFAULT_SOURCES, l
     identifier(hit.id,'event ID');
     if(ids.has(hit.id)) throw new Error('Duplicate event ID.'); ids.add(hit.id);
     if(!ROLES.includes(hit.role)) throw new Error('Unsupported event role.');
+    const userTrack=hit.trackId?trackMap.get(hit.trackId):undefined;
+    if(hit.trackId&&(!userTrack||userTrack.role!==hit.role))throw new Error('Missing or mismatched user track.');
     const source=sourceMap.get(hit.sourceId);
     if(!source || source.role!==hit.role) throw new Error(`Missing or mismatched source ${hit.sourceId}.`);
     bounded(hit.baseTick,0,pattern.settings.bars*4*PPQ-1,'baseTick',true);
@@ -59,9 +72,9 @@ export function compile(pattern: Pattern, sources: Source[] = DEFAULT_SOURCES, l
     const clamped=Math.max(0,Math.min(lines*256-1,position));
     if(clamped!==position)out.warnings.push(`${hit.id}: timing clamped at the pattern boundary.`);
     position=clamped; usedSources.add(source.id);
-    return {id:hit.id,lane:hit.role,source:source.id,row:Math.floor(position/256),column:0,
+    return {id:hit.id,lane:userTrack?.id??hit.role,source:source.id,row:Math.floor(position/256),column:0,
       volume:Math.round(hit.gain*128),pan:Math.round((hit.pan+1)*64),delay:position%256};
-  }).sort((a,b)=>a.row-b.row||a.delay-b.delay||ROLES.indexOf(a.lane)-ROLES.indexOf(b.lane)||(a.id<b.id?-1:a.id>b.id?1:0));
+  }).sort((a,b)=>a.row-b.row||a.delay-b.delay||laneOrder(a.lane)-laneOrder(b.lane)||(a.id<b.id?-1:a.id>b.id?1:0));
   for(const note of notes) {
     // One event per row/column even when the delays differ. Never overwrite.
     const key=`${note.lane}:${note.row}`;
@@ -70,8 +83,9 @@ export function compile(pattern: Pattern, sources: Source[] = DEFAULT_SOURCES, l
     counts.set(key,note.column+1); columns.set(note.lane,Math.max(columns.get(note.lane)??1,note.column+1));
   }
   out.notes=notes;
+  if(notes.some(note=>trackMap.has(note.lane)))out.warnings.push('Custom sample-track audio is not embedded in tracker JSON. Use Download project + samples to preserve the WAV data.');
   out.sources=sources.filter(x=>usedSources.has(x.id)).map(({id,role,kind,label,note,instrument})=>({id,role,kind,label,note,instrument}));
-  out.lanes=ROLES.filter(x=>columns.has(x)).map(id=>({id,name:id[0]!.toUpperCase()+id.slice(1),columns:columns.get(id)!}));
+  out.lanes=[...ROLES.filter(x=>columns.has(x)).map(id=>({id,name:id[0]!.toUpperCase()+id.slice(1),columns:columns.get(id)!})),...(pattern.userTracks??[]).filter(track=>columns.has(track.id)).map(track=>({id:track.id,name:track.name,columns:columns.get(track.id)!}))];
 
   return out;
 }

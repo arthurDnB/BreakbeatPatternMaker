@@ -9,14 +9,16 @@ import {compile} from './compile.js';
 import {random} from './random.js';
 import {PPQ, ROLES, type Pattern, type Role, type Hit, type EffectCommand} from './model.js';
 
-export interface CellPosition {row:number;lane:Role}
-export interface TrackerClipCell extends CellPosition {hits:Hit[]}
+export interface CellPosition {row:number;lane:string}
+export interface TrackerClipCell extends CellPosition {column?:number;hits:Hit[]}
 export interface TrackerClipboard {sliceInstruments?:Pattern['sliceInstruments'];width:number;height:number;resolution:number;lpb:number;cells:TrackerClipCell[]}
 export interface Selection {ids: string[]; rows: [number, number] | null; cells?:CellPosition[]}
 export interface EditorState {pattern: Pattern; lockedIds: string[]; lockedRoles: Role[]; selection: Selection; revision: number}
 const copy = <T>(v:T):T => structuredClone(v);
 export const emptySelection = ():Selection => ({ids:[],rows:null});
 const rowTicks = (pattern:Pattern) => PPQ / compile(pattern).timing.lpb;
+const laneIds = (pattern:Pattern):string[] => [...ROLES,...(pattern.userTracks??[]).map(track=>track.id)];
+const roleForLane = (pattern:Pattern,lane:string):Role|undefined => ROLES.includes(lane as Role)?lane as Role:pattern.userTracks?.find(track=>track.id===lane)?.role;
 export function locked(state:EditorState, hit:Pattern['events'][number]):boolean {
   return state.lockedIds.includes(hit.id)||state.lockedRoles.includes(hit.role);
 }
@@ -68,15 +70,35 @@ export class Editor {
     const next=copy(this.state),old=next.pattern;
     const hasLocks=next.lockedIds.length>0||next.lockedRoles.length>0;
     if(hasLocks&&(['bars','bpm','resolution'] as const).some(key=>old.settings[key]!==pattern.settings[key]))throw Error('Unlock hits and drum lanes before changing BPM, bars or resolution.');
-    const kept=old.events.filter(h=>locked(next,h));
+    const kept=old.events.filter(h=>!h.trackId&&locked(next,h));
+    const userHits=old.events.filter(h=>!!h.trackId);
     if(kept.some(h=>pattern.settings.enabledRoles&&!pattern.settings.enabledRoles.includes(h.role)))throw Error('An excluded instrument has locked hits. Unlock them or include that instrument before generating.');
     const preservedIds=new Set(kept.map(h=>h.id));
     next.pattern=copy(pattern);
+    if(old.userTracks?.length){next.pattern.userTracks=copy(old.userTracks);const scale=pattern.settings.bars/old.settings.bars;for(const hit of userHits){hit.baseTick=Math.min(pattern.settings.bars*4*PPQ-1,Math.round(hit.baseTick*scale));hit.offsetTick=Math.round(hit.offsetTick*scale);}next.pattern.events.push(...userHits);}
     for(const instrument of old.sliceInstruments??[])if(kept.some(h=>h.mapped?.instrumentId===instrument.id)&&!next.pattern.sliceInstruments?.some(i=>i.id===instrument.id))(next.pattern.sliceInstruments??=[]).push(copy(instrument));
-    next.pattern.events=next.pattern.events.filter(h=>!next.lockedRoles.includes(h.role)&&!preservedIds.has(h.id)&&!kept.some(k=>k.role===h.role&&k.baseTick===h.baseTick)).concat(kept);
+    next.pattern.events=next.pattern.events.filter(h=>!!h.trackId||!next.lockedRoles.includes(h.role)&&!preservedIds.has(h.id)&&!kept.some(k=>k.role===h.role&&k.baseTick===h.baseTick)).concat(kept);
     next.pattern.events.sort((a,b)=>a.baseTick-b.baseTick||ROLES.indexOf(a.role)-ROLES.indexOf(b.role));
     next.selection=emptySelection();next.revision++;
     return this.commit(next,label);
+  }
+  addUserTrack(track:NonNullable<Pattern['userTracks']>[number]):boolean{
+    const next=copy(this.state);if(next.pattern.userTracks?.some(item=>item.id===track.id))throw Error('Track ID already exists.');(next.pattern.userTracks??=[]).push(copy(track));next.revision++;return this.commit(next,'Add sample track');
+  }
+  renameUserTrack(id:string,name:string):boolean{
+    const next=copy(this.state),track=next.pattern.userTracks?.find(item=>item.id===id);if(!track)throw Error('Track no longer exists.');if(!name.trim()||name.trim().length>80)throw Error('Track name must contain 1–80 characters.');if(track.name===name.trim())return false;track.name=name.trim();next.revision++;return this.commit(next,'Rename sample track');
+  }
+  reorderUserTrack(id:string,delta:-1|1):boolean{
+    const next=copy(this.state),tracks=next.pattern.userTracks??[],index=tracks.findIndex(track=>track.id===id),target=index+delta;if(index<0||target<0||target>=tracks.length)return false;[tracks[index],tracks[target]]=[tracks[target]!,tracks[index]!];next.revision++;return this.commit(next,'Reorder sample tracks');
+  }
+  setUserTrackMixer(id:string,patch:Partial<Pick<NonNullable<Pattern['userTracks']>[number],'level'|'pan'|'mute'|'solo'>>):boolean{
+    const next=copy(this.state),track=next.pattern.userTracks?.find(item=>item.id===id);if(!track)throw Error('Track no longer exists.');Object.assign(track,patch);
+    if(!Number.isFinite(track.level)||track.level<0||track.level>2||!Number.isFinite(track.pan)||track.pan< -1||track.pan>1)throw Error('Invalid track mixer value.');next.revision++;return this.commit(next,'Change sample track mixer');
+  }
+  deleteUserTrack(id:string):boolean{
+    const next=copy(this.state),tracks=next.pattern.userTracks??[],track=tracks.find(item=>item.id===id);if(!track)return false;
+    if(next.pattern.events.some(hit=>hit.trackId===id&&locked(next,hit)))throw Error('Unlock this track’s hits before deleting it.');
+    next.pattern.events=next.pattern.events.filter(hit=>hit.trackId!==id);next.pattern.userTracks=tracks.filter(item=>item.id!==id);next.selection=emptySelection();next.revision++;return this.commit(next,'Delete sample track');
   }
   variation(){
     const original=this.state.pattern;
@@ -103,24 +125,24 @@ export class Editor {
   }
   copySelection():TrackerClipboard {
     const notes=compile(this.state.pattern).notes,selection=this.state.selection;
-    const positions=selection.cells?.length?selection.cells:selection.rows?Array.from({length:selection.rows[1]-selection.rows[0]+1},(_,index)=>selection.rows![0]+index).flatMap(row=>ROLES.map(lane=>({row,lane}))):notes.filter(n=>selection.ids.includes(n.id)).map(n=>({row:n.row,lane:n.lane}));
+    const order=laneIds(this.state.pattern),positions=selection.cells?.length?selection.cells:selection.rows?Array.from({length:selection.rows[1]-selection.rows[0]+1},(_,index)=>selection.rows![0]+index).flatMap(row=>order.map(lane=>({row,lane}))):notes.filter(n=>selection.ids.includes(n.id)).map(n=>({row:n.row,lane:n.lane}));
     if(!positions.length)throw Error('Select tracker cells or rows to copy.');
-    const top=Math.min(...positions.map(c=>c.row)),left=Math.min(...positions.map(c=>ROLES.indexOf(c.lane)));
+    const top=Math.min(...positions.map(c=>c.row)),left=Math.min(...positions.map(c=>order.indexOf(c.lane)));
     const unique=new Map(positions.map(c=>[`${c.row}:${c.lane}`,c]));
     const ids=selection.cells?.length||selection.rows?undefined:new Set(selection.ids);
-    const cells=[...unique.values()].map(c=>({row:c.row-top,lane:ROLES[ROLES.indexOf(c.lane)-left]!,hits:notes.filter(n=>n.row===c.row&&n.lane===c.lane&&(!ids||ids.has(n.id))).map(n=>copy(this.state.pattern.events.find(h=>h.id===n.id)!))}));
-    return {sliceInstruments:copy(this.state.pattern.sliceInstruments),width:Math.max(...positions.map(c=>ROLES.indexOf(c.lane)))-left+1,height:Math.max(...positions.map(c=>c.row))-top+1,resolution:this.state.pattern.settings.resolution,lpb:compile(this.state.pattern).timing.lpb,cells};
+    const cells=[...unique.values()].map(c=>({row:c.row-top,lane:c.lane,column:order.indexOf(c.lane)-left,hits:notes.filter(n=>n.row===c.row&&n.lane===c.lane&&(!ids||ids.has(n.id))).map(n=>copy(this.state.pattern.events.find(h=>h.id===n.id)!))}));
+    return {sliceInstruments:copy(this.state.pattern.sliceInstruments),width:Math.max(...positions.map(c=>order.indexOf(c.lane)))-left+1,height:Math.max(...positions.map(c=>c.row))-top+1,resolution:this.state.pattern.settings.resolution,lpb:compile(this.state.pattern).timing.lpb,cells};
   }
-  pasteCells(clip:TrackerClipboard,row:number,lane:Role):boolean {
-    const next=copy(this.state),lines=compile(next.pattern).timing.lines,step=rowTicks(next.pattern),laneIndex=ROLES.indexOf(lane);
+  pasteCells(clip:TrackerClipboard,row:number,lane:string):boolean {
+    const next=copy(this.state),lines=compile(next.pattern).timing.lines,step=rowTicks(next.pattern),order=laneIds(next.pattern),laneIndex=order.indexOf(lane);
     if(!Number.isInteger(row)||row<0||laneIndex<0||!clip.cells.length)throw Error('Choose a valid destination cell.');
     if(clip.resolution!==next.pattern.settings.resolution||clip.lpb!==compile(next.pattern).timing.lpb)throw Error('Copy and destination patterns must use the same resolution and LPB.');
     for(const instrument of clip.sliceInstruments??[]){const existing=next.pattern.sliceInstruments?.find(i=>i.id===instrument.id);if(existing&&JSON.stringify(existing)!==JSON.stringify(instrument))throw Error('Instrument mapping differs. Import into another pattern.');if(!existing)(next.pattern.sliceInstruments??=[]).push(copy(instrument));}
-    const destination=clip.cells.map(c=>({row:row+c.row,lane:ROLES[laneIndex+ROLES.indexOf(c.lane)]!,source:c}));
+    const destination=clip.cells.map(c=>({row:row+c.row,lane:order[laneIndex+(c.column??order.indexOf(c.lane))]??'',source:c}));
     if(destination.some(c=>c.row>=lines||!c.lane))throw Error('Paste would extend beyond the pattern.');
     const notes=compile(next.pattern).notes,remove=new Set<string>();
     for(const target of destination){
-      if(next.lockedRoles.includes(target.lane))throw Error(`Unlock the ${target.lane} lane before pasting.`);
+      if(ROLES.includes(target.lane as Role)&&next.lockedRoles.includes(target.lane as Role))throw Error(`Unlock the ${target.lane} lane before pasting.`);
       for(const note of notes.filter(n=>n.row===target.row&&n.lane===target.lane)){
         const hit=next.pattern.events.find(h=>h.id===note.id)!;
         if(locked(next,hit))throw Error('Paste would replace a locked hit.');
@@ -134,29 +156,29 @@ export class Editor {
       const moved=copy(source),tickDelta=(target.row-oldNote.row)*step;
       moved.id=`paste-${next.revision+1}-${serial++}`;
       while(next.pattern.events.some(h=>h.id===moved.id))moved.id=`paste-${next.revision+1}-${serial++}`;
-      moved.role=target.lane;moved.sourceId='kit.'+target.lane;moved.baseTick+=tickDelta;moved.anchor=false;
+      const targetLane=String(target.lane),role=roleForLane(next.pattern,targetLane);if(!role)throw Error('Paste destination track no longer exists.');moved.role=role;if(ROLES.includes(targetLane as Role))delete moved.trackId;else moved.trackId=targetLane;moved.sourceId='kit.'+role;moved.baseTick+=tickDelta;moved.anchor=false;
       if(moved.baseTick<0||moved.baseTick>=next.pattern.settings.bars*4*PPQ)throw Error('Paste timing would extend beyond the pattern.');
       next.pattern.events.push(moved);
     }
     next.pattern.events.sort((a,b)=>a.baseTick-b.baseTick||ROLES.indexOf(a.role)-ROLES.indexOf(b.role));
-    next.selection={ids:[],rows:null,cells:destination.map(c=>({row:c.row,lane:c.lane}))};next.revision++;
+    next.selection={ids:[],rows:null,cells:destination.map(c=>({row:c.row,lane:String(c.lane)}))};next.revision++;
     return this.commit(next,'Paste tracker cells');
   }
-  moveCells(cells:CellPosition[],row:number,lane:Role):boolean {
-    if(!cells.length||!Number.isInteger(row)||!ROLES.includes(lane))throw Error('Select a valid tracker destination.');
+  moveCells(cells:CellPosition[],row:number,lane:string):boolean {
+    const order=laneIds(this.state.pattern);if(!cells.length||!Number.isInteger(row)||!order.includes(lane))throw Error('Select a valid tracker destination.');
     const next=copy(this.state),notes=compile(next.pattern).notes,lines=compile(next.pattern).timing.lines;
     const source=[...new Map(cells.map(c=>[`${c.row}:${c.lane}`,c])).values()];
-    const top=Math.min(...source.map(c=>c.row)),left=Math.min(...source.map(c=>ROLES.indexOf(c.lane)));
-    const rowShift=row-top,laneShift=ROLES.indexOf(lane)-left,step=rowTicks(next.pattern);
+    const top=Math.min(...source.map(c=>c.row)),left=Math.min(...source.map(c=>order.indexOf(c.lane)));
+    const rowShift=row-top,laneShift=order.indexOf(lane)-left,step=rowTicks(next.pattern);
     if(!rowShift&&!laneShift)return false;
-    const destinations=source.map(c=>({row:c.row+rowShift,lane:ROLES[ROLES.indexOf(c.lane)+laneShift]}));
+    const destinations=source.map(c=>({row:c.row+rowShift,lane:order[order.indexOf(c.lane)+laneShift]??''}));
     if(destinations.some(c=>c.row<0||c.row>=lines||!c.lane))throw Error('Move would extend beyond the pattern.');
     const sourceKeys=new Set(source.map(c=>`${c.row}:${c.lane}`));
     const moving=new Map(notes.filter(n=>sourceKeys.has(`${n.row}:${n.lane}`)).map(n=>[n.id,n]));
     for(const note of moving.values()){const hit=next.pattern.events.find(h=>h.id===note.id)!;if(locked(next,hit))throw Error('Unlock selected hits and lanes before moving.');}
     const overwritten=new Set<string>();
     for(const target of destinations){
-      if(next.lockedRoles.includes(target.lane!))throw Error(`Unlock the ${target.lane} lane before moving.`);
+      const role=roleForLane(next.pattern,target.lane!);if(!role)throw Error('Move destination track no longer exists.');if(ROLES.includes(target.lane as Role)&&next.lockedRoles.includes(role))throw Error(`Unlock the ${target.lane} lane before moving.`);
       for(const note of notes.filter(n=>n.row===target.row&&n.lane===target.lane&&!moving.has(n.id))){
         const hit=next.pattern.events.find(h=>h.id===note.id)!;
         if(locked(next,hit))throw Error('Move would replace a locked hit.');
@@ -164,9 +186,9 @@ export class Editor {
       }
     }
     next.pattern.events=next.pattern.events.filter(h=>!overwritten.has(h.id));
-    for(const hit of next.pattern.events){if(!moving.has(hit.id))continue;hit.baseTick+=rowShift*step;hit.role=ROLES[ROLES.indexOf(hit.role)+laneShift]!;hit.sourceId='kit.'+hit.role;if(hit.baseTick<0||hit.baseTick>=next.pattern.settings.bars*4*PPQ)throw Error('Move timing exceeds the pattern.');}
+    for(const hit of next.pattern.events){if(!moving.has(hit.id))continue;const old=notes.find(n=>n.id===hit.id)!,target=order[order.indexOf(old.lane)+laneShift]!,role=roleForLane(next.pattern,target);if(!role)throw Error('Move destination track no longer exists.');hit.baseTick+=rowShift*step;hit.role=role;if(ROLES.includes(target as Role))delete hit.trackId;else hit.trackId=target;hit.sourceId='kit.'+hit.role;if(hit.baseTick<0||hit.baseTick>=next.pattern.settings.bars*4*PPQ)throw Error('Move timing exceeds the pattern.');}
     next.pattern.events.sort((a,b)=>a.baseTick-b.baseTick||ROLES.indexOf(a.role)-ROLES.indexOf(b.role));
-    next.selection={ids:[...moving.keys()],rows:null,cells:destinations.map(c=>({row:c.row,lane:c.lane!}))};next.revision++;
+    next.selection={ids:[...moving.keys()],rows:null,cells:destinations.map(c=>({row:c.row,lane:c.lane}))};next.revision++;
     return this.commit(next,'Move tracker cells');
   }
   editTrackerValue(id:string,field:'note'|'volume'|'pan'|'delay',value:number):boolean {
@@ -193,7 +215,7 @@ export class Editor {
   mutate(){
     const next=copy(this.state),scope=selectedIds(next);
     const scoped=next.selection.rows!==null||next.selection.ids.length>0||!!next.selection.cells?.length;
-    const eligible=next.pattern.events.filter(h=>!h.anchor&&!locked(next,h)&&(!scoped||scope.has(h.id)));
+    const eligible=next.pattern.events.filter(h=>!h.trackId&&!h.anchor&&!locked(next,h)&&(!scoped||scope.has(h.id)));
     if(!eligible.length)return false;
     const rng=random(next.pattern.settings.seed,`mutate:${next.revision}`);
     // Fisher-Yates, avoiding engine-dependent random sort comparators.
@@ -224,7 +246,7 @@ export class Editor {
   scramble(){
     const next=copy(this.state),scope=selectedIds(next);
     const scoped=next.selection.rows!==null||next.selection.ids.length>0||!!next.selection.cells?.length;
-    const eligible=next.pattern.events.filter(h=>!h.anchor&&!locked(next,h)&&(!scoped||scope.has(h.id)));
+    const eligible=next.pattern.events.filter(h=>!h.trackId&&!h.anchor&&!locked(next,h)&&(!scoped||scope.has(h.id)));
     if(eligible.length<2)return false;
     const rng=random(next.pattern.settings.seed,`scramble:${next.revision}`);
     const hasSlices=eligible.filter(h=>h.slice);
@@ -268,7 +290,7 @@ export class Editor {
       let changed=false;
       for(const hit of additions){
         if(next.lockedRoles.includes(hit.role))continue;
-        const occupied=next.pattern.events.filter(h=>h.role===hit.role&&Math.abs(h.baseTick+h.offsetTick-hit.baseTick-hit.offsetTick)<step*.5);
+    const occupied=next.pattern.events.filter(h=>!h.trackId&&h.role===hit.role&&Math.abs(h.baseTick+h.offsetTick-hit.baseTick-hit.offsetTick)<step*.5);
         if(occupied.some(h=>h.anchor||locked(next,h)||h.baseTick+h.offsetTick<start||h.baseTick+h.offsetTick>=end))continue;
         next.pattern.events=next.pattern.events.filter(h=>!occupied.includes(h));
         // Timing moves can leave an existing ID at a different position.

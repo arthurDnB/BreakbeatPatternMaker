@@ -26,6 +26,8 @@ export interface SliceInstrument {
   slices:{id:string; note:number; startFrame:number; endFrame:number}[];
   loopFadeMs?:number;
 }
+/** User-created sampler track. Its role is the legacy audio bus used for backwards-compatible FX routing. */
+export interface UserTrack {id:string;name:string;role:Role;sample:SliceRef;level:number;pan:number;mute:boolean;solo:boolean;color?:string}
 export interface RepeatArticulation {
   gain:number; pitch?:number; sourceOffset?:number; reverse?:boolean; glide?:number;
 }
@@ -51,11 +53,12 @@ export interface Hit {
   stretchRate?:number; // 0.5–2x duration change that preserves approximate source pitch.
   lowpassHz?:number; attackMs?:number;
   slice?:SliceRef; pitch?:number; fineOffset?:number;
-  id: string; role: Role; sourceId: string; baseTick: number; offsetTick: number;
+  id: string; role: Role; trackId?:string; sourceId: string; baseTick: number; offsetTick: number;
   gain: number; pan: number; anchor: boolean; ghost: boolean; reason: string;
 }
 export interface Pattern {
   sliceInstruments?:SliceInstrument[];
+  userTracks?:UserTrack[];
   engineVersion: string; settings: Settings; ppq: number; events: Hit[];
 }
 export interface Source {
@@ -67,8 +70,8 @@ export interface Transfer {
   name: string; genre: Genre; seed: string;
   timing: {bpm: number; lpb: number; tpl: number; bars: number; beatsPerBar: 4; lines: number};
   sources: Source[];
-  lanes: {id: Role; name: string; columns: number}[];
-  notes: {id: string; lane: Role; source: string; row: number; column: number;
+  lanes: {id: string; name: string; columns: number}[];
+  notes: {id: string; lane: string; source: string; row: number; column: number;
     volume: number; pan: number; delay: number}[];
   warnings: string[];
 }

@@ -73,6 +73,13 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-29] - User-Managed Sample Tracks (Codex)
+- **Custom tracker lanes (`src/core/model.ts`, `src/core/compile.ts`, `src/core/editor.ts`, `src/core/bank.ts`):** Added arbitrary WAV-backed user tracks alongside the four existing generator roles. Each lane receives a stable track ID, supports tracker note entry, cell selection/copy/paste/move, rename/reorder, mixer level/mute/solo, and stays intact when the four-role beat generator regenerates its pattern. Arrangement validation now accepts custom lane selections.
+- **Playback and projects (`src/audio/drum-kit.ts`, `src/audio/project.ts`):** Route sample-track hits through the shared Preview/WAV renderer and per-track mixer. Project schema v5 embeds referenced PCM and restores track data on reopen; older project formats remain supported.
+- **Tracker workflow (`public/index.html`, `public/workspace.css`, `src/web.ts`):** Added **+ Sample Track** to upload a WAV as a new independently editable tracker lane. Added dynamic lane keyboard navigation, preview and note entry; the existing Kick/Snare/Hi-hat/Percussion generator lanes remain available and generator-owned.
+- **Regression coverage (`tests/user-tracks.test.mjs`, `tests/v3-integration.test.mjs`, `scripts/user-tracks-browser-smoke.mjs`):** Cover compilation, generation preservation, undo/redo, save/reopen audio, mute/solo rendering, upload, tracker keyboard navigation, transfer lanes, and sample embedding. The historical unsupported-project-version check now uses version 6 because v5 is supported.
+- **Verification:** `npm.cmd test` passed 179/179; `npm.cmd run test:site` passed at `/` and `/breakbeat-pattern-maker/`; focused user-track browser smoke passed. User-provided `package.json` sync script change and `scripts/sync-chat-to-codex.mjs` were preserved.
+
 ### [2026-09-29] - Tracker Cursor and Step Persistence (Codex)
 - **Editing preferences (`src/web.ts`):** Extend browser-local workspace state to remember tracker cursor row, lane, inner field (note/instrument/volume/pan/delay/effect), and step advance. Restore the cursor within the active pattern's valid row range; retain compatible defaults for older preference records.
 - **Browser regression (`scripts/workspace-state-browser-smoke.mjs`):** Verify selected volume field, Kick lane, row, and four-row advance survive reload alongside existing workspace state.

@@ -2014,6 +2014,13 @@ input[type=range]::-webkit-slider-thumb:hover {
 .track-col-header.track-snare { border-top: 3px solid var(--role-snare); }
 .track-col-header.track-hat { border-top: 3px solid var(--role-hat); }
 .track-col-header.track-percussion { border-top: 3px solid var(--role-perc); }
+.track-col-header.user-track-col { border-top:3px solid #55cdb7; }
+.user-track-name { max-width:128px; overflow:hidden; text-overflow:ellipsis; }
+.user-track-col .track-strip-btns button { min-width:19px; min-height:18px; padding:0 4px; border:1px solid #273b36; border-radius:3px; background:#0d1513; color:#a8c1b9; font-size:10px; }
+.user-track-col .track-strip-btns button:hover { border-color:#58d8bd; color:#d4fff5; }
+.user-track-col .track-strip-btns button.is-muted { border-color:#e15a65; color:#ff8991; }
+.user-track-col .track-strip-btns button.is-soloed { border-color:#e6b957; color:#ffe09a; }
+.user-track-col .track-strip-mixer input[type=range] { width:100%; min-width:70px; accent-color:#55cdb7; }
 
 .track-strip {
   display: flex;

@@ -28,12 +28,16 @@ export function effectiveSampleSpeed(shape:SampleShape,bpm:number):{rate:number;
 export function defaultKitState():KitState{return Object.fromEntries(ROLES.map(r=>[r,{choice:'synth',include:true,mute:false,solo:false,level:1,tune:0,reverse:false,effects:defaultEffects()}])) as KitState;}
 export function withDrumKit(pattern:Pattern,kit:DrumKit,mix?:KitState):Pattern{
   pattern=resolvePatternSlices(pattern);
-  const hasSolo=mix&&Object.values(mix).some(s=>s.solo);
+  const userTracks=new Map((pattern.userTracks??[]).map(track=>[track.id,track]));
+  const hasSolo=mix&&(Object.values(mix).some(s=>s.solo)||(pattern.userTracks??[]).some(track=>track.solo));
   return {...pattern,events:pattern.events.filter(h=>{
     if(!mix)return true;
+    const track=h.trackId?userTracks.get(h.trackId):undefined;
+    if(track)return hasSolo?track.solo&&!track.mute:!track.mute;
     if(hasSolo)return !!mix[h.role].solo&&!mix[h.role].mute;
     return !mix[h.role].mute;
   }).flatMap(hit=>{
+    const userTrack=hit.trackId?userTracks.get(hit.trackId):undefined;
     const result=hit.slice||!kit[hit.role]?{...hit}:{...hit,slice:{...kit[hit.role]!}};
     if(['groove-v3','groove-v4'].includes(pattern.settings.algorithm??''))result.sourceKind=hit.sourceKind??(hit.slice?'slice':'oneShot');
     if(mix){
@@ -42,6 +46,7 @@ export function withDrumKit(pattern:Pattern,kit:DrumKit,mix?:KitState):Pattern{
         result.articulation={...hit.articulation,repeats:hit.articulation.repeats.map(r=>({...r,reverse:true}))};
       }
       result.gain*=mix[hit.role].level;
+      if(userTrack){result.gain*=userTrack.level;result.pan=Math.max(-1,Math.min(1,result.pan+userTrack.pan));}
       result.pitch=Math.max(-48,Math.min(48,(hit.pitch??0)+mix[hit.role].tune));
       const slot=mix[hit.role];
       const soundShape:SampleShape=hit.slice&&hit.slice.assetId!==sampleKey(slot)?slot.sampleProfiles?.[hit.slice.assetId]??{}:slot;

@@ -124,7 +124,8 @@ export function validateEditor(e: EditorState) {
   if (rows !== null && (!Array.isArray(rows) || rows.length !== 2 || rows.some(x => !Number.isInteger(x) || x < 0) || rows[0] > rows[1] || rows[1] >= compile(e.pattern).timing.lines)) {
     throw Error('Invalid slot selection.');
   }
-  if (e.selection.cells !== undefined && (!Array.isArray(e.selection.cells) || e.selection.cells.some(c => !c || !Number.isInteger(c.row) || c.row < 0 || c.row >= compile(e.pattern).timing.lines || !['kick','snare','hat','percussion'].includes(c.lane)))) throw Error('Invalid cell selection.');
+  const validLanes=new Set([...['kick','snare','hat','percussion'],...(e.pattern.userTracks??[]).map(track=>track.id)]);
+  if (e.selection.cells !== undefined && (!Array.isArray(e.selection.cells) || e.selection.cells.some(c => !c || !Number.isInteger(c.row) || c.row < 0 || c.row >= compile(e.pattern).timing.lines || !validLanes.has(c.lane)))) throw Error('Invalid cell selection.');
 }
 
 export function arrange(bank: Bank, bpm: number = bank.songBpm) {
