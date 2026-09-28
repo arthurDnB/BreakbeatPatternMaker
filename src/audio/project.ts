@@ -1,6 +1,7 @@
 import {validateBank,type Bank} from '../core/bank.js';
 import {validateEffects} from './effects.js';
 import {LIBRARY} from './library.js';
+import {resolveSlice} from '../core/slice-instrument.js';
 import {compile} from '../core/compile.js';
 import {ROLES,type Settings} from '../core/model.js';
 import type {EditorState} from '../core/editor.js';
@@ -8,7 +9,7 @@ import {validateSettings} from '../core/generate.js';
 import type {AudioAsset} from './slices.js';
 import type {KitState} from './drum-kit.js';
 import {DEFAULT_VINYL_TEXTURE,isVinylTexture,validateVinylTexture,type VinylTexture} from './vinyl-texture.js';
-export interface Project {format:'breakbeat-project';version:2|3;bank?:Bank;editor:EditorState;draft:Settings;kit:KitState;vinylTexture?:VinylTexture;assets:{id:string;name:string;sampleRate:number;channels:string[]}[]}
+export interface Project {format:'breakbeat-project';version:2|3|4;bank?:Bank;editor:EditorState;draft:Settings;kit:KitState;vinylTexture?:VinylTexture;assets:{id:string;name:string;sampleRate:number;channels:string[]}[]}
 function base64(data:Float32Array){let s='';const bytes=new Uint8Array(data.buffer,data.byteOffset,data.byteLength);for(let i=0;i<bytes.length;i+=8192)s+=String.fromCharCode(...bytes.subarray(i,i+8192));return btoa(s);}
 const legacyId=(id:string)=>id==='synth-scratch'||isVinylTexture(id)||id.startsWith('library-')&&isVinylTexture(id.slice(8));
 const projectPatterns=(p:Project)=>[p.editor.pattern,...(p.bank?.slots.flatMap(s=>[...(s.editor?[s.editor.pattern]:[]),...(s.patternHistory?.map(h=>h.editor.pattern)??[])])??[])];
@@ -19,10 +20,10 @@ export function needsVinylMigration(raw:unknown){
 }
 export function makeProject(editor:EditorState,draft:Settings,kit:KitState,assets:Map<string,AudioAsset>,bank?:Bank,vinylTexture:VinylTexture=DEFAULT_VINYL_TEXTURE):Project{
   const patterns=[editor.pattern,...(bank?.slots.flatMap(s=>[...(s.editor?[s.editor.pattern]:[]),...(s.patternHistory?.map(h=>h.editor.pattern)??[])])??[])];
-  const ids=new Set(patterns.flatMap(p=>p.events).flatMap(h=>h.slice?[h.slice.assetId]:[]));for(const r of ROLES){if(kit[r].assetId)ids.add(kit[r].assetId!);if(kit[r].uploadId)ids.add(kit[r].uploadId!);}
+  const ids=new Set(patterns.flatMap(p=>[...(p.sliceInstruments??[]).map(i=>i.assetId),...p.events.flatMap(h=>h.slice?[h.slice.assetId]:[])]));for(const r of ROLES){if(kit[r].assetId)ids.add(kit[r].assetId!);if(kit[r].uploadId)ids.add(kit[r].uploadId!);}
   const v3=['groove-v3','groove-v4'].includes(draft.algorithm??'')||patterns.some(p=>['groove-v3','groove-v4'].includes(p.settings.algorithm??'')||p.events.some(h=>h.articulation||h.effect));
   if([...ids].some(legacyId)||Object.values(kit).some(s=>legacyId(s.choice)))throw Error('Old vinyl instrument must be migrated before saving.');
-  return {format:'breakbeat-project',version:v3?3:2,...(bank?{bank:structuredClone(bank)}:{}),editor:structuredClone(editor),draft:structuredClone(draft),kit:structuredClone(kit),vinylTexture:validateVinylTexture(vinylTexture),assets:[...ids].map(id=>{const a=assets.get(id);if(!a)throw Error('Missing project audio.');return {id,name:a.name,sampleRate:a.sampleRate,channels:a.channels.map(base64)};})};
+  return {format:'breakbeat-project',version:patterns.some(p=>p.sliceInstruments?.length)?4:v3?3:2,...(bank?{bank:structuredClone(bank)}:{}),editor:structuredClone(editor),draft:structuredClone(draft),kit:structuredClone(kit),vinylTexture:validateVinylTexture(vinylTexture),assets:[...ids].map(id=>{const a=assets.get(id);if(!a)throw Error('Missing project audio.');return {id,name:a.name,sampleRate:a.sampleRate,channels:a.channels.map(base64)};})};
 }
 export function readProject(raw:unknown,replacement?:AudioAsset){
   // Migrate a copy: opening an old file must not mutate the caller's data.
@@ -32,7 +33,7 @@ export function readProject(raw:unknown,replacement?:AudioAsset){
     legacy.version=2;
   }
   const p=legacy as Project;
-  if(!p||p.format!=='breakbeat-project'||![2,3].includes(p.version)||!p.editor||!p.kit||!Array.isArray(p.assets)||p.assets.length>256)throw Error('Not a supported project.');
+  if(!p||p.format!=='breakbeat-project'||![2,3,4].includes(p.version)||!p.editor||!p.kit||!Array.isArray(p.assets)||p.assets.length>256)throw Error('Not a supported project.');
   let migrated=false;
   if(needsVinylMigration(p)){
     if(!replacement||replacement.id!=='library-lofi2-perc-02')throw Error('Load the replacement percussion sample before opening this older project.');
@@ -83,7 +84,10 @@ export function readProject(raw:unknown,replacement?:AudioAsset){
       if(shape.followBpm!==undefined&&typeof shape.followBpm!=='boolean'||shape.followBpm&&!shape.sourceBpm)throw Error('Invalid sample BPM follow.');
     }
   }
-  for(const h of [p.editor.pattern,...(p.bank?.slots.flatMap(s=>[...(s.editor?[s.editor.pattern]:[]),...(s.patternHistory?.map(h=>h.editor.pattern)??[])])??[])].flatMap(p=>p.events))if(h.slice){const a=assets.get(h.slice.assetId);if(!a||a.sampleRate!==h.slice.sampleRate||h.slice.endFrame>a.channels[0]!.length)throw Error('Missing slice audio.');}
+  for(const pattern of projectPatterns(p)){
+    for(const instrument of pattern.sliceInstruments??[]){const a=assets.get(instrument.assetId);if(!a||a.sampleRate!==instrument.sampleRate||instrument.endFrame>a.channels[0]!.length)throw Error('Missing instrument audio.');}
+    for(const hit of pattern.events){const slice=resolveSlice(pattern,hit);if(slice){const a=assets.get(slice.assetId);if(!a||a.sampleRate!==slice.sampleRate||slice.endFrame>a.channels[0]!.length)throw Error('Missing slice audio.');}}
+  }
   return {project:p,assets,migrated};
 }
 function database():Promise<IDBDatabase>{return new Promise((resolve,reject)=>{const request=indexedDB.open('breakbeat-workspace',1);request.onupgradeneeded=()=>request.result.createObjectStore('projects');request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);});}

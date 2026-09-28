@@ -26,7 +26,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.3.0-alpha`
-* **Test Status:** 150 / 150 unit tests passing (`npm.cmd test`).
+* **Test Status:** 159 / 159 unit tests passing (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -63,6 +63,8 @@ This document maintains the running project state and change log so that multipl
 * [x] **Recent patterns:** Per-slot snapshots of the last 12 generated, varied or mutated beats, with restore, project persistence and Undo recovery.
 * [x] **A/B pattern comparison:** Capture current or recent beats as A and B, preview either with the current kit, and keep a winner with Undo support.
 * [x] **Vinyl Texture Rack (Complete):** Nine bundled textures have a user-controlled background playback layer, independent of genre, with loop crossfades and WAV/project support.
+* [x] **Break Transcription (Preview):** Local automatic slicing, mapped slice instruments, original-timing reconstruction, marker review and project v4. See `docs/BREAK-TRANSCRIPTION.md`.
+* [ ] **Break Transcription Production Gate:** Independently annotated continuous drum performances and listening review; assembled fixtures alone do not establish industry-standard accuracy.
 * [ ] **Future Audio Roadmaps:** MP3 export, velocity-layered drum kits.
 * [x] **Sound Library Browser:** Shared searchable and filterable audition/selection for lanes and tracker hits, with browser-local Favorites and Recently used sounds.
 * [ ] *Note: Renoise integration has been retired in favor of the standalone in-browser instrument.*
@@ -70,6 +72,13 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-09-28] - Automatic Break Transcription Preview (Codex)
+- **Analysis and review (src/audio/break-analysis.ts, break-analysis-worker.ts, break-panel.ts):** Added cancellable local multiband/spectral onset detection and an Import break dialog. Users can select a region/bar count, zoom, edit/pin markers, undo/redo, audition slices and compare dry Original/Reconstructed playback. Imports create a new bank slot without overwriting the active pattern or song tempo. Explicit 120-slice overflow handling keeps existing cuts.
+- **Mapped instruments (src/core/model.ts, slice-instrument.ts, compile.ts, editor.ts, src/audio/slices.ts, src/web.ts):** Pattern-owned stable slice maps with independent mapped notes and pitch. Added keyboard octave selection, individual editing for multiple hits in one row, mapping-aware clipboard/history/locks, and an Edit slices workflow. Notes retain exact measured timing.
+- **Audio and persistence (src/audio/performance.ts, voice-v3.ts, drum-kit.ts, project.ts):** Shared resolution for Preview/song/WAV, source-frame reconstruction, optional loop-edge smoothing, and no automatic drum chokes on mapped slices. Mapped-only playback bypasses automatic master saturation for source fidelity. Version 4 saves all referenced PCM and mapping history while retaining older project support; independent instrument settings survive arrangement playback.
+- **Packaging and verification:** Worker dependencies included explicitly in the static site. Added 9 unit tests and root/subpath browser checks for imports, cancellation, same-row editing, Undo/Redo, save/reopen, WAV and mobile layout. Required suites: `npm.cmd test` (159/159), `npm.cmd run test:site`. Added `npm.cmd run audit:breaks` and `docs/BREAK-TRANSCRIPTION.md`.
+- **Measured quality and limitation:** Dry stereo reconstruction meets <=1e-5 sample-error checks at 22.05/44.1/48 kHz. Assembled licensed one-shot fixtures score mean onset F1 0.933 (0.947 on two held-out fixtures) at ±10 ms. These are trigger-annotated assembled fixtures; independent human-annotated continuous recordings/listening validation are still required. UI and docs label this a preview, not perfect or industry-standard transcription.
 
 ### [2026-09-28] - Collapsible, Genre-Independent Vinyl Texture Controls (Codex)
 - **Compact control row (public/index.html, public/workspace.css):** Replaced the always-visible full-width controls with a small collapsed “Vinyl Texture” disclosure. Click the label to show the On/Off, recording, Preview and level controls.

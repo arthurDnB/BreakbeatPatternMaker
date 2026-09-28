@@ -1,3 +1,4 @@
+import {resolveSlice} from './slice-instrument.js';
 import {generate} from './generate.js';
 import {grooveFill,grooveTiming} from './groove.js';
 import {grooveV3Fill,grooveV3Timing} from './groove-v3.js';
@@ -10,7 +11,7 @@ import {PPQ, ROLES, type Pattern, type Role, type Hit, type EffectCommand} from 
 
 export interface CellPosition {row:number;lane:Role}
 export interface TrackerClipCell extends CellPosition {hits:Hit[]}
-export interface TrackerClipboard {width:number;height:number;resolution:number;cells:TrackerClipCell[]}
+export interface TrackerClipboard {sliceInstruments?:Pattern['sliceInstruments'];width:number;height:number;resolution:number;cells:TrackerClipCell[]}
 export interface Selection {ids: string[]; rows: [number, number] | null; cells?:CellPosition[]}
 export interface EditorState {pattern: Pattern; lockedIds: string[]; lockedRoles: Role[]; selection: Selection; revision: number}
 const copy = <T>(v:T):T => structuredClone(v);
@@ -40,6 +41,17 @@ export class Editor {
   undo(){const item=this.past.pop();if(!item)return false;this.future.push({state:copy(this.state),label:item.label});this.state=item.state;return true;}
   redo(){const item=this.future.pop();if(!item)return false;this.past.push({state:copy(this.state),label:item.label});this.state=item.state;return true;}
   setTempo(bpm:number){if(!Number.isFinite(bpm)||bpm<32||bpm>999)throw Error('Tempo must be between 32 and 999 BPM.');const next=copy(this.state);next.pattern.settings.bpm=bpm;next.revision++;return this.commit(next,'Change BPM');}
+  updateSliceInstrument(instrument:NonNullable<Pattern['sliceInstruments']>[number]){
+    const next=copy(this.state),index=next.pattern.sliceInstruments?.findIndex(i=>i.id===instrument.id)??-1;
+    if(index<0)throw Error('This instrument is no longer in the active pattern.');
+    const old=next.pattern.sliceInstruments![index]!;
+    for(const hit of next.pattern.events.filter(h=>h.mapped?.instrumentId===instrument.id)){
+      const before=old.slices.find(s=>s.note===hit.mapped!.note),after=instrument.slices.find(s=>s.note===hit.mapped!.note);
+      if(!after)throw Error('A deleted slice still has tracker notes. Delete those notes first, or undo the marker deletion.');
+      if(locked(next,hit)&&(JSON.stringify(before)!==JSON.stringify(after)||old.loopFadeMs!==instrument.loopFadeMs||old.assetId!==instrument.assetId||old.sampleRate!==instrument.sampleRate))throw Error('Unlock affected hits before changing their slices.');
+    }
+    next.pattern.sliceInstruments![index]=copy(instrument);next.revision++;return this.commit(next,'Edit slice instrument');
+  }
   restore(saved:EditorState){const next=copy(saved);next.selection=emptySelection();return this.commit(next,'Restore pattern history');}
   unlockHit(id:string){const next=copy(this.state),hit=next.pattern.events.find(h=>h.id===id);if(!hit)return false;next.lockedIds=next.lockedIds.filter(x=>x!==id);next.lockedRoles=next.lockedRoles.filter(r=>r!==hit.role);return this.commit(next,'Unlock hit and lane');}
   toggleRole(role:Role){const next=copy(this.state);next.lockedRoles=next.lockedRoles.includes(role)?next.lockedRoles.filter(r=>r!==role):[...next.lockedRoles,role];return this.commit(next,`Toggle ${role} lock`);}
@@ -57,6 +69,7 @@ export class Editor {
     if(kept.some(h=>pattern.settings.enabledRoles&&!pattern.settings.enabledRoles.includes(h.role)))throw Error('An excluded instrument has locked hits. Unlock them or include that instrument before generating.');
     const preservedIds=new Set(kept.map(h=>h.id));
     next.pattern=copy(pattern);
+    for(const instrument of old.sliceInstruments??[])if(kept.some(h=>h.mapped?.instrumentId===instrument.id)&&!next.pattern.sliceInstruments?.some(i=>i.id===instrument.id))(next.pattern.sliceInstruments??=[]).push(copy(instrument));
     next.pattern.events=next.pattern.events.filter(h=>!next.lockedRoles.includes(h.role)&&!preservedIds.has(h.id)&&!kept.some(k=>k.role===h.role&&k.baseTick===h.baseTick)).concat(kept);
     next.pattern.events.sort((a,b)=>a.baseTick-b.baseTick||ROLES.indexOf(a.role)-ROLES.indexOf(b.role));
     next.selection=emptySelection();next.revision++;
@@ -93,12 +106,13 @@ export class Editor {
     const unique=new Map(positions.map(c=>[`${c.row}:${c.lane}`,c]));
     const ids=selection.cells?.length||selection.rows?undefined:new Set(selection.ids);
     const cells=[...unique.values()].map(c=>({row:c.row-top,lane:ROLES[ROLES.indexOf(c.lane)-left]!,hits:notes.filter(n=>n.row===c.row&&n.lane===c.lane&&(!ids||ids.has(n.id))).map(n=>copy(this.state.pattern.events.find(h=>h.id===n.id)!))}));
-    return {width:Math.max(...positions.map(c=>ROLES.indexOf(c.lane)))-left+1,height:Math.max(...positions.map(c=>c.row))-top+1,resolution:this.state.pattern.settings.resolution,cells};
+    return {sliceInstruments:copy(this.state.pattern.sliceInstruments),width:Math.max(...positions.map(c=>ROLES.indexOf(c.lane)))-left+1,height:Math.max(...positions.map(c=>c.row))-top+1,resolution:this.state.pattern.settings.resolution,cells};
   }
   pasteCells(clip:TrackerClipboard,row:number,lane:Role):boolean {
     const next=copy(this.state),lines=compile(next.pattern).timing.lines,step=PPQ*4/next.pattern.settings.resolution,laneIndex=ROLES.indexOf(lane);
     if(!Number.isInteger(row)||row<0||laneIndex<0||!clip.cells.length)throw Error('Choose a valid destination cell.');
     if(clip.resolution!==next.pattern.settings.resolution)throw Error('Copy and destination patterns must use the same resolution.');
+    for(const instrument of clip.sliceInstruments??[]){const existing=next.pattern.sliceInstruments?.find(i=>i.id===instrument.id);if(existing&&JSON.stringify(existing)!==JSON.stringify(instrument))throw Error('Instrument mapping differs. Import into another pattern.');if(!existing)(next.pattern.sliceInstruments??=[]).push(copy(instrument));}
     const destination=clip.cells.map(c=>({row:row+c.row,lane:ROLES[laneIndex+ROLES.indexOf(c.lane)]!,source:c}));
     if(destination.some(c=>c.row>=lines||!c.lane))throw Error('Paste would extend beyond the pattern.');
     const notes=compile(next.pattern).notes,remove=new Set<string>();
@@ -113,7 +127,7 @@ export class Editor {
     next.pattern.events=next.pattern.events.filter(h=>!remove.has(h.id));
     let serial=0;
     for(const target of destination)for(const source of target.source.hits){
-      const oldNote=compile({...this.state.pattern,events:[source]}).notes[0]!;
+      const oldNote=compile({...next.pattern,events:[source]}).notes[0]!;
       const moved=copy(source),tickDelta=(target.row-oldNote.row)*step;
       moved.id=`paste-${next.revision+1}-${serial++}`;
       while(next.pattern.events.some(h=>h.id===moved.id))moved.id=`paste-${next.revision+1}-${serial++}`;
@@ -157,7 +171,8 @@ export class Editor {
     if(!hit)throw Error('Select a hit to edit.');if(locked(next,hit))throw Error('Unlock this hit before editing.');
     const note=compile(next.pattern).notes.find(n=>n.id===id)!;
     if(!Number.isInteger(value))throw Error('Enter a whole-number tracker value.');
-    if(field==='note'){if(value<0||value>96)throw Error('Notes must be C-0 through C-8.');hit.pitch=value-48;}
+    if(field==='note'&&hit.mapped){hit.mapped.note=value;resolveSlice(next.pattern,hit);}
+    else if(field==='note'){if(value<0||value>96)throw Error('Notes must be C-0 through C-8.');hit.pitch=value-48;}
     else if(field==='volume'){if(value<0||value>128)throw Error('Volume must be 00–80 hex.');hit.gain=value/128;}
     else if(field==='pan'){if(value<0||value>128)throw Error('Pan must be 00–80 hex.');hit.pan=value/64-1;}
     else {if(value<0||value>255)throw Error('Delay must be 00–FF hex.');const tick=(note.row+value/256)*PPQ*4/next.pattern.settings.resolution;hit.baseTick=Math.floor(tick);hit.fineOffset=tick-Math.floor(tick);hit.offsetTick=0;}

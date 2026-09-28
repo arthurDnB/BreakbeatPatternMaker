@@ -5,6 +5,7 @@ import type {AudioAsset} from './slices.js';
 import {planV3Voices,applyV3Chokes,renderV3Voice,type RenderVoice} from './voice-v3.js';
 import {sampleShaper} from './sample-shaping.js';
 import {mixVinylTexture} from './vinyl-texture.js';
+import {resolvePatternSlices} from '../core/slice-instrument.js';
 // @ts-expect-error Shared original synth.
 import {synthesize} from '../../public/synth.js';
 export interface RenderOptions {
@@ -21,6 +22,7 @@ export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,
   if(!patterns.length)throw Error('Add a pattern to the arrangement.');
   if(!Number.isInteger(rate)||rate<8000||rate>192000)throw Error('Render sample rate must be 8–192 kHz.');
   patterns.forEach(p=>compile(p));
+  patterns=patterns.map(resolvePatternSlices);
   const duration=patterns.reduce((sum,p)=>sum+p.settings.bars*240/p.settings.bpm,0);
   if(duration>170)throw Error('Arrangement limit is 170 seconds plus effect tails.');
   let position=0;
@@ -71,9 +73,25 @@ export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,
       const length=gated?Math.min(naturalLength,Math.max(minBody||0,Math.min(decayMax,Math.max(0,Math.round(window*rate))))):naturalLength;
       return {hit,channels,from,to,start:onset,step:sourceRate/rate*ratio,length,gated};
     }).filter(v=>v.length>0&&(count===1||v.start<position));
+  }).map(voice=>{
+    if(voice.hit.mapped){const instrument=pattern.sliceInstruments!.find(i=>i.id===voice.hit.mapped!.instrumentId)!;voice.mappedRegion=instrument;}
+    return voice;
   });
   });
   applyV3Chokes(voices,rate,options.loop?duration:undefined);
+  // Unedited adjacent source segments must meet exactly. Only discontinuous
+  // edges are faded; unconditional fades remove transients from reconstruction.
+  for(const voice of voices.filter(v=>v.hit.mapped)){
+    const plain=(v:RenderVoice)=>!v.hit.pitch&&!v.hit.reverse&&!v.hit.effect&&!v.hit.gate&&!v.hit.decay&&(!v.hit.ratchets||v.hit.ratchets===1)&&(!v.hit.playbackRate||v.hit.playbackRate===1);
+    const frame=Math.round(voice.start*rate),end=frame+voice.length;
+    const same=(v:RenderVoice)=>v!==voice&&v.hit.mapped?.instrumentId===voice.hit.mapped!.instrumentId&&v.hit.slice?.assetId===voice.hit.slice?.assetId&&v.hit.role===voice.hit.role&&v.hit.gain===voice.hit.gain&&v.hit.pan===voice.hit.pan&&plain(v)&&plain(voice);
+    const previous=voices.some(v=>same(v)&&v.to===voice.from&&Math.abs(Math.round(v.start*rate)+v.length-frame)<=1);
+    const next=voices.some(v=>same(v)&&v.from===voice.to&&Math.abs(Math.round(v.start*rate)-end)<=1);
+    const definition=voice.mappedRegion!;
+    const sourceStart=voice.from===definition.startFrame,sourceEnd=voice.to===definition.endFrame;
+    voice.fadeStart=!previous&&!sourceStart;voice.fadeEnd=!next&&!sourceEnd;
+    if(definition.loopFadeMs&&options.loop){voice.fadeStart||=sourceStart;voice.fadeEnd||=sourceEnd;voice.fadeMs=definition.loopFadeMs;}
+  }
   const end=voices.reduce((end,v)=>Math.max(end,v.start+v.length/rate+effectTail(effects[v.hit.role])),duration+.6);
   if(end>180)throw Error('Rendered audio is limited to three minutes. Shorten the sample or increase its pitch.');
   const loopSamples=Math.round(duration*rate);
@@ -96,6 +114,8 @@ export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,
         const value=data[index]!*(1-fraction)+data[Math.min(v.to-1,index+1)]!*fraction;
         const fade=Math.max(1,Math.min(Math.round(rate*.002),Math.floor(v.length/2)));
         let envelope=v.gated?Math.min(1,i/fade,(v.length-1-i)/fade):1;
+        if(v.fadeStart)envelope*=Math.min(1,i/Math.max(1,rate*(v.fadeMs??1)/1000));
+        if(v.fadeEnd)envelope*=Math.min(1,(v.length-1-i)/Math.max(1,rate*(v.fadeMs??1)/1000));
         if(v.hit.decay!==undefined&&v.hit.decay<1){
           const t=i/v.length;
           envelope*=(1-t)*(1-t);
@@ -129,12 +149,13 @@ export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,
     }
   }
   if(options.vinylTexture)mixVinylTexture(channels,rate,options.vinylTexture.asset,options.vinylTexture.levelDb,!!options.loop);
+  const transparent=patterns.every(p=>p.events.every(h=>h.mapped));
   // Master bus glue & soft saturation: warm analog tape curve for peaks above 0.7
   for(let c=0;c<2;c++){
     const ch=channels[c]!;
     for(let i=0;i<ch.length;i++){
       const v=ch[i]!,abs=Math.abs(v);
-      if(abs>0.7){
+      if(abs>0.7&&!transparent){
         const sign=v<0?-1:1;
         ch[i]=sign*(0.7+0.28*Math.tanh((abs-0.7)/0.28));
       }

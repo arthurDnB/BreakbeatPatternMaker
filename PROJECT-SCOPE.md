@@ -2,7 +2,7 @@
 
 Implemented: hidden/reversible chopper UI; four single-shot lanes; 18 genre engines; five break-inspired rhythm presets; instrument inclusion independent of mute; generated variations; direct tracker and keyboard entry; locking and history; 12 CC0 acoustic/TR-808 samples; library/upload/synth selection; audition, level and tuning; WAV export; portable project save/open with embedded PCM; IndexedDB autosave and restore.
 
-Excluded instrument conflicts with locked hits must be resolved explicitly. Ghost snares and fills follow Snare inclusion. Manual entry remains possible on any lane. Existing slice-backed projects remain readable but no new slice operations are exposed.
+Excluded instrument conflicts with locked hits must be resolved explicitly. Ghost snares and fills follow Snare inclusion. Manual entry remains possible on any lane. Existing slice-backed projects remain readable. The Import break preview adds automatic slicing and one mapped slice instrument per imported break; see docs/BREAK-TRANSCRIPTION.md.
 
 Authentic commercial-break one-shots were not bundled because redistribution permission was not established. All shipped library files have pinned source URLs, hashes and CC0 notices.
 
@@ -58,3 +58,5 @@ Collapsed tracker articulation controls provide 1–8 repeats per row and a gate
 - Optional 4/8/16-bar phrase context plus section starting bar controls cadence placement. Patterns remain 1–4 bars; users generate separate sections into bank slots. Repeated arrangement blocks do not regenerate automatically.
 - V3 generation revision `0.3.0-groove.2`; stored projects keep their written events. Legacy/v2 generation and audio fingerprints remain unchanged. Existing kick choke behavior retained.
 - Research and listening checklist: `docs/GROOVE-V3-RESEARCH.md`.
+
+Break transcription preview: isolated WAV region (1–4 bars), cancellable local onset analysis, editable markers, original/reconstructed A/B, independent slice-note/pitch controls and project v4. Production-quality accuracy on independent continuous recordings remains a roadmap gate.

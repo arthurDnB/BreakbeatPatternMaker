@@ -5,6 +5,7 @@ import {defaultEffects,validateEffects,type Effects} from './effects.js';
 import {LIBRARY,KIT_PRESETS} from './library.js';
 import {isVinylTexture} from './vinyl-texture.js';
 import {ensureLibraryAudio} from './library-audio.js';
+import {resolvePatternSlices} from '../core/slice-instrument.js';
 
 export type DrumKit=Partial<Record<Role,SliceRef>>;
 export type SampleShape={decay?:number;playbackRate?:number;lowpassHz?:number;attackMs?:number;sourceBpm?:number;followBpm?:boolean};
@@ -24,6 +25,7 @@ export function effectiveSampleSpeed(shape:SampleShape,bpm:number):{rate:number;
 }
 export function defaultKitState():KitState{return Object.fromEntries(ROLES.map(r=>[r,{choice:'synth',include:true,mute:false,solo:false,level:1,tune:0,reverse:false,effects:defaultEffects()}])) as KitState;}
 export function withDrumKit(pattern:Pattern,kit:DrumKit,mix?:KitState):Pattern{
+  pattern=resolvePatternSlices(pattern);
   const hasSolo=mix&&Object.values(mix).some(s=>s.solo);
   return {...pattern,events:pattern.events.filter(h=>{
     if(!mix)return true;

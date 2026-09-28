@@ -19,6 +19,11 @@ export interface Settings {
   patternStructure?: 'groove'|'auto'|'fill'|'roll'|'build';
 }
 export interface SliceRef {assetId:string; startFrame:number; endFrame:number; sampleRate:number; label:string}
+export interface SliceInstrument {
+  id:string; name:string; assetId:string; sampleRate:number; startFrame:number; endFrame:number;
+  slices:{id:string; note:number; startFrame:number; endFrame:number}[];
+  loopFadeMs?:number;
+}
 export interface RepeatArticulation {
   gain:number; pitch?:number; sourceOffset?:number; reverse?:boolean; glide?:number;
 }
@@ -31,6 +36,7 @@ export interface Articulation {
 // 09/01/02 are accepted aliases for familiar older tracker notation.
 export interface EffectCommand {command:'0S'|'09'|'0B'|'0U'|'01'|'0D'|'02'|'0C'|'0R';param:number}
 export interface Hit {
+  mapped?:{instrumentId:string; note:number};
   effect?:EffectCommand;
   sourceKind?:'oneShot'|'slice';
   articulation?:Articulation;
@@ -44,6 +50,7 @@ export interface Hit {
   gain: number; pan: number; anchor: boolean; ghost: boolean; reason: string;
 }
 export interface Pattern {
+  sliceInstruments?:SliceInstrument[];
   engineVersion: string; settings: Settings; ppq: number; events: Hit[];
 }
 export interface Source {

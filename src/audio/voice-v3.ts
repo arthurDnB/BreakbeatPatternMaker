@@ -3,6 +3,8 @@ import {sampleShaper} from './sample-shaping.js';
 
 // V1/V2 voices use the same shape; their sample loop remains in performance.ts.
 export interface RenderVoice {
+  fadeStart?:boolean;fadeEnd?:boolean;fadeMs?:number;
+  mappedRegion?:{startFrame:number;endFrame:number;loopFadeMs?:number};
   hit:Hit; channels:Float32Array[]; from:number; to:number;
   start:number; step:number; length:number; gated:boolean; envelopeLength?:number;
   v3?:true; repeatGain?:number; reverse?:boolean; sourceOffset?:number;
@@ -54,14 +56,14 @@ export function planV3Voices(pattern:Pattern,hit:Hit,channels:Float32Array[],sou
     const length=gated?Math.min(decayLength,window):decayLength;
     return {v3:true as const,hit,channels,from,to,start:onset,step,length,gated,envelopeLength:length,
       repeatGain:expression?.gain??1,reverse,
-      sourceOffset,glide,glideFrames,edgeFade:reverse||sourceOffset>0,chokeGroup:art?.chokeGroup??(hit.role==='hat'?'hat':undefined)};
+      sourceOffset,glide,glideFrames,edgeFade:reverse||sourceOffset>0,chokeGroup:art?.chokeGroup??(!hit.mapped&&hit.role==='hat'?'hat':undefined)};
   }).filter(voice=>voice.length>0&&voice.start<end);
 }
 
 // A subsequent hat stops a preceding V3 hat, including across arrangement slots.
 // Legacy voices can trigger that stop, but their own PCM is never modified.
 export function applyV3Chokes(voices:RenderVoice[],rate:number,loopDuration?:number):void {
-  const hats=voices.filter(v=>v.chokeGroup==='hat'||v.hit.role==='hat').sort((a,b)=>a.start-b.start);
+  const hats=voices.filter(v=>v.chokeGroup==='hat'||!v.hit.mapped&&v.hit.role==='hat').sort((a,b)=>a.start-b.start);
   for(let i=0;i<hats.length;i++){
     const previous=hats[i]!,next=hats[i+1];
     const nextStart=next?.start??(loopDuration!==undefined?hats[0]!.start+loopDuration:undefined);
@@ -72,7 +74,7 @@ export function applyV3Chokes(voices:RenderVoice[],rate:number,loopDuration?:num
     }
   }
 
-  const kicks=voices.filter(v=>v.hit.role==='kick').sort((a,b)=>a.start-b.start);
+  const kicks=voices.filter(v=>!v.hit.mapped&&v.hit.role==='kick').sort((a,b)=>a.start-b.start);
   for(let i=0;i<kicks.length;i++){
     const previous=kicks[i]!,next=kicks[i+1];
     const nextStart=next?.start??(loopDuration!==undefined?kicks[0]!.start+loopDuration:undefined);
@@ -83,7 +85,7 @@ export function applyV3Chokes(voices:RenderVoice[],rate:number,loopDuration?:num
     }
   }
 
-  const snares=voices.filter(v=>v.hit.role==='snare').sort((a,b)=>a.start-b.start);
+  const snares=voices.filter(v=>!v.hit.mapped&&v.hit.role==='snare').sort((a,b)=>a.start-b.start);
   for(let i=0;i<snares.length;i++){
     const previous=snares[i]!,next=snares[i+1];
     const nextStart=next?.start??(loopDuration!==undefined?snares[0]!.start+loopDuration:undefined);
@@ -106,6 +108,8 @@ export function renderV3Voice(v:RenderVoice,bus:Float32Array[],rate:number):void
     const pos=v.reverse?v.to-1-phase:v.from+phase,index=Math.floor(pos),fraction=pos-index;
     if(index<v.from||index>=v.to)break;
     let envelope=v.edgeFade?Math.max(0,Math.min(1,i/fade,(v.length-1-i)/fade)):v.gated?Math.max(0,Math.min(1,(v.length-1-i)/fade)):1;
+    if(v.fadeStart)envelope*=Math.min(1,i/Math.max(1,rate*(v.fadeMs??1)/1000));
+    if(v.fadeEnd)envelope*=Math.min(1,(v.length-1-i)/Math.max(1,rate*(v.fadeMs??1)/1000));
     if(v.hit.decay!==undefined&&v.hit.decay<1)envelope*=(1-i/(v.envelopeLength??v.length))**2;
     if(v.volumeCutAtFrames!==undefined&&i>=v.volumeCutAtFrames){
       const blend=Math.min(1,(i-v.volumeCutAtFrames)/Math.max(1,Math.round(rate*.002)));

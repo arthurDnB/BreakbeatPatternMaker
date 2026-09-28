@@ -9,6 +9,8 @@ import {KIT_PRESETS,GENRE_KITS,LIBRARY} from './audio/library.js';
 import {ensureLibraryAudio} from './audio/library-audio.js';
 import {DEFAULT_VINYL_TEXTURE,VINYL_TEXTURES,loadVinylTexture,mixVinylTexture,type VinylTexture} from './audio/vinyl-texture.js';
 import {setupSoundBrowser} from './audio/sound-browser.js';
+import {setupBreakPanel} from './audio/break-panel.js';
+import {resolveSlice} from './core/slice-instrument.js';
 import {setupSamplePanel} from './audio/sample-panel.js';
 import {downloadBytes} from './audio/render.js';
 import {renderPerformance,renderSequence} from './audio/performance.js';
@@ -224,7 +226,7 @@ function render(){
       top.className='track-strip-top';
       const b=document.createElement('button');
       b.className='lane-settings';
-      b.textContent=label;
+      b.textContent=role==='percussion'&&pattern.sliceInstruments?.length?pattern.sliceInstruments[0]!.name:label;
       b.setAttribute('aria-label','Open '+label+' instrument settings');
       b.title=label+' settings';
       b.onclick=()=>{const panel=el('grid').querySelector<HTMLDetailsElement>(`.track-instrument-panel[data-role="${role}"]`);if(panel){if(panel.open)panel.open=false;else openInstrumentPanel(panel);}};
@@ -314,7 +316,7 @@ function render(){
           writeEntry(false);
           render();
           focusTrackerCell(row,lane.id);
-          void auditionRole(lane.id);
+          void auditionCursor(lane.id);
         };
         td.append(empty);
         if(view!=='beginner'){const fields=document.createElement('div');fields.className='tracker-values is-empty';for(const field of trackerFields){const cell=document.createElement('button');cell.type='button';cell.className='tracker-value';cell.dataset.cellRow=String(row);cell.dataset.cellLane=lane.id;cell.dataset.field=field;cell.textContent=field==='note'?'---':field==='effect'?'----':'··';cell.title=`${field} at ${lane.id} row ${row}; enter a note first`;cell.onclick=e=>{e.stopPropagation();selectTrackerCell(row,lane.id,undefined,undefined,false);focusTrackerField(row,lane.id,field);};fields.append(cell);}td.append(fields);}
@@ -326,7 +328,7 @@ function render(){
         button.dataset.hit=hit.id;button.classList.toggle('selected-hit',selected.has(hit.id));
         button.dataset.cellRow=String(row);button.dataset.cellLane=lane.id;button.classList.toggle('cell-selected',selectedCells.has(`${row}:${lane.id}`));
         button.classList.toggle('locked-hit',locked(editor.state,hit));button.setAttribute('aria-pressed',String(selected.has(hit.id)));
-        const sound=hit.slice??drumKit[hit.role];
+        const sound=resolveSlice(pattern,hit)??drumKit[hit.role];
         const reverse=hit.reverse||kitPanel.mix[hit.role].reverse;
         const label=sound?(hit.ghost?'Ghost · ':'')+sound.label:hit.ghost?'Ghost snare':lane.name;
         const articulation=(hit.ratchets&&hit.ratchets>1?'×'+hit.ratchets:'')+(hit.gate!==undefined?(hit.ratchets&&hit.ratchets>1?' · ':'')+'Gate '+Math.round(hit.gate*100)+'%':'');
@@ -341,8 +343,8 @@ function render(){
         if(view!=='beginner'){
           const fields=document.createElement('div');fields.className='tracker-values';
           const soundIndex=hit.slice?LIBRARY.findIndex(entry=>hit.slice?.assetId==='library-'+entry.id):-1;
-          const values=[noteName(source.note+(hit.pitch??0)),hit.slice?(soundIndex>=0?String(soundIndex+1).padStart(3,'0'):'USR'):'KIT',hex(n.volume),hex(n.pan),hex(n.delay),hit.effect?hit.effect.command+hex(hit.effect.param):'----'];
-          trackerFields.forEach((field,index)=>{const value=document.createElement('button');value.type='button';value.className='tracker-value';value.dataset.cellRow=String(row);value.dataset.cellLane=lane.id;value.dataset.hit=hit.id;value.dataset.field=field;value.textContent=values[index]!;value.title=field==='effect'?`FX ${values[index]} · type S/9 offset, B reverse, U/1 up, D/2 down, C cut or R retrigger, then two hex digits`: `${field}: ${values[index]} — click to edit`;value.setAttribute('aria-label',`${field} ${values[index]} for ${lane.id} at row ${row}`);value.onclick=e=>{e.stopPropagation();selectTrackerCell(row,lane.id,undefined,hit,false);focusTrackerField(row,lane.id,field);if(field==='instrument')openHitSoundPicker(hit.id);};fields.append(value);});
+          const values=[noteName(hit.mapped?.note??source.note+(hit.pitch??0)),hit.mapped?'BRK':hit.slice?(soundIndex>=0?String(soundIndex+1).padStart(3,'0'):'USR'):'KIT',hex(n.volume),hex(n.pan),hex(n.delay),hit.effect?hit.effect.command+hex(hit.effect.param):'----'];
+          trackerFields.forEach((field,index)=>{const value=document.createElement('button');value.type='button';value.className='tracker-value';value.dataset.cellRow=String(row);value.dataset.cellLane=lane.id;value.dataset.hit=hit.id;value.dataset.field=field;value.textContent=values[index]!;value.title=field==='effect'?`FX ${values[index]} · type S/9 offset, B reverse, U/1 up, D/2 down, C cut or R retrigger, then two hex digits`: `${field}: ${values[index]} — click to edit`;value.setAttribute('aria-label',`${field} ${values[index]} for ${lane.id} at row ${row}`);value.onclick=e=>{e.stopPropagation();selectTrackerCell(row,lane.id,undefined,hit,false);focusTrackerField(row,lane.id,field);if(field==='instrument'){if(hit.mapped)breakPanel.open(pattern.sliceInstruments!.find(i=>i.id===hit.mapped!.instrumentId)!);else openHitSoundPicker(hit.id);}};fields.append(value);});
           card.prepend(fields);
         }
         td.append(card);
@@ -355,9 +357,10 @@ function render(){
   container.scrollTop=scrollTop;container.scrollLeft=scrollLeft;
   positionOpenInstrumentPanels();
   markTrackerCursor(container.querySelector<HTMLElement>(`[data-cell-row="${rowAnchor}"][data-cell-lane="${cursorLane}"][data-field="${cursorField}"]`));
-  if(focusCellRow!==undefined&&focusCellLane)(container.querySelector<HTMLElement>(`[data-cell-row="${focusCellRow}"][data-cell-lane="${focusCellLane}"]${focusField?`[data-field="${focusField}"]`:''}`)??container.querySelector<HTMLElement>(`[data-cell-row="${focusCellRow}"][data-cell-lane="${focusCellLane}"]`))?.focus({preventScroll:true});
+  if(focusCellRow!==undefined&&focusCellLane)(container.querySelector<HTMLElement>(`[data-hit="${focusHit??''}"][data-cell-row="${focusCellRow}"][data-cell-lane="${focusCellLane}"]${focusField?`[data-field="${focusField}"]`:''}`)??container.querySelector<HTMLElement>(`[data-cell-row="${focusCellRow}"][data-cell-lane="${focusCellLane}"]${focusField?`[data-field="${focusField}"]`:''}`)??container.querySelector<HTMLElement>(`[data-cell-row="${focusCellRow}"][data-cell-lane="${focusCellLane}"]`))?.focus({preventScroll:true});
   else if(focusHit)container.querySelector<HTMLElement>(`[data-hit="${focusHit}"]`)?.focus({preventScroll:true});
   else if(focusRow)container.querySelector<HTMLElement>(`[data-row="${focusRow}"]`)?.focus({preventScroll:true});
+  el('slice-octave-label').hidden=!pattern.sliceInstruments?.length;el('edit-break-slices').hidden=!pattern.sliceInstruments?.length;
   el('summary').textContent=`${transfer.timing.bars} bars · ${transfer.timing.lines} rows · LPB ${transfer.timing.lpb} · ${transfer.notes.length} hits · ${pattern.settings.bpm.toFixed(1)} BPM · ${(pattern.settings.enabledRoles??ROLES).join(' + ')}`;
   el('generation-summary').textContent=(pattern.settings.enabledRoles??ROLES).map(r=>r==='hat'?'Hi-hat':r[0]!.toUpperCase()+r.slice(1)).join(' + ')+' · '+pattern.settings.bars+' bars · '+pattern.settings.bpm.toFixed(1)+' BPM';
   input('export').disabled=false;input('play').disabled=false;input('copy').disabled=false;
@@ -380,8 +383,8 @@ function render(){
   syncHud();
 }
 function markTrackerCursor(target:HTMLElement|null|undefined){el('grid').querySelectorAll<HTMLElement>('.tracker-value.is-cursor-field').forEach(value=>{value.classList.remove('is-cursor-field');value.removeAttribute('aria-current');});if(target?.matches('.tracker-value')){target.classList.add('is-cursor-field');target.setAttribute('aria-current','location');}}
-function focusTrackerCell(row:number,lane:Role){cursorField='note';const target=el('grid').querySelector<HTMLElement>(`[data-cell-row="${row}"][data-cell-lane="${lane}"]`),field=el('grid').querySelector<HTMLElement>(`[data-cell-row="${row}"][data-cell-lane="${lane}"][data-field="note"]`);markTrackerCursor(field);target?.focus({preventScroll:true});}
-function focusTrackerField(row:number,lane:Role,field:string){cursorField=field as typeof trackerFields[number];const target=el('grid').querySelector<HTMLElement>(`[data-cell-row="${row}"][data-cell-lane="${lane}"][data-field="${field}"]`)??el('grid').querySelector<HTMLElement>(`[data-cell-row="${row}"][data-cell-lane="${lane}"]`);markTrackerCursor(target);target?.focus({preventScroll:true});}
+function focusTrackerCell(row:number,lane:Role){cursorField='note';const selected=editor.state.selection.ids.length===1?editor.state.selection.ids[0]:'';const base=`[data-cell-row="${row}"][data-cell-lane="${lane}"]`;const target=el('grid').querySelector<HTMLElement>(base+`[data-hit="${selected}"]`)??el('grid').querySelector<HTMLElement>(base),field=el('grid').querySelector<HTMLElement>(base+`[data-hit="${selected}"][data-field="note"]`)??el('grid').querySelector<HTMLElement>(base+'[data-field="note"]');markTrackerCursor(field);target?.focus({preventScroll:true});}
+function focusTrackerField(row:number,lane:Role,field:string){cursorField=field as typeof trackerFields[number];const selected=editor.state.selection.ids.length===1?editor.state.selection.ids[0]:'';const base=`[data-cell-row="${row}"][data-cell-lane="${lane}"][data-field="${field}"]`;const target=el('grid').querySelector<HTMLElement>(base+`[data-hit="${selected}"]`)??el('grid').querySelector<HTMLElement>(base);markTrackerCursor(target);target?.focus({preventScroll:true});}
 let soundBrowser:ReturnType<typeof setupSoundBrowser>;
 function openHitSoundPicker(id:string){
  const hit=pattern.events.find(h=>h.id===id);if(!hit)return;
@@ -398,7 +401,7 @@ async function applyHitSound(id:string,choice:string){
    if(!asset)throw Error('The selected sample is unavailable.');
    slice={assetId:asset.id,startFrame:0,endFrame:asset.channels[0]!.length,sampleRate:asset.sampleRate,label:asset.name};
   }
-  const revised={...hit,sourceKind:'oneShot' as const};if(slice)revised.slice=slice;else delete revised.slice;
+  const revised={...hit,sourceKind:'oneShot' as const};delete revised.mapped;if(slice)revised.slice=slice;else delete revised.slice;
   edit(()=>editor.write(revised,hit.id),'Hit instrument changed. Undo restores the previous sound.');
 }
 function selectTrackerCell(row:number,lane:Role,event?:{shiftKey:boolean;ctrlKey:boolean;metaKey:boolean},hit?:Hit,audition=true){
@@ -413,9 +416,10 @@ function selectTrackerCell(row:number,lane:Role,event?:{shiftKey:boolean;ctrlKey
  }else{cells=[cell];cellAnchor=cell;}
  if(cells.length){editor.state.selection={ids:[],rows:null,cells};editor.state.selection.ids=[...selectedIds(editor.state)];}
  else editor.state.selection=emptySelection();
+ if(hit&&!event?.shiftKey&&!event?.ctrlKey&&!event?.metaKey&&transfer.notes.filter(n=>n.row===row&&n.lane===lane).length>1)editor.state.selection={ids:[hit.id],rows:null};
  const selectedHit=hit??pattern.events.find(h=>{const n=transfer.notes.find(note=>note.id===h.id);return n?.row===row&&n.lane===lane;});
  const remainingHit=cells.length===1?pattern.events.find(h=>{const n=transfer.notes.find(note=>note.id===h.id);return n?.row===cells[0]!.row&&n.lane===cells[0]!.lane;}):undefined;
- updateEntry(remainingHit);render();focusTrackerCell(row,lane);
+ updateEntry(hit??remainingHit);render();focusTrackerCell(row,lane);
  if(audition){if(selectedHit)void auditionHit(selectedHit);else void auditionRole(lane);}
 }
 function selectRows(start:number,end:number,anchor=true){
@@ -466,6 +470,12 @@ const samplePanel=setupSamplePanel(stop, (role, id, name, rate, channels) => {
   kitPanel.restore(kitPanel.mix);
   scheduleSave();
 });
+const breakPanel=setupBreakPanel({settings,assets,stop,create:next=>{
+  stop();samplePanel.stop();let index=0;
+  if(arrangementMutation('Import break',b=>{index=addPatternSlot(b,next.sliceInstruments![0]!.name.slice(0,32),new Editor(next).state);})){activateSlot(index);renderBank();scheduleSave();status('Break imported into a new pattern. Notes select slices; pitch is independent. The track mixer affects playback level.');}
+},update:instrument=>{if(editor.updateSliceInstrument(instrument)){refresh();scheduleSave();status('Slice changes applied. Undo restores the previous mapping.');}}});
+el('import-break').onclick=()=>breakPanel.open();
+el('edit-break-slices').onclick=()=>{const selected=pattern.events.find(h=>editor.state.selection.ids.includes(h.id));const instrument=pattern.sliceInstruments?.find(i=>i.id===selected?.mapped?.instrumentId)??pattern.sliceInstruments?.[0];if(instrument)breakPanel.open(instrument);};
 async function auditionRole(role: Role) {
   flashTrackMeter(role, kitPanel.mix[role].level);
   stop();samplePanel.stop();context??=new AudioContext();const token=playToken;await context.resume();if(token!==playToken)return;
@@ -488,7 +498,7 @@ async function previewSoundCandidate(role:Role,choice:string,hit?:Hit){
  if(token!==playToken||!el<HTMLDialogElement>('sound-browser').open)return;
  const one=generate({...defaults(),algorithm:pattern?.settings.algorithm,bpm:input('transport-target').value==='song'&&bank?bank.songBpm:pattern?.settings.bpm??120,bars:1});
  const next:Hit=hit?{...hit,baseTick:0,offsetTick:0,fineOffset:0,sourceKind:'oneShot'}:{id:'sound-browser-preview',role,sourceId:'kit.'+role,baseTick:0,offsetTick:0,gain:1,pan:0,anchor:false,ghost:false,reason:'Sound browser preview.',sourceKind:'oneShot'};
- if(slice)next.slice=slice;else delete next.slice;
+ delete next.mapped;if(slice)next.slice=slice;else delete next.slice;
  one.events=[next];const mix=kitPanel.snapshot();mix[role].mute=false;mix[role].solo=true;
  const previewKit={...drumKit};if(choice==='synth')delete previewKit[role];
  const audio=renderPerformance(withDrumKit(one,previewKit,mix),assets,context.sampleRate,effectMap());
@@ -516,6 +526,10 @@ const drumKit=kitPanel.kit;
 function effectMap(){return Object.fromEntries(ROLES.map(r=>[r,kitPanel.mix[r].effects]));}
 function audioBuffer(audio:ReturnType<typeof renderPerformance>){const b=context!.createBuffer(2,audio.channels[0]!.length,audio.sampleRate);audio.channels.forEach((c,i)=>b.copyToChannel(new Float32Array(c),i));return b;}
 function startSource(buffer:AudioBuffer,at:number,loop=false){const s=context!.createBufferSource();s.buffer=buffer;s.loop=loop;s.connect(context!.destination);playingSources.add(s);s.onended=()=>{playingSources.delete(s);s.disconnect();};s.start(at);return s;}
+async function auditionCursor(role:Role){
+ const hit=editor.state.pattern.events.find(h=>h.role===role&&editor.state.selection.ids.includes(h.id));
+ if(hit)return auditionHit(hit);return auditionRole(role);
+}
 async function auditionHit(hit:Hit){
  flashTrackMeter(hit.role,(hit.gain??1)*kitPanel.mix[hit.role].level);stop();samplePanel.stop();context??=new AudioContext();const token=playToken;await context.resume();if(token!==playToken)return;
  const one=structuredClone(pattern),mix=kitPanel.snapshot();if(input('transport-target').value==='song'&&bank)one.settings.bpm=bank.songBpm;one.events=[{...hit,baseTick:0,offsetTick:0,fineOffset:0}];mix[hit.role].mute=false;mix[hit.role].solo=true;const audio=renderPerformance(withDrumKit(one,drumKit,mix),assets,context.sampleRate,effectMap());
@@ -925,7 +939,7 @@ initKitPresetSelect('generator-kit-select');
 
 function patternJSON(){
   const pattern=withDrumKit(editor.state.pattern,drumKit,kitPanel.mix);
-  if(!pattern.events.length||ROLES.some(r=>kitPanel.mix[r].level!==1||kitPanel.mix[r].tune!==0||kitPanel.mix[r].mute||kitPanel.mix[r].reverse||(kitPanel.mix[r].effects&&!kitPanel.mix[r].effects!.bypass&&(kitPanel.mix[r].effects!.highpass>0||kitPanel.mix[r].effects!.lowpass<20000||kitPanel.mix[r].effects!.drive>0||kitPanel.mix[r].effects!.mix>0)))||pattern.events.some(h=>h.slice||h.pitch||h.fineOffset||h.reverse||h.effect||h.articulation||h.ratchets&&h.ratchets>1||h.gate!==undefined))return JSON.stringify({...JSON.parse(serialize(transfer)),format:'breakbeat-notes',version:1,pattern,effects:effectMap(),audioAssets:[...new Set(pattern.events.flatMap(h=>h.slice?[h.slice.assetId]:[]))].map(id=>{const a=assets.get(id);return {id,name:a?.name,sampleRate:a?.sampleRate};}),notice:'Audio assets are not included. Export WAV to preserve the sound.'},null,2);
+  if(pattern.sliceInstruments?.length||!pattern.events.length||ROLES.some(r=>kitPanel.mix[r].level!==1||kitPanel.mix[r].tune!==0||kitPanel.mix[r].mute||kitPanel.mix[r].reverse||(kitPanel.mix[r].effects&&!kitPanel.mix[r].effects!.bypass&&(kitPanel.mix[r].effects!.highpass>0||kitPanel.mix[r].effects!.lowpass<20000||kitPanel.mix[r].effects!.drive>0||kitPanel.mix[r].effects!.mix>0)))||pattern.events.some(h=>h.slice||h.pitch||h.fineOffset||h.reverse||h.effect||h.articulation||h.ratchets&&h.ratchets>1||h.gate!==undefined))return JSON.stringify({...JSON.parse(serialize(transfer)),format:'breakbeat-notes',version:1,pattern,effects:effectMap(),audioAssets:[...new Set(pattern.events.flatMap(h=>h.slice?[h.slice.assetId]:[]))].map(id=>{const a=assets.get(id);return {id,name:a?.name,sampleRate:a?.sampleRate};}),notice:'Audio assets are not included. Export WAV to preserve the sound.'},null,2);
   return serialize(transfer);
 }
 function currentAsset(){
@@ -995,7 +1009,8 @@ function updateEntry(hit?:Hit){
     input('edit-volume').value=String(n.volume);input('edit-pan').value=String(n.pan);input('edit-delay').value=String(n.delay);input('edit-pitch').value=String(hit.pitch??0);input('edit-reverse').checked=!!hit.reverse;input('edit-ratchets').value=String(hit.ratchets??1);const gateSelect=el<HTMLSelectElement>('edit-gate');gateSelect.querySelector('[data-custom]')?.remove();if(hit.gate!==undefined&&!Array.from(gateSelect.options).some(o=>Number(o.value)===hit.gate)){const option=document.createElement('option');option.dataset.custom='true';option.value=String(hit.gate);option.textContent=Math.round(hit.gate*100)+'%';gateSelect.append(option);}gateSelect.value=String(hit.gate??0);input('edit-sound').value='keep';
   }else{input('edit-row').value=String(rowAnchor);input('edit-lane').value=cursorLane;}
   const shapeRole=hit?.role??cursorLane,slot=kitPanel.mix[shapeRole];
-  const shape=hit?.slice&&hit.slice.assetId!==slot.assetId?slot.sampleProfiles?.[hit.slice.assetId]??{}:slot;
+  const selectedSlice=hit?resolveSlice(pattern,hit):undefined;
+  const shape=selectedSlice&&selectedSlice.assetId!==slot.assetId?slot.sampleProfiles?.[selectedSlice.assetId]??{}:slot;
   for(const [name,key,fallback] of [['speed','playbackRate',1],['lowpass','lowpassHz',20000],['attack','attackMs',0],['decay','decay',1]] as const){
     const own=hit?.[key];input('edit-'+name+'-override').checked=own!==undefined;
     input('edit-'+name).value=String(own??(key==='playbackRate'?effectiveSampleSpeed(shape,pattern.settings.bpm).rate:shape[key])??fallback);
@@ -1016,7 +1031,7 @@ function updateEntry(hit?:Hit){
   input('hit-apply').disabled=editor.state.selection.ids.length!==1;
   input('hit-delete').disabled=selectedIds(editor.state).size===0;
   updateDraftStatus();
-  el('edit-target').textContent=hit?((hit.slice??drumKit[hit.role])?'Sound: '+(hit.slice??drumKit[hit.role])!.label:'Sound: demo '+hit.role)+' · '+(locked(editor.state,hit)?'Locked':'Editable'):'Cursor: row '+rowAnchor+' / '+cursorLane;
+  el('edit-target').textContent=hit?((resolveSlice(pattern,hit)??drumKit[hit.role])?'Sound: '+(resolveSlice(pattern,hit)??drumKit[hit.role])!.label:'Sound: demo '+hit.role)+' · '+(locked(editor.state,hit)?'Locked':'Editable'):'Cursor: row '+rowAnchor+' / '+cursorLane;
 }
 function entryHit(replace:boolean,pitchOverride?:number){
   const row=Number(input('edit-row').value),delay=Number(input('edit-delay').value),volume=Number(input('edit-volume').value),pan=Number(input('edit-pan').value),pitch=pitchOverride??Number(input('edit-pitch').value);
@@ -1045,6 +1060,7 @@ function entryHit(replace:boolean,pitchOverride?:number){
   if(prior&&oldNote?.row===row&&oldNote.delay===delay){hit.baseTick=prior.baseTick;hit.offsetTick=prior.offsetTick;hit.fineOffset=prior.fineOffset;}
   const sound=input('edit-sound').value;
   if(sound==='slice'){const a=currentAsset();hit.slice=sliceReference(a.asset,a.markers,a.selected);if(['groove-v3','groove-v4'].includes(pattern.settings.algorithm??''))hit.sourceKind='slice';}
+  else if(sound==='keep'&&prior?.mapped)hit.mapped={...prior.mapped};
   else if(sound==='keep'&&prior?.slice)hit.slice={...prior.slice};
   if(['groove-v3','groove-v4'].includes(pattern.settings.algorithm??'')){
     if(sound!=='slice'&&sound!=='keep')hit.sourceKind='oneShot';
@@ -1090,7 +1106,7 @@ el('grid').addEventListener('keydown', event => {
       if(event.key==='ArrowUp'||event.key==='ArrowDown')nextRow=(row+(event.key==='ArrowDown'?1:-1)+transfer.timing.lines)%transfer.timing.lines;
       else if(event.key==='Tab'){const position=ROLES.indexOf(lane)*trackerFields.length+trackerFields.indexOf(field)+(event.shiftKey?-1:1);const wrapped=(position+ROLES.length*trackerFields.length)%(ROLES.length*trackerFields.length);nextLane=ROLES[Math.floor(wrapped/trackerFields.length)]!;nextField=trackerFields[wrapped%trackerFields.length]!;}
       else {const perRow=ROLES.length*trackerFields.length,total=transfer.timing.lines*perRow,current=row*perRow+ROLES.indexOf(lane)*trackerFields.length+trackerFields.indexOf(field),wrapped=(current+(event.key==='ArrowRight'?1:-1)+total)%total;nextRow=Math.floor(wrapped/perRow);const column=wrapped%perRow;nextLane=ROLES[Math.floor(column/trackerFields.length)]!;nextField=trackerFields[column%trackerFields.length]!;}
-      selectTrackerCell(nextRow,nextLane,{shiftKey:event.shiftKey&&event.key.startsWith('Arrow'),ctrlKey:false,metaKey:false},undefined,false);focusTrackerField(nextRow,nextLane,nextField);return;
+      selectTrackerCell(nextRow,nextLane,{shiftKey:event.shiftKey&&event.key.startsWith('Arrow'),ctrlKey:false,metaKey:false},nextRow===row&&nextLane===lane&&!event.shiftKey?pattern.events.find(h=>h.id===id):undefined,false);focusTrackerField(nextRow,nextLane,nextField);return;
     }
     if(field==='instrument'&&(event.key==='Enter'||event.key===' ')){event.preventDefault();event.stopPropagation();if(id)openHitSoundPicker(id);else{const panel=el('grid').querySelector<HTMLDetailsElement>(`.track-instrument-panel[data-role="${lane}"]`);if(panel)openInstrumentPanel(panel);}return;}
     if(event.key==='Delete'||event.key==='Backspace'){
@@ -1178,7 +1194,7 @@ el('grid').addEventListener('keydown', event => {
       stop();
       const changed = writeEntry(!!hitAtCursor);
       if (changed) {
-        void auditionRole(cursorLane);
+        void auditionCursor(cursorLane);
         rowAnchor = Math.min(transfer.timing.lines - 1, rowAnchor + step);
         editor.state.selection = emptySelection();
       }
@@ -1198,7 +1214,7 @@ el('grid').addEventListener('keydown', event => {
       event.preventDefault();
       const gain = velMap[event.key]! / 128;
       editor.write({ ...hitAtCursor, gain }, hitAtCursor.id);
-      void auditionRole(cursorLane);
+      void auditionCursor(cursorLane);
       refresh();
       el('grid').focus();
       status(`Velocity set to ${velMap[event.key]} (0x${hex(velMap[event.key]!)}).`);
@@ -1216,7 +1232,7 @@ el('grid').addEventListener('keydown', event => {
       const pitch = (hitAtCursor.pitch ?? 0) + delta;
       if (pitch >= -48 && pitch <= 48) {
         editor.write({ ...hitAtCursor, pitch }, hitAtCursor.id);
-        void auditionRole(cursorLane);
+        void auditionCursor(cursorLane);
         refresh();
         el('grid').focus();
         status(`Pitch transposed to ${pitch > 0 ? '+' : ''}${pitch} st.`);
@@ -1243,9 +1259,17 @@ el('grid').addEventListener('keydown', event => {
       const n = transfer.notes.find(note => note.id === e.id);
       return n && n.row === rowAnchor && n.lane === cursorLane;
     });
-    const changed = writeEntry(!!hitAtCursor, basePitch + semitone);
+    const selectedHit=pattern.events.find(h=>editor.state.selection.ids.includes(h.id)&&h.role===cursorLane)??hitAtCursor;
+    const instrument=pattern.sliceInstruments?.find(i=>i.id===selectedHit?.mapped?.instrumentId)??(cursorLane==='percussion'?pattern.sliceInstruments?.[0]:undefined);
+    let changed:boolean;
+    if(instrument){
+      const note=Number(input('slice-octave').value)*12+semitone;
+      if(!instrument.slices.some(s=>s.note===note))throw Error('This key has no slice. Choose a mapped note or another slice octave.');
+      if(selectedHit?.mapped)changed=editor.editTrackerValue(selectedHit.id,'note',note);
+      else {const tick=rowAnchor*3840/pattern.settings.resolution;changed=editor.write({id:'slice-entry-'+crypto.randomUUID(),role:cursorLane,sourceId:'kit.'+cursorLane,sourceKind:'slice',mapped:{instrumentId:instrument.id,note},baseTick:Math.floor(tick),fineOffset:tick-Math.floor(tick),offsetTick:0,gain:1,pan:0,pitch:0,anchor:false,ghost:false,reason:'Mapped slice keyboard entry.'},selectedHit?.id);}
+    }else changed=writeEntry(!!hitAtCursor,basePitch+semitone);
     if (changed) {
-      void auditionRole(cursorLane);
+      void auditionCursor(cursorLane);
       rowAnchor = Math.min(transfer.timing.lines - 1, rowAnchor + step);
       editor.state.selection = emptySelection();
     }
@@ -1354,7 +1378,7 @@ function initTrackerLiveBar() {
         stop();
         const changed = writeEntry(!!hitAtCursor);
         if (changed) {
-          void auditionRole(cursorLane);
+          void auditionCursor(cursorLane);
           rowAnchor = Math.min(transfer.timing.lines - 1, rowAnchor + step);
           editor.state.selection = emptySelection();
         }
@@ -1451,7 +1475,7 @@ function initTrackerLiveBar() {
       const pitch = (hitAtCursor.pitch ?? 0) + delta;
       if (pitch >= -48 && pitch <= 48) {
         editor.write({ ...hitAtCursor, pitch }, hitAtCursor.id);
-        void auditionRole(cursorLane);
+        void auditionCursor(cursorLane);
         refresh();
         el('grid').focus();
         status(`Pitch transposed to ${pitch > 0 ? '+' : ''}${pitch} st.`);

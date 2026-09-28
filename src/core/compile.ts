@@ -1,9 +1,11 @@
 import {DEFAULT_SOURCES, PPQ, ROLES, bounded, identifier, text, type Pattern, type Source, type Transfer} from './model.js';
 import {validateArticulation} from './articulation.js';
 import {validateSettings} from './generate.js';
+import {validateSliceInstruments,resolveSlice} from './slice-instrument.js';
 
 export function compile(pattern: Pattern, sources: Source[] = DEFAULT_SOURCES, lpb = pattern.settings.resolution / 4): Transfer {
   validateSettings(pattern.settings);
+  validateSliceInstruments(pattern);
   if(pattern.ppq!==PPQ) throw new Error('Unsupported PPQ.');
   bounded(lpb,1,32,'LPB',true);
   if (!Array.isArray(pattern.events) || pattern.events.length>4096) throw new Error('Too many events.');
@@ -25,6 +27,7 @@ export function compile(pattern: Pattern, sources: Source[] = DEFAULT_SOURCES, l
     sources:[],lanes:[],notes:[],warnings:[]};
   const usedSources=new Set<string>(), counts=new Map<string,number>(), columns=new Map<string,number>(), ids=new Set<string>();
   const notes=pattern.events.map(hit=>{
+    if(hit.mapped)resolveSlice(pattern,hit);
     validateArticulation(hit);
     if(hit.effect){
       if(!['0S','09','0B','0U','01','0D','02','0C','0R'].includes(hit.effect.command))throw Error('Unsupported tracker FX command.');

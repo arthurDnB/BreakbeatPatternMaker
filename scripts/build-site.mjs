@@ -15,6 +15,7 @@ async function module(path){const name=inside(path);if(files.has(name))return;if
 
 }
 await module(resolve(root,'dist/web.js'));
+await module(resolve(root,'dist/audio/break-analysis-worker.js'));
 for(const name of ['public/style.css','public/workspace.css','README.md','public/samples/credits.html','public/samples/catalog.json','public/samples/VCSL-LICENSE.txt','public/samples/TR808-LICENSE.txt','public/samples/STARGATE-LICENSE.txt'])files.set(name,await readFile(resolve(root,name)));
 files.set('index.html',await readFile(resolve(root,'public/index.html')));files.set('.nojekyll','');
 const catalog=JSON.parse(await readFile(resolve(root,'public/samples/catalog.json'),'utf8'));
