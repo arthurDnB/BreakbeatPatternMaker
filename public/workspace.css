@@ -651,6 +651,13 @@ main.daw-chassis {
   align-items: center;
   gap: 2px 8px;
 }
+.composition-controls,.melody-options {display:flex;align-items:center;gap:8px;min-width:0}
+.composition-controls {margin-top:4px;padding-top:3px;border-top:1px solid var(--border-card)}
+.composition-controls label {display:flex;align-items:center;gap:5px;color:var(--text-muted);font-size:9px;font-weight:700;text-transform:uppercase;white-space:nowrap}
+.composition-controls select {height:22px;min-height:22px;max-width:170px;padding:1px 5px;font-size:11px;color:var(--text-main);background:var(--bg-inset);border:1px solid var(--border-card);border-radius:4px}
+.composition-controls #melodyScale {max-width:185px}
+.melody-options[hidden] {display:none}
+@media (max-width:680px) {.composition-controls {flex-wrap:wrap}.melody-options {flex-wrap:wrap}}
 
 .primary label {
   display: flex;

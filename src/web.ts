@@ -18,9 +18,9 @@ import {encodeWav} from './audio/wav.js';
 import {reconstruct,sliceReference,type AudioAsset} from './audio/slices.js';
 import {BREAKS} from './core/breaks.js';
 import {defaults,genreDefaults,PROFILES} from './core/profiles.js';
-import {generate} from './core/generate.js';
+import {generate,validateSettings} from './core/generate.js';
 import {compile,serialize} from './core/compile.js';
-import {ROLES,hex,noteName,isSynthTrack,type Hit,type Role,type Genre,type BreakStyle,type Pattern,type Transfer,type EffectCommand,type Settings,type UserTrack,type SynthTrack,type SynthInstrument} from './core/model.js';
+import {ROLES,hex,noteName,isSynthTrack,type Hit,type Role,type Genre,type BreakStyle,type Pattern,type Transfer,type EffectCommand,type Settings,type UserTrack,type SynthTrack,type SynthInstrument,type GenerationMode,type MelodyPart,type MelodyScale} from './core/model.js';
 import {SYNTH_PRESETS} from './audio/synth-instrument.js';
 import {Editor,emptySelection,locked,selectedIds,type EditorState,type TrackerClipboard,type CellPosition} from './core/editor.js';
 import {defaultEffects,type Effects} from './audio/effects.js';
@@ -196,6 +196,10 @@ function getTrackerStep(): number {
 }
 function settings(){
   const s=defaults(input('genre').value as Genre);
+  s.generationMode=input('generationMode').value as GenerationMode;
+  s.melodyPart=input('melodyPart').value as MelodyPart;
+  s.melodyKey=Number(input('melodyKey').value);
+  s.melodyScale=input('melodyScale').value as MelodyScale;
   s.algorithm=input('algorithm').value as NonNullable<Pattern['settings']['algorithm']>;s.variation=Number(input('variation').value);
   if(['groove-v3','groove-v4'].includes(s.algorithm??'')&&Number(input('phraseLength').value)){s.phraseLength=Number(input('phraseLength').value) as 4|8|16;s.phraseOffset=Number(input('phraseOffset').value);}
   s.enabledRoles=ROLES.filter(r=>kitPanel.mix[r].include);
@@ -513,6 +517,7 @@ function selectRows(start:number,end:number,anchor=true){
 }
 function syncControls(){
   const s=editor.state.pattern.settings;
+  input('generationMode').value=s.generationMode??'drums';input('melodyPart').value=s.melodyPart??'bassline';input('melodyKey').value=String(s.melodyKey??0);input('melodyScale').value=s.melodyScale??'natural-minor';
   for(const role of ROLES)input(`${role}-density`).value=String(s.laneDensity?.[role]??1);
   input('patternStructure').value=s.patternStructure??'auto';
   input('phraseLength').value=String(s.phraseLength??0);syncPhraseControls(s.phraseOffset??0);
@@ -520,7 +525,7 @@ function syncControls(){
   for(const [key,value] of Object.entries(s))if(key!=='enabledRoles'&&key!=='laneDensity'&&key!=='lpb')input(key).value=String(value);
   input('tracker-resolution').value=String(s.resolution);input('tracker-lpb').value=String(s.lpb??s.resolution/4);
   for(const r of ROLES)kitPanel.mix[r].include=!s.enabledRoles||s.enabledRoles.includes(r);kitPanel.restore(kitPanel.snapshot());
-  presets();
+  presets();syncModeControls();
 }
 function refresh(){for(const [owner,drafts] of hitDrafts)for(const id of drafts.keys())if(!owner.state.pattern.events.some(h=>h.id===id))drafts.delete(id);pattern=editor.state.pattern;if(cursorTrackId&&!pattern.userTracks?.some(track=>track.id===cursorTrackId))cursorTrackId=undefined;transfer=compile(pattern);render();stashSlot();renderBank();scheduleSave();}
 function edit(action:()=>boolean,message:string,historyLabel?:string){
@@ -537,7 +542,7 @@ function stop(){
 function build(){
   if(pendingCount()){status('Apply or Revert pending hit edits before generating a new pattern.',true);return;}
   stop();
-  try{const requested=settings();if(!requested.enabledRoles?.length)throw Error('Include at least one instrument before generating.');const next=generate(requested),before=editor?structuredClone(editor.state):undefined;const changed=editor?editor.replace(next):true;if(!editor)editor=new Editor(next);refresh();if(changed&&before)rememberActivePattern(before,'Before Generate');status(`Generated seed “${pattern.settings.seed}”. Locked hits and lanes were preserved. Undo restores the previous pattern.`);}
+  try{const requested=settings();if(requested.generationMode!=='melody'&&!requested.enabledRoles?.length)throw Error('Include at least one drum instrument, or choose Melody only.');const before=editor?structuredClone(editor.state):undefined;let changed=true;if(!editor){const initial=new Editor(generate(requested));if(requested.generationMode!=='drums')initial.generateComposition(requested);editor=new Editor(initial.state.pattern);}else changed=editor.generateComposition(requested);if(requested.generationMode!=='drums'){const track=editor.state.pattern.userTracks?.find(track=>isSynthTrack(track)&&track.generatedPart===(requested.melodyPart??'bassline'));if(track){cursorTrackId=track.id;cursorLane=track.role;}}refresh();if(changed&&before)rememberActivePattern(before,'Before Generate');status(`${requested.generationMode==='both'?'Drums and melody':requested.generationMode==='melody'?'Melody':'Drums'} generated from seed “${pattern.settings.seed}”. Other layers and locked notes were preserved.${before?' Undo restores the previous pattern.':''}`);}
   catch(e){status((e as Error).message,true);}
 }
 function download(){
@@ -891,11 +896,17 @@ function presets(){
   syncPhraseControls();
   breakDescription();
   syncSliders();
+  syncModeControls();
   const genre=input('genre').value as Genre;
   const isNew=Object.hasOwn(NEW_GENRES,genre);input('algorithm').querySelector<HTMLOptionElement>('[value="legacy-v1"]')!.disabled=isNew;
   if(isNew&&input('algorithm').value==='legacy-v1')input('algorithm').value='groove-v2';
   const p=PROFILES[genre];el('genre-description').textContent=p.description??'A repeating motif with '+GROOVES[genre].fillStyle+' fills and instrument-specific groove.';const container=el('presets');container.replaceChildren();
   for(const bpm of p.presets){const button=document.createElement('button');button.textContent=String(bpm);button.onclick=()=>{input('bpm').value=String(bpm);syncSliders();dirty();};container.append(button);}
+}
+function syncModeControls(){
+  const mode=input('generationMode').value;
+  el('melody-options').hidden=mode==='drums';
+  input('generationMode').title=mode==='melody'?'Generate synth notes and preserve existing drums.':mode==='both'?'Regenerate drums and the selected melody part.':'Regenerate drums and preserve synth notes.';
 }
 function dirty(){scheduleSave();status('Settings changed. Press Generate to apply; the displayed pattern remains the export target.');}
 
@@ -986,15 +997,17 @@ input('spicy').addEventListener('input',syncSliders);
 for(const id of ['syncopation','swing','humanizeMs','ghostAmount','fillAmount'])input(id).addEventListener('input',syncSliders);
 for(const role of ROLES)input(`${role}-density`).addEventListener('input',syncSliders);
 input('algorithm').addEventListener('change',()=>{syncSliders();syncPhraseControls();});
+input('generationMode').addEventListener('change',syncModeControls);
 input('phraseLength').addEventListener('change',()=>syncPhraseControls());
 
 el('breakStyle').onchange=()=>{breakDescription();dirty();};
-function restoreGenerationDefaults(){
+function restoreGenerationDefaults(resetComposition=false){
  const genre=input('genre').value as Genre;
  const keepEngine=input('algorithm').value;
  input('phraseLength').value='0';syncPhraseControls(0);
  input('algorithm').querySelector<HTMLOptionElement>('[value="legacy-v1"]')!.disabled=Object.hasOwn(NEW_GENRES,genre);
  for(const [key,value] of Object.entries(genreDefaults(genre)))input(key).value=String(value);
+ if(resetComposition){input('generationMode').value='drums';input('melodyPart').value='bassline';input('melodyKey').value='0';input('melodyScale').value='natural-minor';}
  for(const role of ROLES)input(`${role}-density`).value='1';
  if(['groove-v3','groove-v4'].includes(keepEngine))input('algorithm').value=keepEngine;
  const autoKit=document.getElementById('auto-kit') as HTMLInputElement | null;
@@ -1011,8 +1024,8 @@ function restoreGenerationDefaults(){
  }
  syncVinylGenreAccent();presets();scheduleSave();status(PROFILES[genre].name+' generation defaults loaded, including BPM and advanced settings. Press Generate to apply to the pattern.');
 }
-el('restore-defaults').onclick=restoreGenerationDefaults;
-el('view').onchange=()=>{saveWorkspacePreferences();render();};el('genre').onchange=restoreGenerationDefaults;
+el('restore-defaults').onclick=()=>restoreGenerationDefaults(true);
+el('view').onchange=()=>{saveWorkspacePreferences();render();};el('genre').onchange=()=>restoreGenerationDefaults();
 for(const control of document.querySelectorAll('#controls input, #controls select'))control.addEventListener('input',dirty);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)stop();});
 for(const family of ['Jungle & DnB','Hip-Hop & Downtempo','Garage','Dub & Bass','Breaks & Rave','Experimental']){
@@ -1431,7 +1444,7 @@ el('grid').addEventListener('keydown', event => {
 
 function snapshot(){
   if(kitPanel.busy)throw Error('Wait for the sample to finish loading.');
-  let draft=pattern.settings;try{const candidate=settings();generate(candidate);draft=candidate;}catch{}
+  let draft=pattern.settings;try{const candidate=settings();validateSettings(candidate);draft=candidate;}catch{}
   stashSlot();return makeProject(editor.state,draft,kitPanel.snapshot(),assets,bank,vinylTexture);
 }
 function scheduleSave(){
@@ -1450,6 +1463,7 @@ async function applyProject(raw:unknown){
   editor=new Editor(p.editor.pattern);editor.state=structuredClone(p.editor);rowAnchor=0;
   input('phraseLength').value=String(p.draft.phraseLength??0);syncPhraseControls(p.draft.phraseOffset??0);
   input('algorithm').value=p.draft.algorithm??'legacy-v1';input('variation').value=String(p.draft.variation??0);
+  input('generationMode').value=p.draft.generationMode??'drums';input('melodyPart').value=p.draft.melodyPart??'bassline';input('melodyKey').value=String(p.draft.melodyKey??0);input('melodyScale').value=p.draft.melodyScale??'natural-minor';
   for(const role of ROLES)input(`${role}-density`).value=String(p.draft.laneDensity?.[role]??1);
   for(const [key,value] of Object.entries(p.draft))if(key!=='enabledRoles'&&key!=='laneDensity')input(key).value=String(value);
   presets();refresh();syncVinylGenreAccent();restoreWorkspacePreferences();if(migrated)status('Older project sound updated: scratch and vinyl instrument hits now use Lo-Fi Percussion 02. Vinyl texture moved to background where available.');return true;

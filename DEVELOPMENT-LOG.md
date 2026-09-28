@@ -26,7 +26,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.3.0-alpha`
-* **Test Status:** 183 / 183 unit tests passing (`npm.cmd test`).
+* **Test Status:** 188 / 188 unit tests passing (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -67,11 +67,18 @@ This document maintains the running project state and change log so that multipl
 * [ ] **Break Transcription Production Gate:** One listener verified onset labels for eight two-second excerpts. Longer excerpts, a second independent annotator, additional unrelated breaks and full-loop listening remain before any industry-standard claim.
 * [ ] **Future Audio Roadmaps:** MP3 export, velocity-layered drum kits.
 * [x] **Sound Library Browser:** Shared searchable and filterable audition/selection for lanes and tracker hits, with browser-local Favorites and Recently used sounds.
+* [x] **Optional Melody Generation:** Drum, drum + melody, and melody modes with genre-aware bassline/lead synth motifs, key/scale choice, layer preservation, locks and Undo.
 * [ ] *Note: Renoise integration has been retired in favor of the standalone in-browser instrument.*
 
 ---
 
 ## 📝 Change Log
+
+### [2026-09-29] - Optional Melody Generation (Codex)
+- **Composer (`src/core/melody.ts`, `src/core/melody-profiles.ts`):** Added a seeded melodic engine with explicit profiles for all 38 genres, bassline/lead motifs, scale-aware notes, Complexity details, and restrained Spicy pickups and octave accents. It works independently of the selected drum engine.
+- **Editor and project model (`src/core/model.ts`, `src/core/settings.ts`, `src/core/compile.ts`, `src/core/editor.ts`):** Added generation mode, melody role, key, and 16 scales as optional compatible settings. Dedicated generated synth lanes are reused; selected unlocked notes regenerate while locked notes and unrelated layers remain. Each generation is one Undo/Redo step. Existing project versions still load.
+- **Generator UI (`public/index.html`, `public/workspace.css`, `src/web.ts`):** Exposed Drums only, Drums + Melody, and Melody only plus part/key/scale selectors. Restoring defaults resets the composition controls; changing genre keeps user-selected composition controls. Project save/open and local autosave retain the settings, and all generated notes use existing Preview/song/WAV rendering.
+- **Verification (`tests/melody-generation.test.mjs`, `scripts/melody-browser-smoke.mjs`):** Covered every genre and scale, deterministic output, mode isolation, locked notes, custom tracks, Undo/Redo, project roundtrip, audible synth render, WAV, and browser controls. `npm.cmd test` passed 188/188, `npm.cmd run test:site` passed at root and Pages subpath, and the focused melody browser smoke passed. Unrelated local `package.json` and chat-sync script changes were preserved.
 
 ### [2026-09-29] - Built-in Synth Tracks (Codex)
 - **Track and note model (`src/core/model.ts`, `src/core/compile.ts`, `src/core/editor.ts`):** Added synth tracks alongside existing WAV sample tracks. Pitched notes carry absolute MIDI pitch and musical duration, while tracker selection, copy/move, locks, Undo/Redo, and beat regeneration preserve them. The compiler rejects sample-only commands on synth notes and incompatible cross-type moves.

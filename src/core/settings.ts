@@ -23,6 +23,10 @@ export function validateSettings(s: Settings): void {
     for(const role of ROLES)if(s.laneDensity[role]!==undefined)bounded(s.laneDensity[role],0,2,`${role} density`);
   }
   if(s.patternStructure!==undefined&&!['groove','auto','fill','roll','build'].includes(s.patternStructure))throw Error('Invalid pattern structure.');
+  if(s.generationMode!==undefined&&!['drums','melody','both'].includes(s.generationMode))throw Error('Invalid generation mode.');
+  if(s.melodyPart!==undefined&&!['bassline','lead'].includes(s.melodyPart))throw Error('Invalid melody part.');
+  if(s.melodyKey!==undefined)bounded(s.melodyKey,0,11,'melody key',true);
+  if(s.melodyScale!==undefined&&!['major','natural-minor','harmonic-minor','melodic-minor','dorian','phrygian','lydian','mixolydian','locrian','major-pentatonic','minor-pentatonic','blues','whole-tone','diminished','double-harmonic','hirajoshi'].includes(s.melodyScale))throw Error('Invalid melody scale.');
   bounded(s.swing,.5,.67,'swing'); bounded(s.humanizeMs,0,10,'humanizeMs');
 }
 

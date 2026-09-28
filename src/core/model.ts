@@ -4,6 +4,9 @@ export const ROLES = ['kick', 'snare', 'hat', 'percussion'] as const;
 export type Role = typeof ROLES[number];
 export type Genre = 'jungle' | 'dnb' | 'hiphop' | 'trap' | 'rap' | 'drill' | 'breakcore' | 'idm' | 'hardcore' | 'experimental' | 'breaks' | 'bigbeat' | 'nuskoolbreaks' | 'electrobreaks' | 'breakbeathardcore' | 'raggajungle' | 'atmosphericjungle' | 'footworkjungle' | 'downtempo' | 'lofihiphop' | 'boombap' | 'mellowbeats' | 'liquiddnb' | 'jumpup' | 'garage' | 'speedgarage' | 'twostepgarage' | 'dub' | 'psydub' | 'dubstep' | 'brostep' | 'postdubstep' | 'drumfunk' | 'amenscience' | 'atmosphericbreakcore' | 'triphop' | 'halftimednb' | 'neurofunk';
 export type BreakStyle = 'genre' | 'amen' | 'think' | 'apache' | 'funkyDrummer' | 'hotPants';
+export type GenerationMode = 'drums' | 'melody' | 'both';
+export type MelodyPart = 'bassline' | 'lead';
+export type MelodyScale = 'major' | 'natural-minor' | 'harmonic-minor' | 'melodic-minor' | 'dorian' | 'phrygian' | 'lydian' | 'mixolydian' | 'locrian' | 'major-pentatonic' | 'minor-pentatonic' | 'blues' | 'whole-tone' | 'diminished' | 'double-harmonic' | 'hirajoshi';
 export interface Settings {
   algorithm?: 'legacy-v1' | 'groove-v2' | 'groove-v3' | 'groove-v4';
   variation?: number;
@@ -19,6 +22,8 @@ export interface Settings {
   /** Groove V4 per-lane optional-hit density. Missing roles behave as 1 (100%). */
   laneDensity?: Partial<Record<Role,number>>;
   patternStructure?: 'groove'|'auto'|'fill'|'roll'|'build';
+  /** Omitted in older projects: drum generation only. */
+  generationMode?:GenerationMode; melodyPart?:MelodyPart; melodyKey?:number; melodyScale?:MelodyScale;
 }
 export interface SliceRef {assetId:string; startFrame:number; endFrame:number; sampleRate:number; label:string}
 export interface SliceInstrument {
@@ -32,7 +37,7 @@ export interface SampleTrack extends TrackBase {kind?:'sample';sample:SliceRef}
 export type SynthWaveform='sine'|'triangle'|'saw'|'square';
 export type SynthPreset='bass'|'pluck'|'pad';
 export interface SynthInstrument {preset:SynthPreset;waveform:SynthWaveform;attack:number;decay:number;sustain:number;release:number;lowpassHz:number}
-export interface SynthTrack extends TrackBase {kind:'synth';instrument:SynthInstrument}
+export interface SynthTrack extends TrackBase {kind:'synth';instrument:SynthInstrument;generatedPart?:MelodyPart}
 export type UserTrack=SampleTrack|SynthTrack;
 export const isSynthTrack=(track:UserTrack|undefined):track is SynthTrack=>track?.kind==='synth';
 export interface RepeatArticulation {
