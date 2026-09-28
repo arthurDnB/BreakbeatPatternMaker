@@ -71,7 +71,7 @@ function renderMarkers() {
   element('marker-count').textContent = `· ${state.markers.length} total · ${open} open`;
   element('selected-time').textContent = current ? `${current.time.toFixed(5)} s` : `${cursorTime.toFixed(5)} s cursor`;
   element('selected-status').textContent = current ? current.status : 'Click a marker or add a hit';
-  for (const id of ['accept', 'reject', 'uncertain', 'nudge-left', 'nudge-right', 'play-hit']) element(id).disabled = !current;
+  for (const id of ['accept', 'reject', 'uncertain', 'nudge-left', 'nudge-right', 'play-hit', 'play-context']) element(id).disabled = !current;
   element('accept-rest').disabled = !state.markers.some(marker => marker.status === 'pending');
   element('finish-clip').disabled = !state.listenedFull || open > 0 || !state.markers.some(marker => marker.status === 'accepted') || state.reviewed;
   element('finish-clip').textContent = state.reviewed ? 'Passage reviewed' : 'Mark passage reviewed';
@@ -139,10 +139,19 @@ async function playWindow(start, end, full = false) {
   } catch (error) { setSaveMessage(error.message, true); }
 }
 function playFull() { const [start, end] = activeCase().regionSeconds; void playWindow(start, end, true); }
-function playSelected() {
+function playSelected(context = false) {
   const marker = selected(); if (!marker) return;
   const [start, end] = activeCase().regionSeconds;
-  void playWindow(Math.max(start, marker.time - .18), Math.min(end, marker.time + .32));
+  if (context) {
+    void playWindow(Math.max(start, marker.time - .18), Math.min(end, marker.time + .32));
+    return;
+  }
+  const next = activeReview().markers
+    .filter(item => item.id !== marker.id && item.status !== 'rejected' && item.time > marker.time)
+    .reduce((nearest, item) => Math.min(nearest, item.time), end);
+  const hitStart = Math.max(start, marker.time - .006);
+  const hitEnd = Math.min(end, marker.time + .35, next - .005);
+  void playWindow(hitStart, Math.max(hitStart + .01, hitEnd));
 }
 function drawPlayhead() { if (playback) { drawWaveform(); requestAnimationFrame(drawPlayhead); } }
 
@@ -256,6 +265,7 @@ new ResizeObserver(drawWaveform).observe(canvas);
 
 element('play-full').onclick = playFull;
 element('play-hit').onclick = () => { void playSelected(); };
+element('play-context').onclick = () => { void playSelected(true); };
 element('stop').onclick = stopPlayback;
 element('accept').onclick = () => editStatus('accepted');
 element('reject').onclick = () => editStatus('rejected');

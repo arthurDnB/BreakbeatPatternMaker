@@ -73,6 +73,10 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-28] - Separate Hit and Context Audition (Codex)
+- **Review player (`tools/break-review/index.html`, `tools/break-review/app.js`):** Replaced the single broad audition action with **Hit only** and **Hit + context**. Hit only begins 6 ms before the selected onset and ends before the next non-rejected candidate, capped at a 350 ms tail; context playback retains a short lead-in and tail. Space now plays Hit only.
+- **Verification (`scripts/break-review-smoke.mjs`, `docs/REAL-BREAK-BENCHMARK.md`):** Browser smoke checks confirm isolated playback uses a later start and shorter window than context playback; local playback, save/reload, and mobile layout remain covered.
+
 ### [2026-09-28] - Local Break Onset Listening Review (Codex)
 - **Review tool (`tools/break-review/`, `scripts/break-review-server.mjs`):** Added a loopback-only waveform and audio review screen for all eight source recordings. A reviewer can play each complete passage or a hit context, keep/reject/adjust onset markers, add missed hits, and resume from an autosaved local draft. The server checks each WAV against its benchmark SHA-256 and serves only whitelisted recordings; neither audio nor draft is committed.
 - **Verified-label gate (`scripts/break-review-state.mjs`, `scripts/real-break-benchmark.mjs`):** Export remains disabled until every passage has been played in full and all markers have decisions. Accepted onset times export to a separate ignored verified-label file, and the benchmark accepts that file as an explicit third argument; the provisional tracked annotations remain intact. This tool enables listening verification but does not itself make the detector industry-standard.

@@ -18,8 +18,22 @@ try {
   assert.equal(await page.locator('#case-list button').count(), 8);
   assert.match(await page.locator('#clip-title').textContent(), /Amen Brother/);
   await page.locator('#waveform').screenshot({ path: 'test-results/break-transcription/review-ui.png' });
+  await page.evaluate(() => {
+    const original = AudioBufferSourceNode.prototype.start;
+    window.__playWindows = [];
+    AudioBufferSourceNode.prototype.start = function (...args) {
+      window.__playWindows.push(args);
+      return original.apply(this, args);
+    };
+  });
   await page.locator('#play-full').click();
   await page.getByText('Full passage played').waitFor({ timeout: 10000 });
+  await page.locator('#play-hit').click();
+  await page.locator('#play-context').click();
+  const windows = await page.evaluate(() => window.__playWindows.slice(-2));
+  assert.equal(windows.length, 2);
+  assert.ok(windows[0][1] > windows[1][1], 'hit only should omit the context lead-in');
+  assert.ok(windows[0][2] < windows[1][2], 'hit only should have a shorter audition window');
   await page.locator('#accept-rest').click();
   await page.locator('#finish-clip').click();
   await page.getByText('1 / 8 reviewed').waitFor();
