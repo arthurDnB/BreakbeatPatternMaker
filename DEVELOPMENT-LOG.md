@@ -73,6 +73,12 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-29] - Accessible Slider Labels and Focus (Codex)
+- **Accessible controls (`public/index.html`, `src/audio/drum-kit.ts`, `src/web.ts`):** Added explicit names to generation, hit-shaping, master-DSP and dynamically built kit/effect sliders. Generation and vinyl controls now expose spoken values with meaningful units; tracker lane faders announce percentages as they change.
+- **Keyboard focus (`public/workspace.css`):** Replaced reliance on browser-default focus styling with a consistent 2px OLED-theme focus outline and offset.
+- **Browser check (`scripts/accessibility-browser-smoke.mjs`):** Verifies slider names, updated spoken values, visible keyboard focus and lane-specific kit/DSP control names. Updated script/style cache keys.
+- **Verification:** Focused accessibility Playwright smoke passed.
+
 ### [2026-09-29] - Responsive Layout Coverage (Codex)
 - **Responsive smoke test (`scripts/layout-browser-smoke.mjs`):** Expanded layout checks from two desktop widths to eight viewport sizes spanning 320–1920 px. Checks now verify the application shell stays within the viewport without page-level horizontal scrolling, tracker visibility, desktop transport behavior, and mobile hit editing. Tracker channel scrolling remains an intentional internal scroller.
 - **Test maintenance:** Removed obsolete first-180-pixel transport-position expectation and selectors for retired inspector UI; the sticky transport check now tests its visible position after page scrolling.

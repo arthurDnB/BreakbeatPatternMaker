@@ -81,9 +81,9 @@ function syncFollowPlayhead(){
 let context:AudioContext|undefined,timer:ReturnType<typeof setInterval>|undefined;
 const vinylChoice=input('vinyl-texture-choice'),vinylEnabled=input('vinyl-texture-enabled'),vinylLevel=input('vinyl-texture-level');
 for(const item of VINYL_TEXTURES){const option=document.createElement('option');option.value=item.id;option.textContent=item.name;vinylChoice.append(option);}
-function syncVinylControls(){vinylEnabled.checked=vinylTexture.enabled;vinylChoice.value=vinylTexture.catalogId;vinylLevel.value=String(vinylTexture.levelDb);el('vinyl-texture-level-value').textContent=`${vinylTexture.levelDb} dB`;const state=el('vinyl-texture-state');state.textContent=vinylTexture.enabled?'On':'Off';state.classList.toggle('is-on',vinylTexture.enabled);}
+function syncVinylControls(){vinylEnabled.checked=vinylTexture.enabled;vinylChoice.value=vinylTexture.catalogId;vinylLevel.value=String(vinylTexture.levelDb);el('vinyl-texture-level-value').textContent=`${vinylTexture.levelDb} dB`;vinylLevel.setAttribute('aria-valuetext',`${vinylTexture.levelDb} decibels`);const state=el('vinyl-texture-state');state.textContent=vinylTexture.enabled?'On':'Off';state.classList.toggle('is-on',vinylTexture.enabled);}
 function updateVinylTexture(){stop();vinylTexture={enabled:vinylEnabled.checked,catalogId:vinylChoice.value,levelDb:Number(vinylLevel.value)};syncVinylControls();scheduleSave();}
-vinylEnabled.onchange=updateVinylTexture;vinylChoice.onchange=updateVinylTexture;vinylLevel.oninput=()=>{el('vinyl-texture-level-value').textContent=`${vinylLevel.value} dB`;};vinylLevel.onchange=updateVinylTexture;syncVinylControls();
+vinylEnabled.onchange=updateVinylTexture;vinylChoice.onchange=updateVinylTexture;vinylLevel.oninput=()=>{el('vinyl-texture-level-value').textContent=`${vinylLevel.value} dB`;vinylLevel.setAttribute('aria-valuetext',`${vinylLevel.value} decibels`);};vinylLevel.onchange=updateVinylTexture;syncVinylControls();
 function syncVinylGenreAccent(){
  const isLofi=input('genre').value==='lofihiphop';
  const rack=el('vinyl-texture-rack');
@@ -257,11 +257,12 @@ function render(){
       fader.value=String(kitPanel.mix[role].level);
       fader.title=label+' volume: '+Math.round(kitPanel.mix[role].level*100)+'%';
       fader.setAttribute('aria-label',label+' track volume');
+      fader.setAttribute('aria-valuetext',Math.round(kitPanel.mix[role].level*100)+' percent');
       const volLabel=document.createElement('span');
       volLabel.id='track-vol-'+role;
       volLabel.className='track-header-vol';
       volLabel.textContent=Math.round(kitPanel.mix[role].level*100)+'%';
-      fader.oninput=()=>{const val=Number(fader.value);kitPanel.mix[role].level=val;volLabel.textContent=Math.round(val*100)+'%';fader.title=label+' volume: '+Math.round(val*100)+'%';const kitLvl=document.getElementById('kit-level-'+role) as HTMLInputElement|null;if(kitLvl){kitLvl.value=String(val);kitLvl.dispatchEvent(new Event('input'));}dirty();};
+      fader.oninput=()=>{const val=Number(fader.value),percent=Math.round(val*100);kitPanel.mix[role].level=val;volLabel.textContent=percent+'%';fader.title=label+' volume: '+percent+'%';fader.setAttribute('aria-valuetext',percent+' percent');const kitLvl=document.getElementById('kit-level-'+role) as HTMLInputElement|null;if(kitLvl){kitLvl.value=String(val);kitLvl.dispatchEvent(new Event('input'));}dirty();};
       mixer.append(fader,volLabel);
       const meter=document.createElement('div');
       meter.id='track-meter-'+role;
@@ -751,6 +752,14 @@ function syncSliders(){
   input('bpm-slider').value=String(bpm);
   el('complexity-value').textContent=Math.round(Number(input('complexity').value)*100)+'%';
   input('complexity').setAttribute('aria-valuetext',el('complexity-value').textContent!);
+  const spokenValues:[string,string][]=[
+    ['syncopation',Number(input('syncopation').value).toFixed(2)],
+    ['swing',`Swing ratio ${Number(input('swing').value).toFixed(2)}`],
+    ['humanizeMs',`${Number(input('humanizeMs').value)} milliseconds`],
+    ['ghostAmount',`${Math.round(Number(input('ghostAmount').value)*100)} percent`],
+    ['fillAmount',`${Math.round(Number(input('fillAmount').value)*100)} percent`],
+  ];
+  for(const [id,value] of spokenValues)input(id).setAttribute('aria-valuetext',value);
   for(const role of ROLES){
     const value=Math.round(Number(input(`${role}-density`).value)*100)+'%';
     el(`${role}-density-value`).textContent=value;
@@ -890,6 +899,7 @@ input('bpm').addEventListener('input',()=>{syncSliders();});
 input('bpm-slider').addEventListener('input',()=>{input('bpm').value=input('bpm-slider').value;syncSliders();});
 input('complexity').addEventListener('input',syncSliders);
 input('spicy').addEventListener('input',syncSliders);
+for(const id of ['syncopation','swing','humanizeMs','ghostAmount','fillAmount'])input(id).addEventListener('input',syncSliders);
 for(const role of ROLES)input(`${role}-density`).addEventListener('input',syncSliders);
 input('algorithm').addEventListener('change',()=>{syncSliders();syncPhraseControls();});
 input('phraseLength').addEventListener('change',()=>syncPhraseControls());

@@ -79,7 +79,7 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:(refreshTrack
   for(const role of ROLES){
     const card=document.createElement('div');card.className='drum-slot';card.dataset.role=role;
     const title=document.createElement('h3');title.textContent={kick:'Kick',snare:'Snare',hat:'Hi-hat',percussion:'Percussion'}[role];
-    const makeLabel=(text:string,node:HTMLElement)=>{const l=document.createElement('label');l.textContent=text;l.append(node);return l;};
+    const makeLabel=(text:string,node:HTMLElement)=>{const l=document.createElement('label');l.textContent=text;if(node instanceof HTMLInputElement||node instanceof HTMLSelectElement)node.setAttribute('aria-label',`${text} for ${title.textContent}`);l.append(node);return l;};
     const checkbox=(id:string,text:string)=>{const i=document.createElement('input');i.type='checkbox';i.id=id;const l=makeLabel(text,i);l.className='loop-label';return {i,l};};
     const include=checkbox('kit-include-'+role,'Generate notes'),mute=checkbox('kit-mute-'+role,'Mute audio'),solo=checkbox('kit-solo-'+role,'Solo audio');
     include.i.title='Use this lane when generating a new pattern. Existing notes stay unchanged.';mute.i.title='Silence this lane in pattern/song playback and WAV exports. Instrument Preview still lets you hear it.';solo.i.title='Solo this lane in playback and export.';

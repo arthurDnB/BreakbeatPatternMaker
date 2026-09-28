@@ -2962,7 +2962,7 @@ button:not(.daw-btn-play):not(.hit):not(.accent),
 th { background:#070707; }
 td { border-bottom-color:#191919; }
 tr.playing-row td { background:#0b1c18; }
-:focus-visible { outline-color:#00f5d4; }
+:focus-visible { outline:2px solid #00f5d4; outline-offset:2px; }
 .hud-bpm-input {
   width:66px !important;
   min-width:66px;

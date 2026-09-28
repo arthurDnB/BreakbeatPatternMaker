@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Breakbeat Pattern Maker</title><link rel="stylesheet" href="./public/style.css?v=0.4.1-trackerfx"><link rel="stylesheet" href="./public/workspace.css?v=0.4.14-history-feedback"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Breakbeat Pattern Maker</title><link rel="stylesheet" href="./public/style.css?v=0.4.1-trackerfx"><link rel="stylesheet" href="./public/workspace.css?v=0.4.15-accessibility"></head>
 <body><main class="daw-chassis">
 <svg class="icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><symbol id="icon-shuffle" viewBox="0 0 24 24"><path d="M3 6h3c6 0 6 12 12 12h3m-3-3 3 3-3 3M3 18h3c2 0 3-1 4-3m4-6c1-2 2-3 4-3h3m-3-3 3 3-3 3"/></symbol><symbol id="icon-sliders" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16M9 2v6m6 1v6m-5 1v6"/></symbol><symbol id="icon-variation" viewBox="0 0 24 24"><path d="M4 7h12a4 4 0 0 1 4 4v2m-3-3 3 3 3-3M20 17H8a4 4 0 0 1-4-4v-2m3 3-3-3-3 3"/></symbol><symbol id="icon-grid" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 10h16M4 15h16M10 4v16m5-16v16"/></symbol><symbol id="icon-wave" viewBox="0 0 24 24"><path d="M2 12h3l2-7 4 14 3-10 2 5 2-2h4"/></symbol><symbol id="icon-follow" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M12 2v5m0 10v5M2 12h5m10 0h5"/></symbol></svg>
 
@@ -188,10 +188,10 @@
             <details id="hit-sample-controls"><summary>Sample speed &amp; tone</summary>
               <p>Repitch changes speed and pitch together. Check a control to override this instrument's sample setting for the selected hit.</p>
               <div class="sample-shape-grid">
-                <label><input id="edit-speed-override" type="checkbox"> Hit speed <output id="edit-speed-value">1.00×</output><input id="edit-speed" type="range" min="0.5" max="2" step="0.01" value="1"></label>
-                <label><input id="edit-lowpass-override" type="checkbox"> Low-pass <output id="edit-lowpass-value">Open</output><input id="edit-lowpass" type="range" min="200" max="20000" step="100" value="20000"></label>
-                <label><input id="edit-attack-override" type="checkbox"> Attack <output id="edit-attack-value">0 ms</output><input id="edit-attack" type="range" min="0" max="50" step="1" value="0"></label>
-                <label><input id="edit-decay-override" type="checkbox"> Decay <output id="edit-decay-value">100%</output><input id="edit-decay" type="range" min="0.02" max="1" step="0.01" value="1"></label>
+                <label><input id="edit-speed-override" type="checkbox"> Hit speed <output id="edit-speed-value">1.00×</output><input id="edit-speed" aria-label="Hit sample speed" type="range" min="0.5" max="2" step="0.01" value="1"></label>
+                <label><input id="edit-lowpass-override" type="checkbox"> Low-pass <output id="edit-lowpass-value">Open</output><input id="edit-lowpass" aria-label="Hit low-pass filter frequency" type="range" min="200" max="20000" step="100" value="20000"></label>
+                <label><input id="edit-attack-override" type="checkbox"> Attack <output id="edit-attack-value">0 ms</output><input id="edit-attack" aria-label="Hit sample attack time" type="range" min="0" max="50" step="1" value="0"></label>
+                <label><input id="edit-decay-override" type="checkbox"> Decay <output id="edit-decay-value">100%</output><input id="edit-decay" aria-label="Hit sample decay amount" type="range" min="0.02" max="1" step="0.01" value="1"></label>
               </div>
             </details>
             <label id="hit-drafts-label" hidden>Pending edits in this session<select id="hit-drafts"><option value="">Go to a pending hit…</option></select></label><p id="hit-draft-status" role="status"></p>
@@ -298,16 +298,16 @@
         <label class="control-bars">Bars<select id="bars"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label>
         <label class="control-engine">Engine<select id="algorithm" title="Groove v4 develops genre phrases with independent Complexity and Spicy controls. Saved patterns keep their recorded engine."><option value="groove-v4" selected>Groove v4</option><option value="groove-v3">Groove v3</option><option value="groove-v2">Groove v2</option><option value="legacy-v1">Legacy v1 (older seeds)</option></select></label>
         <div class="tempo-control"><label for="bpm-slider">BPM</label><input id="bpm-slider" aria-label="BPM slider" type="range" min="32" max="300" step=".1" value="165"><input aria-label="Exact BPM" id="bpm" type="number" min="32" max="999" step=".1" value="165"><span id="presets" class="presets"></span></div>
-        <label>Complexity <output id="complexity-value" for="complexity">45%</output><input id="complexity" type="range" min="0" max="1" step=".01" value=".45"><small>Simple to detailed</small></label>
-        <label>Spicy <output id="spicy-value" for="spicy">0%</output><input id="spicy" type="range" min="0" max="1" step=".01" value="0"><small>Rolls &amp; variation</small></label>
+        <label>Complexity <output id="complexity-value" for="complexity">45%</output><input id="complexity" aria-label="Generation complexity" type="range" min="0" max="1" step=".01" value=".45"><small>Simple to detailed</small></label>
+        <label>Spicy <output id="spicy-value" for="spicy">0%</output><input id="spicy" aria-label="Generation spice" type="range" min="0" max="1" step=".01" value="0"><small>Rolls &amp; variation</small></label>
       </div>
       <details id="advanced-generation"><summary>Advanced generation</summary><div class="advanced"><label>Break<select id="breakStyle"><option value="genre">Genre default</option></select><small id="break-description">Use the selected genre’s rhythm.</small><small>Rhythm presets – synthesized kit, not original recordings</small></label><label>Resolution<select id="resolution"><option value="8">1/8</option><option value="16" selected>1/16</option><option value="32">1/32</option><option value="64">1/64</option></select></label><input id="variation" type="hidden" value="0"><label id="phrase-length-field" hidden>Phrase<select id="phraseLength" title="Generate a section of a longer musical phrase; saved patterns repeat exactly as written."><option value="0">This pattern</option><option value="4">4 bars</option><option value="8">8 bars</option><option value="16">16 bars</option></select></label><label id="phrase-offset-field" hidden>Starting bar<select id="phraseOffset"></select></label>
       <label>Seed<input id="seed" type="text" value="break-042" maxlength="80"></label>
 
-      <label>Syncopation <output id="syncopation-val">0.4</output><input id="syncopation" type="range" min="0" max="1" step=".05" value=".4" oninput="document.getElementById('syncopation-val').textContent=this.value"></label>
-      <label>Swing ratio <output id="swing-val">0.50</output><input id="swing" type="range" min=".5" max=".67" step=".01" value=".50" oninput="document.getElementById('swing-val').textContent=this.value"><small>.50 = straight; .60 = swung 16ths</small></label>
-      <label>Humanize (ms) <output id="humanizeMs-val">0</output><input id="humanizeMs" type="range" min="0" max="10" step=".5" value="0" oninput="document.getElementById('humanizeMs-val').textContent=this.value"></label>
-      <label>Ghost amount <output id="ghostAmount-val">0.35</output><input id="ghostAmount" type="range" min="0" max="1" step=".05" value=".35" oninput="document.getElementById('ghostAmount-val').textContent=this.value"></label>
+      <label>Syncopation <output id="syncopation-val">0.4</output><input id="syncopation" aria-label="Generation syncopation" type="range" min="0" max="1" step=".05" value=".4" oninput="document.getElementById('syncopation-val').textContent=this.value"></label>
+      <label>Swing ratio <output id="swing-val">0.50</output><input id="swing" aria-label="Generation swing ratio" type="range" min=".5" max=".67" step=".01" value=".50" oninput="document.getElementById('swing-val').textContent=this.value"><small>.50 = straight; .60 = swung 16ths</small></label>
+      <label>Humanize (ms) <output id="humanizeMs-val">0</output><input id="humanizeMs" aria-label="Generation humanization in milliseconds" type="range" min="0" max="10" step=".5" value="0" oninput="document.getElementById('humanizeMs-val').textContent=this.value"></label>
+      <label>Ghost amount <output id="ghostAmount-val">0.35</output><input id="ghostAmount" aria-label="Generation ghost note amount" type="range" min="0" max="1" step=".05" value=".35" oninput="document.getElementById('ghostAmount-val').textContent=this.value"></label>
       <label>Pattern structure<select id="patternStructure">
   <option value="auto" selected>Auto-Fills (Probability-based)</option>
   <option value="groove">Standard Groove (No fills)</option>
@@ -315,7 +315,7 @@
   <option value="roll">Beat + Snare Roll</option>
   <option value="build">100% Snare Roll Build-up</option>
 </select></label>
-<label>Fill amount <output id="fillAmount-val">0.4</output><input id="fillAmount" type="range" min="0" max="1" step=".05" value=".4" oninput="document.getElementById('fillAmount-val').textContent=this.value"></label>
+<label>Fill amount <output id="fillAmount-val">0.4</output><input id="fillAmount" aria-label="Generation fill amount" type="range" min="0" max="1" step=".05" value=".4" oninput="document.getElementById('fillAmount-val').textContent=this.value"></label>
 <fieldset id="lane-density-controls" class="lane-density-controls"><legend>Instrument density <small>Optional hits · 100% = genre default</small></legend>
   <label>Kick <output id="kick-density-value" for="kick-density">100%</output><input id="kick-density" type="range" min="0" max="2" step=".05" value="1"></label>
   <label>Snare <output id="snare-density-value" for="snare-density">100%</output><input id="snare-density" type="range" min="0" max="2" step=".05" value="1"></label>
@@ -345,37 +345,37 @@
         <div class="quick-fx-col">
           <h4>Filter</h4>
           <label>High-pass <output id="dsp-hp-val">0 Hz</output>
-            <input type="range" id="dsp-hp" min="0" max="2000" step="10" value="0">
+            <input type="range" id="dsp-hp" aria-label="Master DSP high-pass frequency" min="0" max="2000" step="10" value="0">
           </label>
           <label>Low-pass <output id="dsp-lp-val">20000 Hz</output>
-            <input type="range" id="dsp-lp" min="200" max="20000" step="100" value="20000">
+            <input type="range" id="dsp-lp" aria-label="Master DSP low-pass frequency" min="200" max="20000" step="100" value="20000">
           </label>
           <label>Resonance / Q <output id="dsp-res-val">0.00</output>
-            <input type="range" id="dsp-res" min="0" max="1" step="0.05" value="0">
+            <input type="range" id="dsp-res" aria-label="Master DSP filter resonance" min="0" max="1" step="0.05" value="0">
           </label>
         </div>
         <div class="quick-fx-col">
           <h4>Dynamics &amp; Color</h4>
           <label>Drive <output id="dsp-drive-val">0.00</output>
-            <input type="range" id="dsp-drive" min="0" max="1" step="0.05" value="0">
+            <input type="range" id="dsp-drive" aria-label="Master DSP drive" min="0" max="1" step="0.05" value="0">
           </label>
           <label>Punch <output id="dsp-punch-val">0.00</output>
-            <input type="range" id="dsp-punch" min="0" max="1" step="0.05" value="0">
+            <input type="range" id="dsp-punch" aria-label="Master DSP punch" min="0" max="1" step="0.05" value="0">
           </label>
           <label>FX Wet / Dry <output id="dsp-wet-val">100%</output>
-            <input type="range" id="dsp-wet" min="0" max="1" step="0.05" value="1">
+            <input type="range" id="dsp-wet" aria-label="Master DSP wet and dry mix" min="0" max="1" step="0.05" value="1">
           </label>
         </div>
         <div class="quick-fx-col">
           <h4>Space &amp; Delay</h4>
           <label>Delay time <output id="dsp-delay-val">250 ms</output>
-            <input type="range" id="dsp-delay" min="30" max="1000" step="10" value="250">
+            <input type="range" id="dsp-delay" aria-label="Master DSP delay time" min="30" max="1000" step="10" value="250">
           </label>
           <label>Feedback <output id="dsp-feedback-val">30%</output>
-            <input type="range" id="dsp-feedback" min="0" max="0.75" step="0.05" value="0.3">
+            <input type="range" id="dsp-feedback" aria-label="Master DSP delay feedback" min="0" max="0.75" step="0.05" value="0.3">
           </label>
           <label>Delay mix <output id="dsp-mix-val">0%</output>
-            <input type="range" id="dsp-mix" min="0" max="0.6" step="0.05" value="0">
+            <input type="range" id="dsp-mix" aria-label="Master DSP delay mix" min="0" max="0.6" step="0.05" value="0">
           </label>
         </div>
       </div>
@@ -388,7 +388,7 @@
     <label class="vinyl-texture-toggle"><input id="vinyl-texture-enabled" type="checkbox"> Enable continuous ambience</label>
     <label>Recording <select id="vinyl-texture-choice"></select></label>
     <button id="vinyl-texture-preview" type="button">Preview</button>
-    <label>Level <output id="vinyl-texture-level-value">−10 dB</output><input id="vinyl-texture-level" type="range" min="-60" max="0" step="1" value="-10"></label>
+    <label>Level <output id="vinyl-texture-level-value">−10 dB</output><input id="vinyl-texture-level" aria-label="Vinyl texture level in decibels" type="range" min="-60" max="0" step="1" value="-10"></label>
   </div>
 </details>
 <details id="master-dsp-rack" class="master-dsp-rack"><summary><svg class="tool-icon"><use href="#icon-sliders"/></svg> Master DSP <span>Filter · dynamics · delay</span></summary><div id="master-dsp-host"></div></details>
@@ -441,4 +441,4 @@
   </div>
   <p class="footer-note" hidden>Single-shot tracker · Audio stays local. Save project includes your samples and settings; autosave restores your latest workspace on this browser. WAV includes tails; muted lanes are excluded. Pitch repitches the sound. MP3 export remains planned.</p>
 </footer>
-</main><script type="module" src="./dist/web.js?v=0.4.14-history-feedback"></script></body></html>
+</main><script type="module" src="./dist/web.js?v=0.4.15-accessibility"></script></body></html>
