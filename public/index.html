@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Breakbeat Pattern Maker</title><link rel="stylesheet" href="./public/style.css?v=0.4.1-trackerfx"><link rel="stylesheet" href="./public/workspace.css?v=0.4.8-tracker-polish"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Breakbeat Pattern Maker</title><link rel="stylesheet" href="./public/style.css?v=0.4.1-trackerfx"><link rel="stylesheet" href="./public/workspace.css?v=0.4.9-vinyl-drawer"></head>
 <body><main class="daw-chassis">
 <svg class="icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><symbol id="icon-shuffle" viewBox="0 0 24 24"><path d="M3 6h3c6 0 6 12 12 12h3m-3-3 3 3-3 3M3 18h3c2 0 3-1 4-3m4-6c1-2 2-3 4-3h3m-3-3 3 3-3 3"/></symbol><symbol id="icon-sliders" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16M9 2v6m6 1v6m-5 1v6"/></symbol><symbol id="icon-variation" viewBox="0 0 24 24"><path d="M4 7h12a4 4 0 0 1 4 4v2m-3-3 3 3 3-3M20 17H8a4 4 0 0 1-4-4v-2m3 3-3-3-3 3"/></symbol><symbol id="icon-grid" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 10h16M4 15h16M10 4v16m5-16v16"/></symbol><symbol id="icon-wave" viewBox="0 0 24 24"><path d="M2 12h3l2-7 4 14 3-10 2 5 2-2h4"/></symbol><symbol id="icon-follow" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M12 2v5m0 10v5M2 12h5m10 0h5"/></symbol></svg>
 
@@ -376,12 +376,15 @@
     </section>
   </div>
 </section>
-<section id="vinyl-texture-rack" class="vinyl-texture-rack" aria-label="Vinyl Texture" hidden>
-  <label class="vinyl-texture-toggle"><input id="vinyl-texture-enabled" type="checkbox"> Vinyl Texture <span class="vinyl-sub">Continuous ambience</span></label>
-  <label>Recording <select id="vinyl-texture-choice"></select></label>
-  <button id="vinyl-texture-preview" type="button">Preview</button>
-  <label>Level <output id="vinyl-texture-level-value">−10 dB</output><input id="vinyl-texture-level" type="range" min="-60" max="0" step="1" value="-10"></label>
-</section>
+<details id="vinyl-texture-rack" class="vinyl-texture-rack">
+  <summary id="vinyl-texture-summary"><span class="vinyl-summary-title">Vinyl Texture</span><span id="vinyl-texture-state" class="vinyl-summary-state">Off</span><span class="vinyl-sub">Open ambience controls</span></summary>
+  <div class="vinyl-texture-controls">
+    <label class="vinyl-texture-toggle"><input id="vinyl-texture-enabled" type="checkbox"> Enable continuous ambience</label>
+    <label>Recording <select id="vinyl-texture-choice"></select></label>
+    <button id="vinyl-texture-preview" type="button">Preview</button>
+    <label>Level <output id="vinyl-texture-level-value">−10 dB</output><input id="vinyl-texture-level" type="range" min="-60" max="0" step="1" value="-10"></label>
+  </div>
+</details>
 <details id="master-dsp-rack" class="master-dsp-rack"><summary><svg class="tool-icon"><use href="#icon-sliders"/></svg> Master DSP <span>Filter · dynamics · delay</span></summary><div id="master-dsp-host"></div></details>
 
 <dialog id="sound-browser" class="sound-browser" aria-labelledby="sound-browser-title"><div class="sound-browser-shell"><header><div><h2 id="sound-browser-title">Browse sounds</h2><p>Preview a sound, then use it in the tracker.</p></div><button id="sound-browser-close" type="button" aria-label="Close sound browser">×</button></header><div class="sound-browser-tools"><label>Search sounds<input id="sound-browser-search" type="search" autocomplete="off" placeholder="Name or collection"></label><label>Collection<select id="sound-browser-filter"><option value="all">All sounds</option><option value="featured">Featured in kits</option><option value="favorites">Favorites</option><option value="recent">Recently used</option><option value="UDNB">UDNB</option><option value="Lo-Fi">Lo-Fi</option><option value="TR-808">TR-808</option><option value="Acoustic & other">Acoustic & other</option></select></label></div><p id="sound-browser-status" role="status"></p><div id="sound-browser-results" class="sound-browser-results" tabindex="0" aria-label="Sound results"></div><p id="sound-browser-empty" hidden>No sounds match this search and collection.</p><footer><span>↑ ↓ Select · Space Preview · Enter Use · Esc Close</span><button id="sound-browser-preview" type="button">Preview</button><button id="sound-browser-use" type="button" class="accent">Use sound</button></footer></div></dialog>
@@ -398,4 +401,4 @@
   </div>
   <p class="footer-note" hidden>Single-shot tracker · Audio stays local. Save project includes your samples and settings; autosave restores your latest workspace on this browser. WAV includes tails; muted lanes are excluded. Pitch repitches the sound. MP3 export remains planned.</p>
 </footer>
-</main><script type="module" src="./dist/web.js?v=0.4.8-tracker-polish"></script></body></html>
+</main><script type="module" src="./dist/web.js?v=0.4.9-vinyl-drawer"></script></body></html>

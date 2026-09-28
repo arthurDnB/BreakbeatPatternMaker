@@ -7,7 +7,7 @@ import {defaultKitState} from './audio/drum-kit.js';
 import {setupDrumKit,withDrumKit,effectiveSampleSpeed} from './audio/drum-kit.js';
 import {KIT_PRESETS,GENRE_KITS,LIBRARY} from './audio/library.js';
 import {ensureLibraryAudio} from './audio/library-audio.js';
-import {DEFAULT_VINYL_TEXTURE,VINYL_TEXTURES,getRandomVinylTextureId,loadVinylTexture,mixVinylTexture,type VinylTexture} from './audio/vinyl-texture.js';
+import {DEFAULT_VINYL_TEXTURE,VINYL_TEXTURES,loadVinylTexture,mixVinylTexture,type VinylTexture} from './audio/vinyl-texture.js';
 import {setupSoundBrowser} from './audio/sound-browser.js';
 import {setupSamplePanel} from './audio/sample-panel.js';
 import {downloadBytes} from './audio/render.js';
@@ -79,30 +79,15 @@ function syncFollowPlayhead(){
 let context:AudioContext|undefined,timer:ReturnType<typeof setInterval>|undefined;
 const vinylChoice=input('vinyl-texture-choice'),vinylEnabled=input('vinyl-texture-enabled'),vinylLevel=input('vinyl-texture-level');
 for(const item of VINYL_TEXTURES){const option=document.createElement('option');option.value=item.id;option.textContent=item.name;vinylChoice.append(option);}
-function syncVinylControls(){vinylEnabled.checked=vinylTexture.enabled;vinylChoice.value=vinylTexture.catalogId;vinylLevel.value=String(vinylTexture.levelDb);el('vinyl-texture-level-value').textContent=`${vinylTexture.levelDb} dB`;}
+function syncVinylControls(){vinylEnabled.checked=vinylTexture.enabled;vinylChoice.value=vinylTexture.catalogId;vinylLevel.value=String(vinylTexture.levelDb);el('vinyl-texture-level-value').textContent=`${vinylTexture.levelDb} dB`;const state=el('vinyl-texture-state');state.textContent=vinylTexture.enabled?'On':'Off';state.classList.toggle('is-on',vinylTexture.enabled);}
 function updateVinylTexture(){stop();vinylTexture={enabled:vinylEnabled.checked,catalogId:vinylChoice.value,levelDb:Number(vinylLevel.value)};syncVinylControls();scheduleSave();}
 vinylEnabled.onchange=updateVinylTexture;vinylChoice.onchange=updateVinylTexture;vinylLevel.oninput=()=>{el('vinyl-texture-level-value').textContent=`${vinylLevel.value} dB`;};vinylLevel.onchange=updateVinylTexture;syncVinylControls();
-function randomizeVinylTexture(){
- vinylTexture.catalogId=getRandomVinylTextureId(vinylTexture.catalogId);
- syncVinylControls();
-}
-function syncVinylForGenre(isUserGenreChange=false){
+function syncVinylGenreAccent(){
  const isLofi=input('genre').value==='lofihiphop';
  const rack=el('vinyl-texture-rack');
- rack.hidden=!isLofi;
  rack.classList.toggle('is-lofi',isLofi);
- if(isUserGenreChange){
-  if(isLofi){
-   vinylTexture.enabled=true;
-   randomizeVinylTexture();
-  }else{
-   vinylTexture.enabled=false;
-  }
-  syncVinylControls();
-  scheduleSave();
- }
 }
-input('genre').addEventListener('change',()=>syncVinylForGenre(true));syncVinylForGenre(false);
+input('genre').addEventListener('change',syncVinylGenreAccent);syncVinylGenreAccent();
 async function vinylOptions(){
  if(!vinylTexture.enabled)return {};
  context??=new AudioContext();let asset=vinylCache.get(vinylTexture.catalogId);
@@ -464,7 +449,6 @@ function stop(){
 function build(){
   if(pendingCount()){status('Apply or Revert pending hit edits before generating a new pattern.',true);return;}
   stop();
-  if(input('genre').value==='lofihiphop'||vinylTexture.enabled){randomizeVinylTexture();}
   try{const requested=settings();if(!requested.enabledRoles?.length)throw Error('Include at least one instrument before generating.');const next=generate(requested),before=editor?structuredClone(editor.state):undefined;const changed=editor?editor.replace(next):true;if(!editor)editor=new Editor(next);refresh();if(changed&&before)rememberActivePattern(before,'Before Generate');status(`Generated seed “${pattern.settings.seed}”. Locked hits and lanes were preserved. Undo restores the previous pattern.`);}
   catch(e){status((e as Error).message,true);}
 }
@@ -833,7 +817,7 @@ document.addEventListener('keydown',event=>{
   else if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='y'){event.preventDefault();if(inArranger){if(arrangementHistory?.redo()){bank=arrangementHistory.bank;arrangementHistorySync('Redid arrangement change.');}}else history('redo');}
   else if(!event.ctrlKey&&!event.metaKey&&!event.altKey&&event.key.toLowerCase()==='f'){event.preventDefault();followPlayhead=!followPlayhead;syncFollowPlayhead();status(`Follow playhead ${followPlayhead?'enabled':'disabled'}.`);}
 });
-el('regenerate').onclick=()=>{if(pendingCount()){status('Apply or Revert pending hit edits before generating a variation.',true);return;}if(input('genre').value==='lofihiphop'||vinylTexture.enabled){randomizeVinylTexture();}edit(()=>editor.variation(),'Related variation generated. Seed, core motif, anchors and locks are retained.','Before variation');syncControls();};
+el('regenerate').onclick=()=>{if(pendingCount()){status('Apply or Revert pending hit edits before generating a variation.',true);return;}edit(()=>editor.variation(),'Related variation generated. Seed, core motif, anchors and locks are retained.','Before variation');syncControls();};
 el('export-wav').onclick=async()=>{
   try{
     if(input('export-target').value==='song'){await exportArrangement();return;}
@@ -891,7 +875,7 @@ function restoreGenerationDefaults(){
    const p = KIT_PRESETS.find(k => k.id === defaultKitId);
    if(desc) desc.textContent = p ? p.description : 'Kit sounds';
  }
- syncVinylForGenre(true);presets();scheduleSave();status(PROFILES[genre].name+' generation defaults loaded, including BPM and advanced settings. Press Generate to apply to the pattern.');
+ syncVinylGenreAccent();presets();scheduleSave();status(PROFILES[genre].name+' generation defaults loaded, including BPM and advanced settings. Press Generate to apply to the pattern.');
 }
 el('restore-defaults').onclick=restoreGenerationDefaults;
 el('view').onchange=()=>render();el('genre').onchange=restoreGenerationDefaults;
@@ -1297,7 +1281,7 @@ async function applyProject(raw:unknown){
   input('algorithm').value=p.draft.algorithm??'legacy-v1';input('variation').value=String(p.draft.variation??0);
   for(const role of ROLES)input(`${role}-density`).value=String(p.draft.laneDensity?.[role]??1);
   for(const [key,value] of Object.entries(p.draft))if(key!=='enabledRoles'&&key!=='laneDensity')input(key).value=String(value);
-  presets();refresh();syncVinylForGenre(false);if(migrated)status('Older project sound updated: scratch and vinyl instrument hits now use Lo-Fi Percussion 02. Vinyl texture moved to background where available.');return true;
+  presets();refresh();syncVinylGenreAccent();if(migrated)status('Older project sound updated: scratch and vinyl instrument hits now use Lo-Fi Percussion 02. Vinyl texture moved to background where available.');return true;
 }
 el('project-save').onclick=()=>{try{if(pendingCount())throw Error('Apply or Revert pending hit edits before saving a project backup.');const data=snapshot();downloadBytes(new TextEncoder().encode(JSON.stringify(data)).buffer,'breakbeat-project.bbproject','application/json');status('Project saved with sample audio, kit, pattern and settings.');}catch(e){status(String(e),true);}};
 el('project-open').onchange=async e=>{const field=e.target as HTMLInputElement,file=field.files?.[0];field.value='';if(!file)return;
@@ -1305,7 +1289,7 @@ el('project-open').onchange=async e=>{const field=e.target as HTMLInputElement,f
 };
 el('project-new').onclick=()=>{
   if(!confirm('Start a new project? Save project first to keep your current work.'))return;
-  hitDrafts.clear();stop();samplePanel.stop();comparison=undefined;cellAnchor=undefined;trackerClipboard=undefined;assets.clear();vinylTexture={...DEFAULT_VINYL_TEXTURE};syncVinylControls();syncVinylForGenre(false);bank=undefined;arrangementHistory=undefined;selectedArrangementStep=undefined;slotEditors.clear();kitPanel.restore(defaultKitState());editor=new Editor(generate(genreDefaults('jungle')));ensureArrangementHistory();syncControls();
+  hitDrafts.clear();stop();samplePanel.stop();comparison=undefined;cellAnchor=undefined;trackerClipboard=undefined;assets.clear();vinylTexture={...DEFAULT_VINYL_TEXTURE};syncVinylControls();syncVinylGenreAccent();bank=undefined;arrangementHistory=undefined;selectedArrangementStep=undefined;slotEditors.clear();kitPanel.restore(defaultKitState());editor=new Editor(generate(genreDefaults('jungle')));ensureArrangementHistory();syncControls();
   const genre=input('genre').value as Genre,defaultKitId=GENRE_KITS[genre]||'acoustic-break';
   void kitPanel.applyPreset(defaultKitId);
   const ks=document.getElementById('kit-preset-select') as HTMLSelectElement | null;if(ks)ks.value=defaultKitId;const gks=document.getElementById('generator-kit-select') as HTMLSelectElement | null;if(gks)gks.value=defaultKitId;

@@ -62,13 +62,19 @@ This document maintains the running project state and change log so that multipl
 * [x] **Quick Start guide:** First-run Generate → Preview → Edit → Export orientation, with persistent dismiss/reopen controls.
 * [x] **Recent patterns:** Per-slot snapshots of the last 12 generated, varied or mutated beats, with restore, project persistence and Undo recovery.
 * [x] **A/B pattern comparison:** Capture current or recent beats as A and B, preview either with the current kit, and keep a winner with Undo support.
-* [ ] **Future Audio Roadmaps:** Procedural vinyl texture rack, MP3 export, velocity-layered drum kits.
+* [x] **Vinyl Texture Rack (Complete):** Nine bundled textures have a user-controlled background playback layer, independent of genre, with loop crossfades and WAV/project support.
+* [ ] **Future Audio Roadmaps:** MP3 export, velocity-layered drum kits.
 * [x] **Sound Library Browser:** Shared searchable and filterable audition/selection for lanes and tracker hits, with browser-local Favorites and Recently used sounds.
 * [ ] *Note: Renoise integration has been retired in favor of the standalone in-browser instrument.*
 
 ---
 
 ## 📝 Change Log
+
+### [2026-09-28] - Collapsible, Genre-Independent Vinyl Texture Controls (Codex)
+- **Compact control row (public/index.html, public/workspace.css):** Replaced the always-visible full-width controls with a small collapsed “Vinyl Texture” disclosure. Click the label to show the On/Off, recording, Preview and level controls.
+- **Genre behavior (src/web.ts):** Kept the control available for every genre and removed genre-driven activation, deactivation and sound randomization. The ambience setting and selected recording now remain under user control when the genre changes.
+- **Verification (scripts/site-browser-smoke.mjs):** Browser smoke covers collapsed state, all nine recordings, availability in Breakcore and Lo-Fi Hip-Hop, Off-by-default behavior, manual enable and project roundtrip. `npm.cmd test` passed 150/150; `npm.cmd run test:site` passed at root and GitHub Pages subpath.
 
 ### [2026-09-28] - Tracker Header and Hit Inspector Polish (Codex)
 - **Tracker layout (`src/web.ts`, `public/workspace.css`):** Docked the drum legend in the tracker heading rather than the pattern-bank heading. Added subtle separators between quick-action groups and clear keyboard focus rings.
