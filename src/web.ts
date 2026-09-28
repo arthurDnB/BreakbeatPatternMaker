@@ -831,8 +831,18 @@ function renderSongTimeline(){if(!bank)return;const timeline=el('song-timeline')
 el('undo').onclick=()=>history('undo');el('redo').onclick=()=>history('redo');
 el('arr-undo').onclick=()=>{stop();if(arrangementHistory?.undo()){bank=arrangementHistory.bank;arrangementHistorySync('Undid arrangement change.');}};
 el('arr-redo').onclick=()=>{stop();if(arrangementHistory?.redo()){bank=arrangementHistory.bank;arrangementHistorySync('Redid arrangement change.');}};
+const shortcutHelp=el<HTMLDialogElement>('shortcut-help');
+const openShortcutHelp=()=>{if(!shortcutHelp.open)shortcutHelp.showModal();};
+el('shortcut-help-open').onclick=openShortcutHelp;
+el('shortcut-help-close').onclick=()=>shortcutHelp.close();
+el('shortcut-help-done').onclick=()=>shortcutHelp.close();
+shortcutHelp.addEventListener('click',event=>{if(event.target===shortcutHelp)shortcutHelp.close();});
 document.addEventListener('keydown',event=>{
-  if((event.target as HTMLElement).closest('input,select,textarea,[contenteditable="true"]'))return;
+  const target=event.target as HTMLElement;
+  if(target.closest('input,select,textarea,[contenteditable="true"]'))return;
+  if(document.querySelector('dialog[open]')&&!shortcutHelp.open)return;
+  if(event.key==='?'&&!event.ctrlKey&&!event.metaKey&&!event.altKey&&!shortcutHelp.open){event.preventDefault();openShortcutHelp();return;}
+  if(shortcutHelp.open)return;
   const inArranger=Boolean(document.activeElement?.closest('#arranger, #bank-slots, #song-bpm, .pattern-bank'));
   if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='z'){event.preventDefault();if(inArranger){if(arrangementHistory?.undo()){bank=arrangementHistory.bank;arrangementHistorySync('Undid arrangement change.');}}else history(event.shiftKey?'redo':'undo');}
   else if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='y'){event.preventDefault();if(inArranger){if(arrangementHistory?.redo()){bank=arrangementHistory.bank;arrangementHistorySync('Redid arrangement change.');}}else history('redo');}

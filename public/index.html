@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Breakbeat Pattern Maker</title><link rel="stylesheet" href="./public/style.css?v=0.4.1-trackerfx"><link rel="stylesheet" href="./public/workspace.css?v=0.4.10-break-import"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Breakbeat Pattern Maker</title><link rel="stylesheet" href="./public/style.css?v=0.4.1-trackerfx"><link rel="stylesheet" href="./public/workspace.css?v=0.4.11-shortcuts"></head>
 <body><main class="daw-chassis">
 <svg class="icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><symbol id="icon-shuffle" viewBox="0 0 24 24"><path d="M3 6h3c6 0 6 12 12 12h3m-3-3 3 3-3 3M3 18h3c2 0 3-1 4-3m4-6c1-2 2-3 4-3h3m-3-3 3 3-3 3"/></symbol><symbol id="icon-sliders" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16M9 2v6m6 1v6m-5 1v6"/></symbol><symbol id="icon-variation" viewBox="0 0 24 24"><path d="M4 7h12a4 4 0 0 1 4 4v2m-3-3 3 3 3-3M20 17H8a4 4 0 0 1-4-4v-2m3 3-3-3-3 3"/></symbol><symbol id="icon-grid" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 10h16M4 15h16M10 4v16m5-16v16"/></symbol><symbol id="icon-wave" viewBox="0 0 24 24"><path d="M2 12h3l2-7 4 14 3-10 2 5 2-2h4"/></symbol><symbol id="icon-follow" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M12 2v5m0 10v5M2 12h5m10 0h5"/></symbol></svg>
 
@@ -48,6 +48,7 @@
     <span id="save-status" role="status">Local autosave ready</span>
   </section>
   <a href="./README.md" target="_blank" class="help-link">Help ↗</a>
+  <button id="shortcut-help-open" class="quick-start-toggle shortcut-help-open" type="button" aria-haspopup="dialog" title="Keyboard shortcuts (?)">Shortcuts <kbd>?</kbd></button>
 </header>
 
 <section id="quick-start" class="quick-start" aria-labelledby="quick-start-title">
@@ -393,6 +394,38 @@
 
 <dialog id="sound-browser" class="sound-browser" aria-labelledby="sound-browser-title"><div class="sound-browser-shell"><header><div><h2 id="sound-browser-title">Browse sounds</h2><p>Preview a sound, then use it in the tracker.</p></div><button id="sound-browser-close" type="button" aria-label="Close sound browser">×</button></header><div class="sound-browser-tools"><label>Search sounds<input id="sound-browser-search" type="search" autocomplete="off" placeholder="Name or collection"></label><label>Collection<select id="sound-browser-filter"><option value="all">All sounds</option><option value="featured">Featured in kits</option><option value="favorites">Favorites</option><option value="recent">Recently used</option><option value="UDNB">UDNB</option><option value="Lo-Fi">Lo-Fi</option><option value="TR-808">TR-808</option><option value="Acoustic & other">Acoustic & other</option></select></label></div><p id="sound-browser-status" role="status"></p><div id="sound-browser-results" class="sound-browser-results" tabindex="0" aria-label="Sound results"></div><p id="sound-browser-empty" hidden>No sounds match this search and collection.</p><footer><span>↑ ↓ Select · Space Preview · Enter Use · Esc Close</span><button id="sound-browser-preview" type="button">Preview</button><button id="sound-browser-use" type="button" class="accent">Use sound</button></footer></div></dialog>
 
+<dialog id="shortcut-help" class="shortcut-help-dialog" aria-labelledby="shortcut-help-title">
+  <div class="shortcut-help-shell">
+    <header><div><p class="eyebrow">KEYBOARD REFERENCE</p><h2 id="shortcut-help-title">Keyboard shortcuts</h2><p>Shortcuts follow the focused area. Tracker editing keys work while the tracker is focused.</p></div><button id="shortcut-help-close" type="button" aria-label="Close keyboard shortcuts">×</button></header>
+    <div class="shortcut-help-groups">
+      <section aria-labelledby="shortcut-tracker-title"><h3 id="shortcut-tracker-title">Tracker navigation &amp; entry</h3><dl>
+        <div><dt><kbd>↑ ↓ ← →</kbd></dt><dd>Move between rows and instrument lanes. Hold Shift with arrows to extend selection.</dd></div>
+        <div><dt><kbd>Tab</kbd> / <kbd>Shift+Tab</kbd></dt><dd>Move through tracker fields or lanes.</dd></div>
+        <div><dt><kbd>Enter</kbd></dt><dd>Write or update a hit at the cursor; advances by the Step amount.</dd></div>
+        <div><dt><kbd>Z–M</kbd> / <kbd>Q–U</kbd></dt><dd>Enter notes across two chromatic rows when Keyboard Entry is enabled.</dd></div>
+        <div><dt><kbd>1–9</kbd></dt><dd>Set the selected hit's velocity.</dd></div>
+        <div><dt><kbd>+</kbd> / <kbd>−</kbd></dt><dd>Raise or lower the selected hit pitch by one semitone.</dd></div>
+        <div><dt><kbd>Delete</kbd></dt><dd>Clear selected unlocked hits.</dd></div>
+        <div><dt><kbd>Ctrl/⌘+C</kbd> / <kbd>V</kbd> / <kbd>D</kbd></dt><dd>Copy, paste, or duplicate selected tracker cells.</dd></div>
+        <div><dt><kbd>Hex digits</kbd></dt><dd>Edit volume, pan, delay, note, and effect values in the focused tracker field.</dd></div>
+      </dl></section>
+      <section aria-labelledby="shortcut-playback-title"><h3 id="shortcut-playback-title">Playback &amp; history</h3><dl>
+        <div><dt><kbd>Space</kbd></dt><dd>Start or stop playback while the tracker is focused.</dd></div>
+        <div><dt><kbd>Ctrl/⌘+Z</kbd></dt><dd>Undo the current area's last edit; arrangement changes undo when focus is in the arranger.</dd></div>
+        <div><dt><kbd>Ctrl/⌘+Y</kbd> / <kbd>Ctrl/⌘+Shift+Z</kbd></dt><dd>Redo in the current editing area.</dd></div>
+        <div><dt><kbd>F</kbd></dt><dd>Toggle tracker Follow Playhead.</dd></div>
+      </dl></section>
+      <section aria-labelledby="shortcut-workspace-title"><h3 id="shortcut-workspace-title">Workspace</h3><dl>
+        <div><dt><kbd>Alt+1</kbd></dt><dd>Toggle the Patterns and Arrangement tray.</dd></div>
+        <div><dt><kbd>Alt+2</kbd></dt><dd>Toggle the bottom rack.</dd></div>
+        <div><dt><kbd>Alt+3</kbd></dt><dd>Open the Sounds tray.</dd></div>
+        <div><dt><kbd>?</kbd></dt><dd>Open this shortcut reference.</dd></div>
+      </dl></section>
+    </div>
+    <footer><span>On macOS, use <kbd>⌘</kbd> wherever the reference says Ctrl.</span><button id="shortcut-help-done" class="accent" type="button">Done</button></footer>
+  </div>
+</dialog>
+
 <footer class="daw-footer">
   <div class="footer-status-bar">
     <div class="footer-left">
@@ -405,4 +438,4 @@
   </div>
   <p class="footer-note" hidden>Single-shot tracker · Audio stays local. Save project includes your samples and settings; autosave restores your latest workspace on this browser. WAV includes tails; muted lanes are excluded. Pitch repitches the sound. MP3 export remains planned.</p>
 </footer>
-</main><script type="module" src="./dist/web.js?v=0.4.10-break-import"></script></body></html>
+</main><script type="module" src="./dist/web.js?v=0.4.11-shortcuts"></script></body></html>

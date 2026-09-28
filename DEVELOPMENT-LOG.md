@@ -73,6 +73,11 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-29] - Keyboard Shortcut Reference (Codex)
+- **Shortcut overlay (`public/index.html`, `public/workspace.css`, `src/web.ts`):** Added a compact, responsive keyboard reference organized by tracker editing, playback/history and workspace navigation. It opens from the header Shortcuts button or `?`, and closes with Escape, Done, the close control or backdrop; native dialog focus handling returns to the opener.
+- **Coverage (`scripts/site-browser-smoke.mjs`):** Added browser checks for displayed shortcut sections, button and `?` opening, and Escape/Done closing. Existing bindings are documented from their current handlers; no tracker shortcut semantics changed.
+- **Cache and verification:** Updated page asset cache keys. `npm.cmd test` passed 177/177; `npm.cmd run test:site` passed at root and the GitHub Pages subpath, including shortcut-dialog button/`?` open and Escape/Done close checks, sound browser and break transcription smoke tests.
+
 ### [2026-09-29] - Pitch-Preserving Playback, Sound Layers, and Audio Quality Checks (Codex)
 - **Sample speed (`src/audio/time-stretch.ts`, `src/audio/drum-kit.ts`, `src/audio/performance.ts`, `src/core/model.ts`, `src/core/compile.ts`):** Added a per-sample Repitch/Preserve pitch choice. The latter uses bounded, deterministic waveform-similarity overlap/add for 0.5×–2× speed, shares the same renderer for Preview and WAV, and leaves source PCM intact. The default remains Repitch; saved projects and sample profiles retain the chosen mode.
 - **Layering and mono checks (`src/audio/drum-kit.ts`, `src/audio/audio-quality.ts`, `src/audio/voice-v3.ts`, `src/audio/project.ts`):** Added an optional second catalog/uploaded sound per lane with relative level, ±10 ms offset, polarity inversion, and a first-100-ms mono-cancellation warning. Layer voices share a trigger for kick/snare/hat choking; projects embed the layer audio and validate its mapping.
