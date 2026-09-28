@@ -377,6 +377,7 @@ function render(){
   input('fill').disabled=!range;
   input('undo').disabled=!editor.undoLabel;input('redo').disabled=!editor.redoLabel;
   el('undo').title=editor.undoLabel?`Undo ${editor.undoLabel}`:'Nothing to undo';el('redo').title=editor.redoLabel?`Redo ${editor.redoLabel}`:'Nothing to redo';
+  el('undo').setAttribute('aria-label',editor.undoLabel?`Undo ${editor.undoLabel}`:'Nothing to undo');el('redo').setAttribute('aria-label',editor.redoLabel?`Redo ${editor.redoLabel}`:'Nothing to redo');
   for(const role of ['kick','snare','hat','percussion'] as const)input(`lock-${role}`).checked=editor.state.lockedRoles.includes(role);
   for(const id of ['row-start','row-end']){input(id).max=String(transfer.timing.lines-1);}
   input('row-start').value=String(range?.[0]??0);input('row-end').value=String(range?.[1]??transfer.timing.lines-1);
@@ -664,7 +665,7 @@ function renderBank(){if(!bank)return;const host=el('bank-slots');host.replaceCh
  for(const [text,delta] of [['Move up',-1],['Move down',1],['Remove',0]] as const){const b=document.createElement('button');b.textContent=text;b.disabled=delta!==0&&(i+delta<0||i+delta>=bank!.sequence.length);b.onclick=()=>{stop();const changed=arrangementMutation(delta===0?'Remove arrangement step':'Reorder arrangement',next=>delta===0?next.sequence.splice(i,1):moveSequenceStep(next,i,i+delta));if(changed){selectedArrangementStep=undefined;renderBank();scheduleSave();const focusStep=Math.min(delta===0?i:i+delta,bank!.sequence.length-1);el('sequence').querySelector<HTMLElement>('[data-step="'+focusStep+'"] button:not(:disabled)')?.focus();}};row.append(b);}seq.append(row);});
  const select=el<HTMLSelectElement>('append-slot'),value=select.value;select.replaceChildren();bank.slots.forEach((s,i)=>{if(s.editor){const o=document.createElement('option');o.value=String(i);o.textContent=s.name;select.append(o);}});if(Array.from(select.options).some(o=>o.value===value))select.value=value;
  renderSongTimeline();
- const bars=bank.sequence.reduce((n,s)=>n+bank!.slots[s.slot]!.editor!.pattern.settings.bars*s.repeats,0);el('arrangement-info').textContent=bars+' bars - '+(bars*240/bank.songBpm).toFixed(1)+' seconds - '+bank.songBpm+' BPM · max 170s';input('play-arrangement').disabled=!bars;input('export-arrangement').disabled=!bars;input('append-step').disabled=bank.sequence.length>=64;const undo=input('arr-undo'),redo=input('arr-redo');if(arrangementHistory&&undo&&redo){undo.disabled=!arrangementHistory.undoLabel;redo.disabled=!arrangementHistory.redoLabel;undo.title=arrangementHistory.undoLabel?`Undo ${arrangementHistory.undoLabel}`:'Nothing to undo';redo.title=arrangementHistory.redoLabel?`Redo ${arrangementHistory.redoLabel}`:'Nothing to redo';}
+ const bars=bank.sequence.reduce((n,s)=>n+bank!.slots[s.slot]!.editor!.pattern.settings.bars*s.repeats,0);el('arrangement-info').textContent=bars+' bars - '+(bars*240/bank.songBpm).toFixed(1)+' seconds - '+bank.songBpm+' BPM · max 170s';input('play-arrangement').disabled=!bars;input('export-arrangement').disabled=!bars;input('append-step').disabled=bank.sequence.length>=64;const undo=input('arr-undo'),redo=input('arr-redo');if(arrangementHistory&&undo&&redo){undo.disabled=!arrangementHistory.undoLabel;redo.disabled=!arrangementHistory.redoLabel;undo.title=arrangementHistory.undoLabel?`Undo ${arrangementHistory.undoLabel}`:'Nothing to undo';redo.title=arrangementHistory.redoLabel?`Redo ${arrangementHistory.redoLabel}`:'Nothing to redo';undo.setAttribute('aria-label',arrangementHistory.undoLabel?`Undo ${arrangementHistory.undoLabel}`:'Nothing to undo');redo.setAttribute('aria-label',arrangementHistory.redoLabel?`Redo ${arrangementHistory.redoLabel}`:'Nothing to redo');}
 }
 function arrangementAudio(rate:number){stashSlot();return renderSequence(arrange(bank!).map(p=>withDrumKit(p,drumKit,kitPanel.mix)),assets,rate,effectMap(),readyVinylOptions());}
 el('append-step').onclick=()=>{stop();if(bank!.sequence.length>=64)return;if(arrangementMutation('Append to arrangement',b=>insertSequenceStep(b,b.sequence.length,Number(input('append-slot').value)))){selectedArrangementStep=bank!.sequence.length-1;renderBank();scheduleSave();}};
@@ -814,7 +815,9 @@ for(const role of ['kick','snare','hat','percussion'] as const)el(`lock-${role}`
 el('mutate').onclick=()=>edit(()=>editor.mutate(),'Variation applied. Locked hits and main anchors are unchanged. Preview and export now use this edit.','Before mutation');
 el('fill').onclick=()=>edit(()=>editor.fill(),'Fill applied to the selected rows. Locked hits and main anchors are unchanged.','Before fill');
 function history(direction:'undo'|'redo'){
-  stop();if(editor[direction]()){syncControls();refresh();status(direction==='undo'?'Undid the last edit.':'Redid the last edit.');}
+  stop();const label=direction==='undo'?editor.undoLabel:editor.redoLabel;
+  if(!editor[direction]()){status(direction==='undo'?'Nothing to undo.':'Nothing to redo.');return;}
+  syncControls();refresh();status(`${direction==='undo'?'Undid':'Redid'}: ${label??'last edit'}.`);
 }
 function sectionKind(section:string|undefined){const name=section?.trim().toLowerCase()??'';if(!name)return 'unlabeled';if(/intro|opening/.test(name))return 'intro';if(/build|rise/.test(name))return 'build';if(/drop|chorus|hook/.test(name))return 'drop';if(/fill|turnaround|transition/.test(name))return 'fill';if(/outro|ending/.test(name))return 'outro';return 'other';}
 function renderSongTimeline(){if(!bank)return;const timeline=el('song-timeline'),legend=el('timeline-legend');timeline.replaceChildren();legend.replaceChildren();const blocks=songBlocks(bank);const kinds=new Set<string>();
@@ -833,8 +836,8 @@ function renderSongTimeline(){if(!bank)return;const timeline=el('song-timeline')
  for(const kind of kinds){const label=document.createElement('span');const dot=document.createElement('i');dot.className='timeline-legend-dot';dot.dataset.sectionKind=kind;label.append(dot,document.createTextNode(kind[0]!.toUpperCase()+kind.slice(1)));legend.append(label);}
 }
 el('undo').onclick=()=>history('undo');el('redo').onclick=()=>history('redo');
-el('arr-undo').onclick=()=>{stop();if(arrangementHistory?.undo()){bank=arrangementHistory.bank;arrangementHistorySync('Undid arrangement change.');}};
-el('arr-redo').onclick=()=>{stop();if(arrangementHistory?.redo()){bank=arrangementHistory.bank;arrangementHistorySync('Redid arrangement change.');}};
+el('arr-undo').onclick=()=>{stop();const label=arrangementHistory?.undoLabel;if(arrangementHistory?.undo()){bank=arrangementHistory.bank;arrangementHistorySync(`Undid: ${label??'arrangement change'}.`);}else status('Nothing to undo.');};
+el('arr-redo').onclick=()=>{stop();const label=arrangementHistory?.redoLabel;if(arrangementHistory?.redo()){bank=arrangementHistory.bank;arrangementHistorySync(`Redid: ${label??'arrangement change'}.`);}else status('Nothing to redo.');};
 const shortcutHelp=el<HTMLDialogElement>('shortcut-help');
 const openShortcutHelp=()=>{if(!shortcutHelp.open)shortcutHelp.showModal();};
 el('shortcut-help-open').onclick=openShortcutHelp;
@@ -848,8 +851,8 @@ document.addEventListener('keydown',event=>{
   if(event.key==='?'&&!event.ctrlKey&&!event.metaKey&&!event.altKey&&!shortcutHelp.open){event.preventDefault();openShortcutHelp();return;}
   if(shortcutHelp.open)return;
   const inArranger=Boolean(document.activeElement?.closest('#arranger, #bank-slots, #song-bpm, .pattern-bank'));
-  if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='z'){event.preventDefault();if(inArranger){if(arrangementHistory?.undo()){bank=arrangementHistory.bank;arrangementHistorySync('Undid arrangement change.');}}else history(event.shiftKey?'redo':'undo');}
-  else if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='y'){event.preventDefault();if(inArranger){if(arrangementHistory?.redo()){bank=arrangementHistory.bank;arrangementHistorySync('Redid arrangement change.');}}else history('redo');}
+  if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='z'){event.preventDefault();if(inArranger){const label=arrangementHistory?.undoLabel;if(arrangementHistory?.undo()){bank=arrangementHistory.bank;arrangementHistorySync(`Undid: ${label??'arrangement change'}.`);}else status('Nothing to undo.');}else history(event.shiftKey?'redo':'undo');}
+  else if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='y'){event.preventDefault();if(inArranger){const label=arrangementHistory?.redoLabel;if(arrangementHistory?.redo()){bank=arrangementHistory.bank;arrangementHistorySync(`Redid: ${label??'arrangement change'}.`);}else status('Nothing to redo.');}else history('redo');}
   else if(!event.ctrlKey&&!event.metaKey&&!event.altKey&&event.key.toLowerCase()==='f'){event.preventDefault();followPlayhead=!followPlayhead;syncFollowPlayhead();status(`Follow playhead ${followPlayhead?'enabled':'disabled'}.`);}
 });
 el('regenerate').onclick=()=>{if(pendingCount()){status('Apply or Revert pending hit edits before generating a variation.',true);return;}edit(()=>editor.variation(),'Related variation generated. Seed, core motif, anchors and locks are retained.','Before variation');syncControls();};

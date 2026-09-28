@@ -73,6 +73,11 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-29] - Undo and Redo Action Feedback (Codex)
+- **History controls (`src/web.ts`, `public/index.html`):** Pattern and arrangement Undo/Redo buttons retain disabled states when their stacks are empty and expose the pending action in accessible labels/tooltips. Undo/Redo status messages now announce the action label, including keyboard-triggered arrangement history. Updated the asset cache key.
+- **Browser checks (`scripts/site-browser-smoke.mjs`):** Verified initially unavailable buttons are disabled and labeled, and that pattern and arrangement actions update the labels and announce the actual action after undo/redo.
+- **Verification:** `npm.cmd test` passed 177/177; `npm.cmd run test:site` passed at root and GitHub Pages subpath, including sound browser and break transcription checks.
+
 ### [2026-09-29] - Tracker Boundary and Bar Navigation (Codex)
 - **Tracker keys (`src/web.ts`, `public/index.html`):** Added Home/End jumps to the first/last row and PageUp/PageDown jumps by one bar, retaining the current lane and tracker field. Shift extends the selected cell range. Added these key bindings to the shortcut dialog and bumped the app cache key.
 - **Browser coverage (`scripts/tracker-navigation-smoke.mjs`):** Checks both ends, one-bar moves, and return navigation alongside existing arrow wrapping, LPB/resolution remapping, and Undo.
