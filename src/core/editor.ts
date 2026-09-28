@@ -7,7 +7,7 @@ import {V3_RULES} from './groove-v3-profiles.js';
 import {GROOVES} from './groove-profiles.js';
 import {compile} from './compile.js';
 import {random} from './random.js';
-import {PPQ, ROLES, type Pattern, type Role, type Hit, type EffectCommand} from './model.js';
+import {PPQ, ROLES, isSynthTrack, type Pattern, type Role, type Hit, type EffectCommand, type SynthInstrument} from './model.js';
 
 export interface CellPosition {row:number;lane:string}
 export interface TrackerClipCell extends CellPosition {column?:number;hits:Hit[]}
@@ -20,7 +20,7 @@ const rowTicks = (pattern:Pattern) => PPQ / compile(pattern).timing.lpb;
 const laneIds = (pattern:Pattern):string[] => [...ROLES,...(pattern.userTracks??[]).map(track=>track.id)];
 const roleForLane = (pattern:Pattern,lane:string):Role|undefined => ROLES.includes(lane as Role)?lane as Role:pattern.userTracks?.find(track=>track.id===lane)?.role;
 export function locked(state:EditorState, hit:Pattern['events'][number]):boolean {
-  return state.lockedIds.includes(hit.id)||state.lockedRoles.includes(hit.role);
+  return state.lockedIds.includes(hit.id)||!hit.trackId&&state.lockedRoles.includes(hit.role);
 }
 export function selectedIds(state:EditorState):Set<string> {
   if(state.selection.cells?.length){const cells=new Set(state.selection.cells.map(c=>`${c.row}:${c.lane}`));return new Set(compile(state.pattern).notes.filter(n=>cells.has(`${n.row}:${n.lane}`)).map(n=>n.id));}
@@ -83,7 +83,7 @@ export class Editor {
     return this.commit(next,label);
   }
   addUserTrack(track:NonNullable<Pattern['userTracks']>[number]):boolean{
-    const next=copy(this.state);if(next.pattern.userTracks?.some(item=>item.id===track.id))throw Error('Track ID already exists.');(next.pattern.userTracks??=[]).push(copy(track));next.revision++;return this.commit(next,'Add sample track');
+    const next=copy(this.state);if(next.pattern.userTracks?.some(item=>item.id===track.id))throw Error('Track ID already exists.');(next.pattern.userTracks??=[]).push(copy(track));next.revision++;return this.commit(next,isSynthTrack(track)?'Add synth track':'Add sample track');
   }
   renameUserTrack(id:string,name:string):boolean{
     const next=copy(this.state),track=next.pattern.userTracks?.find(item=>item.id===id);if(!track)throw Error('Track no longer exists.');if(!name.trim()||name.trim().length>80)throw Error('Track name must contain 1–80 characters.');if(track.name===name.trim())return false;track.name=name.trim();next.revision++;return this.commit(next,'Rename sample track');
@@ -94,6 +94,11 @@ export class Editor {
   setUserTrackMixer(id:string,patch:Partial<Pick<NonNullable<Pattern['userTracks']>[number],'level'|'pan'|'mute'|'solo'>>):boolean{
     const next=copy(this.state),track=next.pattern.userTracks?.find(item=>item.id===id);if(!track)throw Error('Track no longer exists.');Object.assign(track,patch);
     if(!Number.isFinite(track.level)||track.level<0||track.level>2||!Number.isFinite(track.pan)||track.pan< -1||track.pan>1)throw Error('Invalid track mixer value.');next.revision++;return this.commit(next,'Change sample track mixer');
+  }
+  setSynthInstrument(id:string,instrument:SynthInstrument):boolean{
+    const next=copy(this.state),track=next.pattern.userTracks?.find(item=>item.id===id);
+    if(!isSynthTrack(track))throw Error('Select a synth track.');
+    track.instrument=copy(instrument);next.revision++;return this.commit(next,'Edit synth instrument');
   }
   deleteUserTrack(id:string):boolean{
     const next=copy(this.state),tracks=next.pattern.userTracks??[],track=tracks.find(item=>item.id===id);if(!track)return false;
@@ -110,7 +115,7 @@ export class Editor {
   }
   write(hit:Hit,replaceId?:string){
     const next=copy(this.state),prior=next.pattern.events.find(h=>h.id===replaceId);
-    if(next.lockedRoles.includes(hit.role)||(prior&&locked(next,prior)))return false;
+    if(!hit.trackId&&next.lockedRoles.includes(hit.role)||(prior&&locked(next,prior)))return false;
     if(replaceId&&!prior)throw Error('Select an existing hit to edit.');
     next.pattern.events=next.pattern.events.filter(h=>h.id!==replaceId);next.pattern.events.push(copy(hit));
     next.pattern.events.sort((a,b)=>a.baseTick-b.baseTick||ROLES.indexOf(a.role)-ROLES.indexOf(b.role));
@@ -156,7 +161,9 @@ export class Editor {
       const moved=copy(source),tickDelta=(target.row-oldNote.row)*step;
       moved.id=`paste-${next.revision+1}-${serial++}`;
       while(next.pattern.events.some(h=>h.id===moved.id))moved.id=`paste-${next.revision+1}-${serial++}`;
-      const targetLane=String(target.lane),role=roleForLane(next.pattern,targetLane);if(!role)throw Error('Paste destination track no longer exists.');moved.role=role;if(ROLES.includes(targetLane as Role))delete moved.trackId;else moved.trackId=targetLane;moved.sourceId='kit.'+role;moved.baseTick+=tickDelta;moved.anchor=false;
+      const targetLane=String(target.lane),role=roleForLane(next.pattern,targetLane);if(!role)throw Error('Paste destination track no longer exists.');
+      if(!!moved.synthNote!==isSynthTrack(next.pattern.userTracks?.find(t=>t.id===targetLane)))throw Error('Copy synth notes only to synth tracks and sample hits only to sample or drum tracks.');
+      moved.role=role;if(ROLES.includes(targetLane as Role))delete moved.trackId;else moved.trackId=targetLane;moved.sourceId='kit.'+role;moved.baseTick+=tickDelta;moved.anchor=false;
       if(moved.baseTick<0||moved.baseTick>=next.pattern.settings.bars*4*PPQ)throw Error('Paste timing would extend beyond the pattern.');
       next.pattern.events.push(moved);
     }
@@ -186,7 +193,9 @@ export class Editor {
       }
     }
     next.pattern.events=next.pattern.events.filter(h=>!overwritten.has(h.id));
-    for(const hit of next.pattern.events){if(!moving.has(hit.id))continue;const old=notes.find(n=>n.id===hit.id)!,target=order[order.indexOf(old.lane)+laneShift]!,role=roleForLane(next.pattern,target);if(!role)throw Error('Move destination track no longer exists.');hit.baseTick+=rowShift*step;hit.role=role;if(ROLES.includes(target as Role))delete hit.trackId;else hit.trackId=target;hit.sourceId='kit.'+hit.role;if(hit.baseTick<0||hit.baseTick>=next.pattern.settings.bars*4*PPQ)throw Error('Move timing exceeds the pattern.');}
+    for(const hit of next.pattern.events){if(!moving.has(hit.id))continue;const old=notes.find(n=>n.id===hit.id)!,target=order[order.indexOf(old.lane)+laneShift]!,role=roleForLane(next.pattern,target);if(!role)throw Error('Move destination track no longer exists.');
+      if(!!hit.synthNote!==isSynthTrack(next.pattern.userTracks?.find(t=>t.id===target)))throw Error('Move synth notes only to synth tracks and sample hits only to sample or drum tracks.');
+      hit.baseTick+=rowShift*step;hit.role=role;if(ROLES.includes(target as Role))delete hit.trackId;else hit.trackId=target;hit.sourceId='kit.'+hit.role;if(hit.baseTick<0||hit.baseTick>=next.pattern.settings.bars*4*PPQ)throw Error('Move timing exceeds the pattern.');}
     next.pattern.events.sort((a,b)=>a.baseTick-b.baseTick||ROLES.indexOf(a.role)-ROLES.indexOf(b.role));
     next.selection={ids:[...moving.keys()],rows:null,cells:destinations.map(c=>({row:c.row,lane:c.lane}))};next.revision++;
     return this.commit(next,'Move tracker cells');
@@ -196,13 +205,19 @@ export class Editor {
     if(!hit)throw Error('Select a hit to edit.');if(locked(next,hit))throw Error('Unlock this hit before editing.');
     const note=compile(next.pattern).notes.find(n=>n.id===id)!;
     if(!Number.isInteger(value))throw Error('Enter a whole-number tracker value.');
-    if(field==='note'&&hit.mapped){hit.mapped.note=value;resolveSlice(next.pattern,hit);}
+    if(field==='note'&&hit.synthNote){if(value<0||value>119)throw Error('Notes must be C-0 through B-9.');hit.synthNote.note=value;}
+    else if(field==='note'&&hit.mapped){hit.mapped.note=value;resolveSlice(next.pattern,hit);}
     else if(field==='note'){if(value<0||value>96)throw Error('Notes must be C-0 through C-8.');hit.pitch=value-48;}
     else if(field==='volume'){if(value<0||value>128)throw Error('Volume must be 00–80 hex.');hit.gain=value/128;}
     else if(field==='pan'){if(value<0||value>128)throw Error('Pan must be 00–80 hex.');hit.pan=value/64-1;}
     else {if(value<0||value>255)throw Error('Delay must be 00–FF hex.');const tick=(note.row+value/256)*rowTicks(next.pattern);hit.baseTick=Math.floor(tick);hit.fineOffset=tick-Math.floor(tick);hit.offsetTick=0;}
     next.selection={ids:[id],rows:null,cells:[{row:note.row,lane:note.lane}]};next.revision++;
     return this.commit(next,`Edit tracker ${field}`);
+  }
+  setSynthNoteDuration(id:string,durationTicks:number):boolean{
+    const next=copy(this.state),hit=next.pattern.events.find(h=>h.id===id);
+    if(!hit?.synthNote)throw Error('Select a synth note.');if(locked(next,hit))throw Error('Unlock this note before editing.');
+    hit.synthNote.durationTicks=durationTicks;next.revision++;return this.commit(next,'Change synth note length');
   }
   editTrackerEffect(id:string,effect?:EffectCommand):boolean {
     const next=copy(this.state),hit=next.pattern.events.find(h=>h.id===id);

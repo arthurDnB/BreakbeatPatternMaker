@@ -20,7 +20,8 @@ import {BREAKS} from './core/breaks.js';
 import {defaults,genreDefaults,PROFILES} from './core/profiles.js';
 import {generate} from './core/generate.js';
 import {compile,serialize} from './core/compile.js';
-import {ROLES,hex,noteName,type Hit,type Role,type Genre,type BreakStyle,type Pattern,type Transfer,type EffectCommand,type Settings,type UserTrack} from './core/model.js';
+import {ROLES,hex,noteName,isSynthTrack,type Hit,type Role,type Genre,type BreakStyle,type Pattern,type Transfer,type EffectCommand,type Settings,type UserTrack,type SynthTrack,type SynthInstrument} from './core/model.js';
+import {SYNTH_PRESETS} from './audio/synth-instrument.js';
 import {Editor,emptySelection,locked,selectedIds,type EditorState,type TrackerClipboard,type CellPosition} from './core/editor.js';
 import {defaultEffects,type Effects} from './audio/effects.js';
 import {ArrangementHistory} from './core/arrangement-history.js';
@@ -62,6 +63,7 @@ let trackerClipboard:TrackerClipboard|undefined;
 let draggingTrackerCells:CellPosition[]|undefined;
 let trackerFieldDraft:{id:string;field:string;digits:string}|undefined;
 let trackerEffectDraft:{id:string;command?:EffectCommand['command'];digits:string;prefix:boolean}|undefined;
+const openSynthTrackIds=new Set<string>();
 const trackerFields=['note','instrument','volume','pan','delay','effect'] as const;
 let cursorField:typeof trackerFields[number]='note';
 const assets=new Map<string,AudioAsset>();
@@ -224,6 +226,28 @@ function positionInstrumentPanel(panel:HTMLDetailsElement){
 }
 function positionOpenInstrumentPanels(){el('grid').querySelectorAll<HTMLDetailsElement>('.track-instrument-panel[open]').forEach(positionInstrumentPanel);}
 function openInstrumentPanel(panel:HTMLDetailsElement){panel.open=true;panel.querySelector('summary')?.focus();requestAnimationFrame(()=>positionInstrumentPanel(panel));}
+function synthInstrumentPanel(track:SynthTrack):HTMLDetailsElement{
+  const panel=document.createElement('details');panel.className='track-instrument-panel';panel.dataset.synthTrackId=track.id;panel.open=openSynthTrackIds.has(track.id);
+  const summary=document.createElement('summary');summary.textContent='Synth / Tone';summary.setAttribute('aria-label',`Open ${track.name} synthesizer controls`);
+  const card=document.createElement('div');card.className='drum-slot synth-instrument-card';
+  const heading=document.createElement('strong');heading.textContent=track.name+' instrument';card.append(heading);
+  const update=(patch:Partial<SynthInstrument>)=>{try{editor.setSynthInstrument(track.id,{...track.instrument,...patch});refresh();status(`Updated ${track.name} synthesizer.`);}catch(error){status(String(error),true);}};
+  const selectControl=(labelText:string,value:string,choices:readonly string[],change:(value:string)=>void)=>{
+    const label=document.createElement('label'),select=document.createElement('select');label.textContent=labelText;
+    for(const choice of choices){const option=document.createElement('option');option.value=choice;option.textContent=choice[0]!.toUpperCase()+choice.slice(1);select.append(option);}
+    select.value=value;select.onchange=()=>change(select.value);label.append(select);card.append(label);
+  };
+  selectControl('Preset',track.instrument.preset,['bass','pluck','pad'],value=>update({...SYNTH_PRESETS[value as keyof typeof SYNTH_PRESETS]}));
+  selectControl('Waveform',track.instrument.waveform,['sine','triangle','saw','square'],value=>update({waveform:value as SynthInstrument['waveform']}));
+  for(const [key,labelText,min,max,step] of [['attack','Attack',.001,2,.001],['decay','Decay',.001,3,.001],['sustain','Sustain',0,1,.01],['release','Release',.01,4,.01],['lowpassHz','Low-pass Hz',100,20000,10]] as const){
+    const label=document.createElement('label'),output=document.createElement('output'),control=document.createElement('input');label.textContent=labelText;
+    control.type='range';control.min=String(min);control.max=String(max);control.step=String(step);control.value=String(track.instrument[key]);control.setAttribute('aria-label',`${track.name} ${labelText}`);output.value=String(track.instrument[key]);
+    control.oninput=()=>{output.value=control.value;};control.onchange=()=>update({[key]:Number(control.value)});label.append(output,control);card.append(label);
+  }
+  const preview=document.createElement('button');preview.type='button';preview.textContent='Preview C-4';preview.onclick=()=>void auditionUserTrack(track);card.append(preview);
+  panel.append(summary,card);panel.addEventListener('toggle',()=>{if(panel.open)openSynthTrackIds.add(track.id);else openSynthTrackIds.delete(track.id);if(panel.open)requestAnimationFrame(()=>positionInstrumentPanel(panel));});
+  return panel;
+}
 el('grid').addEventListener('scroll',positionOpenInstrumentPanels,{passive:true});
 window.addEventListener('resize',positionOpenInstrumentPanels,{passive:true});
 window.addEventListener('scroll',positionOpenInstrumentPanels,{capture:true,passive:true});
@@ -242,7 +266,7 @@ function render(){
   const focusHit=active?.dataset.hit,focusRow=active?.dataset.row,focusCellRow=active?.dataset.cellRow,focusCellLane=active?.dataset.cellLane,focusField=active?.dataset.field;
   const openTracks=new Set(Array.from(container.querySelectorAll<HTMLDetailsElement>('.track-instrument-panel[open]')).map(panel=>panel.dataset.role));
   if(workspaceRestoreTracks){workspacePreferences.openTrackRoles.forEach(role=>openTracks.add(role));workspaceRestoreTracks=false;}
-  const soundStore=el('drum-slots');for(const card of Array.from(container.querySelectorAll<HTMLElement>('.drum-slot')))soundStore.append(card);
+  const soundStore=el('drum-slots');for(const card of Array.from(container.querySelectorAll<HTMLElement>('.track-instrument-panel[data-role] .drum-slot')))soundStore.append(card);
   const selected=selectedIds(editor.state);
   input('tracker-resolution').value=String(pattern.settings.resolution);
   input('tracker-lpb').value=String(transfer.timing.lpb);
@@ -314,15 +338,15 @@ function render(){
     header.append(th);
   }
   for(const track of pattern.userTracks??[]){
-    const th=document.createElement('th');th.className=`track-col-header user-track-col track-${track.role}`;th.dataset.trackId=track.id;
+    const th=document.createElement('th');th.className=`track-col-header user-track-col track-${track.role}${isSynthTrack(track)?' synth-track-col':''}`;th.dataset.trackId=track.id;
     const strip=document.createElement('div');strip.className='track-strip';
     const top=document.createElement('div');top.className='track-strip-top';
-    const name=document.createElement('button');name.className='lane-settings user-track-name';name.textContent=track.name;name.title='Rename sample track';name.setAttribute('aria-label','Rename '+track.name);name.onclick=()=>{const value=prompt('Sample track name',track.name);if(value!==null)try{editor.renameUserTrack(track.id,value);refresh();}catch(e){status(String(e),true);}};top.append(name);
+    const name=document.createElement('button');name.className='lane-settings user-track-name';name.textContent=track.name;name.title='Rename track';name.setAttribute('aria-label','Rename '+track.name);name.onclick=()=>{const value=prompt('Track name',track.name);if(value!==null)try{editor.renameUserTrack(track.id,value);refresh();}catch(e){status(String(e),true);}};top.append(name);
     const actions=document.createElement('div');actions.className='track-strip-btns';
     for(const [label,delta] of [['←',-1],['→',1]] as const){const button=document.createElement('button');button.textContent=label;button.title=delta<0?'Move track left':'Move track right';button.setAttribute('aria-label',button.title);button.onclick=()=>{if(editor.reorderUserTrack(track.id,delta as -1|1))refresh();};actions.append(button);}
     for(const [label,key] of [['M','mute'],['S','solo']] as const){const button=document.createElement('button');button.textContent=label;button.title=(track[key]?'Disable ':'Enable ')+(key==='mute'?'mute':'solo')+' for '+track.name;button.setAttribute('aria-pressed',String(track[key]));button.classList.toggle('is-muted',key==='mute'&&track.mute);button.classList.toggle('is-soloed',key==='solo'&&track.solo);button.onclick=()=>{editor.setUserTrackMixer(track.id,{[key]:!track[key]});refresh();};actions.append(button);}
-    const remove=document.createElement('button');remove.textContent='×';remove.title='Delete sample track';remove.setAttribute('aria-label','Delete '+track.name);remove.onclick=()=>{if(!confirm(`Delete “${track.name}” and its hits?`))return;try{editor.deleteUserTrack(track.id);if(cursorTrackId===track.id){cursorTrackId=undefined;cursorLane='kick';}refresh();}catch(e){status(String(e),true);}};actions.append(remove);top.append(actions);
-    const mixer=document.createElement('div');mixer.className='track-strip-mixer';const fader=document.createElement('input');fader.type='range';fader.min='0';fader.max='2';fader.step='0.01';fader.value=String(track.level);fader.title=track.name+' level';fader.setAttribute('aria-label',track.name+' level');fader.onchange=()=>{editor.setUserTrackMixer(track.id,{level:Number(fader.value)});refresh();};const pan=document.createElement('input');pan.type='range';pan.min='-1';pan.max='1';pan.step='0.01';pan.value=String(track.pan);pan.title=track.name+' pan';pan.setAttribute('aria-label',track.name+' pan');pan.onchange=()=>{editor.setUserTrackMixer(track.id,{pan:Number(pan.value)});refresh();};mixer.append(fader,pan);strip.append(top,mixer);th.append(strip);header.append(th);
+    const remove=document.createElement('button');remove.textContent='×';remove.title='Delete track';remove.setAttribute('aria-label','Delete '+track.name);remove.onclick=()=>{if(!confirm(`Delete “${track.name}” and its notes?`))return;try{editor.deleteUserTrack(track.id);openSynthTrackIds.delete(track.id);if(cursorTrackId===track.id){cursorTrackId=undefined;cursorLane='kick';}refresh();}catch(e){status(String(e),true);}};actions.append(remove);top.append(actions);
+    const mixer=document.createElement('div');mixer.className='track-strip-mixer';const fader=document.createElement('input');fader.type='range';fader.min='0';fader.max='2';fader.step='0.01';fader.value=String(track.level);fader.title=track.name+' level';fader.setAttribute('aria-label',track.name+' level');fader.onchange=()=>{editor.setUserTrackMixer(track.id,{level:Number(fader.value)});refresh();};const pan=document.createElement('input');pan.type='range';pan.min='-1';pan.max='1';pan.step='0.01';pan.value=String(track.pan);pan.title=track.name+' pan';pan.setAttribute('aria-label',track.name+' pan');pan.onchange=()=>{editor.setUserTrackMixer(track.id,{pan:Number(pan.value)});refresh();};mixer.append(fader,pan);strip.append(top,mixer);if(isSynthTrack(track))strip.append(synthInstrumentPanel(track));th.append(strip);header.append(th);
   }
   head.append(header);table.append(head);
   const body=document.createElement('tbody');
@@ -377,11 +401,11 @@ function render(){
         button.dataset.hit=hit.id;button.classList.toggle('selected-hit',selected.has(hit.id));
         button.dataset.cellRow=String(row);button.dataset.cellLane=lane.id;button.classList.toggle('cell-selected',selectedCells.has(`${row}:${lane.id}`));
         button.classList.toggle('locked-hit',locked(editor.state,hit));button.setAttribute('aria-pressed',String(selected.has(hit.id)));
-        const sound=resolveSlice(pattern,hit)??drumKit[hit.role];
+        const sound=hit.synthNote?undefined:resolveSlice(pattern,hit)??drumKit[hit.role];
         const reverse=hit.reverse||kitPanel.mix[hit.role].reverse;
-        const label=sound?(hit.ghost?'Ghost · ':'')+sound.label:hit.ghost?'Ghost snare':lane.name;
+        const label=hit.synthNote?`${lane.name} ${noteName(hit.synthNote.note)} · ${(hit.synthNote.durationTicks/960).toFixed(2)} beats`:sound?(hit.ghost?'Ghost · ':'')+sound.label:hit.ghost?'Ghost snare':lane.name;
         const articulation=(hit.ratchets&&hit.ratchets>1?'×'+hit.ratchets:'')+(hit.gate!==undefined?(hit.ratchets&&hit.ratchets>1?' · ':'')+'Gate '+Math.round(hit.gate*100)+'%':'');
-        const badge=(articulation?articulation+' ':'')+(reverse?'↶ ':'')+(locked(editor.state,hit)?'🔒 ':'');
+        const badge=(hit.synthNote?'':(articulation?articulation+' ':'')+(reverse?'↶ ':''))+(locked(editor.state,hit)?'🔒 ':'');
         button.textContent=badge+(view==='beginner'?(hit.ghost?'Ghost':lane.name):label);
         button.title=`${label}, row ${row}, volume ${hex(n.volume)}, delay ${hex(n.delay)} · ${articulation} · ${articulationLabel(hit)} · ${hit.reason}`;
         button.onclick=e=>{selectTrackerCell(row,lane.role,e,hit,true,lane.track?.id);};
@@ -392,8 +416,8 @@ function render(){
         if(view!=='beginner'){
           const fields=document.createElement('div');fields.className='tracker-values';
           const soundIndex=hit.slice?LIBRARY.findIndex(entry=>hit.slice?.assetId==='library-'+entry.id):-1;
-          const values=[noteName(hit.mapped?.note??source.note+(hit.pitch??0)),hit.mapped?'BRK':hit.slice?(soundIndex>=0?String(soundIndex+1).padStart(3,'0'):'USR'):'KIT',hex(n.volume),hex(n.pan),hex(n.delay),hit.effect?hit.effect.command+hex(hit.effect.param):'----'];
-          trackerFields.forEach((field,index)=>{const value=document.createElement('button');value.type='button';value.className='tracker-value';value.dataset.cellRow=String(row);value.dataset.cellLane=lane.id;value.dataset.hit=hit.id;value.dataset.field=field;value.textContent=values[index]!;value.title=field==='effect'?`FX ${values[index]} · type S/9 offset, B reverse, U/1 up, D/2 down, C cut or R retrigger, then two hex digits`: `${field}: ${values[index]} — click to edit`;value.setAttribute('aria-label',`${field} ${values[index]} for ${lane.name} at row ${row}`);value.onclick=e=>{e.stopPropagation();selectTrackerCell(row,lane.role,undefined,hit,false,lane.track?.id);focusTrackerField(row,lane.id,field);if(field==='instrument'){if(hit.mapped)breakPanel.open(pattern.sliceInstruments!.find(i=>i.id===hit.mapped!.instrumentId)!);else openHitSoundPicker(hit.id);}};fields.append(value);});
+          const values=[noteName(hit.synthNote?.note??hit.mapped?.note??source.note+(hit.pitch??0)),hit.synthNote?'SYN':hit.mapped?'BRK':hit.slice?(soundIndex>=0?String(soundIndex+1).padStart(3,'0'):'USR'):'KIT',hex(n.volume),hex(n.pan),hex(n.delay),hit.effect?hit.effect.command+hex(hit.effect.param):'----'];
+          trackerFields.forEach((field,index)=>{const value=document.createElement('button');value.type='button';value.className='tracker-value';value.dataset.cellRow=String(row);value.dataset.cellLane=lane.id;value.dataset.hit=hit.id;value.dataset.field=field;value.textContent=values[index]!;value.title=field==='effect'?`FX ${values[index]} · type S/9 offset, B reverse, U/1 up, D/2 down, C cut or R retrigger, then two hex digits`: `${field}: ${values[index]} — click to edit`;value.setAttribute('aria-label',`${field} ${values[index]} for ${lane.name} at row ${row}`);value.onclick=e=>{e.stopPropagation();selectTrackerCell(row,lane.role,undefined,hit,false,lane.track?.id);focusTrackerField(row,lane.id,field);if(field==='instrument'){if(hit.synthNote){const panel=el('grid').querySelector<HTMLDetailsElement>(`.track-instrument-panel[data-synth-track-id="${hit.trackId}"]`);if(panel)openInstrumentPanel(panel);}else if(hit.mapped)breakPanel.open(pattern.sliceInstruments!.find(i=>i.id===hit.mapped!.instrumentId)!);else openHitSoundPicker(hit.id);}};fields.append(value);});
           card.prepend(fields);
         }
         td.append(card);
@@ -410,6 +434,7 @@ function render(){
   else if(focusHit)container.querySelector<HTMLElement>(`[data-hit="${focusHit}"]`)?.focus({preventScroll:true});
   else if(focusRow)container.querySelector<HTMLElement>(`[data-row="${focusRow}"]`)?.focus({preventScroll:true});
   el('slice-octave-label').hidden=!pattern.sliceInstruments?.length;el('edit-break-slices').hidden=!pattern.sliceInstruments?.length;
+  el('synth-octave-label').hidden=!isSynthTrack(pattern.userTracks?.find(track=>track.id===cursorTrackId));
   el('summary').textContent=`${transfer.timing.bars} bars · ${transfer.timing.lines} rows · LPB ${transfer.timing.lpb} · ${transfer.notes.length} hits · ${pattern.settings.bpm.toFixed(1)} BPM · ${(pattern.settings.enabledRoles??ROLES).join(' + ')}`;
   el('generation-summary').textContent=(pattern.settings.enabledRoles??ROLES).map(r=>r==='hat'?'Hi-hat':r[0]!.toUpperCase()+r.slice(1)).join(' + ')+' · '+pattern.settings.bars+' bars · '+pattern.settings.bpm.toFixed(1)+' BPM';
   input('export').disabled=false;input('play').disabled=false;input('copy').disabled=false;
@@ -429,7 +454,7 @@ function render(){
   const chosen=pattern.events.find(hit=>hit.id===editor.state.selection.ids.at(-1));
   const note=chosen&&transfer.notes.find(n=>n.id===chosen.id),source=note&&transfer.sources.find(s=>s.id===note.source);
   updateEntry(chosen);
-  el('explanation').textContent=chosen&&note&&source?`${chosen.reason} Row ${note.row}, instrument ${hex(source.instrument)}, ${noteName(source.note)}, volume ${hex(note.volume)}, pan ${hex(note.pan)}, delay ${hex(note.delay)}.${locked(editor.state,chosen)?' Locked: editing will preserve this hit.':''} ${note.delay?`The delay is ${(note.delay/256*60000/transfer.timing.bpm/transfer.timing.lpb).toFixed(2)} ms into this row.`:''}`:range?'This row range is the target for mutation and fills. Locked hits and main anchors remain intact.':'Select a hit to inspect it. Ctrl/Cmd-click adds hits; Shift-click a row number selects a range.';
+  el('explanation').textContent=chosen&&note&&source?`${chosen.reason} Row ${note.row}, ${chosen.synthNote?`${noteName(chosen.synthNote.note)} for ${+(chosen.synthNote.durationTicks/960).toFixed(2)} beats`:`instrument ${hex(source.instrument)}, ${noteName(source.note)}`}, volume ${hex(note.volume)}, pan ${hex(note.pan)}, delay ${hex(note.delay)}.${locked(editor.state,chosen)?' Locked: editing will preserve this hit.':''} ${note.delay?`The delay is ${(note.delay/256*60000/transfer.timing.bpm/transfer.timing.lpb).toFixed(2)} ms into this row.`:''}`:range?'This row range is the target for mutation and fills. Locked hits and main anchors remain intact.':'Select a hit to inspect it. Ctrl/Cmd-click adds hits; Shift-click a row number selects a range.';
   syncHud();
 }
 function markTrackerCursor(target:HTMLElement|null|undefined){el('grid').querySelectorAll<HTMLElement>('.tracker-value.is-cursor-field').forEach(value=>{value.classList.remove('is-cursor-field');value.removeAttribute('aria-current');});if(target?.matches('.tracker-value')){target.classList.add('is-cursor-field');target.setAttribute('aria-current','location');}}
@@ -438,6 +463,7 @@ function focusTrackerField(row:number,lane:string,field:string){cursorField=fiel
 let soundBrowser:ReturnType<typeof setupSoundBrowser>;
 function openHitSoundPicker(id:string){
  const hit=pattern.events.find(h=>h.id===id);if(!hit)return;
+ if(hit.synthNote){const panel=el('grid').querySelector<HTMLDetailsElement>(`.track-instrument-panel[data-synth-track-id="${hit.trackId}"]`);if(panel)openInstrumentPanel(panel);return;}
  const current=LIBRARY.find(e=>hit.slice?.assetId==='library-'+e.id);
  const opener=document.activeElement instanceof HTMLElement?document.activeElement:el('grid');
  soundBrowser.open({role:hit.role,mode:'hit',current:current?.id??(hit.slice?.assetId===kitPanel.mix[hit.role].uploadId?'upload':'lane'),uploadName:kitPanel.mix[hit.role].uploadId?assets.get(kitPanel.mix[hit.role].uploadId!)?.name:undefined,opener,
@@ -445,6 +471,7 @@ function openHitSoundPicker(id:string){
 }
 async function applyHitSound(id:string,choice:string){
  const hit=pattern.events.find(h=>h.id===id);if(!hit)throw Error('This hit is no longer available.');
+ if(hit.synthNote)throw Error('Use the synth controls above this track to change its instrument.');
   let slice=undefined;
   if(choice!=='lane'){
    const asset=choice==='upload'?assets.get(kitPanel.mix[hit.role].uploadId??''):(context??=new AudioContext(),await ensureLibraryAudio(choice,hit.role,assets,context));
@@ -589,9 +616,9 @@ async function auditionCursor(role:Role){
 }
 async function auditionUserTrack(track:UserTrack){
  context??=new AudioContext();const token=playToken;await context.resume();if(token!==playToken)return;
- const note:Hit={id:'track-preview',role:track.role,trackId:track.id,sourceId:'kit.'+track.role,baseTick:0,offsetTick:0,gain:1,pan:0,anchor:false,ghost:false,slice:{...track.sample},reason:'User sample track preview.'};
+ const note:Hit={id:'track-preview',role:track.role,trackId:track.id,sourceId:'kit.'+track.role,baseTick:0,offsetTick:0,gain:1,pan:0,anchor:false,ghost:false,...(isSynthTrack(track)?{synthNote:{note:48,durationTicks:960}}:{slice:{...track.sample}}),reason:'User track preview.'};
  const one={...structuredClone(pattern),events:[note],userTracks:[{...track,mute:false,solo:true}]},mix=kitPanel.snapshot();mix[track.role].mute=false;for(const role of ROLES)mix[role].solo=false;
- const audio=renderPerformance(withDrumKit(one,drumKit,mix),assets,context.sampleRate,effectMap());startSource(audioBuffer(audio),context.currentTime);status(`Previewing sample track “${track.name}”.`);
+ const audio=renderPerformance(withDrumKit(one,drumKit,mix),assets,context.sampleRate,effectMap());startSource(audioBuffer(audio),context.currentTime);status(`Previewing ${isSynthTrack(track)?'synth':'sample'} track “${track.name}”.`);
 }
 async function auditionHit(hit:Hit){
  flashTrackMeter(hit.role,(hit.gain??1)*kitPanel.mix[hit.role].level);stop();samplePanel.stop();context??=new AudioContext();const token=playToken;await context.resume();if(token!==playToken)return;
@@ -1032,7 +1059,7 @@ initKitPresetSelect('generator-kit-select');
 
 function patternJSON(){
   const pattern=withDrumKit(editor.state.pattern,drumKit,kitPanel.mix);
-  if(pattern.sliceInstruments?.length||!pattern.events.length||ROLES.some(r=>kitPanel.mix[r].level!==1||kitPanel.mix[r].tune!==0||kitPanel.mix[r].mute||kitPanel.mix[r].reverse||(kitPanel.mix[r].effects&&!kitPanel.mix[r].effects!.bypass&&(kitPanel.mix[r].effects!.highpass>0||kitPanel.mix[r].effects!.lowpass<20000||kitPanel.mix[r].effects!.drive>0||kitPanel.mix[r].effects!.mix>0)))||pattern.events.some(h=>h.slice||h.pitch||h.fineOffset||h.reverse||h.effect||h.articulation||h.ratchets&&h.ratchets>1||h.gate!==undefined))return JSON.stringify({...JSON.parse(serialize(transfer)),format:'breakbeat-notes',version:1,pattern,effects:effectMap(),audioAssets:[...new Set(pattern.events.flatMap(h=>h.slice?[h.slice.assetId]:[]))].map(id=>{const a=assets.get(id);return {id,name:a?.name,sampleRate:a?.sampleRate};}),notice:'Audio assets are not included. Export WAV to preserve the sound.'},null,2);
+  if(pattern.userTracks?.length||pattern.sliceInstruments?.length||!pattern.events.length||ROLES.some(r=>kitPanel.mix[r].level!==1||kitPanel.mix[r].tune!==0||kitPanel.mix[r].mute||kitPanel.mix[r].reverse||(kitPanel.mix[r].effects&&!kitPanel.mix[r].effects!.bypass&&(kitPanel.mix[r].effects!.highpass>0||kitPanel.mix[r].effects!.lowpass<20000||kitPanel.mix[r].effects!.drive>0||kitPanel.mix[r].effects!.mix>0)))||pattern.events.some(h=>h.slice||h.pitch||h.fineOffset||h.reverse||h.effect||h.articulation||h.ratchets&&h.ratchets>1||h.gate!==undefined))return JSON.stringify({...JSON.parse(serialize(transfer)),format:'breakbeat-notes',version:1,pattern,effects:effectMap(),audioAssets:[...new Set(pattern.events.flatMap(h=>h.slice?[h.slice.assetId]:[]))].map(id=>{const a=assets.get(id);return {id,name:a?.name,sampleRate:a?.sampleRate};}),notice:'Synth settings are included. Sample audio is not included; save a project or export WAV to preserve its sound.'},null,2);
   return serialize(transfer);
 }
 function currentAsset(){
@@ -1041,7 +1068,7 @@ function currentAsset(){
   if(!assets.has(current.id))assets.set(current.id,{id:current.id,name:current.name,sampleRate:current.buffer.sampleRate,channels:Array.from({length:current.buffer.numberOfChannels},(_,i)=>current.buffer.getChannelData(i))});
   return {...current,asset:assets.get(current.id)!};
 }
-const hitFields=['edit-row','edit-lane','edit-sound','edit-volume','edit-pan','edit-delay','edit-pitch','edit-reverse','edit-ratchets','edit-gate','edit-burst-span','edit-speed-override','edit-speed','edit-lowpass-override','edit-lowpass','edit-attack-override','edit-attack','edit-decay-override','edit-decay'] as const;
+const hitFields=['edit-row','edit-lane','edit-sound','edit-volume','edit-pan','edit-delay','edit-pitch','edit-synth-note','edit-synth-length','edit-reverse','edit-ratchets','edit-gate','edit-burst-span','edit-speed-override','edit-speed','edit-lowpass-override','edit-lowpass','edit-attack-override','edit-attack','edit-decay-override','edit-decay'] as const;
 type HitDraft=Partial<Record<typeof hitFields[number],string>>;
 const hitDrafts=new Map<Editor,Map<string,HitDraft>>();
 let draftTargets:{slot:number;id:string}[]=[];
@@ -1097,6 +1124,13 @@ input('edit-pitch-slider').addEventListener('keydown',event=>{if(['ArrowLeft','A
 input('edit-pitch').addEventListener('input',syncHitPitch);
 function updateEntry(hit?:Hit){
   input('edit-row').max=String(transfer.timing.lines-1);rowAnchor=Math.min(rowAnchor,transfer.timing.lines-1);
+  const activeTrack=pattern.userTracks?.find(track=>track.id===(hit?.trackId??cursorTrackId)),isSynth=isSynthTrack(activeTrack);
+  el('synth-note-field').hidden=!isSynth;el('synth-length-field').hidden=!isSynth;el('sample-sound-field').hidden=isSynth;el('sample-pitch-field').hidden=isSynth;
+  el('hit-articulation').hidden=isSynth;el('hit-sample-controls').hidden=isSynth;
+  input('edit-reverse').closest('label')!.toggleAttribute('hidden',isSynth);
+  input('edit-synth-note').value=String(hit?.synthNote?.note??48);
+  const synthLength=el<HTMLSelectElement>('edit-synth-length');synthLength.querySelector('[data-custom]')?.remove();const noteLength=hit?.synthNote?.durationTicks??960;
+  if(!Array.from(synthLength.options).some(option=>Number(option.value)===noteLength)){const option=document.createElement('option');option.dataset.custom='true';option.value=String(noteLength);option.textContent=+(noteLength/960).toFixed(3)+' beats';synthLength.append(option);}synthLength.value=String(noteLength);
   if(hit){
     const n=transfer.notes.find(n=>n.id===hit.id)!;input('edit-row').value=String(n.row);input('edit-lane').value=hit.role;
     input('edit-volume').value=String(n.volume);input('edit-pan').value=String(n.pan);input('edit-delay').value=String(n.delay);input('edit-pitch').value=String(hit.pitch??0);input('edit-reverse').checked=!!hit.reverse;input('edit-ratchets').value=String(hit.ratchets??1);const gateSelect=el<HTMLSelectElement>('edit-gate');gateSelect.querySelector('[data-custom]')?.remove();if(hit.gate!==undefined&&!Array.from(gateSelect.options).some(o=>Number(o.value)===hit.gate)){const option=document.createElement('option');option.dataset.custom='true';option.value=String(hit.gate);option.textContent=Math.round(hit.gate*100)+'%';gateSelect.append(option);}gateSelect.value=String(hit.gate??0);input('edit-sound').value='keep';
@@ -1124,7 +1158,7 @@ function updateEntry(hit?:Hit){
   input('hit-apply').disabled=editor.state.selection.ids.length!==1;
   input('hit-delete').disabled=selectedIds(editor.state).size===0;
   updateDraftStatus();
-  el('edit-target').textContent=hit?((resolveSlice(pattern,hit)??drumKit[hit.role])?'Sound: '+(resolveSlice(pattern,hit)??drumKit[hit.role])!.label:'Sound: demo '+hit.role)+' · '+(locked(editor.state,hit)?'Locked':'Editable'):'Cursor: row '+rowAnchor+' / '+cursorLane;
+  el('edit-target').textContent=hit?.synthNote?`Synth: ${activeTrack?.name??'instrument'} · ${noteName(hit.synthNote.note)} · ${+(hit.synthNote.durationTicks/960).toFixed(2)} beats · ${locked(editor.state,hit)?'Locked':'Editable'}`:hit?((resolveSlice(pattern,hit)??drumKit[hit.role])?'Sound: '+(resolveSlice(pattern,hit)??drumKit[hit.role])!.label:'Sound: demo '+hit.role)+' · '+(locked(editor.state,hit)?'Locked':'Editable'):'Cursor: row '+rowAnchor+' / '+(activeTrack?.name??cursorLane);
 }
 function entryHit(replace:boolean,pitchOverride?:number){
   const row=Number(input('edit-row').value),delay=Number(input('edit-delay').value),volume=Number(input('edit-volume').value),pan=Number(input('edit-pan').value),pitch=pitchOverride??Number(input('edit-pitch').value);
@@ -1132,8 +1166,14 @@ function entryHit(replace:boolean,pitchOverride?:number){
   const prior=replace?pattern.events.find(h=>h.id===editor.state.selection.ids[0]):undefined,trackId=prior?.trackId??cursorTrackId,track=trackId?pattern.userTracks?.find(item=>item.id===trackId):undefined,role=track?.role??prior?.role??input('edit-lane').value as Role;
   if(replace&&!prior)throw Error('Select one hit to edit.');
   const tick=(row+delay/256)*960/transfer.timing.lpb;
+  if(isSynthTrack(track)){
+    const note=pitchOverride??Number(input('edit-synth-note').value),durationTicks=Number(input('edit-synth-length').value);
+    const hit:Hit={id:prior?.id??'synth-note-'+crypto.randomUUID(),role:track.role,trackId:track.id,sourceId:'kit.'+track.role,baseTick:Math.floor(tick),fineOffset:tick-Math.floor(tick),offsetTick:0,gain:volume/128,pan:pan/64-1,synthNote:{note,durationTicks},anchor:false,ghost:false,reason:`Pitched note on ${track.name}.`};
+    const oldNote=prior&&transfer.notes.find(n=>n.id===prior.id);if(prior&&oldNote?.row===row&&oldNote.delay===delay){hit.baseTick=prior.baseTick;hit.offsetTick=prior.offsetTick;hit.fineOffset=prior.fineOffset;}
+    compile({...pattern,events:[hit]});return {hit,prior};
+  }
   const hit:Hit={id:prior?.id??'entry-'+crypto.randomUUID(),role,...(trackId?{trackId}:{}),sourceId:'kit.'+role,baseTick:Math.floor(tick),fineOffset:tick-Math.floor(tick),offsetTick:0,gain:volume/128,pan:pan/64-1,pitch,reverse:input('edit-reverse').checked,ratchets:Number(input('edit-ratchets').value),...(Number(input('edit-gate').value)?{gate:Number(input('edit-gate').value)}:{}),...(prior?.effect?{effect:{...prior.effect}}:{}),anchor:prior?.anchor??false,ghost:prior?.ghost??false,reason:'A manually entered tracker hit.'};
-  if(track)hit.slice={...track.sample};else if(prior?.slice)hit.slice={...prior.slice};
+  if(track&&!isSynthTrack(track))hit.slice={...track.sample};else if(prior?.slice)hit.slice={...prior.slice};
   if(input('edit-speed-override').checked)hit.playbackRate=Number(input('edit-speed').value);
   if(input('edit-lowpass-override').checked)hit.lowpassHz=Number(input('edit-lowpass').value);
   if(input('edit-attack-override').checked)hit.attackMs=Number(input('edit-attack').value);
@@ -1191,7 +1231,8 @@ function trackerJumpRow(key:string,row:number){const last=transfer.timing.lines-
 const trackerJumpKeys=['Home','End','PageUp','PageDown'];
 el('grid').addEventListener('keydown', event => {
   if(event.altKey)return;
-  if(event.ctrlKey||event.metaKey){const key=event.key.toLowerCase();if(key==='c'||key==='v'||key==='d'){event.preventDefault();if(key==='c')copyTrackerCells();else if(key==='v')pasteTrackerCells();else duplicateTrackerCells();}return;}
+  if(event.ctrlKey||event.metaKey){const key=event.key.toLowerCase();if(key==='c'||key==='v'||key==='d'){event.preventDefault();if(key==='c')copyTrackerCells();else if(key==='v')pasteTrackerCells();else duplicateTrackerCells();}
+    else if(key==='enter'&&isSynthTrack(pattern.userTracks?.find(track=>track.id===cursorTrackId))){event.preventDefault();edit(()=>writeEntry(false),'Added a second synth note at this row.');focusTrackerCell(rowAnchor,cursorTrackId!);}return;}
   const focused=event.target as HTMLElement,field=focused.dataset.field as typeof trackerFields[number]|undefined;
   if(field){
     const row=Number(focused.dataset.cellRow),lane=focused.dataset.cellLane??cursorTrackId??cursorLane,id=focused.dataset.hit;
@@ -1331,13 +1372,13 @@ el('grid').addEventListener('keydown', event => {
     if (hitAtCursor && !locked(editor.state, hitAtCursor)) {
       event.preventDefault();
       const delta = (event.key === '+' || event.key === '=') ? 1 : -1;
-      const pitch = (hitAtCursor.pitch ?? 0) + delta;
-      if (pitch >= -48 && pitch <= 48) {
-        editor.write({ ...hitAtCursor, pitch }, hitAtCursor.id);
+      const pitch = hitAtCursor.synthNote?hitAtCursor.synthNote.note+delta:(hitAtCursor.pitch ?? 0) + delta;
+      if (pitch >= (hitAtCursor.synthNote?0:-48) && pitch <= (hitAtCursor.synthNote?119:48)) {
+        editor.write(hitAtCursor.synthNote?{...hitAtCursor,synthNote:{...hitAtCursor.synthNote,note:pitch}}:{ ...hitAtCursor, pitch }, hitAtCursor.id);
         void auditionCursor(cursorLane);
         refresh();
         el('grid').focus();
-        status(`Pitch transposed to ${pitch > 0 ? '+' : ''}${pitch} st.`);
+        status(hitAtCursor.synthNote?`Synth note transposed to ${noteName(pitch)}.`:`Pitch transposed to ${pitch > 0 ? '+' : ''}${pitch} st.`);
         return;
       }
     }
@@ -1364,7 +1405,11 @@ el('grid').addEventListener('keydown', event => {
     const selectedHit=pattern.events.find(h=>editor.state.selection.ids.includes(h.id)&&h.role===cursorLane&&h.trackId===cursorTrackId)??hitAtCursor;
     const instrument=pattern.sliceInstruments?.find(i=>i.id===selectedHit?.mapped?.instrumentId)??(cursorLane==='percussion'?pattern.sliceInstruments?.[0]:undefined);
     let changed:boolean;
-    if(instrument){
+    if(isSynthTrack(pattern.userTracks?.find(track=>track.id===cursorTrackId))){
+      const note=Number(input('synth-octave').value)*12+semitone;
+      if(note>119)throw Error('Choose a lower synth octave.');
+      changed=writeEntry(!!hitAtCursor,note);
+    }else if(instrument){
       const note=Number(input('slice-octave').value)*12+semitone;
       if(!instrument.slices.some(s=>s.note===note))throw Error('This key has no slice. Choose a mapped note or another slice octave.');
       if(selectedHit?.mapped)changed=editor.editTrackerValue(selectedHit.id,'note',note);
@@ -1440,7 +1485,7 @@ document.addEventListener('click',event=>{const more=el<HTMLDetailsElement>('mor
 document.addEventListener('keydown',event=>{if(event.key==='Escape')el<HTMLDetailsElement>('more-actions').open=false;});
 
 // Workspace navigation changes presentation only, preserving edit and audio behavior.
-function openSoundAccordion(role:Role=cursorLane){const panel=el('grid').querySelector<HTMLDetailsElement>(`.track-instrument-panel[data-role="${role}"]`);if(panel){openInstrumentPanel(panel);panel.scrollIntoView({behavior:'smooth',block:'nearest'});requestAnimationFrame(()=>positionInstrumentPanel(panel));}}
+function openSoundAccordion(role:Role=cursorLane){const synth=isSynthTrack(pattern.userTracks?.find(track=>track.id===cursorTrackId));const panel=el('grid').querySelector<HTMLDetailsElement>(synth?`.track-instrument-panel[data-synth-track-id="${cursorTrackId}"]`:`.track-instrument-panel[data-role="${role}"]`);if(panel){openInstrumentPanel(panel);panel.scrollIntoView({behavior:'smooth',block:'nearest'});requestAnimationFrame(()=>positionInstrumentPanel(panel));}}
 el('show-sounds').onclick=()=>openSoundAccordion();
 el('show-arrangement').onclick=()=>{el<HTMLDetailsElement>('arranger').open=true;el('arranger').scrollIntoView({behavior:'smooth',block:'nearest'});el('arranger').querySelector('summary')?.focus();};
 const quickStart=el<HTMLElement>('quick-start'),quickStartToggle=el<HTMLButtonElement>('quick-start-toggle');
@@ -1459,6 +1504,12 @@ document.querySelector('.tracker-edit')!.addEventListener('keydown',event=>{cons
 
 function initTrackerLiveBar() {
   const addTrack=el<HTMLButtonElement>('add-user-track'),trackFile=el<HTMLInputElement>('user-track-file');
+  el<HTMLButtonElement>('add-synth-track').onclick=()=>{try{
+    const id='synth-'+crypto.randomUUID(),number=1+(pattern.userTracks??[]).filter(isSynthTrack).length;
+    const track:SynthTrack={id,name:`Synth ${number}`,kind:'synth',role:'percussion',instrument:structuredClone(SYNTH_PRESETS.bass),level:1,pan:0,mute:false,solo:false};
+    editor.addUserTrack(track);cursorLane='percussion';cursorTrackId=id;refresh();
+    status(`Added ${track.name}. Select its tracker cell, then use + Note or Z–M to enter pitches. Open Synth / Tone above the lane for presets.`);
+  }catch(error){status(String(error),true);}};
   addTrack.onclick=()=>{trackFile.value='';trackFile.click();};
   trackFile.onchange=async()=>{const file=trackFile.files?.[0];if(!file)return;try{
     if(file.size>128*1024*1024)throw Error('Sample track WAVs must be under 128 MB.');
@@ -1483,7 +1534,7 @@ function initTrackerLiveBar() {
 
   const quickInsert = document.getElementById('quick-insert-hit');
   if (quickInsert) {
-    quickInsert.onclick = () => {
+    quickInsert.onclick = (event) => {
       const step = getTrackerStep();
       const hitAtCursor = pattern.events.find(e => {
         const n = transfer.notes.find(note => note.id === e.id);
@@ -1491,7 +1542,7 @@ function initTrackerLiveBar() {
       });
       try {
         stop();
-        const changed = writeEntry(!!hitAtCursor);
+        const changed = writeEntry(!(event.shiftKey&&isSynthTrack(pattern.userTracks?.find(track=>track.id===cursorTrackId)))&&!!hitAtCursor);
         if (changed) {
           void auditionCursor(cursorLane);
           rowAnchor = Math.min(transfer.timing.lines - 1, rowAnchor + step);
@@ -1532,6 +1583,7 @@ function initTrackerLiveBar() {
         const n = transfer.notes.find(note => note.id === e.id);
         return n && n.row === rowAnchor && n.lane === (cursorTrackId??cursorLane);
       });
+      if(hitAtCursor?.synthNote){status('Ghost articulation applies to drum hits. Edit synth velocity in the tracker.',true);return;}
       if (hitAtCursor && !locked(editor.state, hitAtCursor)) {
         editor.write({ ...hitAtCursor, ghost: !hitAtCursor.ghost }, hitAtCursor.id);
         refresh();
@@ -1550,6 +1602,7 @@ function initTrackerLiveBar() {
         const n = transfer.notes.find(note => note.id === e.id);
         return n && n.row === rowAnchor && n.lane === (cursorTrackId??cursorLane);
       });
+      if(hitAtCursor?.synthNote){status('Ratchets apply to drum hits; synth note length is in the hit inspector.',true);return;}
       if (hitAtCursor && !locked(editor.state, hitAtCursor)) {
         const nextRatchets = hitAtCursor.ratchets === 2 ? 1 : 2;
         editor.write(setRatchets(hitAtCursor,nextRatchets,960/transfer.timing.lpb),hitAtCursor.id);
@@ -1569,6 +1622,7 @@ function initTrackerLiveBar() {
         const n = transfer.notes.find(note => note.id === e.id);
         return n && n.row === rowAnchor && n.lane === (cursorTrackId??cursorLane);
       });
+      if(hitAtCursor?.synthNote){status('Ratchets apply to drum hits; synth note length is in the hit inspector.',true);return;}
       if (hitAtCursor && !locked(editor.state, hitAtCursor)) {
         const nextRatchets = hitAtCursor.ratchets === 4 ? 1 : 4;
         editor.write(setRatchets(hitAtCursor,nextRatchets,960/transfer.timing.lpb),hitAtCursor.id);
@@ -1587,13 +1641,13 @@ function initTrackerLiveBar() {
       return n && n.row === rowAnchor && n.lane === (cursorTrackId??cursorLane);
     });
     if (hitAtCursor && !locked(editor.state, hitAtCursor)) {
-      const pitch = (hitAtCursor.pitch ?? 0) + delta;
-      if (pitch >= -48 && pitch <= 48) {
-        editor.write({ ...hitAtCursor, pitch }, hitAtCursor.id);
+      const pitch = hitAtCursor.synthNote?hitAtCursor.synthNote.note+delta:(hitAtCursor.pitch ?? 0) + delta;
+      if (pitch >= (hitAtCursor.synthNote?0:-48) && pitch <= (hitAtCursor.synthNote?119:48)) {
+        editor.write(hitAtCursor.synthNote?{...hitAtCursor,synthNote:{...hitAtCursor.synthNote,note:pitch}}:{ ...hitAtCursor, pitch }, hitAtCursor.id);
         void auditionCursor(cursorLane);
         refresh();
         el('grid').focus();
-        status(`Pitch transposed to ${pitch > 0 ? '+' : ''}${pitch} st.`);
+        status(hitAtCursor.synthNote?`Synth note transposed to ${noteName(pitch)}.`:`Pitch transposed to ${pitch > 0 ? '+' : ''}${pitch} st.`);
       }
     } else {
       status('Move cursor to an editable hit to transpose pitch.', true);

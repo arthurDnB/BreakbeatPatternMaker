@@ -26,7 +26,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.3.0-alpha`
-* **Test Status:** 177 / 177 unit tests passing (`npm.cmd test`).
+* **Test Status:** 183 / 183 unit tests passing (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -72,6 +72,12 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-09-29] - Built-in Synth Tracks (Codex)
+- **Track and note model (`src/core/model.ts`, `src/core/compile.ts`, `src/core/editor.ts`):** Added synth tracks alongside existing WAV sample tracks. Pitched notes carry absolute MIDI pitch and musical duration, while tracker selection, copy/move, locks, Undo/Redo, and beat regeneration preserve them. The compiler rejects sample-only commands on synth notes and incompatible cross-type moves.
+- **Shared audio (`src/audio/synth-instrument.ts`, `src/audio/performance.ts`, `src/audio/drum-kit.ts`):** Added Bass, Pluck, and Pad presets with editable waveform, ADSR envelope, and low-pass filter. Preview, song playback, and WAV export render the same deterministic polyphonic voices. Voices are capped at eight per track, repeated timbres are cached, and synth render memory is bounded.
+- **Tracker and projects (`src/web.ts`, `public/index.html`, `public/workspace.css`, `src/audio/project.ts`):** Added **+ Synth Track**, a compact track-header instrument panel, octave-based keyboard note entry, note pitch/length inspector controls, and same-row chord entry. Project schema v6 saves synth tracks without embedding audio, while v2–v5 files retain their existing behavior. Updated cache keys for deployment.
+- **Verification (`tests/synth-tracks.test.mjs`, `scripts/synth-browser-smoke.mjs`, `tests/v3-integration.test.mjs`):** Covers synth editing/history, pitch, deterministic output, mute, song arrangements, project roundtrip, browser note/chord entry, regeneration, and WAV export. `npm.cmd test` passed 183/183; `npm.cmd run test:site` passed at root and GitHub Pages subpath; focused synth browser smoke passed. The unrelated `package.json` and chat-sync script changes remain untouched.
 
 ### [2026-09-29] - User-Managed Sample Tracks (Codex)
 - **Custom tracker lanes (`src/core/model.ts`, `src/core/compile.ts`, `src/core/editor.ts`, `src/core/bank.ts`):** Added arbitrary WAV-backed user tracks alongside the four existing generator roles. Each lane receives a stable track ID, supports tracker note entry, cell selection/copy/paste/move, rename/reorder, mixer level/mute/solo, and stays intact when the four-role beat generator regenerates its pattern. Arrangement validation now accepts custom lane selections.

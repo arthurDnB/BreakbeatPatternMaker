@@ -1,5 +1,6 @@
-import {DEFAULT_SOURCES, PPQ, ROLES, bounded, identifier, text, type Pattern, type Source, type Transfer} from './model.js';
+import {DEFAULT_SOURCES, PPQ, ROLES, bounded, identifier, isSynthTrack, text, type Pattern, type Source, type Transfer} from './model.js';
 import {validateArticulation} from './articulation.js';
+import {validateSynthInstrument} from '../audio/synth-instrument.js';
 import {validateSettings} from './generate.js';
 import {validateSliceInstruments,resolveSlice} from './slice-instrument.js';
 
@@ -17,8 +18,9 @@ export function compile(pattern: Pattern, sources: Source[] = DEFAULT_SOURCES, l
   for(const track of pattern.userTracks??[]){
     identifier(track.id,'track ID');text(track.name,'track name',80);
     if(trackMap.size!==(pattern.userTracks?.length??0)||ROLES.includes(track.id as typeof ROLES[number])||!ROLES.includes(track.role))throw Error('Invalid or duplicate user track.');
-    bounded(track.sample.startFrame,0,23040000,'track sample start',true);bounded(track.sample.endFrame,track.sample.startFrame+1,23040000,'track sample end',true);bounded(track.sample.sampleRate,8000,192000,'track sample rate',true);
-    identifier(track.sample.assetId,'track sample asset');text(track.sample.label,'track sample label',120);
+    if(isSynthTrack(track))validateSynthInstrument(track.instrument);
+    else {if(track.kind!==undefined&&track.kind!=='sample')throw Error('Invalid track type.');bounded(track.sample.startFrame,0,23040000,'track sample start',true);bounded(track.sample.endFrame,track.sample.startFrame+1,23040000,'track sample end',true);bounded(track.sample.sampleRate,8000,192000,'track sample rate',true);
+      identifier(track.sample.assetId,'track sample asset');text(track.sample.label,'track sample label',120);}
     bounded(track.level,0,2,'track level');bounded(track.pan,-1,1,'track pan');
     if(typeof track.mute!=='boolean'||typeof track.solo!=='boolean')throw Error('Invalid user track mixer state.');
   }
@@ -56,6 +58,7 @@ export function compile(pattern: Pattern, sources: Source[] = DEFAULT_SOURCES, l
     if(hit.lowpassHz!==undefined)bounded(hit.lowpassHz,200,20000,'sample low-pass');
     if(hit.attackMs!==undefined)bounded(hit.attackMs,0,50,'sample attack');
     if(hit.pitch!==undefined)bounded(hit.pitch,-48,48,'pitch',true);
+    if(hit.renderGain!==undefined)bounded(hit.renderGain,0,2,'render gain');
     if(hit.fineOffset!==undefined)bounded(hit.fineOffset,0,.9999999999,'fine offset');
     if(hit.slice){identifier(hit.slice.assetId,'audio asset');bounded(hit.slice.startFrame,0,23040000,'slice start',true);bounded(hit.slice.endFrame,hit.slice.startFrame+1,23040000,'slice end',true);bounded(hit.slice.sampleRate,8000,192000,'sample rate',true);}
     identifier(hit.id,'event ID');
@@ -63,6 +66,10 @@ export function compile(pattern: Pattern, sources: Source[] = DEFAULT_SOURCES, l
     if(!ROLES.includes(hit.role)) throw new Error('Unsupported event role.');
     const userTrack=hit.trackId?trackMap.get(hit.trackId):undefined;
     if(hit.trackId&&(!userTrack||userTrack.role!==hit.role))throw new Error('Missing or mismatched user track.');
+    if(isSynthTrack(userTrack)){
+      if(!hit.synthNote||hit.slice||hit.mapped||hit.effect||hit.ratchets!==undefined||hit.gate!==undefined||hit.articulation||hit.reverse||hit.playbackRate!==undefined||hit.stretchRate!==undefined||hit.pitch!==undefined||hit.ghost)throw Error('Synth tracks require pitched notes without sample or sample FX data.');
+      bounded(hit.synthNote.note,0,119,'synth note',true);bounded(hit.synthNote.durationTicks,1,PPQ*16,'synth note length',true);
+    }else if(hit.synthNote)throw Error('A pitched synth note requires a synth track.');
     const source=sourceMap.get(hit.sourceId);
     if(!source || source.role!==hit.role) throw new Error(`Missing or mismatched source ${hit.sourceId}.`);
     bounded(hit.baseTick,0,pattern.settings.bars*4*PPQ-1,'baseTick',true);
@@ -83,7 +90,8 @@ export function compile(pattern: Pattern, sources: Source[] = DEFAULT_SOURCES, l
     counts.set(key,note.column+1); columns.set(note.lane,Math.max(columns.get(note.lane)??1,note.column+1));
   }
   out.notes=notes;
-  if(notes.some(note=>trackMap.has(note.lane)))out.warnings.push('Custom sample-track audio is not embedded in tracker JSON. Use Download project + samples to preserve the WAV data.');
+  if(notes.some(note=>{const track=trackMap.get(note.lane);return track&&!isSynthTrack(track);}))out.warnings.push('Custom sample-track audio is not embedded in tracker JSON. Use Download project + samples to preserve the WAV data.');
+  if(notes.some(note=>isSynthTrack(trackMap.get(note.lane))))out.warnings.push('Use the full pattern/project file to preserve synth note pitches, lengths, and instrument settings.');
   out.sources=sources.filter(x=>usedSources.has(x.id)).map(({id,role,kind,label,note,instrument})=>({id,role,kind,label,note,instrument}));
   out.lanes=[...ROLES.filter(x=>columns.has(x)).map(id=>({id,name:id[0]!.toUpperCase()+id.slice(1),columns:columns.get(id)!})),...(pattern.userTracks??[]).filter(track=>columns.has(track.id)).map(track=>({id:track.id,name:track.name,columns:columns.get(track.id)!}))];
 

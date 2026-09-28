@@ -26,8 +26,15 @@ export interface SliceInstrument {
   slices:{id:string; note:number; startFrame:number; endFrame:number}[];
   loopFadeMs?:number;
 }
-/** User-created sampler track. Its role is the legacy audio bus used for backwards-compatible FX routing. */
-export interface UserTrack {id:string;name:string;role:Role;sample:SliceRef;level:number;pan:number;mute:boolean;solo:boolean;color?:string}
+/** User tracks retain a legacy role for compatible mixer and FX routing. */
+export interface TrackBase {id:string;name:string;role:Role;level:number;pan:number;mute:boolean;solo:boolean;color?:string}
+export interface SampleTrack extends TrackBase {kind?:'sample';sample:SliceRef}
+export type SynthWaveform='sine'|'triangle'|'saw'|'square';
+export type SynthPreset='bass'|'pluck'|'pad';
+export interface SynthInstrument {preset:SynthPreset;waveform:SynthWaveform;attack:number;decay:number;sustain:number;release:number;lowpassHz:number}
+export interface SynthTrack extends TrackBase {kind:'synth';instrument:SynthInstrument}
+export type UserTrack=SampleTrack|SynthTrack;
+export const isSynthTrack=(track:UserTrack|undefined):track is SynthTrack=>track?.kind==='synth';
 export interface RepeatArticulation {
   gain:number; pitch?:number; sourceOffset?:number; reverse?:boolean; glide?:number;
 }
@@ -40,6 +47,10 @@ export interface Articulation {
 // 09/01/02 are accepted aliases for familiar older tracker notation.
 export interface EffectCommand {command:'0S'|'09'|'0B'|'0U'|'01'|'0D'|'02'|'0C'|'0R';param:number}
 export interface Hit {
+  /** Pitched note on a synth track. Sample hits use pitch as relative semitones instead. */
+  synthNote?:{note:number;durationTicks:number};
+  /** Render-only track fader gain; saved notes keep their original velocity. */
+  renderGain?:number;
   mapped?:{instrumentId:string; note:number};
   effect?:EffectCommand;
   sourceKind?:'oneShot'|'slice';

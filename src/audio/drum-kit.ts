@@ -1,4 +1,4 @@
-import {ROLES,type Pattern,type Role,type SliceRef} from '../core/model.js';
+import {ROLES,isSynthTrack,type Pattern,type Role,type SliceRef} from '../core/model.js';
 import type {AudioAsset} from './slices.js';
 import {validateWav} from './wav.js';
 import {defaultEffects,validateEffects,type Effects} from './effects.js';
@@ -38,6 +38,7 @@ export function withDrumKit(pattern:Pattern,kit:DrumKit,mix?:KitState):Pattern{
     return !mix[h.role].mute;
   }).flatMap(hit=>{
     const userTrack=hit.trackId?userTracks.get(hit.trackId):undefined;
+    if(isSynthTrack(userTrack))return [{...hit,renderGain:hit.gain*userTrack.level,pan:Math.max(-1,Math.min(1,hit.pan+userTrack.pan))}];
     const result=hit.slice||!kit[hit.role]?{...hit}:{...hit,slice:{...kit[hit.role]!}};
     if(['groove-v3','groove-v4'].includes(pattern.settings.algorithm??''))result.sourceKind=hit.sourceKind??(hit.slice?'slice':'oneShot');
     if(mix){
