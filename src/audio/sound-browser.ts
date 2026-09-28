@@ -60,6 +60,7 @@ export function setupSoundBrowser(){
   }else status.textContent='Previewing '+(choices().find(s=>s.id===id)?.name??id);
   }catch(e){error=(e as Error).message;}finally{busy=false;if(dialog.open){render();if(error)status.textContent=error;}}};
   search.oninput=render;filter.onchange=render;preview.onclick=()=>void run('preview');use.onclick=()=>void run('apply');
+  document.getElementById('sound-browser-clear-filters')!.addEventListener('click',()=>{search.value='';filter.value='all';render();search.focus();});
   (document.getElementById('sound-browser-close') as HTMLButtonElement).onclick=()=>dialog.close();
   dialog.addEventListener('close',()=>{target?.opener.focus({preventScroll:true});target=undefined;});
   dialog.addEventListener('keydown',event=>{

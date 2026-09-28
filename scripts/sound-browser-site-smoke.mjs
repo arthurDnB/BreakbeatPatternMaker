@@ -28,6 +28,8 @@ try{
   assert.equal(await page.locator('#sound-browser').evaluate(e=>e.open),false);
   await page.click('#kit-browse-kick');await page.selectOption('#sound-browser-filter','recent');assert.match(await page.locator('.sound-browser-row').first().textContent(),/UDNB Kick 02/);
   await page.selectOption('#sound-browser-filter','favorites');assert.equal(await page.locator('.sound-browser-row').count(),1);
+  await page.fill('#sound-browser-search','no matching sound');assert.equal(await page.locator('#sound-browser-empty').isVisible(),true);assert.equal(await page.locator('#sound-browser-use').isDisabled(),true);
+  await page.click('#sound-browser-clear-filters');assert.equal(await page.inputValue('#sound-browser-search'),'');assert.equal(await page.inputValue('#sound-browser-filter'),'all');assert.ok(await page.locator('.sound-browser-row').count()>0);
   await page.keyboard.press('Escape');assert.equal(await page.locator('#kit-browse-kick').evaluate(e=>e===document.activeElement),true);
   await page.route('**/udnb-kick-04.wav',route=>route.abort());await page.click('#kit-browse-kick');await page.fill('#sound-browser-search','UDNB Kick 04');await page.click('#sound-browser-use');
   await page.waitForFunction(()=>document.querySelector('#sound-browser-status').textContent.includes('Could not load'));

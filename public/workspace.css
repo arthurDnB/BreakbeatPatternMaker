@@ -3425,3 +3425,8 @@ tr.playing-row td { background:#0b1c18; }
 #slice-octave-label { font-size:11px; align-items:center; gap:4px; }
 #slice-octave { max-width:48px; }
 @media(max-width:600px) { #break-browser { padding:12px; box-sizing:border-box; } #break-browser input[type=file] { max-width:75vw; } }
+.arrangement-empty { margin:10px 0; padding:12px; border:1px dashed #38564e; border-radius:6px; color:#bdcdc8; background:#0b1210; font-size:12px; line-height:1.5; }
+.arrangement-empty strong { color:#83ebcb; }
+#sound-browser-empty { margin:0; padding:18px; color:#c2d5d0; text-align:center; line-height:1.5; }
+#sound-browser-empty[hidden] { display:none; }
+#sound-browser-clear-filters { margin-left:8px; padding:5px 9px; border-color:#367d71; color:#b9fff0; }

@@ -88,6 +88,11 @@ try {
   await page.setViewportSize({width,height:1000});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
  }
+ while(await page.locator('[data-step] button').filter({hasText:'Remove'}).count()) await page.locator('[data-step] button').filter({hasText:'Remove'}).first().click();
+ assert.equal(await page.locator('#sequence-empty').isVisible(),true);
+ assert.match(await page.locator('#arrangement-info').textContent(),/No song arranged yet.*Add a pattern/);
+ assert.equal(await page.locator('#play-arrangement').isDisabled(),true);assert.equal(await page.locator('#export-arrangement').isDisabled(),true);
+ await page.selectOption('#append-slot','0');await page.click('#append-step');assert.equal(await page.locator('#sequence-empty').isVisible(),false);
  await mkdir('test-results',{recursive:true});
  await page.screenshot({path:'test-results/song-mobile.png',fullPage:true});
  await page.setViewportSize({width:1440,height:1000});

@@ -73,6 +73,12 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-29] - Empty States and Recovery Guidance (Codex)
+- **Empty states (`public/index.html`, `src/web.ts`, `src/audio/sound-browser.ts`, `public/workspace.css`):** An empty song arrangement now explains how to start one and reports that playback/export are disabled until a pattern is added. A no-results sound search offers a one-click clear-filters action and returns focus to search.
+- **Actionable errors (`src/web.ts`):** WAV export failures suggest shorter renders or freeing browser memory while preserving error details. Project-open failures explain which project file formats to choose.
+- **Browser coverage (`scripts/sound-browser-site-smoke.mjs`, `scripts/song-browser-smoke.mjs`):** Verified search recovery and empty-arrangement recovery back to a populated sequence. Updated script/style cache keys.
+- **Verification:** `npm.cmd test` passed 177/177; `npm.cmd run test:site` passed at the root and GitHub Pages subpath; focused song-arrangement browser smoke passed.
+
 ### [2026-09-29] - Accessible Slider Labels and Focus (Codex)
 - **Accessible controls (`public/index.html`, `src/audio/drum-kit.ts`, `src/web.ts`):** Added explicit names to generation, hit-shaping, master-DSP and dynamically built kit/effect sliders. Generation and vinyl controls now expose spoken values with meaningful units; tracker lane faders announce percentages as they change.
 - **Keyboard focus (`public/workspace.css`):** Replaced reliance on browser-default focus styling with a consistent 2px OLED-theme focus outline and offset.
