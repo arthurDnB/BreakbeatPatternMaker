@@ -68,6 +68,34 @@ const assets=new Map<string,AudioAsset>();
 let vinylTexture:VinylTexture={...DEFAULT_VINYL_TEXTURE};
 const vinylCache=new Map<string,AudioAsset>();
 let followPlayhead=true;
+type WorkspaceView='renoise'|'hybrid'|'beginner';
+type WorkspacePreferences={view:WorkspaceView;gridScrollTop:number;gridScrollLeft:number;timelineScrollLeft:number;pageScrollTop:number;openPanels:Record<string,boolean>;openTrackRoles:Role[]};
+const WORKSPACE_PREFS_KEY='bpm_workspace_preferences_v1';
+const workspacePanelIds=['pattern-history-panel','arranger','advanced-generation','master-dsp-rack','hit-editor'] as const;
+const validWorkspaceView=(value:unknown):value is WorkspaceView=>value==='renoise'||value==='hybrid'||value==='beginner';
+function readWorkspacePreferences():WorkspacePreferences{
+ const fallback:WorkspacePreferences={view:'renoise',gridScrollTop:0,gridScrollLeft:0,timelineScrollLeft:0,pageScrollTop:0,openPanels:{},openTrackRoles:[]};
+ try{const saved=JSON.parse(localStorage.getItem(WORKSPACE_PREFS_KEY)??'{}');return {...fallback,...saved,view:validWorkspaceView(saved.view)?saved.view:fallback.view,openPanels:saved.openPanels&&typeof saved.openPanels==='object'?saved.openPanels:{},openTrackRoles:Array.isArray(saved.openTrackRoles)?saved.openTrackRoles.filter((role:unknown):role is Role=>ROLES.includes(role as Role)):[]};}catch{return fallback;}
+}
+const workspacePreferences=readWorkspacePreferences();
+input('view').value=workspacePreferences.view;
+let workspaceRestoreTracks=true,workspaceSaveFrame=0,workspaceReady=false;
+function saveWorkspacePreferences(){
+ try{
+  workspacePreferences.view=validWorkspaceView(input('view').value)?input('view').value as WorkspaceView:'renoise';
+  const grid=el('grid'),timeline=el('song-timeline');workspacePreferences.gridScrollTop=grid.scrollTop;workspacePreferences.gridScrollLeft=grid.scrollLeft;workspacePreferences.timelineScrollLeft=timeline.scrollLeft;workspacePreferences.pageScrollTop=window.scrollY;
+  for(const id of workspacePanelIds){const panel=document.getElementById(id);if(panel instanceof HTMLDetailsElement)workspacePreferences.openPanels[id]=panel.open;}
+  workspacePreferences.openTrackRoles=Array.from(document.querySelectorAll<HTMLDetailsElement>('.track-instrument-panel[open]')).map(panel=>panel.dataset.role as Role).filter(role=>ROLES.includes(role));
+  localStorage.setItem(WORKSPACE_PREFS_KEY,JSON.stringify(workspacePreferences));
+ }catch{}
+}
+function scheduleWorkspaceSave(){if(!workspaceReady||workspaceSaveFrame)return;workspaceSaveFrame=requestAnimationFrame(()=>{workspaceSaveFrame=0;saveWorkspacePreferences();});}
+function restoreWorkspacePreferences(){
+ const restored={...workspacePreferences,openPanels:{...workspacePreferences.openPanels},openTrackRoles:[...workspacePreferences.openTrackRoles]};
+ workspaceRestoreTracks=true;render();
+ for(const id of workspacePanelIds){const panel=document.getElementById(id);if(panel instanceof HTMLDetailsElement&&typeof restored.openPanels[id]==='boolean')panel.open=restored.openPanels[id]!;}
+ requestAnimationFrame(()=>requestAnimationFrame(()=>setTimeout(()=>{const grid=el('grid'),timeline=el('song-timeline');grid.scrollTop=restored.gridScrollTop;grid.scrollLeft=restored.gridScrollLeft;timeline.scrollLeft=restored.timelineScrollLeft;window.scrollTo(0,restored.pageScrollTop);workspaceReady=true;saveWorkspacePreferences();},400)));
+}
 
 function syncFollowPlayhead(){
   const btn=document.getElementById('tracker-follow-playhead');
@@ -210,6 +238,7 @@ function render(){
   const active=document.activeElement as HTMLElement|null;
   const focusHit=active?.dataset.hit,focusRow=active?.dataset.row,focusCellRow=active?.dataset.cellRow,focusCellLane=active?.dataset.cellLane,focusField=active?.dataset.field;
   const openTracks=new Set(Array.from(container.querySelectorAll<HTMLDetailsElement>('.track-instrument-panel[open]')).map(panel=>panel.dataset.role));
+  if(workspaceRestoreTracks){workspacePreferences.openTrackRoles.forEach(role=>openTracks.add(role));workspaceRestoreTracks=false;}
   const soundStore=el('drum-slots');for(const card of Array.from(container.querySelectorAll<HTMLElement>('.drum-slot')))soundStore.append(card);
   const selected=selectedIds(editor.state);
   input('tracker-resolution').value=String(pattern.settings.resolution);
@@ -274,7 +303,7 @@ function render(){
       strip.append(top,mixer,meter);
       const instrument=document.createElement('details');instrument.className='track-instrument-panel';instrument.dataset.role=role;instrument.open=openTracks.has(role);
       const summary=document.createElement('summary');summary.textContent='Instrument / FX';summary.setAttribute('aria-label',`Open ${label} instrument and effects`);instrument.append(summary);
-      instrument.addEventListener('toggle',()=>{if(instrument.open)requestAnimationFrame(()=>positionInstrumentPanel(instrument));});
+      instrument.addEventListener('toggle',()=>{if(instrument.open)requestAnimationFrame(()=>positionInstrumentPanel(instrument));scheduleWorkspaceSave();});
       const card=soundStore.querySelector<HTMLElement>(`.drum-slot[data-role="${role}"]`);if(card)instrument.append(card);
       strip.append(instrument);
       th.append(strip);
@@ -929,7 +958,7 @@ function restoreGenerationDefaults(){
  syncVinylGenreAccent();presets();scheduleSave();status(PROFILES[genre].name+' generation defaults loaded, including BPM and advanced settings. Press Generate to apply to the pattern.');
 }
 el('restore-defaults').onclick=restoreGenerationDefaults;
-el('view').onchange=()=>render();el('genre').onchange=restoreGenerationDefaults;
+el('view').onchange=()=>{saveWorkspacePreferences();render();};el('genre').onchange=restoreGenerationDefaults;
 for(const control of document.querySelectorAll('#controls input, #controls select'))control.addEventListener('input',dirty);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)stop();});
 for(const family of ['Jungle & DnB','Hip-Hop & Downtempo','Garage','Dub & Bass','Breaks & Rave','Experimental']){
@@ -1351,7 +1380,7 @@ async function applyProject(raw:unknown){
   input('algorithm').value=p.draft.algorithm??'legacy-v1';input('variation').value=String(p.draft.variation??0);
   for(const role of ROLES)input(`${role}-density`).value=String(p.draft.laneDensity?.[role]??1);
   for(const [key,value] of Object.entries(p.draft))if(key!=='enabledRoles'&&key!=='laneDensity')input(key).value=String(value);
-  presets();refresh();syncVinylGenreAccent();if(migrated)status('Older project sound updated: scratch and vinyl instrument hits now use Lo-Fi Percussion 02. Vinyl texture moved to background where available.');return true;
+  presets();refresh();syncVinylGenreAccent();restoreWorkspacePreferences();if(migrated)status('Older project sound updated: scratch and vinyl instrument hits now use Lo-Fi Percussion 02. Vinyl texture moved to background where available.');return true;
 }
 el('project-save').onclick=()=>{try{if(pendingCount())throw Error('Apply or Revert pending hit edits before saving a project backup.');const data=snapshot(),filename='breakbeat-project.bbproject';downloadBytes(new TextEncoder().encode(JSON.stringify(data)).buffer,filename,'application/json');fileFeedback(`Downloaded ${filename} · portable backup with embedded samples, kit, patterns and settings. Local autosave remains active in this browser. Your browser controls the download location.`);status('Portable project backup downloaded.');}catch(e){fileFeedback('Project backup failed: '+String(e),true);status(String(e),true);}};
 el('project-open').onchange=async e=>{const field=e.target as HTMLInputElement,file=field.files?.[0];field.value='';if(!file)return;
@@ -1363,7 +1392,7 @@ el('project-new').onclick=()=>{
   const genre=input('genre').value as Genre,defaultKitId=GENRE_KITS[genre]||'acoustic-break';
   void kitPanel.applyPreset(defaultKitId);
   const ks=document.getElementById('kit-preset-select') as HTMLSelectElement | null;if(ks)ks.value=defaultKitId;const gks=document.getElementById('generator-kit-select') as HTMLSelectElement | null;if(gks)gks.value=defaultKitId;
-  refresh();status('New project started.');
+  refresh();restoreWorkspacePreferences();status('New project started.');
 };
 presets();build();
 // Do not overwrite a stored workspace with the initial default pattern.
@@ -1374,6 +1403,7 @@ try{
     const genre=input('genre').value as Genre,defaultKitId=GENRE_KITS[genre]||'acoustic-break';
     void kitPanel.applyPreset(defaultKitId);
     const ks=document.getElementById('kit-preset-select') as HTMLSelectElement | null;if(ks)ks.value=defaultKitId;const gks=document.getElementById('generator-kit-select') as HTMLSelectElement | null;if(gks)gks.value=defaultKitId;
+    restoreWorkspacePreferences();
   }
 }catch(e){el('save-status').textContent='Could not restore autosave — use Open project';}
 persistenceReady=true;
@@ -1894,6 +1924,8 @@ function initBottomRack(){
 
 function initWorkspaceDock(){
  const shell=el('studio-layout'),stack=el<HTMLButtonElement>('layout-stack'),splitter=el('resize-left'),stageSplitter=el('resize-stage');
+ for(const id of workspacePanelIds)el<HTMLDetailsElement>(id).addEventListener('toggle',scheduleWorkspaceSave);
+ el('grid').addEventListener('scroll',scheduleWorkspaceSave,{passive:true});el('song-timeline').addEventListener('scroll',scheduleWorkspaceSave,{passive:true});window.addEventListener('scroll',scheduleWorkspaceSave,{passive:true});
  const setStack=(active:boolean)=>{shell.classList.toggle('is-stacked',active);stack.setAttribute('aria-pressed',String(active));stack.textContent=active?'Side by side':'Stack panels';try{localStorage.setItem('bpm_layout_stacked',active?'1':'0');}catch{}};
  try{setStack(localStorage.getItem('bpm_layout_stacked')==='1');const saved=Number(localStorage.getItem('bpm_pattern_width'));if(saved>=180&&saved<=520)shell.style.setProperty('--tray-left-w',saved+'px');const height=Number(localStorage.getItem('bpm_tracker_height'));if(height>=300&&height<=1400)shell.style.setProperty('--tracker-height',height+'px');}catch{setStack(false);}
  stack.onclick=()=>setStack(!shell.classList.contains('is-stacked'));

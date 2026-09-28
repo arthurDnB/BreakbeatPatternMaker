@@ -73,6 +73,12 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-29] - Workspace State Restoration (Codex)
+- **Workspace preferences (`src/web.ts`):** Persist the selected tracker view, open workspace panels, expanded instrument accordions, and grid/timeline/page scroll positions in browser-local preferences. Restore these after project startup without racing the initial render or overwriting saved preferences with default state.
+- **Browser regression (`scripts/workspace-state-browser-smoke.mjs`):** Added reload coverage for view, panels, instrument accordion, and scroll positions.
+- **Cache keys (`public/index.html`):** Bumped app stylesheet and module cache identifiers for the update.
+- **Verification:** Focused workspace state browser smoke passed; `npm.cmd test` passed 177/177; `npm.cmd run test:site` passed at root and GitHub Pages subpath.
+
 ### [2026-09-29] - Empty States and Recovery Guidance (Codex)
 - **Empty states (`public/index.html`, `src/web.ts`, `src/audio/sound-browser.ts`, `public/workspace.css`):** An empty song arrangement now explains how to start one and reports that playback/export are disabled until a pattern is added. A no-results sound search offers a one-click clear-filters action and returns focus to search.
 - **Actionable errors (`src/web.ts`):** WAV export failures suggest shorter renders or freeing browser memory while preserving error details. Project-open failures explain which project file formats to choose.
