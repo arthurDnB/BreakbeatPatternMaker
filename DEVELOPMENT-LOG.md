@@ -73,6 +73,11 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-29] - Responsive Layout Coverage (Codex)
+- **Responsive smoke test (`scripts/layout-browser-smoke.mjs`):** Expanded layout checks from two desktop widths to eight viewport sizes spanning 320–1920 px. Checks now verify the application shell stays within the viewport without page-level horizontal scrolling, tracker visibility, desktop transport behavior, and mobile hit editing. Tracker channel scrolling remains an intentional internal scroller.
+- **Test maintenance:** Removed obsolete first-180-pixel transport-position expectation and selectors for retired inspector UI; the sticky transport check now tests its visible position after page scrolling.
+- **Verification:** Focused Playwright layout smoke passed at all eight viewport widths.
+
 ### [2026-09-29] - Undo and Redo Action Feedback (Codex)
 - **History controls (`src/web.ts`, `public/index.html`):** Pattern and arrangement Undo/Redo buttons retain disabled states when their stacks are empty and expose the pending action in accessible labels/tooltips. Undo/Redo status messages now announce the action label, including keyboard-triggered arrangement history. Updated the asset cache key.
 - **Browser checks (`scripts/site-browser-smoke.mjs`):** Verified initially unavailable buttons are disabled and labeled, and that pattern and arrangement actions update the labels and announce the actual action after undo/redo.
