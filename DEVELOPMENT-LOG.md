@@ -73,6 +73,11 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-28] - Tracker Resolution and LPB Controls (Codex)
+- **In-tracker grid controls (`public/index.html`, `public/workspace.css`, `src/web.ts`):** Added Resolution and Lines Per Beat selectors to the tracker toolbar so users can reduce the visible row density directly after importing a chopped break. Resolution selects 1/8–1/64 and sets a matching LPB; LPB can then be tuned independently from 1 to 32.
+- **Timing and persistence (`src/core/model.ts`, `src/core/compile.ts`, `src/core/settings.ts`, `src/core/editor.ts`, `src/core/bank.ts`, `src/audio/project.ts`):** Persist per-pattern LPB, keep absolute hit ticks intact when changing the grid, and make tracker row-based entry, copy/move, delay, fills and selection validation follow the active LPB. Resolution and LPB edits use normal pattern Undo/Redo. Clipboard paste now checks both settings.
+- **Verification (`tests/editor.test.mjs`, `scripts/tracker-navigation-smoke.mjs`):** Added coverage for undoable row remapping and browser interaction. `npm.cmd test` passed 168/168; tracker navigation browser smoke passed; `npm.cmd run test:site` passed for both root and project subpath, including audio/sample and break-review checks.
+
 ### [2026-09-28] - Listener-Verified Break Benchmark (Codex)
 - **Verified references (`benchmarks/verified-real-breaks.json`, `docs/VERIFIED-BREAK-BENCHMARK.md`):** Validated the user's completed review export against the eight source identities and SHA hashes, then recorded 101 accepted labels (94 interior onsets and seven fixed-start hits) without committing source WAVs or local paths. Reran the provisional and verified reports on the same recordings and detector build.
 - **Scoring correction (`scripts/real-break-metrics.mjs`, `scripts/real-break-benchmark.mjs`, `tests/real-break-benchmark.test.mjs`):** Excluded reference hits within 1 ms of the region start from onset-detector scoring because both slicers create that boundary without detection. Reports now show scored and fixed-start counts separately; the detector and its shipped defaults were not changed.

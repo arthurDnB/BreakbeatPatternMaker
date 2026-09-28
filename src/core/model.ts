@@ -11,7 +11,9 @@ export interface Settings {
   breakStyle?: BreakStyle;
   enabledRoles?: Role[];
   genre: Genre; seed: string; bpm: number; bars: number;
-  resolution: 8 | 16 | 32 | 64; complexity: number; syncopation: number;
+  resolution: 8 | 16 | 32 | 64; /** Tracker lines per beat; omitted patterns follow resolution / 4. */
+  lpb?: 1 | 2 | 3 | 4 | 6 | 8 | 12 | 16 | 24 | 32;
+  complexity: number; syncopation: number;
   swing: number; humanizeMs: number; ghostAmount: number; fillAmount: number;
   spicy?: number;
   /** Groove V4 per-lane optional-hit density. Missing roles behave as 1 (100%). */

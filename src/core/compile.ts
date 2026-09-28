@@ -3,7 +3,7 @@ import {validateArticulation} from './articulation.js';
 import {validateSettings} from './generate.js';
 import {validateSliceInstruments,resolveSlice} from './slice-instrument.js';
 
-export function compile(pattern: Pattern, sources: Source[] = DEFAULT_SOURCES, lpb = pattern.settings.resolution / 4): Transfer {
+export function compile(pattern: Pattern, sources: Source[] = DEFAULT_SOURCES, lpb = pattern.settings.lpb ?? pattern.settings.resolution / 4): Transfer {
   validateSettings(pattern.settings);
   validateSliceInstruments(pattern);
   if(pattern.ppq!==PPQ) throw new Error('Unsupported PPQ.');

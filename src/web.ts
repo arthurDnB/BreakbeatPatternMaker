@@ -168,6 +168,7 @@ function settings(){
   s.breakStyle=input('breakStyle').value as BreakStyle;
   s.seed=input('seed').value;s.bpm=Number(input('bpm').value);s.bars=Number(input('bars').value);
   s.resolution=Number(input('resolution').value) as typeof s.resolution;
+  if(pattern?.settings.lpb!==undefined)s.lpb=pattern.settings.lpb;
   s.spicy=Number(input('spicy').value);
   if(s.algorithm==='groove-v4')s.laneDensity=Object.fromEntries(ROLES.map(role=>[role,Number(input(`${role}-density`).value)])) as NonNullable<Settings['laneDensity']>;
   const ps=input('patternStructure').value; if(['groove','auto','fill','roll','build'].includes(ps)) s.patternStructure = ps as any;
@@ -210,6 +211,8 @@ function render(){
   const openTracks=new Set(Array.from(container.querySelectorAll<HTMLDetailsElement>('.track-instrument-panel[open]')).map(panel=>panel.dataset.role));
   const soundStore=el('drum-slots');for(const card of Array.from(container.querySelectorAll<HTMLElement>('.drum-slot')))soundStore.append(card);
   const selected=selectedIds(editor.state);
+  input('tracker-resolution').value=String(pattern.settings.resolution);
+  input('tracker-lpb').value=String(transfer.timing.lpb);
   const selectedCells=new Set((editor.state.selection.cells??[]).map(c=>`${c.row}:${c.lane}`));
   container.replaceChildren();
   const table=document.createElement('table');
@@ -434,7 +437,8 @@ function syncControls(){
   input('patternStructure').value=s.patternStructure??'auto';
   input('phraseLength').value=String(s.phraseLength??0);syncPhraseControls(s.phraseOffset??0);
   input('algorithm').value=s.algorithm??'legacy-v1';input('variation').value=String(s.variation??0);
-  for(const [key,value] of Object.entries(s))if(key!=='enabledRoles'&&key!=='laneDensity')input(key).value=String(value);
+  for(const [key,value] of Object.entries(s))if(key!=='enabledRoles'&&key!=='laneDensity'&&key!=='lpb')input(key).value=String(value);
+  input('tracker-resolution').value=String(s.resolution);input('tracker-lpb').value=String(s.lpb??s.resolution/4);
   for(const r of ROLES)kitPanel.mix[r].include=!s.enabledRoles||s.enabledRoles.includes(r);kitPanel.restore(kitPanel.snapshot());
   presets();
 }
@@ -774,6 +778,8 @@ function syncStructureControls(){
  input('fillAmount').title=v3&&structure!=='auto'?'Fill probability is used only by Auto-Fills.':'';
 }
 input('patternStructure').addEventListener('change',syncStructureControls);
+input('tracker-resolution').addEventListener('change',()=>{const value=Number(input('tracker-resolution').value) as 8|16|32|64;input('resolution').value=String(value);edit(()=>editor.setResolution(value),'Tracker resolution changed; note timing is preserved.');});
+input('tracker-lpb').addEventListener('change',()=>edit(()=>editor.setLpb(Number(input('tracker-lpb').value) as 1|2|3|4|6|8|12|16|24|32),'Tracker LPB changed; hit timing is preserved.'));
 function syncPhraseControls(offset=Number(input('phraseOffset').value)||0){
  const v3=['groove-v3','groove-v4'].includes(input('algorithm').value),length=Number(input('phraseLength').value);
  syncStructureControls();
@@ -1045,7 +1051,7 @@ function entryHit(replace:boolean,pitchOverride?:number){
   if(input('edit-attack-override').checked)hit.attackMs=Number(input('edit-attack').value);
   if(input('edit-decay-override').checked)hit.decay=Number(input('edit-decay').value);
   if(['groove-v3','groove-v4'].includes(pattern.settings.algorithm??'')){
-    const duration=Number(input('edit-burst-span').value)||3840/pattern.settings.resolution;
+    const duration=Number(input('edit-burst-span').value)||960/transfer.timing.lpb;
     const expression=prior?.articulation?structuredClone(prior.articulation):undefined;
     if(expression||hit.ratchets!>1||hit.gate!==undefined||Number(input('edit-burst-span').value)){
       hit.articulation={...(expression??{}),durationTicks:duration,mode:hit.gate!==undefined||hit.ratchets!>1?'gate':'natural'};
@@ -1266,7 +1272,7 @@ el('grid').addEventListener('keydown', event => {
       const note=Number(input('slice-octave').value)*12+semitone;
       if(!instrument.slices.some(s=>s.note===note))throw Error('This key has no slice. Choose a mapped note or another slice octave.');
       if(selectedHit?.mapped)changed=editor.editTrackerValue(selectedHit.id,'note',note);
-      else {const tick=rowAnchor*3840/pattern.settings.resolution;changed=editor.write({id:'slice-entry-'+crypto.randomUUID(),role:cursorLane,sourceId:'kit.'+cursorLane,sourceKind:'slice',mapped:{instrumentId:instrument.id,note},baseTick:Math.floor(tick),fineOffset:tick-Math.floor(tick),offsetTick:0,gain:1,pan:0,pitch:0,anchor:false,ghost:false,reason:'Mapped slice keyboard entry.'},selectedHit?.id);}
+      else {const tick=rowAnchor*960/transfer.timing.lpb;changed=editor.write({id:'slice-entry-'+crypto.randomUUID(),role:cursorLane,sourceId:'kit.'+cursorLane,sourceKind:'slice',mapped:{instrumentId:instrument.id,note},baseTick:Math.floor(tick),fineOffset:tick-Math.floor(tick),offsetTick:0,gain:1,pan:0,pitch:0,anchor:false,ghost:false,reason:'Mapped slice keyboard entry.'},selectedHit?.id);}
     }else changed=writeEntry(!!hitAtCursor,basePitch+semitone);
     if (changed) {
       void auditionCursor(cursorLane);
@@ -1437,7 +1443,7 @@ function initTrackerLiveBar() {
       });
       if (hitAtCursor && !locked(editor.state, hitAtCursor)) {
         const nextRatchets = hitAtCursor.ratchets === 2 ? 1 : 2;
-        editor.write(setRatchets(hitAtCursor,nextRatchets,3840/pattern.settings.resolution),hitAtCursor.id);
+        editor.write(setRatchets(hitAtCursor,nextRatchets,960/transfer.timing.lpb),hitAtCursor.id);
         refresh();
         el('grid').focus();
         status(nextRatchets === 2 ? 'Set 2 ratchets (roll ×2).' : 'Cleared roll ratchets.');
@@ -1456,7 +1462,7 @@ function initTrackerLiveBar() {
       });
       if (hitAtCursor && !locked(editor.state, hitAtCursor)) {
         const nextRatchets = hitAtCursor.ratchets === 4 ? 1 : 4;
-        editor.write(setRatchets(hitAtCursor,nextRatchets,3840/pattern.settings.resolution),hitAtCursor.id);
+        editor.write(setRatchets(hitAtCursor,nextRatchets,960/transfer.timing.lpb),hitAtCursor.id);
         refresh();
         el('grid').focus();
         status(nextRatchets === 4 ? 'Set 4 ratchets (roll ×4).' : 'Cleared roll ratchets.');

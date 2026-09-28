@@ -121,10 +121,10 @@ export function validateEditor(e: EditorState) {
     throw Error('Invalid slot editor.');
   }
   const rows = e.selection.rows;
-  if (rows !== null && (!Array.isArray(rows) || rows.length !== 2 || rows.some(x => !Number.isInteger(x) || x < 0) || rows[0] > rows[1] || rows[1] >= e.pattern.settings.bars * e.pattern.settings.resolution)) {
+  if (rows !== null && (!Array.isArray(rows) || rows.length !== 2 || rows.some(x => !Number.isInteger(x) || x < 0) || rows[0] > rows[1] || rows[1] >= compile(e.pattern).timing.lines)) {
     throw Error('Invalid slot selection.');
   }
-  if (e.selection.cells !== undefined && (!Array.isArray(e.selection.cells) || e.selection.cells.some(c => !c || !Number.isInteger(c.row) || c.row < 0 || c.row >= e.pattern.settings.bars * e.pattern.settings.resolution || !['kick','snare','hat','percussion'].includes(c.lane)))) throw Error('Invalid cell selection.');
+  if (e.selection.cells !== undefined && (!Array.isArray(e.selection.cells) || e.selection.cells.some(c => !c || !Number.isInteger(c.row) || c.row < 0 || c.row >= compile(e.pattern).timing.lines || !['kick','snare','hat','percussion'].includes(c.lane)))) throw Error('Invalid cell selection.');
 }
 
 export function arrange(bank: Bank, bpm: number = bank.songBpm) {
@@ -142,9 +142,10 @@ export function songTimeline(bank: Bank) {
   validateBank(bank);
   let start = 0;
   return bank.sequence.flatMap((step, index) => Array.from({length: step.repeats}, (_, repeat) => {
-    const settings = bank.slots[step.slot]!.editor!.pattern.settings;
+    const pattern = bank.slots[step.slot]!.editor!.pattern;
+    const settings = pattern.settings;
     const duration = settings.bars * 240 / bank.songBpm;
-    const entry = {step: index, slot: step.slot, section: step.section, repeat, start, duration, lines: settings.bars * settings.resolution};
+    const entry = {step: index, slot: step.slot, section: step.section, repeat, start, duration, lines: compile(pattern).timing.lines};
     start += duration;
     return entry;
   }));

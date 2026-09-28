@@ -15,6 +15,7 @@ export function validateSettings(s: Settings): void {
   text(s.seed, 'seed', 80);
   bounded(s.bpm, 32, 999, 'BPM'); bounded(s.bars, 1, 4, 'bars', true);
   if (![8,16,32,64].includes(s.resolution)) throw new Error('Resolution must be 8, 16, 32 or 64.');
+  if(s.lpb!==undefined&&!([1,2,3,4,6,8,12,16,24,32] as number[]).includes(s.lpb))throw Error('LPB must be 1, 2, 3, 4, 6, 8, 12, 16, 24 or 32.');
   for (const k of ['complexity','syncopation','ghostAmount','fillAmount'] as const) bounded(s[k],0,1,k);
   if(s.spicy!==undefined) bounded(s.spicy,0,1,'spicy');
   if(s.laneDensity!==undefined){

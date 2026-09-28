@@ -19,6 +19,13 @@ try{
  const nextRow=page.locator('[data-cell-row="1"][data-cell-lane="kick"][data-field="note"]').first();
  assert.equal(await nextRow.getAttribute('aria-current'),'location');
  await page.keyboard.press('ArrowUp');assert.equal(await first.getAttribute('aria-current'),'location');
+ const startingRows=await page.locator('#grid tbody tr').count(),startingLpb=await page.inputValue('#tracker-lpb');
+ await page.selectOption('#tracker-lpb','2');await page.waitForFunction(()=>document.querySelector('#summary').textContent.includes('LPB 2'));
+ assert.equal(await page.locator('#grid tbody tr').count(),startingRows/Number(startingLpb)*2);
+ await page.locator('#undo').click();await page.waitForFunction(value=>document.querySelector('#summary').textContent.includes('LPB '+value),startingLpb);
+ assert.equal(await page.locator('#grid tbody tr').count(),startingRows);
+ await page.selectOption('#tracker-resolution','8');await page.waitForFunction(()=>document.querySelector('#summary').textContent.includes('LPB 2'));
+ assert.equal(await page.inputValue('#tracker-lpb'),'2');
  assert.deepEqual(errors,[]);
- console.log('Tracker navigation: cursor highlight and horizontal/vertical pattern-edge wrapping passed.');
+ console.log('Tracker navigation: keyboard movement, in-tracker resolution/LPB, row remapping, undo and pattern-edge wrapping passed.');
 }finally{await browser.close();}

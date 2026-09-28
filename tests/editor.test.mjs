@@ -64,6 +64,20 @@ test('repeated edits across resolutions preserve protected hits and always compi
   for(const h of before)assert.deepEqual(e.state.pattern.events.find(n=>n.id===h.id),h);
  }
 });
+
+test('tracker resolution and LPB are undoable and preserve absolute hit timing',()=>{
+ const pattern=generate({...defaults(),bars:2,resolution:64});
+ const editor=new Editor(pattern),original=pattern.events.map(h=>[h.id,h.baseTick,h.offsetTick]);
+ assert.equal(compile(editor.state.pattern).timing.lines,128);
+ editor.setLpb(4);
+ assert.equal(compile(editor.state.pattern).timing.lines,32);
+ assert.deepEqual(editor.state.pattern.events.map(h=>[h.id,h.baseTick,h.offsetTick]),original);
+ editor.setResolution(16);
+ assert.equal(compile(editor.state.pattern).timing.lpb,4);
+ assert.equal(editor.undoLabel,'Change tracker resolution');
+ editor.undo();assert.equal(compile(editor.state.pattern).timing.lpb,4);
+ editor.undo();assert.equal(compile(editor.state.pattern).timing.lines,128);
+});
 test('scramble shuffles timing/slices while strictly preserving anchors and locks',()=>{
  const e=create();
  e.toggleRole('snare');

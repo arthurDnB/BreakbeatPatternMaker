@@ -11,11 +11,12 @@ import {PPQ, ROLES, type Pattern, type Role, type Hit, type EffectCommand} from 
 
 export interface CellPosition {row:number;lane:Role}
 export interface TrackerClipCell extends CellPosition {hits:Hit[]}
-export interface TrackerClipboard {sliceInstruments?:Pattern['sliceInstruments'];width:number;height:number;resolution:number;cells:TrackerClipCell[]}
+export interface TrackerClipboard {sliceInstruments?:Pattern['sliceInstruments'];width:number;height:number;resolution:number;lpb:number;cells:TrackerClipCell[]}
 export interface Selection {ids: string[]; rows: [number, number] | null; cells?:CellPosition[]}
 export interface EditorState {pattern: Pattern; lockedIds: string[]; lockedRoles: Role[]; selection: Selection; revision: number}
 const copy = <T>(v:T):T => structuredClone(v);
 export const emptySelection = ():Selection => ({ids:[],rows:null});
+const rowTicks = (pattern:Pattern) => PPQ / compile(pattern).timing.lpb;
 export function locked(state:EditorState, hit:Pattern['events'][number]):boolean {
   return state.lockedIds.includes(hit.id)||state.lockedRoles.includes(hit.role);
 }
@@ -41,6 +42,8 @@ export class Editor {
   undo(){const item=this.past.pop();if(!item)return false;this.future.push({state:copy(this.state),label:item.label});this.state=item.state;return true;}
   redo(){const item=this.future.pop();if(!item)return false;this.past.push({state:copy(this.state),label:item.label});this.state=item.state;return true;}
   setTempo(bpm:number){if(!Number.isFinite(bpm)||bpm<32||bpm>999)throw Error('Tempo must be between 32 and 999 BPM.');const next=copy(this.state);next.pattern.settings.bpm=bpm;next.revision++;return this.commit(next,'Change BPM');}
+  setResolution(resolution:8|16|32|64){const next=copy(this.state);next.pattern.settings.resolution=resolution;next.pattern.settings.lpb=(resolution/4) as 2|4|8|16;next.revision++;return this.commit(next,'Change tracker resolution');}
+  setLpb(lpb:1|2|3|4|6|8|12|16|24|32){const next=copy(this.state);next.pattern.settings.lpb=lpb;next.revision++;return this.commit(next,'Change tracker LPB');}
   updateSliceInstrument(instrument:NonNullable<Pattern['sliceInstruments']>[number]){
     const next=copy(this.state),index=next.pattern.sliceInstruments?.findIndex(i=>i.id===instrument.id)??-1;
     if(index<0)throw Error('This instrument is no longer in the active pattern.');
@@ -106,12 +109,12 @@ export class Editor {
     const unique=new Map(positions.map(c=>[`${c.row}:${c.lane}`,c]));
     const ids=selection.cells?.length||selection.rows?undefined:new Set(selection.ids);
     const cells=[...unique.values()].map(c=>({row:c.row-top,lane:ROLES[ROLES.indexOf(c.lane)-left]!,hits:notes.filter(n=>n.row===c.row&&n.lane===c.lane&&(!ids||ids.has(n.id))).map(n=>copy(this.state.pattern.events.find(h=>h.id===n.id)!))}));
-    return {sliceInstruments:copy(this.state.pattern.sliceInstruments),width:Math.max(...positions.map(c=>ROLES.indexOf(c.lane)))-left+1,height:Math.max(...positions.map(c=>c.row))-top+1,resolution:this.state.pattern.settings.resolution,cells};
+    return {sliceInstruments:copy(this.state.pattern.sliceInstruments),width:Math.max(...positions.map(c=>ROLES.indexOf(c.lane)))-left+1,height:Math.max(...positions.map(c=>c.row))-top+1,resolution:this.state.pattern.settings.resolution,lpb:compile(this.state.pattern).timing.lpb,cells};
   }
   pasteCells(clip:TrackerClipboard,row:number,lane:Role):boolean {
-    const next=copy(this.state),lines=compile(next.pattern).timing.lines,step=PPQ*4/next.pattern.settings.resolution,laneIndex=ROLES.indexOf(lane);
+    const next=copy(this.state),lines=compile(next.pattern).timing.lines,step=rowTicks(next.pattern),laneIndex=ROLES.indexOf(lane);
     if(!Number.isInteger(row)||row<0||laneIndex<0||!clip.cells.length)throw Error('Choose a valid destination cell.');
-    if(clip.resolution!==next.pattern.settings.resolution)throw Error('Copy and destination patterns must use the same resolution.');
+    if(clip.resolution!==next.pattern.settings.resolution||clip.lpb!==compile(next.pattern).timing.lpb)throw Error('Copy and destination patterns must use the same resolution and LPB.');
     for(const instrument of clip.sliceInstruments??[]){const existing=next.pattern.sliceInstruments?.find(i=>i.id===instrument.id);if(existing&&JSON.stringify(existing)!==JSON.stringify(instrument))throw Error('Instrument mapping differs. Import into another pattern.');if(!existing)(next.pattern.sliceInstruments??=[]).push(copy(instrument));}
     const destination=clip.cells.map(c=>({row:row+c.row,lane:ROLES[laneIndex+ROLES.indexOf(c.lane)]!,source:c}));
     if(destination.some(c=>c.row>=lines||!c.lane))throw Error('Paste would extend beyond the pattern.');
@@ -141,10 +144,10 @@ export class Editor {
   }
   moveCells(cells:CellPosition[],row:number,lane:Role):boolean {
     if(!cells.length||!Number.isInteger(row)||!ROLES.includes(lane))throw Error('Select a valid tracker destination.');
-    const next=copy(this.state),notes=compile(next.pattern).notes,lines=next.pattern.settings.bars*next.pattern.settings.resolution;
+    const next=copy(this.state),notes=compile(next.pattern).notes,lines=compile(next.pattern).timing.lines;
     const source=[...new Map(cells.map(c=>[`${c.row}:${c.lane}`,c])).values()];
     const top=Math.min(...source.map(c=>c.row)),left=Math.min(...source.map(c=>ROLES.indexOf(c.lane)));
-    const rowShift=row-top,laneShift=ROLES.indexOf(lane)-left,step=PPQ*4/next.pattern.settings.resolution;
+    const rowShift=row-top,laneShift=ROLES.indexOf(lane)-left,step=rowTicks(next.pattern);
     if(!rowShift&&!laneShift)return false;
     const destinations=source.map(c=>({row:c.row+rowShift,lane:ROLES[ROLES.indexOf(c.lane)+laneShift]}));
     if(destinations.some(c=>c.row<0||c.row>=lines||!c.lane))throw Error('Move would extend beyond the pattern.');
@@ -175,7 +178,7 @@ export class Editor {
     else if(field==='note'){if(value<0||value>96)throw Error('Notes must be C-0 through C-8.');hit.pitch=value-48;}
     else if(field==='volume'){if(value<0||value>128)throw Error('Volume must be 00–80 hex.');hit.gain=value/128;}
     else if(field==='pan'){if(value<0||value>128)throw Error('Pan must be 00–80 hex.');hit.pan=value/64-1;}
-    else {if(value<0||value>255)throw Error('Delay must be 00–FF hex.');const tick=(note.row+value/256)*PPQ*4/next.pattern.settings.resolution;hit.baseTick=Math.floor(tick);hit.fineOffset=tick-Math.floor(tick);hit.offsetTick=0;}
+    else {if(value<0||value>255)throw Error('Delay must be 00–FF hex.');const tick=(note.row+value/256)*rowTicks(next.pattern);hit.baseTick=Math.floor(tick);hit.fineOffset=tick-Math.floor(tick);hit.offsetTick=0;}
     next.selection={ids:[id],rows:null,cells:[{row:note.row,lane:note.lane}]};next.revision++;
     return this.commit(next,`Edit tracker ${field}`);
   }
@@ -197,7 +200,7 @@ export class Editor {
     for(let i=eligible.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[eligible[i],eligible[j]]=[eligible[j]!,eligible[i]!];}
     const changedHits=eligible.slice(0,Math.max(1,Math.ceil(eligible.length*.2)));
     for(const hit of changedHits){
-      const step=PPQ*4/next.pattern.settings.resolution;
+      const step=rowTicks(next.pattern);
       let target=hit.baseTick+(rng()<.5?-step:step);
       if(['groove-v2','groove-v3','groove-v4'].includes(next.pattern.settings.algorithm??'')){
         const rule=GROOVES[next.pattern.settings.genre],origin=Math.floor(hit.baseTick/(4*PPQ))*4*PPQ;
@@ -246,8 +249,8 @@ export class Editor {
   }
   private boundGestures(next:EditorState,hits:Hit[],range:[number,number]|null){
     if(!['groove-v3','groove-v4'].includes(next.pattern.settings.algorithm??''))return;
-    const rowTicks=PPQ*4/next.pattern.settings.resolution;
-    const end=Math.min(next.pattern.settings.bars*4*PPQ,range?(range[1]+1)*rowTicks:Infinity);
+    const ticksPerRow=rowTicks(next.pattern);
+    const end=Math.min(next.pattern.settings.bars*4*PPQ,range?(range[1]+1)*ticksPerRow:Infinity);
     for(const h of hits){
       if(!h.articulation||h.anchor||locked(next,h))continue;
       const start=h.baseTick+h.offsetTick+(h.fineOffset??0);
@@ -260,7 +263,7 @@ export class Editor {
     const next=copy(this.state),range=next.selection.rows;
     if(!range)throw Error('Select an ending using row numbers or Select last beat.');
     if(['groove-v2','groove-v3','groove-v4'].includes(next.pattern.settings.algorithm??'')){
-      const step=PPQ*4/next.pattern.settings.resolution,start=range[0]*step,end=(range[1]+1)*step;
+      const step=rowTicks(next.pattern),start=range[0]*step,end=(range[1]+1)*step;
       const additions=(next.pattern.settings.algorithm==='groove-v4'?grooveV4Fill:next.pattern.settings.algorithm==='groove-v3'?grooveV3Fill:grooveFill)({...next.pattern.settings,variation:next.revision},start,end);
       let changed=false;
       for(const hit of additions){
@@ -279,7 +282,7 @@ export class Editor {
     }
     if(next.pattern.settings.enabledRoles&&!next.pattern.settings.enabledRoles.includes('snare'))throw Error('Snare is excluded from this pattern. Include it and Generate before adding a fill.');
     if(next.lockedRoles.includes('snare'))return false;
-    const step=PPQ*4/next.pattern.settings.resolution;
+    const step=rowTicks(next.pattern);
     const start=range[0]*step,end=(range[1]+1)*step;
     const notes=compile(next.pattern).notes;
     const inRange=new Set(notes.filter(n=>n.row>=range[0]&&n.row<=range[1]).map(n=>n.id));

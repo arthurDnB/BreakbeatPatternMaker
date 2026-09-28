@@ -57,7 +57,7 @@ export function readProject(raw:unknown,replacement?:AudioAsset){
   compile(p.editor.pattern);validateSettings(p.draft);if(p.bank){validateBank(p.bank);if(JSON.stringify(p.bank.slots[p.bank.active]!.editor)!==JSON.stringify(p.editor))throw Error('Active slot mismatch.');}
   if(!Array.isArray(p.editor.lockedRoles)||p.editor.lockedRoles.some(r=>!ROLES.includes(r))||!Array.isArray(p.editor.lockedIds)||p.editor.lockedIds.some(id=>typeof id!=='string')||!Number.isInteger(p.editor.revision)||p.editor.revision<0)throw Error('Invalid project editor state.');
   const selection=p.editor.selection;
-  if(!selection||!Array.isArray(selection.ids)||selection.ids.some(id=>typeof id!=='string')||(selection.rows!==null&&(!Array.isArray(selection.rows)||selection.rows.length!==2||selection.rows.some(r=>!Number.isInteger(r)||r<0)||selection.rows[1]!>=p.editor.pattern.settings.bars*p.editor.pattern.settings.resolution)))throw Error('Invalid project selection.');
+  if(!selection||!Array.isArray(selection.ids)||selection.ids.some(id=>typeof id!=='string')||(selection.rows!==null&&(!Array.isArray(selection.rows)||selection.rows.length!==2||selection.rows.some(r=>!Number.isInteger(r)||r<0)||selection.rows[1]!>=compile(p.editor.pattern).timing.lines)))throw Error('Invalid project selection.');
   const assets=new Map<string,AudioAsset>();let total=0;
   for(const a of p.assets){
     if(!a||typeof a.id!=='string'||!/^[a-zA-Z0-9._-]{1,80}$/.test(a.id)||assets.has(a.id)||typeof a.name!=='string'||a.name.length>1000||!Number.isInteger(a.sampleRate)||a.sampleRate<8000||a.sampleRate>192000||!Array.isArray(a.channels)||a.channels.length<1||a.channels.length>2)throw Error('Invalid project audio metadata.');
