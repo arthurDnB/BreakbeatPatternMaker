@@ -1,6 +1,6 @@
 const element = id => document.getElementById(id);
 const colors = { pending: '#e6ac53', accepted: '#4be3a1', rejected: '#71828a', uncertain: '#a68aea' };
-let catalogue, review, activeId, selectedId, cursorTime = 1;
+let catalogue, review, activeId, selectedId, cursorTime = 1, zoomFactor = 1, viewCenter = 1;
 let audioContext, playback, saving = Promise.resolve(), saveFailed = false, pointerDrag;
 const buffers = new Map();
 const canvas = element('waveform');
@@ -63,7 +63,7 @@ function renderMarkers() {
     button.setAttribute('role', 'listitem');
     button.setAttribute('aria-label', `${marker.time.toFixed(3)} seconds, ${marker.status}`);
     button.innerHTML = `<span>${marker.time.toFixed(3)} s</span><span>${marker.status}</span>`;
-    button.onclick = () => { selectedId = marker.id; cursorTime = marker.time; render(); };
+    button.onclick = () => { selectedId = marker.id; cursorTime = marker.time; revealMarker(marker); render(); };
     button.ondblclick = () => { selectedId = marker.id; void playSelected(); };
     list.append(button);
   }
@@ -84,7 +84,37 @@ function render() {
   element('clip-detail').textContent = `${item.regionSeconds[0].toFixed(2)}–${item.regionSeconds[1].toFixed(2)} seconds · ${state.listenedFull ? 'Full passage played' : 'Play full passage to unlock review'}`;
   element('review-badge').textContent = state.reviewed ? 'Reviewed by ear' : 'Needs review';
   element('review-badge').classList.toggle('done', state.reviewed);
-  renderCases(); renderMarkers(); drawWaveform();
+  renderCases(); renderMarkers(); updateZoomControls(); drawWaveform();
+}
+
+function viewRange() {
+  const [regionStart, regionEnd] = activeCase().regionSeconds;
+  const duration = (regionEnd - regionStart) / zoomFactor;
+  const start = Math.max(regionStart, Math.min(regionEnd - duration, viewCenter - duration / 2));
+  return [start, start + duration];
+}
+function updateZoomControls() {
+  if (!activeId) return;
+  const [regionStart, regionEnd] = activeCase().regionSeconds;
+  const [start, end] = viewRange();
+  element('zoom-level').textContent = `${zoomFactor}×`;
+  element('zoom-out').disabled = zoomFactor <= 1;
+  element('zoom-in').disabled = zoomFactor >= 32;
+  const pan = element('wave-pan');
+  pan.disabled = zoomFactor <= 1;
+  pan.value = String(Math.round((start - regionStart) / Math.max(.000001, regionEnd - regionStart - (end - start)) * 100));
+}
+function setZoom(factor, anchorTime = viewCenter, anchorRatio = .5) {
+  zoomFactor = Math.max(1, Math.min(32, factor));
+  const [regionStart, regionEnd] = activeCase().regionSeconds;
+  const duration = (regionEnd - regionStart) / zoomFactor;
+  const start = Math.max(regionStart, Math.min(regionEnd - duration, anchorTime - anchorRatio * duration));
+  viewCenter = start + duration / 2;
+  updateZoomControls(); drawWaveform();
+}
+function revealMarker(marker) {
+  const [start, end] = viewRange();
+  if (marker.time < start || marker.time > end) { viewCenter = marker.time; updateZoomControls(); }
 }
 
 async function ensureBuffer(id) {
@@ -100,6 +130,9 @@ async function switchCase(id) {
   stopPlayback();
   activeId = id;
   const state = activeReview();
+  zoomFactor = 1;
+  const [regionStart, regionEnd] = activeCase().regionSeconds;
+  viewCenter = (regionStart + regionEnd) / 2;
   selectedId = state.markers.find(marker => marker.status === 'pending')?.id ?? state.markers[0]?.id;
   cursorTime = selected()?.time ?? activeCase().regionSeconds[0] + .5;
   render();
@@ -157,8 +190,8 @@ function drawPlayhead() { if (playback) { drawWaveform(); requestAnimationFrame(
 
 function canvasTime(event) {
   const rect = canvas.getBoundingClientRect();
-  const [start, end] = activeCase().regionSeconds;
-  return Math.max(start + .00001, Math.min(end - .00001, start + (event.clientX - rect.left) / rect.width * (end - start)));
+  const [regionStart, regionEnd] = viewRange();
+  return Math.max(regionStart + .00001, Math.min(regionEnd - .00001, regionStart + (event.clientX - rect.left) / rect.width * (regionEnd - regionStart)));
 }
 function clampTime(value) {
   const [start, end] = activeCase().regionSeconds;
@@ -174,22 +207,26 @@ function drawWaveform() {
   painter.setTransform(ratio, 0, 0, ratio, 0, 0);
   const width = rect.width, height = rect.height;
   painter.fillStyle = '#060a0c'; painter.fillRect(0, 0, width, height);
-  const [start, end] = activeCase().regionSeconds;
-  for (let tick = Math.ceil(start * 4); tick <= Math.floor(end * 4); tick++) {
-    const x = (tick / 4 - start) / (end - start) * width;
-    painter.strokeStyle = tick % 2 ? '#1b2b30' : '#2b4448';
+  const [start, end] = viewRange();
+  const span = end - start;
+  const tickSize = span > 1 ? .25 : span > .5 ? .1 : span > .12 ? .025 : span > .04 ? .01 : .0025;
+  const firstTick = Math.ceil(start / tickSize - 1e-8), lastTick = Math.floor(end / tickSize + 1e-8);
+  for (let tick = firstTick; tick <= lastTick; tick++) {
+    const time = tick * tickSize;
+    const x = (time - start) / span * width;
+    painter.strokeStyle = tick % 4 ? '#1b2b30' : '#2b4448';
     painter.beginPath(); painter.moveTo(x, 10); painter.lineTo(x, height - 18); painter.stroke();
-    painter.fillStyle = '#789099'; painter.font = '11px Segoe UI, sans-serif'; painter.fillText((tick / 4).toFixed(2) + 's', x + 3, height - 5);
+    painter.fillStyle = '#789099'; painter.font = '11px Segoe UI, sans-serif'; painter.fillText(time.toFixed(span < .12 ? 3 : 2) + 's', x + 3, height - 5);
   }
   const buffer = buffers.get(activeId);
   if (buffer) {
     painter.strokeStyle = '#50d8c8'; painter.lineWidth = 1;
-    const frameStart = Math.floor(start * buffer.sampleRate), span = (end - start) * buffer.sampleRate;
+    const frameStart = Math.floor(start * buffer.sampleRate), sampleSpan = (end - start) * buffer.sampleRate;
     const samples = Array.from({ length: buffer.numberOfChannels }, (_, channel) => buffer.getChannelData(channel));
     painter.beginPath();
     for (let x = 0; x < Math.ceil(width); x++) {
-      const a = Math.max(0, Math.floor(frameStart + x / width * span));
-      const b = Math.min(buffer.length, Math.max(a + 1, Math.floor(frameStart + (x + 1) / width * span)));
+      const a = Math.max(0, Math.floor(frameStart + x / width * sampleSpan));
+      const b = Math.min(buffer.length, Math.max(a + 1, Math.floor(frameStart + (x + 1) / width * sampleSpan)));
       let low = 1, high = -1;
       for (const channel of samples) for (let frame = a; frame < b; frame++) { low = Math.min(low, channel[frame]); high = Math.max(high, channel[frame]); }
       painter.moveTo(x + .5, height / 2 - high * (height * .37));
@@ -200,17 +237,20 @@ function drawWaveform() {
     painter.fillStyle = '#9caeb6'; painter.font = '14px Segoe UI, sans-serif'; painter.fillText('Loading waveform…', 18, height / 2);
   }
   for (const marker of markersInTimeOrder()) {
-    const x = (marker.time - start) / (end - start) * width;
+    if (marker.time < start || marker.time > end) continue;
+    const x = (marker.time - start) / span * width;
     painter.strokeStyle = colors[marker.status];
     painter.lineWidth = marker.id === selectedId ? 3 : 1.5;
     painter.beginPath(); painter.moveTo(x, 10); painter.lineTo(x, height - 22); painter.stroke();
     if (marker.id === selectedId) { painter.fillStyle = '#f5fffd'; painter.beginPath(); painter.arc(x, 10, 5, 0, Math.PI * 2); painter.fill(); }
   }
-  const cursorX = (cursorTime - start) / (end - start) * width;
+  if (cursorTime >= start && cursorTime <= end) {
+    const cursorX = (cursorTime - start) / span * width;
   painter.strokeStyle = '#ffffff66'; painter.setLineDash([4, 4]); painter.beginPath(); painter.moveTo(cursorX, 0); painter.lineTo(cursorX, height - 20); painter.stroke(); painter.setLineDash([]);
+  }
   if (playback) {
     const current = playback.start + (audioContext.currentTime - playback.begun) * playback.speed;
-    const x = (current - start) / (end - start) * width;
+    const x = (current - start) / span * width;
     painter.strokeStyle = '#fff'; painter.lineWidth = 2; painter.beginPath(); painter.moveTo(x, 0); painter.lineTo(x, height - 18); painter.stroke();
   }
 }
@@ -241,8 +281,10 @@ function finishClip() {
 canvas.addEventListener('pointerdown', event => {
   if (!activeId) return;
   const time = canvasTime(event), width = canvas.getBoundingClientRect().width;
-  const nearest = markersInTimeOrder().reduce((best, marker) => !best || Math.abs(marker.time - time) < Math.abs(best.time - time) ? marker : best, null);
-  const threshold = (activeCase().regionSeconds[1] - activeCase().regionSeconds[0]) * 12 / width;
+  const [viewStart, viewEnd] = viewRange();
+  const nearest = markersInTimeOrder().filter(marker => marker.time >= viewStart && marker.time <= viewEnd)
+    .reduce((best, marker) => !best || Math.abs(marker.time - time) < Math.abs(best.time - time) ? marker : best, null);
+  const threshold = (viewEnd - viewStart) * 12 / width;
   if (nearest && Math.abs(nearest.time - time) <= threshold) {
     selectedId = nearest.id; cursorTime = nearest.time;
     pointerDrag = { id: nearest.id, startX: event.clientX, changed: false };
@@ -262,6 +304,27 @@ canvas.addEventListener('pointermove', event => {
 canvas.addEventListener('pointerup', () => { if (pointerDrag?.changed) void save(); pointerDrag = undefined; });
 canvas.addEventListener('pointercancel', () => { if (pointerDrag?.changed) void save(); pointerDrag = undefined; });
 new ResizeObserver(drawWaveform).observe(canvas);
+canvas.addEventListener('wheel', event => {
+  event.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const ratio = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+  const [start, end] = viewRange();
+  const anchor = start + ratio * (end - start);
+  setZoom(zoomFactor * (event.deltaY < 0 ? 2 : .5), anchor, ratio);
+}, { passive: false });
+element('zoom-in').onclick = () => setZoom(zoomFactor * 2, selected()?.time ?? viewCenter);
+element('zoom-out').onclick = () => setZoom(zoomFactor / 2, selected()?.time ?? viewCenter);
+element('zoom-fit').onclick = () => {
+  const [start, end] = activeCase().regionSeconds;
+  setZoom(1, (start + end) / 2);
+};
+element('wave-pan').oninput = event => {
+  const [regionStart, regionEnd] = activeCase().regionSeconds;
+  const duration = (regionEnd - regionStart) / zoomFactor;
+  const travel = regionEnd - regionStart - duration;
+  viewCenter = regionStart + duration / 2 + travel * Number(event.target.value) / 100;
+  drawWaveform();
+};
 
 element('play-full').onclick = playFull;
 element('play-hit').onclick = () => { void playSelected(); };
@@ -294,7 +357,7 @@ document.addEventListener('keydown', event => {
   if (['ArrowLeft', 'ArrowRight'].includes(event.key) && !['BUTTON'].includes(document.activeElement?.tagName)) {
     event.preventDefault(); const ordered = markersInTimeOrder(), index = ordered.findIndex(marker => marker.id === selectedId);
     const next = ordered[Math.max(0, Math.min(ordered.length - 1, index + (event.key === 'ArrowRight' ? 1 : -1)))];
-    if (next) { selectedId = next.id; cursorTime = next.time; render(); }
+    if (next) { selectedId = next.id; cursorTime = next.time; revealMarker(next); render(); }
   }
   if (event.key.toLowerCase() === 'f') { event.preventDefault(); playFull(); }
   if (event.key.toLowerCase() === 'a') { event.preventDefault(); editStatus('accepted'); }

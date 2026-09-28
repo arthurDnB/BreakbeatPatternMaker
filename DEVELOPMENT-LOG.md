@@ -73,6 +73,10 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-28] - Zoomable Break Review Waveform (Codex)
+- **Waveform inspection (`tools/break-review/index.html`, `tools/break-review/app.js`, `tools/break-review/style.css`):** Added 1×–32× zoom by mouse wheel or buttons, pointer-anchored zoom, Fit reset, and a navigator slider for moving through the zoomed view. Waveform samples, marker hit targets, timing grid, cursor, and playhead now use the visible time range; selecting an onset in the list brings it into view.
+- **Verification (`scripts/break-review-smoke.mjs`, `docs/REAL-BREAK-BENCHMARK.md`):** Browser smoke covers button and wheel zoom, navigator movement, Fit reset, playback windows, autosave, reload, and mobile layout.
+
 ### [2026-09-28] - Separate Hit and Context Audition (Codex)
 - **Review player (`tools/break-review/index.html`, `tools/break-review/app.js`):** Replaced the single broad audition action with **Hit only** and **Hit + context**. Hit only begins 6 ms before the selected onset and ends before the next non-rejected candidate, capped at a 350 ms tail; context playback retains a short lead-in and tail. Space now plays Hit only.
 - **Verification (`scripts/break-review-smoke.mjs`, `docs/REAL-BREAK-BENCHMARK.md`):** Browser smoke checks confirm isolated playback uses a later start and shorter window than context playback; local playback, save/reload, and mobile layout remain covered.

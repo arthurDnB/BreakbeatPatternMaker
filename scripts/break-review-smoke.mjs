@@ -18,6 +18,17 @@ try {
   assert.equal(await page.locator('#case-list button').count(), 8);
   assert.match(await page.locator('#clip-title').textContent(), /Amen Brother/);
   await page.locator('#waveform').screenshot({ path: 'test-results/break-transcription/review-ui.png' });
+  assert.equal(await page.locator('#zoom-level').textContent(), '1×');
+  await page.locator('#zoom-in').click();
+  assert.equal(await page.locator('#zoom-level').textContent(), '2×');
+  await page.locator('#waveform').hover();
+  await page.mouse.wheel(0, -100);
+  assert.equal(await page.locator('#zoom-level').textContent(), '4×');
+  assert.equal(await page.locator('#wave-pan').isDisabled(), false);
+  await page.locator('#wave-pan').evaluate(input => { input.value = '100'; input.dispatchEvent(new Event('input', { bubbles: true })); });
+  await page.locator('#zoom-fit').click();
+  assert.equal(await page.locator('#zoom-level').textContent(), '1×');
+  assert.equal(await page.locator('#wave-pan').isDisabled(), true);
   await page.evaluate(() => {
     const original = AudioBufferSourceNode.prototype.start;
     window.__playWindows = [];

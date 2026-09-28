@@ -2,3 +2,4 @@
 .cases,.case-button,.case-name{min-width:0}
 @media(max-width:900px){.layout{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:520px){.topbar{flex-wrap:wrap}.progress{text-align:left}.clip-heading{flex-wrap:wrap}.markers-heading{flex-wrap:wrap}}
+.wave-tools{display:flex;align-items:center;gap:7px;margin:14px 0 7px;color:#9fb1b7;font-size:12px}.wave-tools strong{margin-right:4px;color:#d8e4e5}.wave-tools button{padding:5px 10px}.wave-tools #zoom-level{min-width:34px;text-align:center;color:#8cf3e8;font-variant-numeric:tabular-nums}.wave-tools input{flex:1;min-width:80px;accent-color:#39cbbb}.wave-tools input:disabled{opacity:.4}.legend span:last-child{margin-left:auto;color:#789099}@media(max-width:520px){.wave-tools{flex-wrap:wrap}.wave-tools strong{width:100%}.wave-tools input{flex-basis:100%;order:2}.legend span:last-child{margin-left:0}}
