@@ -241,7 +241,7 @@ function synthInstrumentPanel(track:SynthTrack):HTMLDetailsElement{
     for(const choice of choices){const option=document.createElement('option');option.value=choice;option.textContent=choice[0]!.toUpperCase()+choice.slice(1);select.append(option);}
     select.value=value;select.onchange=()=>change(select.value);label.append(select);card.append(label);
   };
-  selectControl('Preset',track.instrument.preset,['bass','pluck','pad'],value=>update({...SYNTH_PRESETS[value as keyof typeof SYNTH_PRESETS]}));
+  selectControl('Preset',track.instrument.preset,['bass','pluck','pad','piano'],value=>update({...SYNTH_PRESETS[value as keyof typeof SYNTH_PRESETS]}));
   selectControl('Waveform',track.instrument.waveform,['sine','triangle','saw','square'],value=>update({waveform:value as SynthInstrument['waveform']}));
   for(const [key,labelText,min,max,step] of [['attack','Attack',.001,2,.001],['decay','Decay',.001,3,.001],['sustain','Sustain',0,1,.01],['release','Release',.01,4,.01],['lowpassHz','Low-pass Hz',100,20000,10]] as const){
     const label=document.createElement('label'),output=document.createElement('output'),control=document.createElement('input');label.textContent=labelText;
@@ -539,12 +539,13 @@ function stop(){
   playToken++;setPlayButton(false);el('song-position').textContent='Song stopped';document.querySelector('.playing-row')?.classList.remove('playing-row');
   resetHud();renderComparisonControls();
 }
-function build(){
+function buildLayer(layer:'drums'|'bassline'|'lead'|'piano'){
   if(pendingCount()){status('Apply or Revert pending hit edits before generating a new pattern.',true);return;}
   stop();
-  try{const requested=settings();if(requested.generationMode!=='melody'&&!requested.enabledRoles?.length)throw Error('Include at least one drum instrument, or choose Melody only.');const before=editor?structuredClone(editor.state):undefined;let changed=true;if(!editor){const initial=new Editor(generate(requested));if(requested.generationMode!=='drums')initial.generateComposition(requested);editor=new Editor(initial.state.pattern);}else changed=editor.generateComposition(requested);if(requested.generationMode!=='drums'){const track=editor.state.pattern.userTracks?.find(track=>isSynthTrack(track)&&track.generatedPart===(requested.melodyPart??'bassline'));if(track){cursorTrackId=track.id;cursorLane=track.role;}}refresh();if(changed&&before)rememberActivePattern(before,'Before Generate');status(`${requested.generationMode==='both'?'Drums and melody':requested.generationMode==='melody'?'Melody':'Drums'} generated from seed “${pattern.settings.seed}”. Other layers and locked notes were preserved.${before?' Undo restores the previous pattern.':''}`);}
+  try{const requested=settings();requested.generationMode=layer==='drums'?'drums':'melody';if(layer!=='drums')requested.melodyPart=layer;input('generationMode').value=requested.generationMode;input('melodyPart').value=requested.melodyPart??'bassline';if(layer==='drums'&&!requested.enabledRoles?.length)throw Error('Include at least one drum instrument to generate the beat.');const before=editor?structuredClone(editor.state):undefined;let changed=false;if(!editor){editor=new Editor(generate({...requested,generationMode:'drums'}));if(layer!=='drums')changed=editor.generateComposition(requested,`Generate ${layer==='bassline'?'Bass':layer==='lead'?'Melody':'Piano'}`);}else changed=editor.generateComposition(requested,`Generate ${layer==='drums'?'Beat':layer==='bassline'?'Bass':layer==='lead'?'Melody':'Piano'}`);if(layer!=='drums'){const track=editor.state.pattern.userTracks?.find(track=>isSynthTrack(track)&&track.generatedPart===layer);if(track){cursorTrackId=track.id;cursorLane=track.role;}}refresh();if(changed&&before)rememberActivePattern(before,`Before Generate ${layer}`);status(`${layer==='drums'?'Beat':layer==='bassline'?'Bassline':layer==='lead'?'Melody':'Piano chords'} generated from seed “${pattern.settings.seed}”. Other layers and locked notes were preserved.${before?' Undo restores the previous pattern.':''}`);}
   catch(e){status((e as Error).message,true);}
 }
+function build(){buildLayer('drums');}
 function download(){
   el<HTMLDetailsElement>('more-actions').open=false;
   const url=URL.createObjectURL(new Blob([patternJSON()],{type:'application/json'}));
@@ -903,14 +904,11 @@ function presets(){
   const p=PROFILES[genre];el('genre-description').textContent=p.description??'A repeating motif with '+GROOVES[genre].fillStyle+' fills and instrument-specific groove.';const container=el('presets');container.replaceChildren();
   for(const bpm of p.presets){const button=document.createElement('button');button.textContent=String(bpm);button.onclick=()=>{input('bpm').value=String(bpm);syncSliders();dirty();};container.append(button);}
 }
-function syncModeControls(){
-  const mode=input('generationMode').value;
-  el('melody-options').hidden=mode==='drums';
-  input('generationMode').title=mode==='melody'?'Generate synth notes and preserve existing drums.':mode==='both'?'Regenerate drums and the selected melody part.':'Regenerate drums and preserve synth notes.';
-}
+function syncModeControls(){input('melody-options').title='Key and scale apply to Bass, Melody and Piano generators. Each Generate button changes only its own layer.';}
 function dirty(){scheduleSave();status('Settings changed. Press Generate to apply; the displayed pattern remains the export target.');}
 
 el('generate').onclick=build;
+el('generate-bass').onclick=()=>buildLayer('bassline');el('generate-melody').onclick=()=>buildLayer('lead');el('generate-piano').onclick=()=>buildLayer('piano');
 el('clear-selection').onclick=()=>{editor.state.selection=emptySelection();render();};
 el('select-range').onclick=()=>selectRows(Number(input('row-start').value),Number(input('row-end').value));
 el('select-ending').onclick=()=>selectRows(transfer.timing.lines-transfer.timing.lpb,transfer.timing.lines-1);

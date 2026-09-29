@@ -1,4 +1,5 @@
 import type {Genre,MelodyPart} from './model.js';
+type MelodyVoicePart=Exclude<MelodyPart,'piano'>;
 
 export interface MelodyPartProfile {
   /** Sixteenth-note positions within a bar. */
@@ -79,7 +80,7 @@ export const MELODY_GENRES:Record<Genre,Style>={
   halftimednb:s([[0,5,3,4]],[[0,0,4,0],[0,4,2,0]],[[0,2,4,1],[4,2,1,0]],[0,10],[0,8,13]),
   neurofunk:s([[0,6,2,4]],[[0,4,1,0],[0,1,4,2]],[[0,4,1,3],[4,1,0,2]])
 };
-export function melodyProfile(genre:Genre,partName:MelodyPart):MelodyPartProfile{
+export function melodyProfile(genre:Genre,partName:MelodyVoicePart):MelodyPartProfile{
   const base=profiles[families[genre]][partName],genreStyle=MELODY_GENRES[genre];
   return {...base,motif:partName==='bassline'?genreStyle.bassMotif??base.motif:genreStyle.leadMotif??base.motif,
     contours:partName==='bassline'?genreStyle.bass:genreStyle.lead,progressions:genreStyle.progressions};

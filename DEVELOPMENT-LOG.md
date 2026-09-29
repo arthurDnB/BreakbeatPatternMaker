@@ -74,6 +74,13 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-29] - Independent Beat, Bass, Melody & Piano Generators (Codex)
+- **Layer controls (`public/index.html`, `public/workspace.css`, `src/web.ts`):** Replaced the mode/part dropdown workflow with separate **Beat**, **Bass**, **Melody**, and **Piano chords** actions. Key and scale stay available; each button regenerates only its own lane and retains unrelated generated/user material. Each action keeps one-step editor Undo and locked-note behavior.
+- **Chord composer (`src/core/piano.ts`, `src/core/editor.ts`, `src/core/model.ts`, `src/core/settings.ts`, `src/core/compile.ts`):** Added a deterministic, genre-profiled piano progression/voicing generator, using genre-specific sparse, swung/offbeat, active and dense chord rhythms; chord extensions scale with Complexity and follow the selected key/scale. Generated chords occupy their own reusable **Generated Piano** synth track.
+- **Piano sound (`src/audio/synth-instrument.ts`):** Added a struck-string piano-style procedural voice with inharmonic partials and natural decay, shared by live playback and WAV export. This is a lightweight synthesized piano timbre, not a bundled sampled grand piano; a properly licensed multisample bank remains a sound-quality follow-up.
+- **Project and QA (`src/audio/project.ts`, `tests/piano-generation.test.mjs`, `scripts/melody-browser-smoke.mjs`, `public/index.html`):** Piano instrument tracks save as project version 7 while versions 2–6 continue loading. Added scale-safety, deterministic output, genre rhythm, layer preservation, locks, Undo, project roundtrip and render checks; expanded browser smoke to exercise the four layer buttons. Bumped deployment cache keys.
+- **Verification:** `npm.cmd test` passed 195/195; `npm.cmd run test:site` passed at root and GitHub Pages subpath, including site, sound-library and break-transcription browser checks. `node scripts/melody-browser-smoke.mjs` passed Beat/Bass/Melody/Piano actions, preservation, Undo/Redo, project roundtrip and WAV export.
+
 ### [2026-09-29] - Refresh Melody Engine Browser Cache (Codex)
 - **Deployment entrypoint (`public/index.html`):** Bumped the `dist/web.js` cache key so deployments after melody-engine changes request the new browser module instead of reusing the earlier app bundle.
 - **Melody browser check (`scripts/melody-browser-smoke.mjs`):** Asserted the generated lane is clearly named `Generated Lead`, notes follow the selected D Blues scale, and the phrase avoids four-note ascending scale runs. User-created `Synth 1` / `Synth 2` lanes remain separate from the generated lane by design.

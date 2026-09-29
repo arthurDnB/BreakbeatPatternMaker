@@ -5,7 +5,7 @@ export type Role = typeof ROLES[number];
 export type Genre = 'jungle' | 'dnb' | 'hiphop' | 'trap' | 'rap' | 'drill' | 'breakcore' | 'idm' | 'hardcore' | 'experimental' | 'breaks' | 'bigbeat' | 'nuskoolbreaks' | 'electrobreaks' | 'breakbeathardcore' | 'raggajungle' | 'atmosphericjungle' | 'footworkjungle' | 'downtempo' | 'lofihiphop' | 'boombap' | 'mellowbeats' | 'liquiddnb' | 'jumpup' | 'garage' | 'speedgarage' | 'twostepgarage' | 'dub' | 'psydub' | 'dubstep' | 'brostep' | 'postdubstep' | 'drumfunk' | 'amenscience' | 'atmosphericbreakcore' | 'triphop' | 'halftimednb' | 'neurofunk';
 export type BreakStyle = 'genre' | 'amen' | 'think' | 'apache' | 'funkyDrummer' | 'hotPants';
 export type GenerationMode = 'drums' | 'melody' | 'both';
-export type MelodyPart = 'bassline' | 'lead';
+export type MelodyPart = 'bassline' | 'lead' | 'piano';
 export type MelodyScale = 'major' | 'natural-minor' | 'harmonic-minor' | 'melodic-minor' | 'dorian' | 'phrygian' | 'lydian' | 'mixolydian' | 'locrian' | 'major-pentatonic' | 'minor-pentatonic' | 'blues' | 'whole-tone' | 'diminished' | 'double-harmonic' | 'hirajoshi';
 export interface Settings {
   algorithm?: 'legacy-v1' | 'groove-v2' | 'groove-v3' | 'groove-v4';
@@ -35,7 +35,7 @@ export interface SliceInstrument {
 export interface TrackBase {id:string;name:string;role:Role;level:number;pan:number;mute:boolean;solo:boolean;color?:string}
 export interface SampleTrack extends TrackBase {kind?:'sample';sample:SliceRef}
 export type SynthWaveform='sine'|'triangle'|'saw'|'square';
-export type SynthPreset='bass'|'pluck'|'pad';
+export type SynthPreset='bass'|'pluck'|'pad'|'piano';
 export interface SynthInstrument {preset:SynthPreset;waveform:SynthWaveform;attack:number;decay:number;sustain:number;release:number;lowpassHz:number}
 export interface SynthTrack extends TrackBase {kind:'synth';instrument:SynthInstrument;generatedPart?:MelodyPart}
 export type UserTrack=SampleTrack|SynthTrack;

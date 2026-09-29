@@ -77,7 +77,7 @@ function breakScaleRun(note:number,recent:readonly number[],key:number,scale:rea
 /** Seeded phrase composition, independent of whichever drum engine is selected. */
 export function generateMelody(settings:Settings,trackId:string):Hit[]{
   validateSettings(settings);
-  const part=settings.melodyPart??'bassline',profile=melodyProfile(settings.genre,part);
+  const part=settings.melodyPart==='piano'?'bassline':settings.melodyPart??'bassline',profile=melodyProfile(settings.genre,part);
   const key=settings.melodyKey??0,scale=MELODY_SCALES[settings.melodyScale??'natural-minor'].intervals;
   const progressions=profile.progressions,contours=profile.contours;
   // Harmony uses a part-independent stream so separately generated bass and lead agree.

@@ -20,7 +20,7 @@ export function compile(pattern: Pattern, sources: Source[] = DEFAULT_SOURCES, l
     if(trackMap.size!==(pattern.userTracks?.length??0)||ROLES.includes(track.id as typeof ROLES[number])||!ROLES.includes(track.role))throw Error('Invalid or duplicate user track.');
     if(isSynthTrack(track)){
       validateSynthInstrument(track.instrument);
-      if(track.generatedPart!==undefined&&!['bassline','lead'].includes(track.generatedPart))throw Error('Invalid generated melody track.');
+      if(track.generatedPart!==undefined&&!['bassline','lead','piano'].includes(track.generatedPart))throw Error('Invalid generated melody track.');
       if(track.generatedPart&&(pattern.userTracks??[]).filter(other=>isSynthTrack(other)&&other.generatedPart===track.generatedPart).length>1)throw Error('Duplicate generated melody track.');
     }
     else {if(track.kind!==undefined&&track.kind!=='sample')throw Error('Invalid track type.');bounded(track.sample.startFrame,0,23040000,'track sample start',true);bounded(track.sample.endFrame,track.sample.startFrame+1,23040000,'track sample end',true);bounded(track.sample.sampleRate,8000,192000,'track sample rate',true);

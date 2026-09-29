@@ -4,10 +4,11 @@ export const SYNTH_PRESETS:Record<SynthPreset,SynthInstrument>={
   bass:{preset:'bass',waveform:'saw',attack:.006,decay:.16,sustain:.55,release:.12,lowpassHz:1400},
   pluck:{preset:'pluck',waveform:'triangle',attack:.003,decay:.22,sustain:.12,release:.14,lowpassHz:5200},
   pad:{preset:'pad',waveform:'saw',attack:.14,decay:.45,sustain:.62,release:.75,lowpassHz:2300},
+  piano:{preset:'piano',waveform:'sine',attack:.004,decay:1.4,sustain:.12,release:.8,lowpassHz:12000},
 };
 
 export function validateSynthInstrument(value:SynthInstrument):void{
-  if(!value||!['bass','pluck','pad'].includes(value.preset)||!['sine','triangle','saw','square'].includes(value.waveform))throw Error('Invalid synth instrument.');
+  if(!value||!['bass','pluck','pad','piano'].includes(value.preset)||!['sine','triangle','saw','square'].includes(value.waveform))throw Error('Invalid synth instrument.');
   bounded(value.attack,.001,2,'synth attack');bounded(value.decay,.001,3,'synth decay');bounded(value.sustain,0,1,'synth sustain');
   bounded(value.release,.01,4,'synth release');bounded(value.lowpassHz,100,20000,'synth filter');
 }
@@ -21,6 +22,7 @@ const polyBlep=(phase:number,step:number)=>{
 export function renderSynthNote(note:number,durationSeconds:number,rate:number,instrument:SynthInstrument):Float32Array{
   validateSynthInstrument(instrument);
   bounded(note,0,119,'synth note',true);bounded(durationSeconds,.001,40,'synth note duration');
+  if(instrument.preset==='piano')return renderPianoNote(note,durationSeconds,rate,instrument);
   const frequency=Math.min(440*2**((note-69)/12),rate*.45),step=frequency/rate;
   const total=Math.ceil((durationSeconds+instrument.release)*rate),data=new Float32Array(total);
   const cutoff=Math.min(instrument.lowpassHz,rate*.45),filter=Math.exp(-2*Math.PI*cutoff/rate);
@@ -40,6 +42,27 @@ export function renderSynthNote(note:number,durationSeconds:number,rate:number,i
     filtered=(1-filter)*wave+filter*filtered;
     data[i]=filtered*env*.48;
     phase+=step;phase-=Math.floor(phase);
+  }
+  return data;
+}
+
+/** Lightweight deterministic piano voice: inharmonic partials decay at different rates like struck strings. */
+function renderPianoNote(note:number,durationSeconds:number,rate:number,instrument:SynthInstrument):Float32Array{
+  const frequency=Math.min(440*2**((note-69)/12),rate*.42),total=Math.ceil((durationSeconds+instrument.release)*rate);
+  const data=new Float32Array(total),partials=[1,.62,.39,.27,.19,.14,.105,.078,.058],decays=[2.2,1.35,.92,.69,.53,.42,.34,.28,.23];
+  const phases=partials.map(()=>0),steps=partials.map((_,i)=>frequency*(i+1)*Math.sqrt(1+.00016*(i+1)**2)/rate);
+  const cutoff=Math.min(instrument.lowpassHz,rate*.45),filter=Math.exp(-2*Math.PI*cutoff/rate);let filtered=0;
+  for(let i=0;i<total;i++){
+    const time=i/rate,release=time<durationSeconds?1:Math.exp(-7*(time-durationSeconds)/instrument.release);
+    let string=0;
+    for(let partial=0;partial<partials.length;partial++){
+      const step=steps[partial]!;if(step>=.5)continue;
+      const phase=phases[partial]!;string+=Math.sin(phase*2*Math.PI)*partials[partial]!*Math.exp(-time/decays[partial]!);
+      phases[partial]=phase+step-Math.floor(phase+step);
+    }
+    filtered=(1-filter)*string+filter*filtered;
+    const hammer=1+.28*Math.exp(-time/.006),edge=Math.min(1,(total-i)/Math.max(1,rate*.004));
+    data[i]=filtered*.235*release*hammer*edge;
   }
   return data;
 }

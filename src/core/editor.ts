@@ -8,6 +8,7 @@ import {GROOVES} from './groove-profiles.js';
 import {compile} from './compile.js';
 import {random} from './random.js';
 import {generateMelody} from './melody.js';
+import {generatePiano} from './piano.js';
 import {validateSettings} from './settings.js';
 import {SYNTH_PRESETS} from '../audio/synth-instrument.js';
 import {PPQ, ROLES, isSynthTrack, type Pattern, type Role, type Hit, type EffectCommand, type SynthInstrument, type SynthTrack, type MelodyPart, type Settings} from './model.js';
@@ -113,8 +114,9 @@ export class Editor {
     const existing=old.userTracks?.find(track=>isSynthTrack(track)&&track.generatedPart===part) as SynthTrack|undefined;
     let id=existing?.id??`melody-${part}`,suffix=2;
     while(!existing&&old.userTracks?.some(track=>track.id===id))id=`melody-${part}-${suffix++}`;
-    const track:SynthTrack=existing??{id,name:part==='bassline'?'Generated Bassline':'Generated Lead',kind:'synth',generatedPart:part,role:'percussion',instrument:copy(SYNTH_PRESETS[part==='bassline'?'bass':'pluck']),level:1,pan:0,mute:false,solo:false};
-    return this.replace(pattern,label,{part,track,notes:generateMelody(settings,id)});
+    const names={bassline:'Generated Bassline',lead:'Generated Lead',piano:'Generated Piano'} as const;
+    const track:SynthTrack=existing??{id,name:names[part],kind:'synth',generatedPart:part,role:'percussion',instrument:copy(SYNTH_PRESETS[part==='bassline'?'bass':part==='lead'?'pluck':'piano']),level:1,pan:0,mute:false,solo:false};
+    return this.replace(pattern,label,{part,track,notes:part==='piano'?generatePiano(settings,id):generateMelody(settings,id)});
   }
   addUserTrack(track:NonNullable<Pattern['userTracks']>[number]):boolean{
     const next=copy(this.state);if(next.pattern.userTracks?.some(item=>item.id===track.id))throw Error('Track ID already exists.');(next.pattern.userTracks??=[]).push(copy(track));next.revision++;return this.commit(next,isSynthTrack(track)?'Add synth track':'Add sample track');

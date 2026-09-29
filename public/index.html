@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Breakbeat Pattern Maker</title><link rel="stylesheet" href="./public/style.css?v=0.4.1-trackerfx"><link rel="stylesheet" href="./public/workspace.css?v=0.4.21-melody"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Breakbeat Pattern Maker</title><link rel="stylesheet" href="./public/style.css?v=0.4.1-trackerfx"><link rel="stylesheet" href="./public/workspace.css?v=0.4.23-layer-generators"></head>
 <body><main class="daw-chassis">
 <svg class="icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><symbol id="icon-shuffle" viewBox="0 0 24 24"><path d="M3 6h3c6 0 6 12 12 12h3m-3-3 3 3-3 3M3 18h3c2 0 3-1 4-3m4-6c1-2 2-3 4-3h3m-3-3 3 3-3 3"/></symbol><symbol id="icon-sliders" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16M9 2v6m6 1v6m-5 1v6"/></symbol><symbol id="icon-variation" viewBox="0 0 24 24"><path d="M4 7h12a4 4 0 0 1 4 4v2m-3-3 3 3 3-3M20 17H8a4 4 0 0 1-4-4v-2m3 3-3-3-3 3"/></symbol><symbol id="icon-grid" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 10h16M4 15h16M10 4v16m5-16v16"/></symbol><symbol id="icon-wave" viewBox="0 0 24 24"><path d="M2 12h3l2-7 4 14 3-10 2 5 2-2h4"/></symbol><symbol id="icon-follow" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M12 2v5m0 10v5M2 12h5m10 0h5"/></symbol></svg>
 
@@ -305,9 +305,9 @@
         <label>Spicy <output id="spicy-value" for="spicy">0%</output><input id="spicy" aria-label="Generation spice" type="range" min="0" max="1" step=".01" value="0"><small>Rolls &amp; variation</small></label>
       </div>
       <div class="composition-controls">
-        <label>Generate<select id="generationMode" aria-label="Generation mode"><option value="drums" selected>Drums only</option><option value="both">Drums + Melody</option><option value="melody">Melody only</option></select></label>
-        <div id="melody-options" class="melody-options" hidden>
-          <label>Part<select id="melodyPart"><option value="bassline" selected>Bassline</option><option value="lead">Lead</option></select></label>
+        <input id="generationMode" type="hidden" value="drums"><input id="melodyPart" type="hidden" value="bassline">
+        <div id="melody-options" class="melody-options">
+          <span class="harmony-label">Key &amp; harmony</span>
           <label>Key<select id="melodyKey"><option value="0">C</option><option value="1">C♯ / D♭</option><option value="2">D</option><option value="3">D♯ / E♭</option><option value="4">E</option><option value="5">F</option><option value="6">F♯ / G♭</option><option value="7">G</option><option value="8">G♯ / A♭</option><option value="9">A</option><option value="10">A♯ / B♭</option><option value="11">B</option></select></label>
           <label>Scale<select id="melodyScale"><option value="major">Major</option><option value="natural-minor" selected>Natural Minor</option><option value="harmonic-minor">Harmonic Minor</option><option value="melodic-minor">Melodic Minor</option><option value="dorian">Dorian</option><option value="phrygian">Phrygian</option><option value="lydian">Lydian</option><option value="mixolydian">Mixolydian</option><option value="locrian">Locrian</option><option value="major-pentatonic">Major Pentatonic</option><option value="minor-pentatonic">Minor Pentatonic</option><option value="blues">Blues</option><option value="whole-tone">Whole Tone</option><option value="diminished">Diminished</option><option value="double-harmonic">Double Harmonic</option><option value="hirajoshi">Hirajoshi</option></select></label>
         </div>
@@ -334,7 +334,7 @@
   <label>Percussion <output id="percussion-density-value" for="percussion-density">100%</output><input id="percussion-density" type="range" min="0" max="2" step=".05" value="1"></label>
 </fieldset>
       </div></details>
-      <div class="generation-toolbar"><button id="generate" class="accent">Generate</button><button id="regenerate">Variation</button><button id="restore-defaults" title="Reset all generation controls to the selected genre’s defaults">Restore defaults</button></div>
+      <div class="generation-toolbar layer-generators" aria-label="Generate pattern layers"><span class="generator-label">Generate layer</span><button id="generate" class="accent" title="Generate or replace the drum beat; preserve bass, melody, piano and user tracks">Beat</button><button id="generate-bass" title="Generate or replace the bassline only">Bass</button><button id="generate-melody" title="Generate or replace the lead melody only">Melody</button><button id="generate-piano" title="Generate lush genre-aware piano chords only">Piano chords</button><span class="toolbar-spacer"></span><button id="regenerate">Variation</button><button id="restore-defaults" title="Reset all generation controls to the selected genre’s defaults">Restore defaults</button></div>
     </section>
 
     <!-- Master DSP Strip -->
@@ -452,4 +452,4 @@
   </div>
   <p class="footer-note" hidden>Single-shot tracker · Audio stays local. Save project includes your samples and settings; autosave restores your latest workspace on this browser. WAV includes tails; muted lanes are excluded. Pitch repitches the sound. MP3 export remains planned.</p>
 </footer>
-</main><script type="module" src="./dist/web.js?v=0.4.22-melody-phrases"></script></body></html>
+</main><script type="module" src="./dist/web.js?v=0.4.23-layer-generators"></script></body></html>
