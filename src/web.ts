@@ -521,6 +521,8 @@ function render(){
   const allLocked=selected.size>0&&[...selected].every(id=>editor.state.lockedIds.includes(id));
   el('lock-selected').textContent=allLocked?'Unlock selected hits':'Lock selected hits';input('lock-selected').disabled=selected.size===0;
   el('mutate').textContent=range||selected.size||cellCount?'Mutate selection':'Mutate pattern';
+  el('simplify').textContent=range||selected.size||cellCount?'Simplify selection':'Simplify pattern';
+  el('increase-complexity').textContent=range||selected.size||cellCount?'Add detail to selection':'Increase complexity';
   input('fill').disabled=!range;
   input('undo').disabled=!editor.undoLabel;input('redo').disabled=!editor.redoLabel;
   el('undo').title=editor.undoLabel?`Undo ${editor.undoLabel}`:'Nothing to undo';el('redo').title=editor.redoLabel?`Redo ${editor.redoLabel}`:'Nothing to redo';
@@ -994,6 +996,8 @@ el('select-ending').onclick=()=>selectRows(transfer.timing.lines-transfer.timing
 el('lock-selected').onclick=()=>edit(()=>editor.toggleSelectedLocks(),'Selected hit locks updated. Drum-lane locks still take precedence.');
 for(const role of ['kick','snare','hat','percussion'] as const)el(`lock-${role}`).onchange=()=>edit(()=>editor.toggleRole(role),`${role} lane lock updated.`);
 el('mutate').onclick=()=>edit(()=>editor.mutate(),'Variation applied. Locked hits and main anchors are unchanged. Preview and export now use this edit.','Before mutation');
+el('simplify').onclick=()=>edit(()=>editor.simplify(),'Quiet optional hits removed. Main anchors, manual notes and locks are unchanged.','Before simplify');
+el('increase-complexity').onclick=()=>edit(()=>editor.increaseComplexity(),'Genre-aware details added. Main anchors, manual notes and locks are unchanged.','Before adding detail');
 el('fill').onclick=()=>edit(()=>editor.fill(),'Fill applied to the selected rows. Locked hits and main anchors are unchanged.','Before fill');
 function history(direction:'undo'|'redo'){
   stop();const label=direction==='undo'?editor.undoLabel:editor.redoLabel;

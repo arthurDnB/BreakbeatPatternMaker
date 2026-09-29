@@ -24,6 +24,9 @@ export const emptySelection = ():Selection => ({ids:[],rows:null});
 const rowTicks = (pattern:Pattern) => PPQ / compile(pattern).timing.lpb;
 const laneIds = (pattern:Pattern):string[] => [...ROLES,...(pattern.userTracks??[]).map(track=>track.id)];
 const roleForLane = (pattern:Pattern,lane:string):Role|undefined => ROLES.includes(lane as Role)?lane as Role:pattern.userTracks?.find(track=>track.id===lane)?.role;
+const generatedDrum = (hit:Hit):boolean => !hit.synthNote&&(!hit.trackId||!!hit.generatedDrumRole);
+const beatRole = (hit:Hit):Role => hit.generatedDrumRole??hit.role;
+const hitLane = (hit:Hit):string => hit.trackId??hit.role;
 export function locked(state:EditorState, hit:Pattern['events'][number]):boolean {
   return state.lockedIds.includes(hit.id)||!hit.trackId&&state.lockedRoles.includes(hit.role);
 }
@@ -300,7 +303,7 @@ export class Editor {
   mutate(){
     const next=copy(this.state),scope=selectedIds(next);
     const scoped=next.selection.rows!==null||next.selection.ids.length>0||!!next.selection.cells?.length;
-    const eligible=next.pattern.events.filter(h=>!h.trackId&&!h.anchor&&!locked(next,h)&&(!scoped||scope.has(h.id)));
+    const eligible=next.pattern.events.filter(h=>generatedDrum(h)&&!h.anchor&&!locked(next,h)&&(!scoped||scope.has(h.id)));
     if(!eligible.length)return false;
     const rng=random(next.pattern.settings.seed,`mutate:${next.revision}`);
     // Fisher-Yates, avoiding engine-dependent random sort comparators.
@@ -312,14 +315,15 @@ export class Editor {
       if(['groove-v2','groove-v3','groove-v4'].includes(next.pattern.settings.algorithm??'')){
         const rule=GROOVES[next.pattern.settings.genre],origin=Math.floor(hit.baseTick/(4*PPQ))*4*PPQ;
         const v3=['groove-v3','groove-v4'].includes(next.pattern.settings.algorithm??'')?V3_RULES[next.pattern.settings.genre]:undefined;
-        const positions=v3?(hit.role==='kick'?v3.pickups:hit.role==='snare'?v3.ghosts:hit.role==='hat'?[...v3.hats,...v3.hatDetails]:v3.percussion):(hit.role==='kick'?rule.kickExtras:hit.role==='snare'?rule.response:[1,3,5,7,9,11,13,15]);
+        const role=beatRole(hit);
+        const positions=v3?(role==='kick'?v3.pickups:role==='snare'?v3.ghosts:role==='hat'?[...v3.hats,...v3.hatDetails]:v3.percussion):(role==='kick'?rule.kickExtras:role==='snare'?rule.response:[1,3,5,7,9,11,13,15]);
         const choices=positions.map(n=>origin+(v3?n*240:Math.round(n*240/step)*step)).filter(t=>t!==hit.baseTick&&Math.abs(t-hit.baseTick)<=(v3?480:step*2));
         target=choices.length?choices[Math.floor(rng()*choices.length)]!:hit.baseTick;
       }
       const row=Math.floor(Math.max(0,Math.round((target+hit.offsetTick)/step*256))/256);
       const range=next.selection.rows;
-      if(rng()<.65&&target>=0&&target<next.pattern.settings.bars*PPQ*4&&(!range||(row>=range[0]&&row<=range[1]))&&!next.pattern.events.some(e=>e.id!==hit.id&&e.role===hit.role&&e.baseTick===target)){
-        hit.baseTick=target;if(['groove-v2','groove-v3','groove-v4'].includes(next.pattern.settings.algorithm??''))(next.pattern.settings.algorithm==='groove-v4'?grooveV4Timing:next.pattern.settings.algorithm==='groove-v3'?grooveV3Timing:grooveTiming)(hit,next.pattern.settings);if(range)hit.offsetTick=Math.max(range[0]*step-hit.baseTick,Math.min((range[1]+1)*step-1-hit.baseTick,hit.offsetTick));hit.reason='This variation moves an ornament to a neighboring subdivision while retaining the main backbeat.';
+      if(rng()<.65&&target>=0&&target<next.pattern.settings.bars*PPQ*4&&(!range||(row>=range[0]&&row<=range[1]))&&!next.pattern.events.some(e=>e.id!==hit.id&&hitLane(e)===hitLane(hit)&&e.baseTick===target)){
+        hit.baseTick=target;if(['groove-v2','groove-v3','groove-v4'].includes(next.pattern.settings.algorithm??'')){const laneRole=hit.role;hit.role=beatRole(hit);(next.pattern.settings.algorithm==='groove-v4'?grooveV4Timing:next.pattern.settings.algorithm==='groove-v3'?grooveV3Timing:grooveTiming)(hit,next.pattern.settings);hit.role=laneRole;}if(range)hit.offsetTick=Math.max(range[0]*step-hit.baseTick,Math.min((range[1]+1)*step-1-hit.baseTick,hit.offsetTick));hit.reason='This variation moves an ornament to a neighboring subdivision while retaining the main backbeat.';
       }else{
         hit.gain=Math.round(Math.max(.08,Math.min(hit.ghost?.35:.85,hit.gain+(hit.gain>(hit.ghost?.27:.55)?-.12:.12)))*10000)/10000;
         hit.reason=hit.ghost?'This ghost snare has a revised quiet accent; the main backbeat stays in place.':'This variation changes the accent strength while preserving the rhythm.';
@@ -327,6 +331,52 @@ export class Editor {
     }
     this.boundGestures(next,changedHits,next.selection.rows);
     next.revision++;return this.commit(next,scoped?'Mutate selection':'Mutate pattern');
+  }
+  simplify(){
+    const next=copy(this.state),scope=selectedIds(next);
+    const scoped=next.selection.rows!==null||next.selection.ids.length>0||!!next.selection.cells?.length;
+    const eligible=next.pattern.events.filter(h=>generatedDrum(h)&&!h.anchor&&!locked(next,h)&&(!scoped||scope.has(h.id)));
+    if(!eligible.length)return false;
+    const rng=random(next.pattern.settings.seed,`simplify:${next.revision}`);
+    const ranked=eligible.map(hit=>({hit,score:hit.gain-(hit.ghost?.25:0)+rng()*.05})).sort((a,b)=>a.score-b.score||a.hit.baseTick-b.hit.baseTick);
+    const remove=new Set(ranked.slice(0,Math.max(1,Math.ceil(eligible.length*.2))).map(item=>item.hit.id));
+    next.pattern.events=next.pattern.events.filter(hit=>!remove.has(hit.id));
+    next.selection=emptySelection();next.revision++;
+    return this.commit(next,scoped?'Simplify selection':'Simplify pattern');
+  }
+  increaseComplexity(){
+    const next=copy(this.state),scope=selectedIds(next),selection=next.selection;
+    const scoped=selection.rows!==null||selection.ids.length>0||!!selection.cells?.length;
+    const selectedCells=selection.cells?.length?new Set(selection.cells.map(cell=>`${cell.row}:${cell.lane}`)):undefined;
+    const selectedLanes=selection.ids.length&&!selection.rows&&!selectedCells?new Set(compile(next.pattern).notes.filter(note=>scope.has(note.id)).map(note=>`${note.row}:${note.lane}`)):undefined;
+    const settings={...next.pattern.settings,complexity:Math.min(1,next.pattern.settings.complexity+.25),variation:(next.pattern.settings.variation??0)+next.revision+1};
+    const candidates=routeGeneratedDrums(generate(settings),next.pattern).events.filter(hit=>generatedDrum(hit)&&!hit.anchor&&!locked(next,hit));
+    const step=rowTicks(next.pattern),existing=new Set(next.pattern.events.map(hit=>hit.id));
+    const available=candidates.filter(hit=>{
+      const row=Math.floor((hit.baseTick+hit.offsetTick+(hit.fineOffset??0))/step),lane=hitLane(hit);
+      if(selection.rows&&(row<selection.rows[0]||row>selection.rows[1]))return false;
+      if(selectedCells&&!selectedCells.has(`${row}:${lane}`))return false;
+      if(selectedLanes&&!selectedLanes.has(`${row}:${lane}`))return false;
+      return !existing.has(hit.id)&&!next.pattern.events.some(old=>hitLane(old)===lane&&Math.abs(old.baseTick+old.offsetTick-hit.baseTick-hit.offsetTick)<step*.5);
+    });
+    const editable=next.pattern.events.filter(hit=>generatedDrum(hit)&&!hit.anchor&&!locked(next,hit)&&(!scoped||scope.has(hit.id))).length;
+    const byLane=new Map<string,Hit[]>();
+    for(const hit of available){const lane=hitLane(hit);if(!byLane.has(lane))byLane.set(lane,[]);byLane.get(lane)!.push(hit);}
+    const limit=Math.max(byLane.size,Math.ceil(editable*.2)),lanes=[...byLane.values()];
+    let added=0;
+    while(added<limit&&lanes.some(hits=>hits.length))for(const hits of lanes){
+      if(added>=limit)break;
+      const hit=hits.shift();if(!hit)continue;
+      if(next.pattern.events.some(old=>hitLane(old)===hitLane(hit)&&Math.abs(old.baseTick+old.offsetTick-hit.baseTick-hit.offsetTick)<step*.5))continue;
+      hit.id=`detail-${next.revision}-${hit.id}`;
+      while(next.pattern.events.some(old=>old.id===hit.id))hit.id+='x';
+      hit.reason=`Added genre-aware detail. ${hit.reason}`;
+      next.pattern.events.push(hit);added++;
+    }
+    if(!added)return false;
+    next.pattern.events.sort((a,b)=>a.baseTick-b.baseTick||ROLES.indexOf(a.role)-ROLES.indexOf(b.role));
+    next.selection=emptySelection();next.revision++;
+    return this.commit(next,scoped?'Increase selection complexity':'Increase pattern complexity');
   }
   scramble(){
     const next=copy(this.state),scope=selectedIds(next);
@@ -361,7 +411,7 @@ export class Editor {
     for(const h of hits){
       if(!h.articulation||h.anchor||locked(next,h))continue;
       const start=h.baseTick+h.offsetTick+(h.fineOffset??0);
-      const stop=next.pattern.events.filter(k=>k.id!==h.id&&k.role===h.role&&(k.anchor||locked(next,k)))
+      const stop=next.pattern.events.filter(k=>k.id!==h.id&&hitLane(k)===hitLane(h)&&(k.anchor||locked(next,k)))
         .map(k=>k.baseTick+k.offsetTick+(k.fineOffset??0)).filter(t=>t>start).reduce((a,b)=>Math.min(a,b),end);
       h.articulation.durationTicks=Math.max(1,Math.min(h.articulation.durationTicks,Math.floor(stop-start)));
     }
@@ -371,12 +421,13 @@ export class Editor {
     if(!range)throw Error('Select an ending using row numbers or Select last beat.');
     if(['groove-v2','groove-v3','groove-v4'].includes(next.pattern.settings.algorithm??'')){
       const step=rowTicks(next.pattern),start=range[0]*step,end=(range[1]+1)*step;
-      const additions=(next.pattern.settings.algorithm==='groove-v4'?grooveV4Fill:next.pattern.settings.algorithm==='groove-v3'?grooveV3Fill:grooveFill)({...next.pattern.settings,variation:next.revision},start,end);
+      const raw=(next.pattern.settings.algorithm==='groove-v4'?grooveV4Fill:next.pattern.settings.algorithm==='groove-v3'?grooveV3Fill:grooveFill)({...next.pattern.settings,variation:next.revision},start,end);
+      const additions=routeGeneratedDrums({...next.pattern,events:raw},next.pattern).events;
       let changed=false;
       for(const hit of additions){
-        if(next.lockedRoles.includes(hit.role))continue;
-    const occupied=next.pattern.events.filter(h=>!h.trackId&&h.role===hit.role&&Math.abs(h.baseTick+h.offsetTick-hit.baseTick-hit.offsetTick)<step*.5);
-        if(occupied.some(h=>h.anchor||locked(next,h)||h.baseTick+h.offsetTick<start||h.baseTick+h.offsetTick>=end))continue;
+        if(!hit.trackId&&next.lockedRoles.includes(hit.role))continue;
+        const occupied=next.pattern.events.filter(h=>hitLane(h)===hitLane(hit)&&Math.abs(h.baseTick+h.offsetTick-hit.baseTick-hit.offsetTick)<step*.5);
+        if(occupied.some(h=>h.anchor||locked(next,h)||h.trackId&&!h.generatedDrumRole||h.baseTick+h.offsetTick<start||h.baseTick+h.offsetTick>=end))continue;
         next.pattern.events=next.pattern.events.filter(h=>!occupied.includes(h));
         // Timing moves can leave an existing ID at a different position.
         hit.id='fill-'+next.revision+'-'+hit.id;while(next.pattern.events.some(h=>h.id===hit.id))hit.id+='x';
@@ -388,20 +439,23 @@ export class Editor {
       next.selection.ids=[];next.revision++;return this.commit(next,'Generate genre fill');
     }
     if(next.pattern.settings.enabledRoles&&!next.pattern.settings.enabledRoles.includes('snare'))throw Error('Snare is excluded from this pattern. Include it and Generate before adding a fill.');
-    if(next.lockedRoles.includes('snare'))return false;
     const step=rowTicks(next.pattern);
     const start=range[0]*step,end=(range[1]+1)*step;
-    const notes=compile(next.pattern).notes;
-    const inRange=new Set(notes.filter(n=>n.row>=range[0]&&n.row<=range[1]).map(n=>n.id));
-    next.pattern.events=next.pattern.events.filter(h=>h.role!=='snare'||!inRange.has(h.id)||h.anchor||locked(next,h));
     const rng=random(next.pattern.settings.seed,`fill:${next.revision}`);
     // Denser phrase endings, with a limit of 32 new attacks for long selections.
     const spacing=Math.max(120,step,Math.ceil((end-start)/32/120)*120);
-    let added=0;
+    const raw:Hit[]=[];
     for(let tick=start;tick<end;tick+=spacing){
-      if(next.pattern.events.some(h=>h.role==='snare'&&Math.abs(h.baseTick+h.offsetTick-tick)<spacing*.5))continue;
-      let id=`fill-${next.revision}-${tick}`;while(next.pattern.events.some(h=>h.id===id))id+='x';
-      next.pattern.events.push({id,role:'snare',sourceId:'kit.snare',baseTick:tick,offsetTick:0,gain:Math.round((.3+.3*(tick-start)/Math.max(1,end-start)+rng()*.07)*10000)/10000,pan:0,anchor:false,ghost:false,reason:'This snare develops the selected ending into a fill, rising in strength toward the return.'});added++;
+      raw.push({id:`fill-${next.revision}-${tick}`,role:'snare',sourceId:'kit.snare',baseTick:tick,offsetTick:0,gain:Math.round((.3+.3*(tick-start)/Math.max(1,end-start)+rng()*.07)*10000)/10000,pan:0,anchor:false,ghost:false,reason:'This snare develops the selected ending into a fill, rising in strength toward the return.'});
+    }
+    let added=0;
+    for(const hit of routeGeneratedDrums({...next.pattern,events:raw},next.pattern).events){
+      if(!hit.trackId&&next.lockedRoles.includes(hit.role))continue;
+      const occupied=next.pattern.events.filter(old=>hitLane(old)===hitLane(hit)&&Math.abs(old.baseTick+old.offsetTick-hit.baseTick-hit.offsetTick)<spacing*.5);
+      if(occupied.some(old=>old.anchor||locked(next,old)||old.trackId&&!old.generatedDrumRole))continue;
+      next.pattern.events=next.pattern.events.filter(old=>!occupied.includes(old));
+      while(next.pattern.events.some(old=>old.id===hit.id))hit.id+='x';
+      next.pattern.events.push(hit);added++;
     }
     if(!added)return false;
     next.pattern.events.sort((a,b)=>a.baseTick-b.baseTick||ROLES.indexOf(a.role)-ROLES.indexOf(b.role));

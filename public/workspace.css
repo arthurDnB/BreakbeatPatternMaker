@@ -1965,6 +1965,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   display: flex;
   align-items: center;
   gap: 4px;
+  flex-wrap: wrap;
 }
 .edit-actions button {
   font-size: 11px;

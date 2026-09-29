@@ -77,6 +77,12 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-30] - Editing Generated Uploaded Sample-Track Beats (Codex)
+
+* Extended Mutate and genre fills to generated hits on uploaded sample tracks. Their assigned beat part determines mutation phrasing, while collision and gesture protection stays within each physical track. Manually entered or edited sample hits, anchors and individually locked hits remain untouched.
+* Added Simplify and Increase complexity tracker actions. Simplify removes a controlled share of softer optional hits; Increase complexity draws genre-aware detail from a richer seeded candidate and distributes additions across eligible lanes. Both use one Undo/Redo step and work on selected rows or cells.
+* Documented the actions in `docs/DRUM-LANES.md` and added editor tests for custom-track mutations, fills, locks, manual-note preservation and history. Verification: `npm.cmd test` passed 212/212; `npm.cmd run test:site` passed root and Pages subpath browser checks.
+
 ### [2026-09-30] - Per-Track Generation Density and Variation Chance (Codex)
 
 * Added a compact **Shape** section to uploaded sample tracks with optional-hit density and variation chance controls. Both are per-pattern track settings and default to 100% for existing projects.

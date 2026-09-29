@@ -128,6 +128,48 @@ test('all built-in parts can route exclusively into an uploaded sample track whi
  assert.throws(()=>compile({...editor.state.pattern,userTracks:editor.state.pattern.userTracks.map(track=>track.id===sampleTrack.id?{...track,generationRole:'bass'}:track)}),/generation role/);
 });
 
+test('editor variations, simplification and detail work on generated sample hits without touching manual notes or locks',()=>{
+ const editor=new Editor(generate({...settings,algorithm:'groove-v4',complexity:.55}));
+ editor.addUserTrack(sampleTrack);editor.setSampleTrackGeneration(sampleTrack.id,'snare');
+ editor.generateComposition({...settings,algorithm:'groove-v4',complexity:.55},'Generate Beat');
+ const generated=editor.state.pattern.events.filter(hit=>hit.trackId===sampleTrack.id);
+ const ornament=generated.find(hit=>!hit.anchor);assert.ok(ornament);
+ const anchor=generated.find(hit=>hit.anchor);assert.ok(anchor);
+ const manual={...ornament,id:'manual-sample-test',baseTick:Math.min(7000,ornament.baseTick+47)};
+ delete manual.generatedDrumRole;editor.write(manual);
+ editor.state.lockedIds=[ornament.id];
+ editor.state.selection={ids:[],rows:null};
+ const protectedHits=[anchor,ornament,manual].map(hit=>structuredClone(editor.state.pattern.events.find(item=>item.id===hit.id)));
+ const checkProtected=()=>{for(const hit of protectedHits)assert.deepEqual(editor.state.pattern.events.find(item=>item.id===hit.id),hit);};
+ const beforeMutation=structuredClone(editor.state.pattern);
+ assert.ok(editor.mutate());checkProtected();
+ assert.ok(editor.state.pattern.events.some(hit=>hit.trackId===sampleTrack.id&&hit.generatedDrumRole&&JSON.stringify(hit)!==JSON.stringify(beforeMutation.events.find(item=>item.id===hit.id))));
+ assert.ok(editor.undo());assert.deepEqual(editor.state.pattern,beforeMutation);assert.ok(editor.redo());
+ const countBefore=editor.state.pattern.events.filter(hit=>hit.trackId===sampleTrack.id).length;
+ assert.ok(editor.simplify());checkProtected();
+ assert.ok(editor.state.pattern.events.filter(hit=>hit.trackId===sampleTrack.id).length<countBefore);
+ assert.ok(editor.undo());assert.equal(editor.state.pattern.events.filter(hit=>hit.trackId===sampleTrack.id).length,countBefore);
+ assert.ok(editor.increaseComplexity());checkProtected();
+ assert.ok(editor.state.pattern.events.some(hit=>hit.id.startsWith('detail-')&&hit.trackId===sampleTrack.id&&hit.generatedDrumRole==='snare'));
+ const detailed=structuredClone(editor.state.pattern);
+ assert.ok(editor.undo());assert.ok(editor.redo());assert.deepEqual(editor.state.pattern,detailed);
+});
+
+test('genre fills route to sample tracks without replacing manually entered or locked hits',()=>{
+ const editor=new Editor(generate({...settings,algorithm:'groove-v4'}));editor.addUserTrack(sampleTrack);
+ editor.setSampleTrackGeneration(sampleTrack.id,'snare');editor.generateComposition({...settings,algorithm:'groove-v4'},'Generate Beat');
+ const note=editor.state.pattern.events.find(hit=>hit.trackId===sampleTrack.id&&!hit.anchor);assert.ok(note);
+ const manual={...note,id:'manual-fill-test',baseTick:7*960+120};delete manual.generatedDrumRole;editor.write(manual);
+ const locked=editor.state.pattern.events.find(hit=>hit.trackId===sampleTrack.id&&hit.generatedDrumRole);editor.state.lockedIds=[locked.id];
+ const before=structuredClone(editor.state.pattern),rows=compile(before).timing.lines;
+ editor.state.selection={ids:[],rows:[rows-8,rows-1]};
+ assert.ok(editor.fill());
+ assert.deepEqual(editor.state.pattern.events.find(hit=>hit.id===manual.id),manual);
+ assert.deepEqual(editor.state.pattern.events.find(hit=>hit.id===locked.id),locked);
+ assert.ok(editor.state.pattern.events.some(hit=>hit.id.startsWith('fill-')&&hit.trackId===sampleTrack.id&&hit.generatedDrumRole==='snare'));
+ assert.ok(editor.undo());assert.deepEqual(editor.state.pattern,before);
+});
+
 test('sample-track density keeps a stable subset and chance changes optional notes without moving anchors',()=>{
  const s={...settings,algorithm:'groove-v4',seed:'track-shape',bars:4,complexity:.9,spicy:.5};
  const editor=new Editor(generate(s));editor.addUserTrack(sampleTrack);editor.setSampleTrackGeneration(sampleTrack.id,'hat');
