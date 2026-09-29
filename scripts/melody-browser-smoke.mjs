@@ -24,9 +24,11 @@ try{
  await page.selectOption('#melodyPart','lead');await page.selectOption('#melodyKey','2');await page.selectOption('#melodyScale','blues');
  await page.click('#generate');
  const first=await save();
- const lead=first.editor.pattern.userTracks.find(track=>track.generatedPart==='lead');assert.ok(lead);
+ const lead=first.editor.pattern.userTracks.find(track=>track.generatedPart==='lead');assert.ok(lead);assert.equal(lead.name,'Generated Lead');
  const firstNotes=first.editor.pattern.events.filter(hit=>hit.trackId===lead.id),firstDrums=first.editor.pattern.events.filter(hit=>!hit.trackId);
  assert.ok(firstNotes.length&&firstDrums.length);
+ const blues=[0,3,5,6,7,10];assert.ok(firstNotes.every(hit=>blues.includes(((hit.synthNote.note-2)%12+12)%12)),'generated notes must honor D blues');
+ const pitches=firstNotes.map(hit=>hit.synthNote.note);for(let i=3;i<pitches.length;i++){const run=pitches.slice(i-3,i+1);assert.ok(!run.every((note,j)=>j===0||note>run[j-1]&&note-run[j-1]<=4),'melody must not become a scale ladder');}
  assert.equal(first.editor.pattern.settings.generationMode,'both');assert.equal(first.editor.pattern.settings.melodyScale,'blues');
  await page.selectOption('#generationMode','drums');await page.locator('#advanced-generation>summary').click();await page.fill('#seed','browser-new-drums');await page.click('#generate');
  const drumOnly=await save();

@@ -74,6 +74,11 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-29] - Refresh Melody Engine Browser Cache (Codex)
+- **Deployment entrypoint (`public/index.html`):** Bumped the `dist/web.js` cache key so deployments after melody-engine changes request the new browser module instead of reusing the earlier app bundle.
+- **Melody browser check (`scripts/melody-browser-smoke.mjs`):** Asserted the generated lane is clearly named `Generated Lead`, notes follow the selected D Blues scale, and the phrase avoids four-note ascending scale runs. User-created `Synth 1` / `Synth 2` lanes remain separate from the generated lane by design.
+- **Verification:** `npm.cmd test` passed 191/191; `npm.cmd run test:site` passed root and Pages subpath browser checks; `node scripts/melody-browser-smoke.mjs` passed with key/scale and ascending-run assertions.
+
 ### [2026-09-29] - Genre-Aware Melody Phrases (Codex)
 - **Composer (`src/core/melody.ts`, `src/core/melody-profiles.ts`):** Replaced fixed scale-degree cycling with seeded chord-root movement, recurring pitch contours, voice leading, short-scale functional tones, phrase responses and a guard against sustained ascending scale runs. All 38 genres now have explicit harmony/contour rules and selected rhythm differences; Complexity adds connecting notes and Spicy adds a phrase-ending pickup and restrained octave accent. A duplicated optional step found in the full audition run was removed before note creation.
 - **Review and guidance (`scripts/melody-audition.mjs`, `docs/MELODY-COMPOSER.md`):** Added a repeatable 76-example local WAV listening set covering Bassline and Lead for every genre, plus tuning guidance and source references. Independent producer listening is still needed before any industry-standard quality claim.
