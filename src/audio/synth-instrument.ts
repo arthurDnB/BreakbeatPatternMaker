@@ -1,16 +1,38 @@
 import {bounded,type SynthInstrument,type SynthPreset,type SynthWaveform} from '../core/model.js';
+import type {AudioAsset} from './slices.js';
 
 export const SYNTH_PRESETS:Record<SynthPreset,SynthInstrument>={
   bass:{preset:'bass',waveform:'saw',attack:.006,decay:.16,sustain:.55,release:.12,lowpassHz:1400},
   pluck:{preset:'pluck',waveform:'triangle',attack:.003,decay:.22,sustain:.12,release:.14,lowpassHz:5200},
   pad:{preset:'pad',waveform:'saw',attack:.14,decay:.45,sustain:.62,release:.75,lowpassHz:2300},
-  piano:{preset:'piano',waveform:'sine',attack:.004,decay:1.4,sustain:.12,release:.8,lowpassHz:12000},
+  piano:{preset:'piano',waveform:'sine',attack:.004,decay:1.4,sustain:.12,release:.8,lowpassHz:12000,sampleBank:'upright-kw'},
 };
 
 export function validateSynthInstrument(value:SynthInstrument):void{
   if(!value||!['bass','pluck','pad','piano'].includes(value.preset)||!['sine','triangle','saw','square'].includes(value.waveform))throw Error('Invalid synth instrument.');
   bounded(value.attack,.001,2,'synth attack');bounded(value.decay,.001,3,'synth decay');bounded(value.sustain,0,1,'synth sustain');
   bounded(value.release,.01,4,'synth release');bounded(value.lowpassHz,100,20000,'synth filter');
+  if(value.sampleBank!==undefined&&(value.preset!=='piano'||value.sampleBank!=='upright-kw'))throw Error('Invalid piano sample bank.');
+  if(value.sample){if(value.preset!=='piano'||typeof value.sample.assetId!=='string'||!/^[a-zA-Z0-9._-]{1,80}$/.test(value.sample.assetId))throw Error('Invalid piano sample.');bounded(value.sample.rootNote,0,119,'piano sample root',true);}
+}
+
+/** Pitch a user piano note without BPM stretching; preview and export call this same renderer. */
+export function renderSampledPianoNote(note:number,durationSeconds:number,rate:number,instrument:SynthInstrument,asset:AudioAsset):Float32Array[]{
+  if(!instrument.sample||instrument.sample.assetId!==asset.id)throw Error('Missing piano sample.');
+  const ratio=2**((note-instrument.sample.rootNote)/12),step=asset.sampleRate/rate*ratio;
+  const length=Math.max(1,Math.min(Math.ceil((durationSeconds+instrument.release)*rate),Math.ceil(asset.channels[0]!.length/step)));
+  const output=asset.channels.map(()=>new Float32Array(length));
+  const fadeIn=Math.max(1,Math.round(rate*.006)),fadeOut=Math.max(1,Math.round(rate*.012));
+  for(let i=0;i<length;i++){
+    const source=i*step,index=Math.floor(source),fraction=source-index,time=i/rate;
+    const release=time<durationSeconds?1:Math.exp(-7*(time-durationSeconds)/instrument.release);
+    const edge=Math.min(1,i/fadeIn,(length-1-i)/fadeOut);
+    for(let channel=0;channel<output.length;channel++){
+      const data=asset.channels[channel]!;
+      output[channel]![i]=((data[index]??0)*(1-fraction)+(data[Math.min(data.length-1,index+1)]??0)*fraction)*release*Math.max(0,edge)*.58;
+    }
+  }
+  return output;
 }
 
 const polyBlep=(phase:number,step:number)=>{

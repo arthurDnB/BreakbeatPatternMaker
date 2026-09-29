@@ -14,6 +14,7 @@ import {resolveSlice} from './core/slice-instrument.js';
 import {setupSamplePanel} from './audio/sample-panel.js';
 import {downloadBytes} from './audio/render.js';
 import {renderPerformance,renderSequence} from './audio/performance.js';
+import {ensurePianoBankAudio} from './audio/piano-bank.js';
 import {encodeWav} from './audio/wav.js';
 import {reconstruct,sliceReference,type AudioAsset} from './audio/slices.js';
 import {BREAKS} from './core/breaks.js';
@@ -248,7 +249,29 @@ function synthInstrumentPanel(track:SynthTrack):HTMLDetailsElement{
     control.type='range';control.min=String(min);control.max=String(max);control.step=String(step);control.value=String(track.instrument[key]);control.setAttribute('aria-label',`${track.name} ${labelText}`);output.value=String(track.instrument[key]);
     control.oninput=()=>{output.value=control.value;};control.onchange=()=>update({[key]:Number(control.value)});label.append(output,control);card.append(label);
   }
-  const preview=document.createElement('button');preview.type='button';preview.textContent='Preview C-4';preview.onclick=()=>void auditionUserTrack(track);card.append(preview);
+  if(track.instrument.preset==='piano'){
+    const sample=track.instrument.sample,asset=sample?assets.get(sample.assetId):undefined;
+    const source=document.createElement('span');source.textContent=asset?`Piano source: ${asset.name}`:track.instrument.sampleBank==='upright-kw'?'Piano source: Upright Piano KW (CC0)':'Piano source: built-in tone';card.append(source);
+    const upload=document.createElement('button'),file=document.createElement('input');upload.type='button';upload.textContent=asset?'Replace piano WAV':'Use piano WAV';file.type='file';file.accept='.wav,audio/wav';file.hidden=true;
+    upload.onclick=()=>file.click();file.onchange=async()=>{const selected=file.files?.[0];if(!selected)return;try{
+      if(selected.size>20*1024*1024)throw Error('Choose a piano WAV under 20 MB.');
+      context??=new AudioContext();const decoded=await context.decodeAudioData(await selected.arrayBuffer());
+      if(decoded.duration>20||!decoded.numberOfChannels)throw Error('Choose a piano note under 20 seconds.');
+      const id='piano-'+crypto.randomUUID(),channels=Array.from({length:Math.min(2,decoded.numberOfChannels)},(_,index)=>{const data=new Float32Array(decoded.length);decoded.copyFromChannel(data,index);return data;});
+      assets.set(id,{id,name:selected.name,sampleRate:decoded.sampleRate,channels});
+      const current=editor.state.pattern.userTracks?.find(item=>item.id===track.id);
+      if(!isSynthTrack(current))throw Error('Piano track no longer exists.');
+      openSynthTrackIds.add(track.id);editor.setSynthInstrument(track.id,{...current.instrument,sample:{assetId:id,rootNote:current.instrument.sample?.rootNote??72}});
+      refresh();status(`Using “${selected.name}” for ${track.name}. Root is C-6 (MIDI 72); adjust it if the source note differs.`);
+    }catch(error){status('Could not use piano WAV: '+String(error),true);}};card.append(upload,file);
+    if(sample){
+      const root=document.createElement('label'),note=document.createElement('input');root.textContent='Sample root note (MIDI)';note.type='number';note.min='0';note.max='119';note.value=String(sample.rootNote);note.onchange=()=>update({sample:{...sample,rootNote:Number(note.value)}});root.append(note);card.append(root);
+      const remove=document.createElement('button');remove.type='button';remove.textContent='Remove uploaded WAV';remove.onclick=()=>update({sample:undefined});card.append(remove);
+    }
+    const bankButton=document.createElement('button');bankButton.type='button';bankButton.textContent='Use upright piano';bankButton.disabled=!sample&&track.instrument.sampleBank==='upright-kw';bankButton.onclick=()=>update({sample:undefined,sampleBank:'upright-kw'});card.append(bankButton);
+    const toneButton=document.createElement('button');toneButton.type='button';toneButton.textContent='Use built-in tone';toneButton.disabled=!sample&&!track.instrument.sampleBank;toneButton.onclick=()=>update({sample:undefined,sampleBank:undefined});card.append(toneButton);
+  }
+  const preview=document.createElement('button');preview.type='button';preview.textContent='Preview '+noteName(track.instrument.sample?.rootNote??(track.instrument.preset==='piano'?60:48));preview.onclick=()=>void auditionUserTrack(track);card.append(preview);
   panel.append(summary,card);panel.addEventListener('toggle',()=>{if(panel.open)openSynthTrackIds.add(track.id);else openSynthTrackIds.delete(track.id);if(panel.open)requestAnimationFrame(()=>positionInstrumentPanel(panel));});
   return panel;
 }
@@ -615,6 +638,7 @@ refreshKitTempo=()=>kitPanel.refreshTempo();
 const drumKit=kitPanel.kit;
 function effectMap(){return Object.fromEntries(ROLES.map(r=>[r,kitPanel.mix[r].effects]));}
 function audioBuffer(audio:{channels:Float32Array[];sampleRate:number;duration?:number;attenuation?:number}){const b=context!.createBuffer(2,audio.channels[0]!.length,audio.sampleRate);audio.channels.forEach((c,i)=>b.copyToChannel(new Float32Array(c),i));return b;}
+async function preparePianoAudio(patterns:readonly Pattern[]){context??=new AudioContext();await ensurePianoBankAudio(patterns,assets,context);}
 function startSource(buffer:AudioBuffer,at:number,loop=false){const s=context!.createBufferSource();s.buffer=buffer;s.loop=loop;s.connect(context!.destination);playingSources.add(s);s.onended=()=>{playingSources.delete(s);s.disconnect();};s.start(at);return s;}
 async function auditionCursor(role:Role){
  const hit=editor.state.pattern.events.find(h=>editor.state.selection.ids.includes(h.id))??editor.state.pattern.events.find(h=>h.role===role&&h.trackId===cursorTrackId);
@@ -622,18 +646,20 @@ async function auditionCursor(role:Role){
 }
 async function auditionUserTrack(track:UserTrack){
  context??=new AudioContext();const token=playToken;await context.resume();if(token!==playToken)return;
- const note:Hit={id:'track-preview',role:track.role,trackId:track.id,sourceId:'kit.'+track.role,baseTick:0,offsetTick:0,gain:1,pan:0,anchor:false,ghost:false,...(isSynthTrack(track)?{synthNote:{note:48,durationTicks:960}}:{slice:{...track.sample}}),reason:'User track preview.'};
+ const note:Hit={id:'track-preview',role:track.role,trackId:track.id,sourceId:'kit.'+track.role,baseTick:0,offsetTick:0,gain:1,pan:0,anchor:false,ghost:false,...(isSynthTrack(track)?{synthNote:{note:track.instrument.sample?.rootNote??(track.instrument.preset==='piano'?60:48),durationTicks:960}}:{slice:{...track.sample}}),reason:'User track preview.'};
  const one={...structuredClone(pattern),events:[note],userTracks:[{...track,mute:false,solo:true}]},mix=kitPanel.snapshot();mix[track.role].mute=false;for(const role of ROLES)mix[role].solo=false;
+ await preparePianoAudio([one]);if(token!==playToken)return;
  const audio=renderPerformance(withDrumKit(one,drumKit,mix),assets,context.sampleRate,effectMap());startSource(audioBuffer(audio),context.currentTime);status(`Previewing ${isSynthTrack(track)?'synth':'sample'} track “${track.name}”.`);
 }
 async function auditionHit(hit:Hit){
  flashTrackMeter(hit.role,(hit.gain??1)*kitPanel.mix[hit.role].level);stop();samplePanel.stop();context??=new AudioContext();const token=playToken;await context.resume();if(token!==playToken)return;
- const one=structuredClone(pattern),mix=kitPanel.snapshot();if(input('transport-target').value==='song'&&bank)one.settings.bpm=bank.songBpm;one.events=[{...hit,baseTick:0,offsetTick:0,fineOffset:0}];mix[hit.role].mute=false;mix[hit.role].solo=true;if(hit.trackId){one.userTracks=one.userTracks?.map(track=>({...track,solo:track.id===hit.trackId,mute:false}));}const audio=renderPerformance(withDrumKit(one,drumKit,mix),assets,context.sampleRate,effectMap());
+ const one=structuredClone(pattern),mix=kitPanel.snapshot();if(input('transport-target').value==='song'&&bank)one.settings.bpm=bank.songBpm;one.events=[{...hit,baseTick:0,offsetTick:0,fineOffset:0}];mix[hit.role].mute=false;mix[hit.role].solo=true;if(hit.trackId){one.userTracks=one.userTracks?.map(track=>({...track,solo:track.id===hit.trackId,mute:false}));}await preparePianoAudio([one]);if(token!==playToken)return;const audio=renderPerformance(withDrumKit(one,drumKit,mix),assets,context.sampleRate,effectMap());
  startSource(audioBuffer(audio),context.currentTime);status(`Auditioning ${hit.ghost?'ghost ':''}${hit.role} hit. Press Play to hear the full pattern.`);
 }
 async function play(){
  if(mode){stop();return;}if(input('transport-target').value==='song'){await playArrangement();return;}stop();samplePanel.stop();const token=playToken;context??=new AudioContext();await context.resume();if(token!==playToken)return;
  const texture=await vinylOptions();if(token!==playToken)return;
+ await preparePianoAudio([pattern,...(bank?bank.slots.flatMap(slot=>slot.editor?[slot.editor.pattern]:[]):[])]);if(token!==playToken)return;
  let audio=renderPerformance(withDrumKit(pattern,drumKit,kitPanel.mix),assets,context.sampleRate,effectMap(),{loop:true,...texture}),buffer=audioBuffer(audio);
  let start=context.currentTime+.08,duration=buffer.duration;
  let source=startSource(buffer,start,true),prepared:{slot:number;buffer:AudioBuffer;mix:string}|undefined;
@@ -702,6 +728,7 @@ async function previewComparison(side:CompareSide){
  if(mode==='comparison'&&comparisonPlaying===side){stop();return;}
  stop();samplePanel.stop();context??=new AudioContext();const token=playToken;await context.resume();if(token!==playToken)return;
  const texture=await vinylOptions();if(token!==playToken)return;
+ await preparePianoAudio([selected.state.pattern]);if(token!==playToken)return;
  const audio=renderPerformance(withDrumKit(selected.state.pattern,drumKit,kitPanel.mix),assets,context.sampleRate,effectMap(),{loop:true,...texture});
  startSource(audioBuffer(audio),context.currentTime+.08,true);mode='comparison';comparisonPlaying=side;
  el('transport-state').textContent=`Comparing ${side}`;setPlayButton(true);renderComparisonControls();status(`Previewing ${side}: ${selected.label}. The tracker remains unchanged.`);
@@ -773,6 +800,7 @@ async function playArrangement(){
  stop();samplePanel.stop();context??=new AudioContext();const token=playToken;
  await context.resume();if(token!==playToken)return;
  await vinylOptions();if(token!==playToken)return;
+ stashSlot();await preparePianoAudio(arrange(bank!));if(token!==playToken)return;
  const audio=arrangementAudio(context.sampleRate),timeline=songTimeline(bank!),buffer=audioBuffer(audio),start=context.currentTime+.05;
  input('transport-target').value='song';syncHud();
  startSource(buffer,start);mode='arrangement';el('transport-state').textContent='Song playing';el('play-arrangement').textContent='Stop arrangement';setPlayButton(true);
@@ -807,6 +835,7 @@ async function playArrangement(){
 }
 async function exportArrangement(){
  await vinylOptions();
+ stashSlot();await preparePianoAudio(arrange(bank!));
  const audio=arrangementAudio(44100);
  const filename='breakbeat-arrangement.wav',bars=bank!.sequence.reduce((n,step)=>n+bank!.slots[step.slot]!.editor!.pattern.settings.bars*step.repeats,0);
  downloadBytes(encodeWav(audio.channels,audio.sampleRate),filename);
@@ -964,6 +993,7 @@ el('export-wav').onclick=async()=>{
     const modeEl=document.getElementById('export-mode') as HTMLSelectElement | null;
     const isLoop=modeEl?.value!=='tail';
     const texture=await vinylOptions();
+    await preparePianoAudio([pattern]);
     const audio=renderPerformance(
       withDrumKit(pattern,drumKit,kitPanel.mix),
       assets,
@@ -1227,6 +1257,7 @@ el('hit-preview').onclick=async()=>{
  flashTrackMeter(hit.role, (hit.gain ?? 1) * kitPanel.mix[hit.role].level);
  stop();samplePanel.stop();context??=new AudioContext();const token=playToken;await context.resume();if(token!==playToken)return;
  const one=structuredClone(pattern);one.events=[{...hit,baseTick:0,offsetTick:0,fineOffset:0}];
+ await preparePianoAudio([one]);if(token!==playToken)return;
  const audio=renderPerformance(withDrumKit(one,drumKit,kitPanel.mix),assets,context.sampleRate,effectMap());startSource(audioBuffer(audio),context.currentTime);
  status('Previewing the inspector values, including pending changes. Pattern playback and exports use saved hits.');
  }catch(e){status(String(e),true);}

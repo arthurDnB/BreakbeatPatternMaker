@@ -36,7 +36,7 @@ export interface TrackBase {id:string;name:string;role:Role;level:number;pan:num
 export interface SampleTrack extends TrackBase {kind?:'sample';sample:SliceRef}
 export type SynthWaveform='sine'|'triangle'|'saw'|'square';
 export type SynthPreset='bass'|'pluck'|'pad'|'piano';
-export interface SynthInstrument {preset:SynthPreset;waveform:SynthWaveform;attack:number;decay:number;sustain:number;release:number;lowpassHz:number}
+export interface SynthInstrument {preset:SynthPreset;waveform:SynthWaveform;attack:number;decay:number;sustain:number;release:number;lowpassHz:number;sampleBank?:'upright-kw';sample?:{assetId:string;rootNote:number}}
 export interface SynthTrack extends TrackBase {kind:'synth';instrument:SynthInstrument;generatedPart?:MelodyPart}
 export type UserTrack=SampleTrack|SynthTrack;
 export const isSynthTrack=(track:UserTrack|undefined):track is SynthTrack=>track?.kind==='synth';

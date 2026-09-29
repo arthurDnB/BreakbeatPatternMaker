@@ -3,12 +3,19 @@ import assert from 'node:assert/strict';
 import {generate} from '../dist/core/generate.js';
 import {defaults} from '../dist/core/profiles.js';
 import {generatePiano} from '../dist/core/piano.js';
+import {harmonyPlan} from '../dist/core/harmony.js';
+import {MELODY_SCALES} from '../dist/core/melody.js';
+import {PROFILES} from '../dist/core/profiles.js';
 import {Editor} from '../dist/core/editor.js';
 import {compile} from '../dist/core/compile.js';
-import {SYNTH_PRESETS,renderSynthNote} from '../dist/audio/synth-instrument.js';
+import {SYNTH_PRESETS,renderSynthNote,renderSampledPianoNote} from '../dist/audio/synth-instrument.js';
 import {renderPerformance} from '../dist/audio/performance.js';
 import {makeProject,readProject} from '../dist/audio/project.js';
 import {defaultKitState} from '../dist/audio/drum-kit.js';
+import {pianoBankSample} from '../dist/audio/piano-bank.js';
+import {readFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+import {fileURLToPath} from 'node:url';
 
 const settings=(genre='lofihiphop',overrides={})=>({...defaults(genre),seed:'piano-test',bars:2,resolution:16,melodyKey:0,melodyScale:'natural-minor',complexity:.7,swing:.56,humanizeMs:0,...overrides});
 const events=(pattern,part)=>pattern.events.filter(hit=>hit.trackId===`melody-${part}`);
@@ -26,6 +33,30 @@ test('genre profiles shape chord rhythm while retaining seeded generation',()=>{
  const garage=generatePiano(settings('twostepgarage')),liquid=generatePiano(settings('liquiddnb'));
  assert.notDeepEqual(garage.map(hit=>[hit.baseTick,hit.synthNote.note]),liquid.map(hit=>[hit.baseTick,hit.synthNote.note]));
  assert.ok(garage.some(hit=>hit.baseTick%960!==0),'garage piano uses offbeat chord stabs');
+});
+
+test('short patterns have a shared changing progression and piano voices move smoothly',()=>{
+ const s=settings('liquiddnb',{complexity:.7}),plan=harmonyPlan(s),piano=generatePiano(s);
+ assert.equal(plan.length,4,'two bars state a four-chord phrase');
+ assert.ok(new Set(plan.map(change=>change.degree)).size>=3,'harmony changes rather than repeating one chord per bar');
+ const groups=plan.map(change=>piano.filter(hit=>hit.baseTick>=change.startTick&&hit.baseTick<change.endTick));
+ assert.ok(groups.every(group=>group.length>=3));
+ assert.equal(new Set(groups.map(group=>group.map(hit=>hit.synthNote.note).join(','))).size,groups.length,'each chord has a distinct voicing');
+ for(let i=1;i<groups.length;i++){
+  const a=groups[i-1].slice(1).map(hit=>hit.synthNote.note),b=groups[i].slice(1).map(hit=>hit.synthNote.note);
+  assert.ok(b.reduce((sum,note,index)=>sum+Math.abs(note-a[index]),0)<26,'upper voices use restrained movement');
+ }
+ assert.deepEqual(harmonyPlan(s),harmonyPlan(s));
+});
+
+test('all genre and scale combinations avoid doubled pitches in high-complexity chords',()=>{
+ for(const genre of Object.keys(PROFILES))for(const scale of Object.keys(MELODY_SCALES)){
+  const s=settings(genre,{melodyScale:scale,complexity:.9}),notes=generatePiano(s);
+  for(const tick of new Set(notes.map(hit=>hit.baseTick))){
+   const pitches=notes.filter(hit=>hit.baseTick===tick).map(hit=>hit.synthNote.note);
+   assert.equal(new Set(pitches).size,pitches.length,`${genre} ${scale} at ${tick}`);
+  }
+ }
 });
 
 test('individual layer generation preserves others, locks, undo, and track reuse',()=>{
@@ -55,5 +86,36 @@ test('piano preset produces a decaying struck-string timbre in the shared render
  const s=settings('mellowbeats',{generationMode:'melody',melodyPart:'piano',bars:1}),pattern={...generate(s),userTracks:[{id:'melody-piano',name:'Generated Piano',kind:'synth',generatedPart:'piano',role:'percussion',instrument:SYNTH_PRESETS.piano,level:1,pan:0,mute:false,solo:false}],events:generatePiano(s,'melody-piano')};
  assert.ok(renderPerformance(pattern,new Map(),24000).channels[0].some(value=>Math.abs(value)>.001));
  const editor=new Editor(pattern),project=makeProject(editor.state,s,defaultKitState(),new Map()),restored=readProject(project).project;
- assert.equal(project.version,7);assert.equal(restored.editor.pattern.userTracks[0].instrument.preset,'piano');assert.equal(restored.editor.pattern.events.length,pattern.events.length);
+ assert.equal(project.version,8);assert.equal(restored.editor.pattern.userTracks[0].instrument.preset,'piano');assert.equal(restored.editor.pattern.events.length,pattern.events.length);
+});
+
+test('curated upright piano bank has verified local recordings and velocity layers',async()=>{
+ const catalog=JSON.parse(await readFile(new URL('../public/piano/catalog.json',import.meta.url)));
+ assert.equal(catalog.length,26);
+ const ids=new Set(catalog.map(entry=>entry.id));
+ for(const entry of catalog){
+  const bytes=await readFile(fileURLToPath(new URL('..'+entry.path,import.meta.url)));
+  assert.equal(createHash('sha256').update(bytes).digest('hex'),entry.sha256);
+ }
+ assert.ok(ids.has(pianoBankSample(60,.3).assetId));
+ assert.ok(ids.has(pianoBankSample(60,.8).assetId));
+ assert.notEqual(pianoBankSample(69,.3).assetId,pianoBankSample(69,.8).assetId);
+});
+
+test('a user piano one-shot transposes, renders, and persists as project v8',()=>{
+ const rate=24000,length=rate,channel=Float32Array.from({length},(_,i)=>Math.sin(2*Math.PI*523.25*i/rate)*Math.exp(-i/rate*3));
+ const asset={id:'piano-test-c',name:'Piano C.wav',sampleRate:rate,channels:[channel,channel]};
+ const instrument={...SYNTH_PRESETS.piano,sample:{assetId:asset.id,rootNote:72}};
+ const direct=renderSampledPianoNote(72,.6,rate,instrument,asset);
+ assert.equal(direct.length,2);assert.ok(direct[0].some(value=>Math.abs(value)>.1));
+ assert.notDeepEqual(renderSampledPianoNote(74,.6,rate,instrument,asset)[0],direct[0]);
+ const s=settings('liquiddnb',{bars:1}),editor=new Editor(generate(s));
+ editor.generateComposition({...s,generationMode:'melody',melodyPart:'piano'},'Generate Piano');
+ const track=editor.state.pattern.userTracks.find(track=>track.generatedPart==='piano');
+ editor.setSynthInstrument(track.id,instrument);
+ const assets=new Map([[asset.id,asset]]),original=renderPerformance(editor.state.pattern,assets,rate);
+ const saved=makeProject(editor.state,s,defaultKitState(),assets),restored=readProject(saved);
+ assert.equal(saved.version,8);assert.equal(restored.project.editor.pattern.userTracks.find(track=>track.id===track.id).instrument.sample.assetId,asset.id);
+ assert.deepEqual(renderPerformance(restored.project.editor.pattern,restored.assets,rate).channels,original.channels);
+ assert.throws(()=>readProject({...saved,assets:[]}),/Missing piano sample audio/);
 });

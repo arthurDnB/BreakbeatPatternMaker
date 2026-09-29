@@ -8,7 +8,8 @@ import {mixVinylTexture} from './vinyl-texture.js';
 import {resolvePatternSlices} from '../core/slice-instrument.js';
 import {stretchAudio} from './time-stretch.js';
 import {protectMaster} from './audio-quality.js';
-import {renderSynthNote} from './synth-instrument.js';
+import {renderSampledPianoNote,renderSynthNote} from './synth-instrument.js';
+import {pianoBankSample} from './piano-bank.js';
 // @ts-expect-error Shared original synth.
 import {synthesize} from '../../public/synth.js';
 export interface RenderOptions {
@@ -31,7 +32,7 @@ export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,
   let position=0;
   const kit=new Map<string,Float32Array>();
   const stretched=new Map<string,Float32Array[]>();
-  const synthCache=new Map<string,Float32Array>();let synthCacheBytes=0;
+  const synthCache=new Map<string,Float32Array[]>();let synthCacheBytes=0;
   const voices:RenderVoice[]=patterns.flatMap(pattern=>{
   const origin=position;position+=pattern.settings.bars*240/pattern.settings.bpm;
   const secondsPerTick=60/pattern.settings.bpm/960;
@@ -40,14 +41,20 @@ export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,
     if(hit.synthNote&&isSynthTrack(synthTrack)){
       const start=origin+Math.max(0,(hit.baseTick+hit.offsetTick+(hit.fineOffset??0))*secondsPerTick);
       const noteSeconds=hit.synthNote.durationTicks*secondsPerTick;
-      const key=`${hit.synthNote.note}:${noteSeconds.toFixed(9)}:${rate}:${JSON.stringify(synthTrack.instrument)}`;
-      let data=synthCache.get(key);
-      if(!data){
-        const bytes=Math.ceil((noteSeconds+synthTrack.instrument.release)*rate)*4;
+      const bankChoice=!synthTrack.instrument.sample&&synthTrack.instrument.sampleBank==='upright-kw'?pianoBankSample(hit.synthNote.note,hit.gain):undefined;
+      const sampleId=synthTrack.instrument.sample?.assetId??bankChoice?.assetId;
+      const sample=sampleId?assets.get(sampleId):undefined;
+      if(synthTrack.instrument.sample&&!sample)throw Error('The piano sample is missing. Re-import it into this track.');
+      const key=`${hit.synthNote.note}:${noteSeconds.toFixed(9)}:${rate}:${sampleId??''}:${JSON.stringify(synthTrack.instrument)}`;
+      let channels=synthCache.get(key);
+      if(!channels){
+        const bytes=Math.ceil((noteSeconds+synthTrack.instrument.release)*rate)*4*(sample?.channels.length??1);
         if(synthCacheBytes+bytes>128*1024*1024)throw Error('Synth render exceeds 128 MB. Shorten notes or render a smaller arrangement.');
-        data=renderSynthNote(hit.synthNote.note,noteSeconds,rate,synthTrack.instrument);synthCache.set(key,data);synthCacheBytes+=data.byteLength;
+        const instrument=bankChoice?{...synthTrack.instrument,sample:{assetId:bankChoice.assetId,rootNote:bankChoice.rootNote}}:synthTrack.instrument;
+        channels=sample?renderSampledPianoNote(hit.synthNote.note,noteSeconds,rate,instrument,sample):[renderSynthNote(hit.synthNote.note,noteSeconds,rate,synthTrack.instrument)];
+        synthCache.set(key,channels);synthCacheBytes+=channels.reduce((sum,data)=>sum+data.byteLength,0);
       }
-      return [{hit,channels:[data],from:0,to:data.length,start,step:1,length:data.length,gated:false}];
+      return [{hit,channels,from:0,to:channels[0]!.length,start,step:1,length:channels[0]!.length,gated:false}];
     }
     const ratio=(hit.playbackRate??1)*2**((hit.pitch??0)/12),start=origin+Math.max(0,(hit.baseTick+hit.offsetTick+(hit.fineOffset??0))*secondsPerTick);
     let channels:Float32Array[],sourceRate=rate,from=0,to=0;
@@ -105,10 +112,11 @@ export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,
   const synthTrackIds=new Set(patterns.flatMap(p=>(p.userTracks??[]).filter(isSynthTrack).map(track=>track.id)));
   for(const trackId of synthTrackIds){
     const notes=voices.filter(v=>v.hit.synthNote&&v.hit.trackId===trackId).sort((a,b)=>a.start-b.start);
+    const piano=patterns.some(pattern=>pattern.userTracks?.some(track=>isSynthTrack(track)&&track.id===trackId&&track.instrument.preset==='piano'));
     const active:RenderVoice[]=[];
     for(const voice of notes){
       for(let i=active.length-1;i>=0;i--)if(active[i]!.start+active[i]!.length/rate<=voice.start)active.splice(i,1);
-      if(active.length>=8){const oldest=active.shift()!;oldest.length=Math.max(0,Math.round((voice.start-oldest.start)*rate));oldest.gated=true;}
+      if(active.length>=(piano?16:8)){const oldest=active.shift()!;oldest.length=Math.max(0,Math.round((voice.start-oldest.start)*rate));oldest.gated=true;}
       active.push(voice);
     }
   }

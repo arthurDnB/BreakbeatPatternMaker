@@ -3,6 +3,7 @@ import {readFile} from 'node:fs/promises';
 import {resolve,extname,sep} from 'node:path';
 import {chromium} from 'playwright';
 import assert from 'node:assert/strict';
+import {encodeWav} from '../dist/audio/wav.js';
 
 const root=resolve('site');
 const server=createServer(async(req,res)=>{try{
@@ -16,7 +17,7 @@ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const browser=await chromium.launch({headless:true,channel:process.env.BROWSER_CHANNEL??'msedge'});
 try{
  const context=await browser.newContext({viewport:{width:1440,height:950},acceptDownloads:true});
- const page=await context.newPage(),errors=[];page.on('pageerror',error=>errors.push(error.message));
+ const page=await context.newPage(),errors=[],pianoLoads=[];page.on('pageerror',error=>errors.push(error.message));page.on('response',response=>{if(response.url().includes('/public/piano/')&&response.url().endsWith('.flac'))pianoLoads.push(response.status());});
  await page.goto(`http://127.0.0.1:${server.address().port}/`);await page.locator('#grid .hit').first().waitFor();
  const save=async()=>{const download=page.waitForEvent('download');await page.click('#project-save');return JSON.parse((await readFile(await(await download).path())).toString());};
  assert.equal(await page.locator('#melody-options').isVisible(),true);
@@ -42,11 +43,19 @@ try{
  assert.deepEqual(pianoOnly.editor.pattern.events.filter(hit=>hit.trackId===lead.id),firstNotes);
  await page.click('#undo');assert.deepEqual((await save()).editor.pattern,withBass.editor.pattern);
  await page.click('#redo');assert.deepEqual((await save()).editor.pattern,pianoOnly.editor.pattern);
+ assert.equal(piano.instrument.sampleBank,'upright-kw');
+ const bankWav=page.waitForEvent('download');await page.click('#export-wav');assert.equal((await readFile(await(await bankWav).path())).toString('ascii',0,4),'RIFF');
+ assert.ok(pianoLoads.length>0&&pianoLoads.every(code=>code===200),'default piano bank recordings load from static site');
+ const testRate=12000,testNote=Float32Array.from({length:testRate},(_,i)=>Math.sin(i*2*Math.PI*523.25/testRate)*Math.exp(-i/testRate*4));
+ const sampleFile=Buffer.from(encodeWav([testNote,testNote],testRate));
+ await page.setInputFiles(`.track-instrument-panel[data-synth-track-id="${piano.id}"] input[type=file]`,{name:'test-piano-c.wav',mimeType:'audio/wav',buffer:sampleFile});
+ await page.waitForFunction(id=>document.querySelector(`.track-instrument-panel[data-synth-track-id="${id}"]`)?.textContent?.includes('Piano source: test-piano-c.wav'),piano.id);
+ const sampled=await save();assert.equal(sampled.version,8);assert.ok(sampled.editor.pattern.userTracks.find(track=>track.id===piano.id).instrument.sample?.assetId);
  const wav=page.waitForEvent('download');await page.click('#export-wav');assert.equal((await readFile(await(await wav).path())).toString('ascii',0,4),'RIFF');
- await page.setInputFiles('#project-open',{name:'piano.bbproject',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(pianoOnly))});
+ await page.setInputFiles('#project-open',{name:'piano.bbproject',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(sampled))});
  await page.waitForFunction(()=>document.querySelector('#status')?.textContent?.includes('Project opened'));
  assert.equal(await page.inputValue('#generationMode'),'melody');assert.equal(await page.inputValue('#melodyScale'),'blues');
  assert.equal(await page.locator(`.synth-track-col[data-track-id="${lead.id}"]`).count(),1);
  assert.deepEqual(errors,[]);
- console.log('Layer generators browser: Beat, Bass, Melody, Piano chords, preservation, Undo/Redo, project roundtrip and WAV passed.');
+ console.log('Layer generators browser: Beat, Bass, Melody, Piano chords, sampled piano, preservation, Undo/Redo, project roundtrip and WAV passed.');
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}

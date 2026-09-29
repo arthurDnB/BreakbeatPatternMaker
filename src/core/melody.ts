@@ -2,6 +2,7 @@ import {PPQ,type Hit,type MelodyPart,type MelodyScale,type Settings} from './mod
 import {melodyProfile} from './melody-profiles.js';
 import {random} from './random.js';
 import {validateSettings} from './settings.js';
+import {harmonyAt,harmonyPlan} from './harmony.js';
 
 export const MELODY_SCALES:Record<MelodyScale,{label:string;intervals:readonly number[]}>= {
   major:{label:'Major',intervals:[0,2,4,5,7,9,11]},
@@ -79,10 +80,7 @@ export function generateMelody(settings:Settings,trackId:string):Hit[]{
   validateSettings(settings);
   const part=settings.melodyPart==='piano'?'bassline':settings.melodyPart??'bassline',profile=melodyProfile(settings.genre,part);
   const key=settings.melodyKey??0,scale=MELODY_SCALES[settings.melodyScale??'natural-minor'].intervals;
-  const progressions=profile.progressions,contours=profile.contours;
-  // Harmony uses a part-independent stream so separately generated bass and lead agree.
-  const harmonyIndex=Math.floor(random(settings.seed,`melody:harmony:${settings.genre}:${settings.variation??0}`)()*progressions.length);
-  const progression=progressions[harmonyIndex]!;
+  const contours=profile.contours,harmony=harmonyPlan(settings);
   const motifIndex=Math.floor(chance(settings,part,'contour','phrase')*contours.length);
   const output:Hit[]=[];
   let previous:number|undefined;
@@ -91,7 +89,6 @@ export function generateMelody(settings:Settings,trackId:string):Hit[]{
     const response=bar%2===1&&settings.complexity>=.3;
     const coreSteps=response?profile.response:profile.motif;
     const steps=[...coreSteps];
-    const chordDegree=harmonicRoot(progression[Math.floor(bar*progression.length/settings.bars)]!,scale);
     const contour=contours[response&&settings.complexity>=.65?(motifIndex+1)%contours.length:motifIndex]!;
     for(const step of profile.details){
       if(!steps.includes(step)&&settings.complexity>=.35+.5*chance(settings,part,'detail-threshold',`${bar}:${step}`,false)&&chance(settings,part,'detail-density',`${bar}:${step}`)<settings.complexity)steps.push(step);
@@ -107,6 +104,7 @@ export function generateMelody(settings:Settings,trackId:string):Hit[]{
     }
     for(const [index,step] of steps.entries()){
       const baseTick=Math.round(bar*BAR+step*STEP),nextTick=Math.round(bar*BAR+(steps[index+1]??16)*STEP);
+      const chordDegree=harmonicRoot(harmonyAt(harmony,baseTick).degree,scale);
       const ornament=!Number.isInteger(step),extra=details.has(step);
       const coreIndex=coreSteps.indexOf(step),following=coreSteps.findIndex(value=>value>=step);
       const nearIndex=following<0?coreSteps.length-1:following;

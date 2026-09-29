@@ -20,6 +20,16 @@ for(const name of ['public/style.css','public/workspace.css','README.md','public
 files.set('index.html',await readFile(resolve(root,'public/index.html')));files.set('.nojekyll','');
 const catalog=JSON.parse(await readFile(resolve(root,'public/samples/catalog.json'),'utf8'));
 for(const sound of catalog){if(sound.license!=='CC0-1.0'||!/^\/public\/samples\/[a-z0-9-]+\.wav$/.test(sound.path))throw Error('Unapproved sample '+sound.id);const name=sound.path.slice(1),bytes=await readFile(resolve(root,name));if(createHash('sha256').update(bytes).digest('hex')!==sound.sha256)throw Error('Sample hash mismatch: '+sound.id);files.set(name,bytes);}
+const pianoCatalog=JSON.parse(await readFile(resolve(root,'public/piano/catalog.json'),'utf8'));
+if(pianoCatalog.length!==26)throw Error('Expected 26 curated piano recordings.');
+files.set('public/piano/catalog.json',JSON.stringify(pianoCatalog));
+for(const name of ['public/piano/CC0-LICENSE.txt','public/piano/CREDITS.md'])files.set(name,await readFile(resolve(root,name)));
+for(const sound of pianoCatalog){
+  if(!/^piano-kw-\d{1,3}-[HL]$/.test(sound.id)||!Number.isInteger(sound.rootNote)||sound.rootNote<0||sound.rootNote>119||!['H','L'].includes(sound.velocity)||!/^\/public\/piano\/[A-G](?:%23)?[0-8]v[HL]\.flac$/.test(sound.path))throw Error('Invalid piano catalog entry.');
+  const name=decodeURIComponent(sound.path.slice(1)),bytes=await readFile(resolve(root,name));
+  if(createHash('sha256').update(bytes).digest('hex')!==sound.sha256)throw Error('Piano sample hash mismatch: '+sound.id);
+  files.set(name,bytes);
+}
 // All sources have been checked before replacing the previous generated artifact.
 if(existing)await rm(out,{recursive:true});await mkdir(out,{recursive:true});
 for(const [name,data] of files){const target=resolve(out,name);if(!target.startsWith(out+sep))throw Error('Unsafe artifact path');await mkdir(dirname(target),{recursive:true});await writeFile(target,data);}

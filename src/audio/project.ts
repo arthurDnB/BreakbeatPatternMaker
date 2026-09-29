@@ -9,7 +9,7 @@ import {validateSettings} from '../core/generate.js';
 import type {AudioAsset} from './slices.js';
 import type {KitState} from './drum-kit.js';
 import {DEFAULT_VINYL_TEXTURE,isVinylTexture,validateVinylTexture,type VinylTexture} from './vinyl-texture.js';
-export interface Project {format:'breakbeat-project';version:2|3|4|5|6|7;bank?:Bank;editor:EditorState;draft:Settings;kit:KitState;vinylTexture?:VinylTexture;assets:{id:string;name:string;sampleRate:number;channels:string[]}[]}
+export interface Project {format:'breakbeat-project';version:2|3|4|5|6|7|8;bank?:Bank;editor:EditorState;draft:Settings;kit:KitState;vinylTexture?:VinylTexture;assets:{id:string;name:string;sampleRate:number;channels:string[]}[]}
 function base64(data:Float32Array){let s='';const bytes=new Uint8Array(data.buffer,data.byteOffset,data.byteLength);for(let i=0;i<bytes.length;i+=8192)s+=String.fromCharCode(...bytes.subarray(i,i+8192));return btoa(s);}
 const legacyId=(id:string)=>id==='synth-scratch'||isVinylTexture(id)||id.startsWith('library-')&&isVinylTexture(id.slice(8));
 const projectPatterns=(p:Project)=>[p.editor.pattern,...(p.bank?.slots.flatMap(s=>[...(s.editor?[s.editor.pattern]:[]),...(s.patternHistory?.map(h=>h.editor.pattern)??[])])??[])];
@@ -20,11 +20,12 @@ export function needsVinylMigration(raw:unknown){
 }
 export function makeProject(editor:EditorState,draft:Settings,kit:KitState,assets:Map<string,AudioAsset>,bank?:Bank,vinylTexture:VinylTexture=DEFAULT_VINYL_TEXTURE):Project{
   const patterns=[editor.pattern,...(bank?.slots.flatMap(s=>[...(s.editor?[s.editor.pattern]:[]),...(s.patternHistory?.map(h=>h.editor.pattern)??[])])??[])];
-  const ids=new Set(patterns.flatMap(p=>[...(p.sliceInstruments??[]).map(i=>i.assetId),...(p.userTracks??[]).filter(t=>!isSynthTrack(t)).map(t=>t.sample.assetId),...p.events.flatMap(h=>h.slice?[h.slice.assetId]:[])]));for(const r of ROLES){if(kit[r].assetId)ids.add(kit[r].assetId!);if(kit[r].uploadId)ids.add(kit[r].uploadId!);if(kit[r].layer)ids.add(kit[r].layer.slice.assetId);}
+  const ids=new Set(patterns.flatMap(p=>[...(p.sliceInstruments??[]).map(i=>i.assetId),...(p.userTracks??[]).flatMap(t=>isSynthTrack(t)?t.instrument.sample?[t.instrument.sample.assetId]:[]:[t.sample.assetId]),...p.events.flatMap(h=>h.slice?[h.slice.assetId]:[])]));for(const r of ROLES){if(kit[r].assetId)ids.add(kit[r].assetId!);if(kit[r].uploadId)ids.add(kit[r].uploadId!);if(kit[r].layer)ids.add(kit[r].layer.slice.assetId);}
   const v3=['groove-v3','groove-v4'].includes(draft.algorithm??'')||patterns.some(p=>['groove-v3','groove-v4'].includes(p.settings.algorithm??'')||p.events.some(h=>h.articulation||h.effect));
   if([...ids].some(legacyId)||Object.values(kit).some(s=>legacyId(s.choice)))throw Error('Old vinyl instrument must be migrated before saving.');
   const piano=patterns.some(p=>p.userTracks?.some(track=>isSynthTrack(track)&&track.instrument.preset==='piano'));
-  return {format:'breakbeat-project',version:piano?7:patterns.some(p=>p.userTracks?.some(isSynthTrack))?6:patterns.some(p=>p.userTracks?.length)?5:patterns.some(p=>p.sliceInstruments?.length)?4:v3?3:2,...(bank?{bank:structuredClone(bank)}:{}),editor:structuredClone(editor),draft:structuredClone(draft),kit:structuredClone(kit),vinylTexture:validateVinylTexture(vinylTexture),assets:[...ids].map(id=>{const a=assets.get(id);if(!a)throw Error('Missing project audio.');return {id,name:a.name,sampleRate:a.sampleRate,channels:a.channels.map(base64)};})};
+  const sampledPiano=patterns.some(p=>p.userTracks?.some(track=>isSynthTrack(track)&&(track.instrument.sample||track.instrument.sampleBank)));
+  return {format:'breakbeat-project',version:sampledPiano?8:piano?7:patterns.some(p=>p.userTracks?.some(isSynthTrack))?6:patterns.some(p=>p.userTracks?.length)?5:patterns.some(p=>p.sliceInstruments?.length)?4:v3?3:2,...(bank?{bank:structuredClone(bank)}:{}),editor:structuredClone(editor),draft:structuredClone(draft),kit:structuredClone(kit),vinylTexture:validateVinylTexture(vinylTexture),assets:[...ids].map(id=>{const a=assets.get(id);if(!a)throw Error('Missing project audio.');return {id,name:a.name,sampleRate:a.sampleRate,channels:a.channels.map(base64)};})};
 }
 export function readProject(raw:unknown,replacement?:AudioAsset){
   // Migrate a copy: opening an old file must not mutate the caller's data.
@@ -34,7 +35,7 @@ export function readProject(raw:unknown,replacement?:AudioAsset){
     legacy.version=2;
   }
   const p=legacy as Project;
-  if(!p||p.format!=='breakbeat-project'||![2,3,4,5,6,7].includes(p.version)||!p.editor||!p.kit||!Array.isArray(p.assets)||p.assets.length>256)throw Error('Not a supported project.');
+  if(!p||p.format!=='breakbeat-project'||![2,3,4,5,6,7,8].includes(p.version)||!p.editor||!p.kit||!Array.isArray(p.assets)||p.assets.length>256)throw Error('Not a supported project.');
   let migrated=false;
   if(needsVinylMigration(p)){
     if(!replacement||replacement.id!=='library-lofi2-perc-02')throw Error('Load the replacement percussion sample before opening this older project.');
@@ -96,7 +97,7 @@ export function readProject(raw:unknown,replacement?:AudioAsset){
     }
   }
   for(const pattern of projectPatterns(p)){
-    for(const track of pattern.userTracks??[]){if(isSynthTrack(track))continue;const asset=assets.get(track.sample.assetId);if(!asset||asset.sampleRate!==track.sample.sampleRate||track.sample.endFrame>asset.channels[0]!.length)throw Error('Missing user track audio.');}
+    for(const track of pattern.userTracks??[]){if(isSynthTrack(track)){if(track.instrument.sample){const asset=assets.get(track.instrument.sample.assetId);if(!asset||asset.channels[0]!.length/asset.sampleRate>20)throw Error('Missing piano sample audio.');}continue;}const asset=assets.get(track.sample.assetId);if(!asset||asset.sampleRate!==track.sample.sampleRate||track.sample.endFrame>asset.channels[0]!.length)throw Error('Missing user track audio.');}
     for(const instrument of pattern.sliceInstruments??[]){const a=assets.get(instrument.assetId);if(!a||a.sampleRate!==instrument.sampleRate||instrument.endFrame>a.channels[0]!.length)throw Error('Missing instrument audio.');}
     for(const hit of pattern.events){const slice=resolveSlice(pattern,hit);if(slice){const a=assets.get(slice.assetId);if(!a||a.sampleRate!==slice.sampleRate||slice.endFrame>a.channels[0]!.length)throw Error('Missing slice audio.');}}
   }

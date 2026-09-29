@@ -116,7 +116,8 @@ export class Editor {
     while(!existing&&old.userTracks?.some(track=>track.id===id))id=`melody-${part}-${suffix++}`;
     const names={bassline:'Generated Bassline',lead:'Generated Lead',piano:'Generated Piano'} as const;
     const track:SynthTrack=existing??{id,name:names[part],kind:'synth',generatedPart:part,role:'percussion',instrument:copy(SYNTH_PRESETS[part==='bassline'?'bass':part==='lead'?'pluck':'piano']),level:1,pan:0,mute:false,solo:false};
-    return this.replace(pattern,label,{part,track,notes:part==='piano'?generatePiano(settings,id):generateMelody(settings,id)});
+    const bassPresent=old.userTracks?.some(item=>isSynthTrack(item)&&item.generatedPart==='bassline'&&old.events.some(hit=>hit.trackId===item.id))??false;
+    return this.replace(pattern,label,{part,track,notes:part==='piano'?generatePiano(settings,id,bassPresent):generateMelody(settings,id)});
   }
   addUserTrack(track:NonNullable<Pattern['userTracks']>[number]):boolean{
     const next=copy(this.state);if(next.pattern.userTracks?.some(item=>item.id===track.id))throw Error('Track ID already exists.');(next.pattern.userTracks??=[]).push(copy(track));next.revision++;return this.commit(next,isSynthTrack(track)?'Add synth track':'Add sample track');

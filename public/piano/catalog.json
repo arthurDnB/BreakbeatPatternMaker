@@ -1,0 +1,184 @@
+[
+  {
+    "id": "piano-kw-57-H",
+    "rootNote": 57,
+    "velocity": "H",
+    "path": "/public/piano/A3vH.flac",
+    "sha256": "0dd04df799269779ea705dffec0ca8a2c304209cd5ee0d70c95ea79b1c753566"
+  },
+  {
+    "id": "piano-kw-57-L",
+    "rootNote": 57,
+    "velocity": "L",
+    "path": "/public/piano/A3vL.flac",
+    "sha256": "498682c53eb222dd88692a21ffdf48641873df63287d93dd43cd814544874372"
+  },
+  {
+    "id": "piano-kw-69-H",
+    "rootNote": 69,
+    "velocity": "H",
+    "path": "/public/piano/A4vH.flac",
+    "sha256": "4a7acdcb5e3fb41a165414e86afbceb74d7417b28c566b65fd7f836b2cc4535d"
+  },
+  {
+    "id": "piano-kw-69-L",
+    "rootNote": 69,
+    "velocity": "L",
+    "path": "/public/piano/A4vL.flac",
+    "sha256": "1eb7f53be83b4fb86a5fb5f2e8b2cebd6e1da3c1a7e8c3305b20533e6ac63d86"
+  },
+  {
+    "id": "piano-kw-81-H",
+    "rootNote": 81,
+    "velocity": "H",
+    "path": "/public/piano/A5vH.flac",
+    "sha256": "849570ec5bda68318cf1598230d6f3d922cfa8673fa199aa64d41ce2349e9bff"
+  },
+  {
+    "id": "piano-kw-81-L",
+    "rootNote": 81,
+    "velocity": "L",
+    "path": "/public/piano/A5vL.flac",
+    "sha256": "1f68815ff745a1968a706916586a5d4a96b39aeca1c444a8d75dc2b6a5555ef3"
+  },
+  {
+    "id": "piano-kw-47-H",
+    "rootNote": 47,
+    "velocity": "H",
+    "path": "/public/piano/B2vH.flac",
+    "sha256": "5786f8bb2fe9bae5e3f127b975f2320c5d90e109d5337170b3758a35892f920d"
+  },
+  {
+    "id": "piano-kw-60-L",
+    "rootNote": 60,
+    "velocity": "L",
+    "path": "/public/piano/C4vL.flac",
+    "sha256": "4382a54ffbb731cc8c7d8d88e322b1d669d6d44ccdca71eb17860d3c81967b4f"
+  },
+  {
+    "id": "piano-kw-72-H",
+    "rootNote": 72,
+    "velocity": "H",
+    "path": "/public/piano/C5vH.flac",
+    "sha256": "a8098d1a4e14b19becbd224e3978d3232759681a545f237d54269a231e43d88a"
+  },
+  {
+    "id": "piano-kw-72-L",
+    "rootNote": 72,
+    "velocity": "L",
+    "path": "/public/piano/C5vL.flac",
+    "sha256": "b6c6948fdc8b4f0a35d260229de051d912077123ce4a4c19e2a41edca9d4214d"
+  },
+  {
+    "id": "piano-kw-84-H",
+    "rootNote": 84,
+    "velocity": "H",
+    "path": "/public/piano/C6vH.flac",
+    "sha256": "1dbdb14f7d81b1b6ad78820ad6bd70b6c20e052ce25a801de3386daf6277e7fb"
+  },
+  {
+    "id": "piano-kw-84-L",
+    "rootNote": 84,
+    "velocity": "L",
+    "path": "/public/piano/C6vL.flac",
+    "sha256": "56c6f17c3b63f273ccb69c406c030a8715aa847607ebecc56f992fda2aad7813"
+  },
+  {
+    "id": "piano-kw-51-H",
+    "rootNote": 51,
+    "velocity": "H",
+    "path": "/public/piano/D%233vH.flac",
+    "sha256": "e6f54bb7aef81e4e7995d5ff5b7cadd4dc4c3502f6c29fdacc0a6eb56e65f725"
+  },
+  {
+    "id": "piano-kw-51-L",
+    "rootNote": 51,
+    "velocity": "L",
+    "path": "/public/piano/D%233vL.flac",
+    "sha256": "c34359c5561bc71a53bce1c24ebd62fa335be5098feb63ab9eaa57af51b57521"
+  },
+  {
+    "id": "piano-kw-63-H",
+    "rootNote": 63,
+    "velocity": "H",
+    "path": "/public/piano/D%234vH.flac",
+    "sha256": "b09be129c8bdc8f3ce076f8fe6d168bf8984c44a8343cf9fc4424f18680b73e4"
+  },
+  {
+    "id": "piano-kw-63-L",
+    "rootNote": 63,
+    "velocity": "L",
+    "path": "/public/piano/D%234vL.flac",
+    "sha256": "105074540a60b82228cc6d9defb84b37aaab2a18d7526ccbf197500529040ff7"
+  },
+  {
+    "id": "piano-kw-75-H",
+    "rootNote": 75,
+    "velocity": "H",
+    "path": "/public/piano/D%235vH.flac",
+    "sha256": "6e36f5fa2401c9da199bcacbde98a6860082d983e53649db5cc2013fb3ad2e00"
+  },
+  {
+    "id": "piano-kw-75-L",
+    "rootNote": 75,
+    "velocity": "L",
+    "path": "/public/piano/D%235vL.flac",
+    "sha256": "6730be1a4ccc3747d46535fc64b6bfccd725a433ef10c122a688cf643ef0eb17"
+  },
+  {
+    "id": "piano-kw-42-H",
+    "rootNote": 42,
+    "velocity": "H",
+    "path": "/public/piano/F%232vH.flac",
+    "sha256": "32ebdd497e49cda9383924560e3a7a87d202c6d062981ae270970051d2a7aaf1"
+  },
+  {
+    "id": "piano-kw-42-L",
+    "rootNote": 42,
+    "velocity": "L",
+    "path": "/public/piano/F%232vL.flac",
+    "sha256": "d5f7f5b399982e8aab0db2fc419c4e6ab39dd8bf3b4a67acac13bd5a473b7b4b"
+  },
+  {
+    "id": "piano-kw-54-H",
+    "rootNote": 54,
+    "velocity": "H",
+    "path": "/public/piano/F%233vH.flac",
+    "sha256": "98e2301025525d6db84c6eafe49ffa9b4605222a7af68b156a4b5eef5971ec9c"
+  },
+  {
+    "id": "piano-kw-54-L",
+    "rootNote": 54,
+    "velocity": "L",
+    "path": "/public/piano/F%233vL.flac",
+    "sha256": "5a39e7f31344425491c439847a009d0859aaeaf51737dbe952d47bd86d0d4998"
+  },
+  {
+    "id": "piano-kw-66-H",
+    "rootNote": 66,
+    "velocity": "H",
+    "path": "/public/piano/F%234vH.flac",
+    "sha256": "c290966dcd889ed05614fbec9505b2f2ad5df8210dd372691026233ae8b7983a"
+  },
+  {
+    "id": "piano-kw-66-L",
+    "rootNote": 66,
+    "velocity": "L",
+    "path": "/public/piano/F%234vL.flac",
+    "sha256": "157fa02c06d4cc768f059ae1954c11f8dabf0dae65da1f94f120570d7d6a50e5"
+  },
+  {
+    "id": "piano-kw-78-H",
+    "rootNote": 78,
+    "velocity": "H",
+    "path": "/public/piano/F%235vH.flac",
+    "sha256": "f78a906e5066694496ce244c2a1c2a6b3c266228fa573e2ce4a07ada2c82b90a"
+  },
+  {
+    "id": "piano-kw-78-L",
+    "rootNote": 78,
+    "velocity": "L",
+    "path": "/public/piano/F%235vL.flac",
+    "sha256": "2df9d8a44724bb7c2c9bbbd05d6b459c76ce9c7af35eac925bba1b0ab7878ca7"
+  }
+]

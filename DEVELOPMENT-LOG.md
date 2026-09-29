@@ -26,7 +26,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.3.0-alpha`
-* **Test Status:** 191 / 191 unit tests passing (`npm.cmd test`).
+* **Test Status:** 199 / 199 unit tests passing (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -73,6 +73,13 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-09-29] - Shared Lush Piano Harmony and CC0 Upright Bank (Codex)
+
+* Added `src/core/harmony.ts` and rebuilt `src/core/piano.ts` around changing, seeded genre progressions, scale-aware seventh/ninth voicings, smooth inversions, bass-aware low notes, and distinct chord rhythms. `src/core/melody.ts` now follows the same harmony changes so independently generated bass and lead parts align.
+* Added a curated 26-recording CC0 FreePats upright piano bank under `public/piano/`, with provenance/hash catalog, site packaging checks, and lazy decoding in `src/audio/piano-bank.ts`. The default generated piano uses soft/strong recordings; the existing procedural tone remains selectable.
+* Added uploadable single-note piano WAV support with an editable MIDI root, stereo repitching, project v8 persistence, and a shared rendering path for live Preview, song playback and WAV export (`src/audio/synth-instrument.ts`, `src/audio/performance.ts`, `src/audio/project.ts`, `src/web.ts`). The user's one-shot stays local and is not redistributed.
+* Expanded unit and browser checks for harmony, velocity layers, sample hashes, upload/project roundtrip and static-site loading (`tests/piano-generation.test.mjs`, `scripts/melody-browser-smoke.mjs`). Added `docs/PIANO-HARMONY.md` and a local audition generator. Verification: 199/199 unit tests, `npm.cmd run test:site` on root and subpath, and the melody/piano browser smoke test passed.
 
 ### [2026-09-29] - Independent Beat, Bass, Melody & Piano Generators (Codex)
 - **Layer controls (`public/index.html`, `public/workspace.css`, `src/web.ts`):** Replaced the mode/part dropdown workflow with separate **Beat**, **Bass**, **Melody**, and **Piano chords** actions. Key and scale stay available; each button regenerates only its own lane and retains unrelated generated/user material. Each action keeps one-step editor Undo and locked-note behavior.
