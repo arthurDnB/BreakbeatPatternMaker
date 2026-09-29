@@ -3126,6 +3126,17 @@ tr.playing-row td { background:#0b1c18; }
 .blank-tracker-guide span { color:#9ab5a9; font-size:11px; }
 .blank-tracker-actions { display:flex; flex-wrap:wrap; gap:6px; }
 .blank-tracker-actions button { min-height:27px; white-space:nowrap; }
+.drum-lane-config { margin:3px 8px 6px; color:#a9c2b9; font-size:11px; }
+.drum-lane-config>summary { width:max-content; cursor:pointer; color:#9adac8; }
+.drum-lane-config>p { margin:7px 0; color:#849f95; }
+#drum-lane-rows { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; }
+.drum-lane-row { display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; padding:7px; border:1px solid #28443b; border-radius:6px; background:#0a1310; }
+.drum-lane-row>strong { min-width:70px; color:#bad8cd; }
+.drum-lane-row label { display:flex; align-items:center; gap:5px; }
+.drum-lane-row input[type="text"] { width:125px; max-width:30vw; }
+.drum-lane-row select { max-width:130px; }
+.drum-lane-row small { color:#819b91; }
+@media(max-width:820px) { #drum-lane-rows { grid-template-columns:1fr; } }
 .daw-tray-bottom { overflow:visible; }
 .daw-tray-bottom .tray-body { max-height:none !important; overflow:visible !important; resize:vertical; }
 .daw-tray-bottom #controls .primary {

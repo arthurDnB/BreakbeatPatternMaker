@@ -2,6 +2,8 @@ export const ENGINE_VERSION = '0.1.0';
 export const PPQ = 960;
 export const ROLES = ['kick', 'snare', 'hat', 'percussion'] as const;
 export type Role = typeof ROLES[number];
+/** Presentation and generator assignment for the four legacy sample lanes. */
+export interface DrumLane {name:string;visible:boolean;generationRole:Role|null}
 export type Genre = 'jungle' | 'dnb' | 'hiphop' | 'trap' | 'rap' | 'drill' | 'breakcore' | 'idm' | 'hardcore' | 'experimental' | 'breaks' | 'bigbeat' | 'nuskoolbreaks' | 'electrobreaks' | 'breakbeathardcore' | 'raggajungle' | 'atmosphericjungle' | 'footworkjungle' | 'downtempo' | 'lofihiphop' | 'boombap' | 'mellowbeats' | 'liquiddnb' | 'jumpup' | 'garage' | 'speedgarage' | 'twostepgarage' | 'dub' | 'psydub' | 'dubstep' | 'brostep' | 'postdubstep' | 'drumfunk' | 'amenscience' | 'atmosphericbreakcore' | 'triphop' | 'halftimednb' | 'neurofunk';
 export type BreakStyle = 'genre' | 'amen' | 'think' | 'apache' | 'funkyDrummer' | 'hotPants';
 export type GenerationMode = 'drums' | 'melody' | 'both';
@@ -76,6 +78,7 @@ export interface Hit {
 export interface Pattern {
   sliceInstruments?:SliceInstrument[];
   userTracks?:UserTrack[];
+  drumLanes?:Partial<Record<Role,DrumLane>>;
   engineVersion: string; settings: Settings; ppq: number; events: Hit[];
 }
 export interface Source {

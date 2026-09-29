@@ -3,6 +3,7 @@ import {validateArticulation} from './articulation.js';
 import {validateSynthInstrument} from '../audio/synth-instrument.js';
 import {validateSettings} from './generate.js';
 import {validateSliceInstruments,resolveSlice} from './slice-instrument.js';
+import {drumLane} from './drum-lanes.js';
 
 export function compile(pattern: Pattern, sources: Source[] = DEFAULT_SOURCES, lpb = pattern.settings.lpb ?? pattern.settings.resolution / 4): Transfer {
   validateSettings(pattern.settings);
@@ -14,6 +15,16 @@ export function compile(pattern: Pattern, sources: Source[] = DEFAULT_SOURCES, l
   if(lines>512) throw new Error('This exporter supports at most 512 rows.');
   const sourceMap=new Map<string, Source>();
   const trackMap=new Map((pattern.userTracks??[]).map(track=>[track.id,track]));
+  if(pattern.drumLanes!==undefined){
+    if(!pattern.drumLanes||typeof pattern.drumLanes!=='object'||Array.isArray(pattern.drumLanes)||Object.keys(pattern.drumLanes).some(role=>!ROLES.includes(role as typeof ROLES[number])))throw Error('Invalid drum lane layout.');
+    for(const role of ROLES){
+      const lane=pattern.drumLanes[role];if(lane===undefined)continue;
+      if(!lane||typeof lane!=='object')throw Error('Invalid drum lane layout.');
+      text(lane.name,'drum lane name',80);
+      if(typeof lane.visible!=='boolean'||lane.generationRole!==null&&!ROLES.includes(lane.generationRole))throw Error('Invalid drum lane visibility or generation role.');
+    }
+    if(!ROLES.some(role=>drumLane(pattern,role).visible)&&!(pattern.userTracks?.length))throw Error('Show at least one tracker lane.');
+  }
   if(!Array.isArray(pattern.userTracks??[])||(pattern.userTracks?.length??0)>128)throw Error('A pattern supports up to 128 user tracks.');
   for(const track of pattern.userTracks??[]){
     identifier(track.id,'track ID');text(track.name,'track name',80);
@@ -97,7 +108,7 @@ export function compile(pattern: Pattern, sources: Source[] = DEFAULT_SOURCES, l
   if(notes.some(note=>{const track=trackMap.get(note.lane);return track&&!isSynthTrack(track);}))out.warnings.push('Custom sample-track audio is not embedded in tracker JSON. Use Download project + samples to preserve the WAV data.');
   if(notes.some(note=>isSynthTrack(trackMap.get(note.lane))))out.warnings.push('Use the full pattern/project file to preserve synth note pitches, lengths, and instrument settings.');
   out.sources=sources.filter(x=>usedSources.has(x.id)).map(({id,role,kind,label,note,instrument})=>({id,role,kind,label,note,instrument}));
-  out.lanes=[...ROLES.filter(x=>columns.has(x)).map(id=>({id,name:id[0]!.toUpperCase()+id.slice(1),columns:columns.get(id)!})),...(pattern.userTracks??[]).filter(track=>columns.has(track.id)).map(track=>({id:track.id,name:track.name,columns:columns.get(track.id)!}))];
+  out.lanes=[...ROLES.filter(x=>columns.has(x)).map(id=>({id,name:drumLane(pattern,id).name,columns:columns.get(id)!})),...(pattern.userTracks??[]).filter(track=>columns.has(track.id)).map(track=>({id:track.id,name:track.name,columns:columns.get(track.id)!}))];
 
   return out;
 }

@@ -26,7 +26,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.3.0-alpha`
-* **Test Status:** 201 / 201 unit tests passing (`npm.cmd test`).
+* **Test Status:** 205 / 205 unit tests passing (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -68,11 +68,18 @@ This document maintains the running project state and change log so that multipl
 * [ ] **Future Audio Roadmaps:** MP3 export, velocity-layered drum kits.
 * [x] **Sound Library Browser:** Shared searchable and filterable audition/selection for lanes and tracker hits, with browser-local Favorites and Recently used sounds.
 * [x] **Optional Melody Generation:** Drum, drum + melody, and melody modes with genre-aware bassline/lead synth motifs, key/scale choice, layer preservation, locks and Undo.
+* [x] **Configurable drum lanes:** The four built-in sample lanes can be renamed, hidden, and assigned beat-generator roles independently of their sounds; see `docs/DRUM-LANES.md`.
 * [ ] *Note: Renoise integration has been retired in favor of the standalone in-browser instrument.*
 
 ---
 
 ## 📝 Change Log
+
+### [2026-09-29] - Configurable Drum Lanes and Generator Routing (Codex)
+
+* Added per-pattern names, visibility, and generator-role assignments for the four built-in sample lanes. The tracker configuration lets a user put, for example, Snare rhythm into a renamed Kick sound lane, layer one beat part across multiple lanes, or omit a lane from generation. Hidden lanes keep existing notes/audio but receive no newly generated hits.
+* Kept audio lane identities stable while routing new generated hits before editor lock/Undo handling. Settings persist through project and pattern history; older projects retain the original four visible lanes and matching roles. Added validation for malformed layouts, tests for sound routing, locks, deterministic layering, Undo, and project save/reopen, plus `docs/DRUM-LANES.md`.
+* Verification: `npm.cmd test` passed 205/205. `npm.cmd run test:site` passed root and Pages subpath browser checks, including the new lane controls, all 344 samples, sound browser, and break transcription. A final validation-only change was followed by another passing full unit run.
 
 ### [2026-09-29] - Blank Tracker First-Run Guide (Codex)
 

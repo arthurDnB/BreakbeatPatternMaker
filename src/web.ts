@@ -21,6 +21,7 @@ import {BREAKS} from './core/breaks.js';
 import {defaults,genreDefaults,PROFILES} from './core/profiles.js';
 import {generate,validateSettings} from './core/generate.js';
 import {compile,serialize} from './core/compile.js';
+import {drumLane} from './core/drum-lanes.js';
 import {ROLES,hex,noteName,isSynthTrack,type Hit,type Role,type Genre,type BreakStyle,type Pattern,type Transfer,type EffectCommand,type Settings,type UserTrack,type SynthTrack,type SynthInstrument,type GenerationMode,type MelodyPart,type MelodyScale} from './core/model.js';
 import {SYNTH_PRESETS} from './audio/synth-instrument.js';
 import {Editor,emptySelection,locked,selectedIds,type EditorState,type TrackerClipboard,type CellPosition} from './core/editor.js';
@@ -64,6 +65,28 @@ let trackerClipboard:TrackerClipboard|undefined;
 let draggingTrackerCells:CellPosition[]|undefined;
 let trackerFieldDraft:{id:string;field:string;digits:string}|undefined;
 let trackerEffectDraft:{id:string;command?:EffectCommand['command'];digits:string;prefix:boolean}|undefined;
+const drumLaneFields=new Map<Role,{name:HTMLInputElement;visible:HTMLInputElement;generation:HTMLSelectElement;count:HTMLElement}>();
+function visibleDrumRoles(){return ROLES.filter(role=>drumLane(pattern,role).visible);}
+function syncDrumLaneFields(){
+  const host=el('drum-lane-rows');
+  if(!drumLaneFields.size)for(const role of ROLES){
+    const row=document.createElement('div');row.className='drum-lane-row';row.id=`drum-lane-${role}`;
+    const title=document.createElement('strong');title.textContent=role==='percussion'?'Percussion':role[0]!.toUpperCase()+role.slice(1);
+    const name=document.createElement('input');name.id=`drum-lane-name-${role}`;name.type='text';name.maxLength=80;name.setAttribute('aria-label',`${title.textContent} lane name`);
+    const nameLabel=document.createElement('label');nameLabel.textContent='Name';nameLabel.append(name);
+    const visible=document.createElement('input');visible.id=`drum-lane-visible-${role}`;visible.type='checkbox';visible.setAttribute('aria-label',`Show ${title.textContent} lane`);
+    const visibleLabel=document.createElement('label');visibleLabel.textContent='Show';visibleLabel.append(visible);
+    const generation=document.createElement('select');generation.id=`drum-lane-generation-${role}`;generation.setAttribute('aria-label',`Generate ${title.textContent} lane as`);
+    const choices:[string,string][]=[['','No generation'],...ROLES.map((item):[string,string]=>[item,item==='hat'?'Hi-hat':item[0]!.toUpperCase()+item.slice(1)])];
+    for(const [value,label] of choices){const option=document.createElement('option');option.value=value;option.textContent=label;generation.append(option);}
+    const generationLabel=document.createElement('label');generationLabel.textContent='Generate';generationLabel.append(generation);
+    const count=document.createElement('small');
+    const update=(patch:Partial<ReturnType<typeof drumLane>>)=>{try{if(editor.setDrumLane(role,patch)){if(!drumLane(editor.state.pattern,cursorLane).visible&&!cursorTrackId)cursorLane=ROLES.find(item=>drumLane(editor.state.pattern,item).visible)??'percussion';refresh();status(`Updated ${role} lane. Generate again to apply its routing.`);}else syncDrumLaneFields();}catch(error){status(String(error),true);syncDrumLaneFields();}};
+    name.onchange=()=>update({name:name.value});visible.onchange=()=>update({visible:visible.checked});generation.onchange=()=>update({generationRole:generation.value as Role||null});
+    row.append(title,nameLabel,visibleLabel,generationLabel,count);host.append(row);drumLaneFields.set(role,{name,visible,generation,count});
+  }
+  for(const role of ROLES){const fields=drumLaneFields.get(role)!,config=drumLane(pattern,role);if(document.activeElement!==fields.name)fields.name.value=config.name;fields.visible.checked=config.visible;fields.generation.value=config.generationRole??'';const hits=pattern.events.filter(hit=>!hit.trackId&&hit.role===role).length;fields.count.textContent=`${hits} hit${hits===1?'':'s'}`;}
+}
 const openSynthTrackIds=new Set<string>();
 const trackerFields=['note','instrument','volume','pan','delay','effect'] as const;
 let cursorField:typeof trackerFields[number]='note';
@@ -290,6 +313,11 @@ function flashTrackMeter(role: Role, level = 1){
 }
 function render(){
   const container=el('grid'),scrollTop=container.scrollTop,scrollLeft=container.scrollLeft;
+  if(!cursorTrackId&&!drumLane(pattern,cursorLane).visible){
+    const first=visibleDrumRoles()[0];if(first)cursorLane=first;
+    else if(pattern.userTracks?.[0]){cursorTrackId=pattern.userTracks[0].id;cursorLane=pattern.userTracks[0].role;}
+  }
+  syncDrumLaneFields();
   el('blank-tracker-guide').hidden=pattern.events.length>0;
   const active=document.activeElement as HTMLElement|null;
   const focusHit=active?.dataset.hit,focusRow=active?.dataset.row,focusCellRow=active?.dataset.cellRow,focusCellLane=active?.dataset.cellLane,focusField=active?.dataset.field;
@@ -303,11 +331,12 @@ function render(){
   container.replaceChildren();
   const table=document.createElement('table');
   const head=document.createElement('thead'),header=document.createElement('tr');
-  for(const [i,label] of ['Row','Beat',...ROLES.map(role=>role==='percussion'?'Percussion':role[0]!.toUpperCase()+role.slice(1))].entries()){
+  const headerRoles=visibleDrumRoles();
+  for(const [i,label] of ['Row','Beat',...headerRoles.map(role=>drumLane(pattern,role).name)].entries()){
     const th=document.createElement('th');
     if(i<2) th.textContent=label;
     else{
-      const role=ROLES[i-2]!;
+      const role=headerRoles[i-2]!;
       th.className='track-col-header track-'+role;
       const strip=document.createElement('div');
       strip.className='track-strip';
@@ -396,7 +425,7 @@ function render(){
       }else td.textContent=value;
       tr.append(td);
     }
-    const visibleLanes=[...ROLES.map(id=>({id,name:id[0]!.toUpperCase()+id.slice(1),role:id as Role,track:undefined as UserTrack|undefined})),...(pattern.userTracks??[]).map(track=>({id:track.id,name:track.name,role:track.role,track}))];
+    const visibleLanes=[...visibleDrumRoles().map(id=>({id,name:drumLane(pattern,id).name,role:id as Role,track:undefined as UserTrack|undefined})),...(pattern.userTracks??[]).map(track=>({id:track.id,name:track.name,role:track.role,track}))];
     for(const lane of visibleLanes){
       const td=document.createElement('td');td.classList.add('track-'+lane.role);td.classList.toggle('cursor-cell',row===rowAnchor&&lane.id===(cursorTrackId??cursorLane));td.classList.toggle('tracker-cell-selected',selectedCells.has(`${row}:${lane.id}`));
       td.dataset.dropRow=String(row);td.dataset.dropLane=lane.id;
@@ -510,7 +539,7 @@ async function applyHitSound(id:string,choice:string){
   const revised={...hit,sourceKind:'oneShot' as const};delete revised.mapped;if(slice)revised.slice=slice;else delete revised.slice;
   edit(()=>editor.write(revised,hit.id),'Hit instrument changed. Undo restores the previous sound.');
 }
-function trackerLaneIds(){return [...ROLES,...(pattern.userTracks??[]).map(track=>track.id)];}
+function trackerLaneIds(){return [...visibleDrumRoles(),...(pattern.userTracks??[]).map(track=>track.id)];}
 function trackerRole(laneId:string):Role{return ROLES.includes(laneId as Role)?laneId as Role:pattern.userTracks?.find(track=>track.id===laneId)?.role??'percussion';}
 function selectTrackerLane(row:number,laneId:string,event?:{shiftKey:boolean;ctrlKey:boolean;metaKey:boolean},audition=false){
  const track=pattern.userTracks?.find(item=>item.id===laneId);

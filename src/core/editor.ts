@@ -11,6 +11,7 @@ import {generateMelody} from './melody.js';
 import {generatePiano} from './piano.js';
 import {validateSettings} from './settings.js';
 import {SYNTH_PRESETS} from '../audio/synth-instrument.js';
+import {drumLane,routeGeneratedDrums} from './drum-lanes.js';
 import {PPQ, ROLES, isSynthTrack, type Pattern, type Role, type Hit, type EffectCommand, type SynthInstrument, type SynthTrack, type MelodyPart, type Settings} from './model.js';
 
 export interface CellPosition {row:number;lane:string}
@@ -50,6 +51,16 @@ export class Editor {
   setTempo(bpm:number){if(!Number.isFinite(bpm)||bpm<32||bpm>999)throw Error('Tempo must be between 32 and 999 BPM.');const next=copy(this.state);next.pattern.settings.bpm=bpm;next.revision++;return this.commit(next,'Change BPM');}
   setResolution(resolution:8|16|32|64){const next=copy(this.state);next.pattern.settings.resolution=resolution;next.pattern.settings.lpb=(resolution/4) as 2|4|8|16;next.revision++;return this.commit(next,'Change tracker resolution');}
   setLpb(lpb:1|2|3|4|6|8|12|16|24|32){const next=copy(this.state);next.pattern.settings.lpb=lpb;next.revision++;return this.commit(next,'Change tracker LPB');}
+  setDrumLane(role:Role,patch:Partial<ReturnType<typeof drumLane>>):boolean{
+    const next=copy(this.state),current=drumLane(next.pattern,role),updated={...current,...patch};
+    updated.name=updated.name.trim();
+    if(!updated.name||updated.name.length>80)throw Error('Lane name must contain 1–80 characters.');
+    if(updated.visible===false&&!next.pattern.userTracks?.length&&!ROLES.some(other=>other!==role&&drumLane(next.pattern,other).visible))throw Error('Show at least one tracker lane.');
+    if(JSON.stringify(updated)===JSON.stringify(current))return false;
+    (next.pattern.drumLanes??={})[role]=updated;
+    if(!updated.visible&&(next.selection.cells?.some(cell=>cell.lane===role)||next.selection.ids.some(id=>next.pattern.events.some(hit=>hit.id===id&&!hit.trackId&&hit.role===role))))next.selection=emptySelection();
+    next.revision++;return this.commit(next,'Change drum lane');
+  }
   updateSliceInstrument(instrument:NonNullable<Pattern['sliceInstruments']>[number]){
     const next=copy(this.state),index=next.pattern.sliceInstruments?.findIndex(i=>i.id===instrument.id)??-1;
     if(index<0)throw Error('This instrument is no longer in the active pattern.');
@@ -79,6 +90,7 @@ export class Editor {
     if(pattern.settings.generationMode!=='melody'&&kept.some(h=>pattern.settings.enabledRoles&&!pattern.settings.enabledRoles.includes(h.role)))throw Error('An excluded instrument has locked hits. Unlock them or include that instrument before generating.');
     const preservedIds=new Set(kept.map(h=>h.id));
     next.pattern=copy(pattern);
+    if(old.drumLanes&&!next.pattern.drumLanes)next.pattern.drumLanes=copy(old.drumLanes);
     if(old.userTracks?.length){next.pattern.userTracks=copy(old.userTracks);const scale=pattern.settings.bars/old.settings.bars;for(const hit of userHits){hit.baseTick=Math.min(pattern.settings.bars*4*PPQ-1,Math.round(hit.baseTick*scale));hit.offsetTick=Math.round(hit.offsetTick*scale);}next.pattern.events.push(...userHits);}
     for(const instrument of old.sliceInstruments??[])if(kept.some(h=>h.mapped?.instrumentId===instrument.id)&&!next.pattern.sliceInstruments?.some(i=>i.id===instrument.id))(next.pattern.sliceInstruments??=[]).push(copy(instrument));
     next.pattern.events=next.pattern.events.filter(h=>!!h.trackId||!next.lockedRoles.includes(h.role)&&!preservedIds.has(h.id)&&!kept.some(k=>k.role===h.role&&k.baseTick===h.baseTick)).concat(kept);
@@ -100,7 +112,7 @@ export class Editor {
   generateComposition(settings:Settings,label='Generate',preserveAnchors=false):boolean{
     validateSettings(settings);
     const mode=settings.generationMode??'drums',old=this.state.pattern;
-    const pattern:Pattern=mode==='melody'?{...copy(old),settings:copy(settings),events:copy(old.events.filter(hit=>!hit.trackId))}:generate(settings);
+    const pattern:Pattern=mode==='melody'?{...copy(old),settings:copy(settings),events:copy(old.events.filter(hit=>!hit.trackId))}:routeGeneratedDrums(generate(settings),old);
     if(mode==='melody'&&settings.bars!==old.settings.bars){
       const scale=settings.bars/old.settings.bars;
       for(const hit of pattern.events){hit.baseTick=Math.min(settings.bars*4*PPQ-1,Math.round(hit.baseTick*scale));hit.offsetTick=Math.max(-hit.baseTick,Math.min(PPQ,hit.offsetTick));}
@@ -146,7 +158,7 @@ export class Editor {
     const original=this.state.pattern;
     const algorithm=original.settings.algorithm;
     if(original.settings.generationMode&&original.settings.generationMode!=='drums')return this.generateComposition({...original.settings,algorithm:algorithm==='groove-v4'?'groove-v4':algorithm==='groove-v3'?'groove-v3':'groove-v2',variation:(original.settings.variation??0)+1},'Generate variation',true);
-    const next=generate({...original.settings,algorithm:algorithm==='groove-v4'?'groove-v4':algorithm==='groove-v3'?'groove-v3':'groove-v2',variation:(original.settings.variation??0)+1});
+    const next=routeGeneratedDrums(generate({...original.settings,algorithm:algorithm==='groove-v4'?'groove-v4':algorithm==='groove-v3'?'groove-v3':'groove-v2',variation:(original.settings.variation??0)+1}),original);
     const anchors=original.events.filter(h=>h.anchor);
     next.events=next.events.filter(h=>!h.anchor&&!anchors.some(a=>a.id===h.id||(a.role===h.role&&a.baseTick===h.baseTick))).concat(copy(anchors));
     return this.replace(next,'Generate variation');
