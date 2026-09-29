@@ -47,6 +47,47 @@ test('complexity adds rhythmic detail and Spicy adds bounded, scale-safe pickups
  assert.ok(generateMelody(spicy,'melody-lead').every(hit=>hit.baseTick>=0&&hit.baseTick<4*4*960&&hit.synthNote.durationTicks>0));
 });
 
+test('every genre produces a distinct phrase at matched tempo without a sustained ascending scale run',()=>{
+ const genres=Object.keys(PROFILES);
+ for(const part of ['bassline','lead']){
+  const phrases=new Set();
+  for(const genre of genres){
+   const s=settings({genre,bpm:120,bars:4,melodyPart:part,complexity:.8,spicy:.8,seed:'phrase-audit'});
+   const output=generateMelody(s,`melody-${part}`);
+   phrases.add(output.map(hit=>`${hit.baseTick}:${hit.synthNote.note}`).join('|'));
+   const pitches=output.map(hit=>hit.synthNote.note);
+   assert.ok(new Set(pitches).size>1,`${genre} ${part} must have pitch movement`);
+   for(let index=3;index<pitches.length;index++){
+    const fragment=pitches.slice(index-3,index+1);
+    assert.ok(!fragment.every((note,i)=>i===0||note>fragment[i-1]&&note-fragment[i-1]<=4),`${genre} ${part} has a four-note ascending scale run`);
+   }
+   assert.ok(output.some(hit=>hit.reason.includes('motif')),`${genre} ${part} should explain its phrase`);
+  }
+  assert.equal(phrases.size,genres.length,`${part} profiles should differ in audible notes or rhythm`);
+ }
+});
+
+test('short scales retain key-safe harmony movement and bassline phrase roots',()=>{
+ const s=settings({genre:'liquiddnb',bars:4,melodyPart:'bassline',melodyScale:'minor-pentatonic',seed:'harmony-audit',complexity:.2,spicy:0});
+ const output=generateMelody(s,'melody-bassline');
+ const firstInBar=Array.from({length:4},(_,bar)=>output.find(hit=>Math.floor(hit.baseTick/(4*960))===bar));
+ assert.ok(firstInBar.every(Boolean));
+ const pitchClasses=firstInBar.map(hit=>hit.synthNote.note%12);
+ assert.ok(new Set(pitchClasses).size>1,'the harmony should move between bars');
+ assert.ok(pitchClasses.every(pc=>MELODY_SCALES['minor-pentatonic'].intervals.includes(pc)));
+ assert.ok(firstInBar.every(hit=>hit.reason.includes('root')));
+});
+
+test('every genre and part commits a valid four-bar composition when details overlap a core step',()=>{
+ for(const genre of Object.keys(PROFILES))for(const part of ['bassline','lead']){
+  const s=settings({genre,bars:4,generationMode:'melody',melodyPart:part,enabledRoles:[],complexity:.8,spicy:.8});
+  const editor=new Editor(generate(settings({genre,bars:4})));
+  assert.equal(editor.generateComposition(s),true,`${genre} ${part}`);
+  assert.ok(compile(editor.state.pattern).notes.length>0);
+  assert.ok(notes(editor.state.pattern,part).length>0);
+ }
+});
+
 test('three generation modes preserve unrelated layers and regenerate only the chosen melody part',()=>{
  const editor=new Editor(generate(settings()));
  editor.generateComposition(settings());

@@ -26,7 +26,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.3.0-alpha`
-* **Test Status:** 188 / 188 unit tests passing (`npm.cmd test`).
+* **Test Status:** 191 / 191 unit tests passing (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -73,6 +73,11 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-09-29] - Genre-Aware Melody Phrases (Codex)
+- **Composer (`src/core/melody.ts`, `src/core/melody-profiles.ts`):** Replaced fixed scale-degree cycling with seeded chord-root movement, recurring pitch contours, voice leading, short-scale functional tones, phrase responses and a guard against sustained ascending scale runs. All 38 genres now have explicit harmony/contour rules and selected rhythm differences; Complexity adds connecting notes and Spicy adds a phrase-ending pickup and restrained octave accent. A duplicated optional step found in the full audition run was removed before note creation.
+- **Review and guidance (`scripts/melody-audition.mjs`, `docs/MELODY-COMPOSER.md`):** Added a repeatable 76-example local WAV listening set covering Bassline and Lead for every genre, plus tuning guidance and source references. Independent producer listening is still needed before any industry-standard quality claim.
+- **Verification (`tests/melody-generation.test.mjs`):** Added checks for distinct output at matched tempo, no four-note ascending scale runs, pentatonic harmony movement, and valid editor commits across every genre/part. `npm.cmd test` passed 191/191; `npm.cmd run test:site` passed root and Pages subpath browser checks. The pre-existing local `package.json` and chat-sync changes were preserved.
 
 ### [2026-09-29] - Optional Melody Generation (Codex)
 - **Composer (`src/core/melody.ts`, `src/core/melody-profiles.ts`):** Added a seeded melodic engine with explicit profiles for all 38 genres, bassline/lead motifs, scale-aware notes, Complexity details, and restrained Spicy pickups and octave accents. It works independently of the selected drum engine.

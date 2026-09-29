@@ -4,9 +4,12 @@ export interface MelodyPartProfile {
   /** Sixteenth-note positions within a bar. */
   motif:readonly number[]; response:readonly number[]; details:readonly number[];
   low:number; high:number; gate:number; maxBeats:number;
+  contours:readonly (readonly number[])[];
+  progressions:readonly (readonly number[])[];
 }
-export interface MelodyProfile {bassline:MelodyPartProfile;lead:MelodyPartProfile}
-const part=(motif:number[],response:number[],details:number[],low:number,high:number,gate:number,maxBeats:number):MelodyPartProfile=>({motif,response,details,low,high,gate,maxBeats});
+type RhythmProfile=Omit<MelodyPartProfile,'contours'|'progressions'>;
+export interface MelodyProfile {bassline:RhythmProfile;lead:RhythmProfile}
+const part=(motif:number[],response:number[],details:number[],low:number,high:number,gate:number,maxBeats:number):RhythmProfile=>({motif,response,details,low,high,gate,maxBeats});
 const profiles={
   jungle:{bassline:part([0,6,10],[0,7,11],[3,14],36,55,.72,1.5),lead:part([0,5,9,14],[0,6,11,14],[3,13],60,84,.7,1.5)},
   dnb:{bassline:part([0,8,10],[0,6,10],[3,14],36,55,.84,2),lead:part([0,4,10,14],[0,6,11,14],[3,12],60,84,.78,2)},
@@ -26,11 +29,58 @@ const profiles={
   neuro:{bassline:part([0,3,8,11],[0,6,10,14],[7,13],30,55,.7,1.5),lead:part([0,4,9,13],[0,6,11,14],[7,15],60,86,.63,1.5)},
 } satisfies Record<string,MelodyProfile>;
 
-/** Every supported genre has an explicit melodic family; individual values can be refined without changing the composer. */
+/** Shared rhythm families; every genre adds an explicit harmonic and melodic vocabulary below. */
 const families:Record<Genre,keyof typeof profiles>={
   jungle:'jungle',dnb:'dnb',hiphop:'hiphop',trap:'trap',rap:'hiphop',drill:'drill',breakcore:'breakcore',idm:'idm',hardcore:'rave',experimental:'idm',
   breaks:'breaks',bigbeat:'breaks',nuskoolbreaks:'breaks',electrobreaks:'breaks',breakbeathardcore:'rave',raggajungle:'jungle',atmosphericjungle:'atmospheric',footworkjungle:'jungle',
   downtempo:'mellow',lofihiphop:'hiphop',boombap:'hiphop',mellowbeats:'mellow',liquiddnb:'liquid',jumpup:'dnb',garage:'garage',speedgarage:'garage',twostepgarage:'garage',
   dub:'dub',psydub:'dub',dubstep:'dubstep',brostep:'dubstep',postdubstep:'dubstep',drumfunk:'jungle',amenscience:'breakcore',atmosphericbreakcore:'atmospheric',triphop:'mellow',halftimednb:'dubstep',neurofunk:'neuro'
 };
-export function melodyProfile(genre:Genre,partName:MelodyPart):MelodyPartProfile{return profiles[families[genre]][partName];}
+type Style={progressions:readonly (readonly number[])[];bass:readonly (readonly number[])[];lead:readonly (readonly number[])[];bassMotif?:readonly number[];leadMotif?:readonly number[]};
+const s=(progressions:number[][],bass:number[][],lead:number[][],bassMotif?:number[],leadMotif?:number[]):Style=>({progressions,bass,lead,bassMotif,leadMotif});
+/** Scale degrees are compositional tendencies, not transcriptions of existing songs. */
+export const MELODY_GENRES:Record<Genre,Style>={
+  jungle:s([[0,0,5,4],[0,3,4,0]],[[0,4,0,2],[0,0,4,1]],[[0,2,4,1],[4,2,0,3]]),
+  dnb:s([[0,5,3,4],[0,3,5,4]],[[0,0,4,0],[0,4,2,0]],[[0,2,4,2],[4,2,0,1]]),
+  hiphop:s([[0,3,5,4],[0,5,2,4]],[[0,0,2,4],[0,4,2,0]],[[2,1,0,4],[0,2,1,0]]),
+  trap:s([[0,0,5,5],[0,6,5,6]],[[0,0,4,0],[0,4,0,0]],[[0,2,1,0],[4,2,1,0]]),
+  rap:s([[0,5,3,4]],[[0,4,0,1],[0,0,2,0]],[[0,2,0,4],[2,0,1,0]],[0,8,11],[0,7,12]),
+  drill:s([[0,6,5,6],[0,3,6,5]],[[0,0,4,1],[0,4,0,-1]],[[0,1,4,0],[4,1,0,-1]]),
+  breakcore:s([[0,5,3,6],[0,2,6,4]],[[0,4,1,0],[0,-1,4,2]],[[0,4,1,3],[4,1,0,-1]]),
+  idm:s([[0,4,2,5],[0,6,3,1]],[[0,2,4,1],[0,4,-1,2]],[[0,4,1,5],[2,-1,4,0]]),
+  hardcore:s([[0,5,4,5]],[[0,0,4,0],[0,4,0,4]],[[0,4,2,4],[4,2,0,2]]),
+  experimental:s([[0,6,2,4]],[[0,4,-1,2],[0,1,4,-1]],[[0,5,2,-1],[4,-1,3,0]],[0,6,13],[0,3,11,14]),
+  breaks:s([[0,3,4,0],[0,5,4,0]],[[0,4,0,2],[0,2,4,0]],[[0,2,1,4],[2,4,1,0]]),
+  bigbeat:s([[0,5,3,0]],[[0,0,4,2],[0,4,0,2]],[[0,4,2,0],[4,2,0,1]],[0,4,10],[0,8,11]),
+  nuskoolbreaks:s([[0,4,5,3]],[[0,4,2,0],[0,2,4,1]],[[0,2,4,1],[4,1,2,0]],[0,7,10],[0,5,12]),
+  electrobreaks:s([[0,4,0,5]],[[0,0,4,0],[0,4,0,1]],[[0,4,0,2],[4,0,2,0]],[0,3,8,14],[0,4,8,12]),
+  breakbeathardcore:s([[0,5,6,4]],[[0,4,0,2],[0,0,4,2]],[[0,2,4,1],[4,2,0,2]],[0,4,8,11],[0,4,8,14]),
+  raggajungle:s([[0,4,5,0]],[[0,4,2,0],[0,2,0,4]],[[0,2,1,4],[2,4,0,1]],[0,7,10],[0,5,11,14]),
+  atmosphericjungle:s([[0,5,3,4]],[[0,0,2,0],[0,4,0,2]],[[0,2,4,1],[2,1,0,4]],[0,10],[0,8,13]),
+  footworkjungle:s([[0,6,3,4]],[[0,4,1,0],[0,1,4,0]],[[0,4,2,1],[4,1,2,0]],[0,3,7,10],[0,3,9,13]),
+  downtempo:s([[0,3,5,4]],[[0,0,2,0],[0,4,0,1]],[[0,2,1,4],[2,1,0,4]]),
+  lofihiphop:s([[0,3,5,3]],[[0,0,2,0],[0,2,4,0]],[[2,1,0,2],[0,2,1,4]],[0,9],[0,7,12]),
+  boombap:s([[0,5,3,4]],[[0,4,0,2],[0,2,4,0]],[[0,2,1,0],[2,4,1,0]],[0,7,11],[0,6,12]),
+  mellowbeats:s([[0,5,3,0]],[[0,0,4,0],[0,2,0,4]],[[0,2,4,2],[2,1,0,2]],[0,9],[0,8]),
+  liquiddnb:s([[0,5,3,4],[0,3,5,4]],[[0,0,4,0],[0,2,0,4]],[[0,2,4,1],[2,4,1,0]]),
+  jumpup:s([[0,0,4,0]],[[0,4,0,4],[0,0,4,2]],[[0,4,2,0],[4,0,2,4]],[0,3,8,11],[0,4,8,14]),
+  garage:s([[0,3,5,4]],[[0,4,2,0],[0,2,4,1]],[[0,2,4,1],[2,4,0,1]]),
+  speedgarage:s([[0,0,5,4]],[[0,4,0,2],[0,2,4,0]],[[0,4,2,1],[4,2,0,1]],[0,3,8,11],[0,4,11]),
+  twostepgarage:s([[0,5,3,4]],[[0,2,4,0],[0,4,1,0]],[[0,2,1,4],[2,1,4,0]],[0,7,11],[0,6,13]),
+  dub:s([[0,4,5,0]],[[0,0,4,0],[0,4,0,2]],[[0,2,0,4],[2,0,4,0]]),
+  psydub:s([[0,6,4,5]],[[0,4,1,0],[0,1,4,2]],[[0,4,1,2],[4,1,0,2]],[0,6,10],[0,5,11]),
+  dubstep:s([[0,0,5,4]],[[0,0,4,0],[0,4,0,2]],[[0,4,2,0],[4,2,0,1]]),
+  brostep:s([[0,6,0,5]],[[0,4,0,4],[0,0,4,1]],[[0,4,1,4],[4,1,0,2]],[0,3,8,11],[0,3,8,14]),
+  postdubstep:s([[0,3,5,4]],[[0,2,0,4],[0,4,1,0]],[[0,2,1,4],[2,1,4,0]],[0,7,11],[0,6,13]),
+  drumfunk:s([[0,3,5,4]],[[0,4,1,0],[0,1,4,2]],[[0,2,4,1],[4,1,2,0]],[0,5,11],[0,3,10,14]),
+  amenscience:s([[0,6,3,5]],[[0,4,-1,2],[0,1,4,-1]],[[0,5,1,3],[4,1,-1,2]],[0,3,10,14],[0,3,7,14]),
+  atmosphericbreakcore:s([[0,5,3,6]],[[0,2,4,0],[0,4,1,0]],[[0,2,4,1],[4,2,1,0]],[0,10],[0,8,13]),
+  triphop:s([[0,3,5,4]],[[0,0,2,4],[0,4,2,0]],[[0,2,1,0],[2,1,4,0]],[0,7],[0,8,14]),
+  halftimednb:s([[0,5,3,4]],[[0,0,4,0],[0,4,2,0]],[[0,2,4,1],[4,2,1,0]],[0,10],[0,8,13]),
+  neurofunk:s([[0,6,2,4]],[[0,4,1,0],[0,1,4,2]],[[0,4,1,3],[4,1,0,2]])
+};
+export function melodyProfile(genre:Genre,partName:MelodyPart):MelodyPartProfile{
+  const base=profiles[families[genre]][partName],genreStyle=MELODY_GENRES[genre];
+  return {...base,motif:partName==='bassline'?genreStyle.bassMotif??base.motif:genreStyle.leadMotif??base.motif,
+    contours:partName==='bassline'?genreStyle.bass:genreStyle.lead,progressions:genreStyle.progressions};
+}
