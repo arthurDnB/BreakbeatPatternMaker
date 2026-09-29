@@ -201,6 +201,7 @@ function settings(){
   s.melodyPart=input('melodyPart').value as MelodyPart;
   s.melodyKey=Number(input('melodyKey').value);
   s.melodyScale=input('melodyScale').value as MelodyScale;
+  s.harmonyStyle=input('harmonyStyle').value as NonNullable<Settings['harmonyStyle']>;
   s.algorithm=input('algorithm').value as NonNullable<Pattern['settings']['algorithm']>;s.variation=Number(input('variation').value);
   if(['groove-v3','groove-v4'].includes(s.algorithm??'')&&Number(input('phraseLength').value)){s.phraseLength=Number(input('phraseLength').value) as 4|8|16;s.phraseOffset=Number(input('phraseOffset').value);}
   s.enabledRoles=ROLES.filter(r=>kitPanel.mix[r].include);
@@ -540,7 +541,7 @@ function selectRows(start:number,end:number,anchor=true){
 }
 function syncControls(){
   const s=editor.state.pattern.settings;
-  input('generationMode').value=s.generationMode??'drums';input('melodyPart').value=s.melodyPart??'bassline';input('melodyKey').value=String(s.melodyKey??0);input('melodyScale').value=s.melodyScale??'natural-minor';
+  input('generationMode').value=s.generationMode??'drums';input('melodyPart').value=s.melodyPart??'bassline';input('melodyKey').value=String(s.melodyKey??0);input('melodyScale').value=s.melodyScale??'natural-minor';input('harmonyStyle').value=s.harmonyStyle??'jazz';
   for(const role of ROLES)input(`${role}-density`).value=String(s.laneDensity?.[role]??1);
   input('patternStructure').value=s.patternStructure??'auto';
   input('phraseLength').value=String(s.phraseLength??0);syncPhraseControls(s.phraseOffset??0);
@@ -1035,7 +1036,7 @@ function restoreGenerationDefaults(resetComposition=false){
  input('phraseLength').value='0';syncPhraseControls(0);
  input('algorithm').querySelector<HTMLOptionElement>('[value="legacy-v1"]')!.disabled=Object.hasOwn(NEW_GENRES,genre);
  for(const [key,value] of Object.entries(genreDefaults(genre)))input(key).value=String(value);
- if(resetComposition){input('generationMode').value='drums';input('melodyPart').value='bassline';input('melodyKey').value='0';input('melodyScale').value='natural-minor';}
+ if(resetComposition){input('generationMode').value='drums';input('melodyPart').value='bassline';input('melodyKey').value='0';input('melodyScale').value='natural-minor';input('harmonyStyle').value='jazz';}
  for(const role of ROLES)input(`${role}-density`).value='1';
  if(['groove-v3','groove-v4'].includes(keepEngine))input('algorithm').value=keepEngine;
  const autoKit=document.getElementById('auto-kit') as HTMLInputElement | null;
@@ -1492,7 +1493,7 @@ async function applyProject(raw:unknown){
   editor=new Editor(p.editor.pattern);editor.state=structuredClone(p.editor);rowAnchor=0;
   input('phraseLength').value=String(p.draft.phraseLength??0);syncPhraseControls(p.draft.phraseOffset??0);
   input('algorithm').value=p.draft.algorithm??'legacy-v1';input('variation').value=String(p.draft.variation??0);
-  input('generationMode').value=p.draft.generationMode??'drums';input('melodyPart').value=p.draft.melodyPart??'bassline';input('melodyKey').value=String(p.draft.melodyKey??0);input('melodyScale').value=p.draft.melodyScale??'natural-minor';
+  input('generationMode').value=p.draft.generationMode??'drums';input('melodyPart').value=p.draft.melodyPart??'bassline';input('melodyKey').value=String(p.draft.melodyKey??0);input('melodyScale').value=p.draft.melodyScale??'natural-minor';input('harmonyStyle').value=p.draft.harmonyStyle??'jazz';
   for(const role of ROLES)input(`${role}-density`).value=String(p.draft.laneDensity?.[role]??1);
   for(const [key,value] of Object.entries(p.draft))if(key!=='enabledRoles'&&key!=='laneDensity')input(key).value=String(value);
   presets();refresh();syncVinylGenreAccent();restoreWorkspacePreferences();if(migrated)status('Older project sound updated: scratch and vinyl instrument hits now use Lo-Fi Percussion 02. Vinyl texture moved to background where available.');return true;

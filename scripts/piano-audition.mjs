@@ -21,7 +21,7 @@ const source=process.argv[2]?pcm16Wav(await readFile(resolve(process.argv[2]))):
 const output=resolve('test-results/piano-audition');await mkdir(output,{recursive:true});
 const cards=[];
 for(const genre of ['liquiddnb','lofihiphop','twostepgarage','atmosphericjungle','boombap']){
- const settings={...defaults(genre),seed:'lush-harmony-audition',bars:2,melodyKey:0,melodyScale:genre==='twostepgarage'?'dorian':'natural-minor',complexity:.7,spicy:.25};
+ const settings={...defaults(genre),seed:'lush-harmony-audition',bars:2,melodyKey:0,melodyScale:genre==='twostepgarage'?'dorian':'natural-minor',harmonyStyle:'jazz',complexity:.7,spicy:.25};
  const base=generate(settings),notes=generatePiano(settings,'audition-piano');
  const chords=[...new Map(notes.map(note=>[note.baseTick,note.reason.split(':')[0]])).values()];
  for(const sampled of source?[false,true]:[false]){

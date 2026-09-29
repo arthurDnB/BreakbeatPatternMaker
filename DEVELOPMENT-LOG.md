@@ -26,7 +26,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.3.0-alpha`
-* **Test Status:** 199 / 199 unit tests passing (`npm.cmd test`).
+* **Test Status:** 201 / 201 unit tests passing (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -73,6 +73,12 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-09-29] - Functional Jazz Harmony Styles (Codex)
+
+* Added the persisted Harmony selector with Jazz, Neo-Soul, Modal / Quartal, and Genre diatonic styles. Jazz is the default for new generation settings; existing saved patterns remain unchanged until generated again.
+* Replaced degree-only harmony selection with functional major/minor progression templates. Jazz progressions include iiø7–V7♭9–i9, ii–V–I movement, extended dominants, and turnarounds; Neo-Soul uses extended smooth changes and Modal uses quartal voicings. Shared bass and lead harmony follows the same root changes.
+* Added automated checks for functional resolution, chromatic tension, deterministic style differences, and browser/project persistence. Updated the local audition generator to compare the jazzy phrase using the procedural tone and the user's uploaded WAV. Stabilized the site smoke workflow by closing overlapping instrument popovers before auditioning Kick. Research reference: [Berklee piano voicings](https://online.berklee.edu/takenote/basic-piano-voicing-techniques/), [reharmonization and chord function](https://online.berklee.edu/takenote/reharmonization-simple-substitution/), and [modal quartal harmony](https://online.berklee.edu/takenote/harmonic-considerations-modal-harmony/). Verification: `npm.cmd test` passed 201/201; `npm.cmd run test:site` passed both URL mounts plus sound-library and break-transcription checks; `node scripts/melody-browser-smoke.mjs` passed.
 
 ### [2026-09-29] - Shared Lush Piano Harmony and CC0 Upright Bank (Codex)
 

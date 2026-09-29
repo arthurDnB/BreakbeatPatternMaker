@@ -7,6 +7,7 @@ export type BreakStyle = 'genre' | 'amen' | 'think' | 'apache' | 'funkyDrummer' 
 export type GenerationMode = 'drums' | 'melody' | 'both';
 export type MelodyPart = 'bassline' | 'lead' | 'piano';
 export type MelodyScale = 'major' | 'natural-minor' | 'harmonic-minor' | 'melodic-minor' | 'dorian' | 'phrygian' | 'lydian' | 'mixolydian' | 'locrian' | 'major-pentatonic' | 'minor-pentatonic' | 'blues' | 'whole-tone' | 'diminished' | 'double-harmonic' | 'hirajoshi';
+export type HarmonyStyle='genre'|'jazz'|'neo-soul'|'modal';
 export interface Settings {
   algorithm?: 'legacy-v1' | 'groove-v2' | 'groove-v3' | 'groove-v4';
   variation?: number;
@@ -23,7 +24,7 @@ export interface Settings {
   laneDensity?: Partial<Record<Role,number>>;
   patternStructure?: 'groove'|'auto'|'fill'|'roll'|'build';
   /** Omitted in older projects: drum generation only. */
-  generationMode?:GenerationMode; melodyPart?:MelodyPart; melodyKey?:number; melodyScale?:MelodyScale;
+  generationMode?:GenerationMode; melodyPart?:MelodyPart; melodyKey?:number; melodyScale?:MelodyScale; harmonyStyle?:HarmonyStyle;
 }
 export interface SliceRef {assetId:string; startFrame:number; endFrame:number; sampleRate:number; label:string}
 export interface SliceInstrument {

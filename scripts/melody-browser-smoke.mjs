@@ -21,6 +21,7 @@ try{
  await page.goto(`http://127.0.0.1:${server.address().port}/`);await page.locator('#grid .hit').first().waitFor();
  const save=async()=>{const download=page.waitForEvent('download');await page.click('#project-save');return JSON.parse((await readFile(await(await download).path())).toString());};
  assert.equal(await page.locator('#melody-options').isVisible(),true);
+ assert.equal(await page.inputValue('#harmonyStyle'),'jazz');
  await page.selectOption('#melodyKey','2');await page.selectOption('#melodyScale','blues');
  await page.click('#generate-melody');
  const first=await save();
@@ -40,6 +41,7 @@ try{
  await page.fill('#seed','browser-new-piano');await page.click('#generate-piano');
  const pianoOnly=await save(),piano=pianoOnly.editor.pattern.userTracks.find(track=>track.generatedPart==='piano');
  assert.ok(piano);assert.equal(piano.instrument.preset,'piano');
+ assert.equal(pianoOnly.editor.pattern.settings.harmonyStyle,'jazz');
  assert.deepEqual(pianoOnly.editor.pattern.events.filter(hit=>hit.trackId===lead.id),firstNotes);
  await page.click('#undo');assert.deepEqual((await save()).editor.pattern,withBass.editor.pattern);
  await page.click('#redo');assert.deepEqual((await save()).editor.pattern,pianoOnly.editor.pattern);

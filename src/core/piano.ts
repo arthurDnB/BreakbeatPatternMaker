@@ -53,7 +53,9 @@ export function generatePiano(settings:Settings,trackId='generated-piano',bassPr
     const degree=Math.round(change.degree*(scale.length-1)/6),root=scalePitch(key,scale,degree);
     const third=scalePitch(key,scale,degree+2),fifth=scalePitch(key,scale,degree+4),seventh=scalePitch(key,scale,degree+6),ninth=scalePitch(key,scale,degree+8);
     const withNine=settings.complexity>=.3,includeRoot=!bassPresent;
-    const tonePcs=[...new Set([pc(third),pc(seventh),...(withNine?[pc(ninth)]:[]),...(settings.complexity>=.72?[pc(fifth)]:[])])];
+    const intervals:Record<string,number[]>={maj9:[4,11,14,16],m9:[3,10,14,17],m11:[3,10,14,17,19],maj13:[4,11,14,21],dom13:[4,10,14,21],dom7b9:[4,7,10,13],m7b5:[3,6,10,14], 'm6/9':[3,9,14,16],dom7sharp11:[4,10,14,18],quartal:[5,10,15,19]};
+    const chromatic=change.quality!=='scale';
+    const tonePcs=[...new Set(chromatic?intervals[change.quality]!.map(interval=>pc(key+scalePitch(0,scale,degree)+interval)): [pc(third),pc(seventh),...(withNine?[pc(ninth)]:[]),...(settings.complexity>=.72?[pc(fifth)]:[])])];
     // Short scales can fold an extension onto an existing chord tone.
     const wanted=settings.complexity>=.72?4:withNine?3:2;
     for(let distance=1;tonePcs.length<wanted&&distance<=scale.length+2;distance++){
@@ -68,7 +70,7 @@ export function generatePiano(settings:Settings,trackId='generated-piano',bassPr
     const startTick=change.startTick+offbeat;
     const gap=feel==='sustain'?Math.round(PPQ*.06):feel==='offbeat'?Math.round(PPQ*.55):Math.round(PPQ*.3);
     const durationTicks=Math.max(1,change.endTick-startTick-gap);
-    const name=chordName(root,third,seventh,withNine);
+    const name=chromatic?`${NAMES[pc(root)]}${change.quality}`:chordName(root,third,seventh,withNine);
     const human=Math.round((random(settings.seed,`piano:timing:${change.index}`)()*2-1)*settings.humanizeMs*settings.bpm*PPQ/60000);
     const offsetTick=Math.max(-startTick,Math.min(PPQ,Math.round((settings.swing-.5)*offbeat*.5)+human));
     notes.forEach((note,voice)=>out.push({

@@ -49,6 +49,31 @@ test('short patterns have a shared changing progression and piano voices move sm
  assert.deepEqual(harmonyPlan(s),harmonyPlan(s));
 });
 
+test('Jazz harmony uses functional ii–V motion and richer chord extensions',()=>{
+ const s=settings('liquiddnb',{harmonyStyle:'jazz',melodyScale:'natural-minor',complexity:.85}),plan=harmonyPlan(s),notes=generatePiano(s);
+ assert.equal(plan.length,4);
+ const dominant=plan.findIndex(change=>change.degree===4);
+ assert.ok(dominant>=0&&plan[(dominant+1)%plan.length].degree===0,'the V chord resolves to tonic');
+ assert.equal(plan[dominant].quality,'dom7b9');
+ assert.equal(plan[(dominant+plan.length-1)%plan.length].quality,'m7b5','the half-diminished ii approaches the V');
+ assert.ok(notes.some(hit=>hit.reason.includes('dom7b9')),'dominant chord should state a strong altered tension');
+ assert.ok(notes.some(hit=>hit.reason.includes('m7b5')),'minor ii chord should create a functional approach to V');
+ const jazzNotes=new Set(notes.filter(hit=>hit.baseTick===plan[dominant].startTick).map(hit=>hit.synthNote.note%12));
+ assert.ok(jazzNotes.has(8),'the G7b9 includes an A-flat ninth in C minor');
+ const genre=generatePiano(settings('liquiddnb',{harmonyStyle:'genre'}));
+ assert.notDeepEqual(notes.map(hit=>[hit.baseTick,hit.synthNote.note]),genre.map(hit=>[hit.baseTick,hit.synthNote.note]));
+});
+
+test('Neo-soul, modal and genre harmony styles are deterministic and distinct',()=>{
+ for(const harmonyStyle of ['jazz','neo-soul','modal','genre']){
+  const s=settings('mellowbeats',{harmonyStyle,seed:'style-test'});
+  assert.deepEqual(generatePiano(s),generatePiano(s));
+  assert.ok(generatePiano(s).length>=12);
+ }
+ const patterns=['jazz','neo-soul','modal','genre'].map(harmonyStyle=>generatePiano(settings('mellowbeats',{harmonyStyle})).map(hit=>hit.synthNote.note));
+ assert.equal(new Set(patterns.map(JSON.stringify)).size,patterns.length);
+});
+
 test('all genre and scale combinations avoid doubled pitches in high-complexity chords',()=>{
  for(const genre of Object.keys(PROFILES))for(const scale of Object.keys(MELODY_SCALES)){
   const s=settings(genre,{melodyScale:scale,complexity:.9}),notes=generatePiano(s);
