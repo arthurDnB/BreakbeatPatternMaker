@@ -1502,14 +1502,21 @@ el('project-save').onclick=()=>{try{if(pendingCount())throw Error('Apply or Reve
 el('project-open').onchange=async e=>{const field=e.target as HTMLInputElement,file=field.files?.[0];field.value='';if(!file)return;
   try{if(file.size>384*1024*1024)throw Error('Project exceeds 384 MB.');const raw=JSON.parse(await file.text());if(await applyProject(raw)){scheduleSave();if(!needsVinylMigration(raw))status('Project opened. Samples and instrument choices restored.');}}catch(e){status('Could not open project. Choose a .bbproject backup or compatible project JSON file, then try again. Details: '+String(e),true);}
 };
-el('project-new').onclick=()=>{
+function startNewProject(starterBeat:boolean){
   if(!confirm('Start a new project? Save project first to keep your current work.'))return;
-  hitDrafts.clear();stop();samplePanel.stop();comparison=undefined;cellAnchor=undefined;trackerClipboard=undefined;assets.clear();vinylTexture={...DEFAULT_VINYL_TEXTURE};syncVinylControls();syncVinylGenreAccent();bank=undefined;arrangementHistory=undefined;selectedArrangementStep=undefined;slotEditors.clear();kitPanel.restore(defaultKitState());editor=new Editor(generate(genreDefaults('jungle')));ensureArrangementHistory();syncControls();
+  hitDrafts.clear();stop();samplePanel.stop();comparison=undefined;cellAnchor=undefined;trackerClipboard=undefined;assets.clear();vinylTexture={...DEFAULT_VINYL_TEXTURE};syncVinylControls();syncVinylGenreAccent();bank=undefined;arrangementHistory=undefined;selectedArrangementStep=undefined;slotEditors.clear();kitPanel.restore(defaultKitState());
+  const initial=generate(genreDefaults('jungle'));if(!starterBeat)initial.events=[];editor=new Editor(initial);ensureArrangementHistory();syncControls();
   const genre=input('genre').value as Genre,defaultKitId=GENRE_KITS[genre]||'acoustic-break';
   void kitPanel.applyPreset(defaultKitId);
   const ks=document.getElementById('kit-preset-select') as HTMLSelectElement | null;if(ks)ks.value=defaultKitId;const gks=document.getElementById('generator-kit-select') as HTMLSelectElement | null;if(gks)gks.value=defaultKitId;
-  refresh();restoreWorkspacePreferences();status('New project started.');
-};
+  refresh();restoreWorkspacePreferences();status(starterBeat?'New project started with a Jungle starter beat.':'Blank tracker ready.');
+}
+const newProjectDialog=el<HTMLDialogElement>('new-project-dialog');
+el('project-new').onclick=()=>newProjectDialog.showModal();
+el('new-project-close').onclick=()=>newProjectDialog.close();
+el('new-project-blank').onclick=()=>{newProjectDialog.close();startNewProject(false);};
+el('new-project-starter').onclick=()=>{newProjectDialog.close();startNewProject(true);};
+newProjectDialog.addEventListener('click',event=>{if(event.target===newProjectDialog)newProjectDialog.close();});
 presets();build();
 // Do not overwrite a stored workspace with the initial default pattern.
 try{

@@ -74,6 +74,11 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-29] - Blank Tracker Project Option (Codex)
+
+* Changed **New project** to open a choice between **Blank tracker** and **Starter beat**. Blank projects retain the default four drum lanes and settings but clear all generated hits; Starter beat keeps the generated Jungle pattern. Added a reminder that starting a project replaces the current workspace.
+* Added responsive styling and site browser coverage for both choices at the root and Pages subpath. Verification: `npm.cmd test` passed 202/202; `npm.cmd run test:site` passed build, both app mounts, all 344 bundled samples, and sound/transcription browser checks.
+
 ### [2026-09-29] - Expressive Piano Comping (Codex)
 
 * Updated `src/core/piano.ts` so each generated chord can have a softer, thinner guide-tone response instead of only one uniform block attack. Genre feel sets response placement; Complexity raises comping activity, while high Spicy can add a brief upper-voice pickup. Gestures remain seeded, bounded by their harmony change, and use varied velocity and note lengths.
