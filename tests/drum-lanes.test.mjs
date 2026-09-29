@@ -170,6 +170,29 @@ test('genre fills route to sample tracks without replacing manually entered or l
  assert.ok(editor.undo());assert.deepEqual(editor.state.pattern,before);
 });
 
+test('edit target limits mutate, simplify, added detail and fills to one of two uploaded tracks',()=>{
+ const opts={...settings,algorithm:'groove-v4',complexity:.45};
+ const second={...sampleTrack,id:'track-snare-layer',name:'Second snare'};
+ const setup=(role)=>{
+  const editor=new Editor(generate(opts));editor.addUserTrack(sampleTrack);editor.addUserTrack(second);
+  editor.setSampleTrackGeneration(sampleTrack.id,role);editor.setSampleTrackGeneration(second.id,role);
+  editor.generateComposition(opts,'Generate Beat');return editor;
+ };
+ const otherLanes=(pattern)=>pattern.events.filter(hit=>hit.trackId!==sampleTrack.id);
+ for(const method of ['mutate','simplify','increaseComplexity']){
+  const editor=setup('hat'),before=structuredClone(editor.state.pattern);
+  assert.ok(editor[method](sampleTrack.id),`${method} should edit the target track`);
+  assert.deepEqual(otherLanes(editor.state.pattern),otherLanes(before),`${method} changed another track`);
+  assert.ok(editor.undo());assert.deepEqual(editor.state.pattern,before);
+ }
+ const editor=setup('snare'),before=structuredClone(editor.state.pattern),rows=compile(before).timing.lines;
+ editor.state.selection={ids:[],rows:[rows-8,rows-1]};
+ assert.ok(editor.fill(sampleTrack.id));
+ assert.deepEqual(otherLanes(editor.state.pattern),otherLanes(before));
+ assert.ok(editor.state.pattern.events.some(hit=>hit.id.startsWith('fill-')&&hit.trackId===sampleTrack.id));
+ assert.ok(editor.undo());assert.deepEqual(editor.state.pattern,before);
+});
+
 test('sample-track density keeps a stable subset and chance changes optional notes without moving anchors',()=>{
  const s={...settings,algorithm:'groove-v4',seed:'track-shape',bars:4,complexity:.9,spicy:.5};
  const editor=new Editor(generate(s));editor.addUserTrack(sampleTrack);editor.setSampleTrackGeneration(sampleTrack.id,'hat');

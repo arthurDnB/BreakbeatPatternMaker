@@ -300,10 +300,10 @@ export class Editor {
     next.revision++;
     return this.commit(next,effect?'Edit tracker FX':'Clear tracker FX');
   }
-  mutate(){
+  mutate(targetLane?:string){
     const next=copy(this.state),scope=selectedIds(next);
     const scoped=next.selection.rows!==null||next.selection.ids.length>0||!!next.selection.cells?.length;
-    const eligible=next.pattern.events.filter(h=>generatedDrum(h)&&!h.anchor&&!locked(next,h)&&(!scoped||scope.has(h.id)));
+    const eligible=next.pattern.events.filter(h=>generatedDrum(h)&&!h.anchor&&!locked(next,h)&&(!targetLane||hitLane(h)===targetLane)&&(!scoped||scope.has(h.id)));
     if(!eligible.length)return false;
     const rng=random(next.pattern.settings.seed,`mutate:${next.revision}`);
     // Fisher-Yates, avoiding engine-dependent random sort comparators.
@@ -332,10 +332,10 @@ export class Editor {
     this.boundGestures(next,changedHits,next.selection.rows);
     next.revision++;return this.commit(next,scoped?'Mutate selection':'Mutate pattern');
   }
-  simplify(){
+  simplify(targetLane?:string){
     const next=copy(this.state),scope=selectedIds(next);
     const scoped=next.selection.rows!==null||next.selection.ids.length>0||!!next.selection.cells?.length;
-    const eligible=next.pattern.events.filter(h=>generatedDrum(h)&&!h.anchor&&!locked(next,h)&&(!scoped||scope.has(h.id)));
+    const eligible=next.pattern.events.filter(h=>generatedDrum(h)&&!h.anchor&&!locked(next,h)&&(!targetLane||hitLane(h)===targetLane)&&(!scoped||scope.has(h.id)));
     if(!eligible.length)return false;
     const rng=random(next.pattern.settings.seed,`simplify:${next.revision}`);
     const ranked=eligible.map(hit=>({hit,score:hit.gain-(hit.ghost?.25:0)+rng()*.05})).sort((a,b)=>a.score-b.score||a.hit.baseTick-b.hit.baseTick);
@@ -344,13 +344,13 @@ export class Editor {
     next.selection=emptySelection();next.revision++;
     return this.commit(next,scoped?'Simplify selection':'Simplify pattern');
   }
-  increaseComplexity(){
+  increaseComplexity(targetLane?:string){
     const next=copy(this.state),scope=selectedIds(next),selection=next.selection;
     const scoped=selection.rows!==null||selection.ids.length>0||!!selection.cells?.length;
     const selectedCells=selection.cells?.length?new Set(selection.cells.map(cell=>`${cell.row}:${cell.lane}`)):undefined;
     const selectedLanes=selection.ids.length&&!selection.rows&&!selectedCells?new Set(compile(next.pattern).notes.filter(note=>scope.has(note.id)).map(note=>`${note.row}:${note.lane}`)):undefined;
     const settings={...next.pattern.settings,complexity:Math.min(1,next.pattern.settings.complexity+.25),variation:(next.pattern.settings.variation??0)+next.revision+1};
-    const candidates=routeGeneratedDrums(generate(settings),next.pattern).events.filter(hit=>generatedDrum(hit)&&!hit.anchor&&!locked(next,hit));
+    const candidates=routeGeneratedDrums(generate(settings),next.pattern).events.filter(hit=>generatedDrum(hit)&&!hit.anchor&&!locked(next,hit)&&(!targetLane||hitLane(hit)===targetLane));
     const step=rowTicks(next.pattern),existing=new Set(next.pattern.events.map(hit=>hit.id));
     const available=candidates.filter(hit=>{
       const row=Math.floor((hit.baseTick+hit.offsetTick+(hit.fineOffset??0))/step),lane=hitLane(hit);
@@ -359,7 +359,7 @@ export class Editor {
       if(selectedLanes&&!selectedLanes.has(`${row}:${lane}`))return false;
       return !existing.has(hit.id)&&!next.pattern.events.some(old=>hitLane(old)===lane&&Math.abs(old.baseTick+old.offsetTick-hit.baseTick-hit.offsetTick)<step*.5);
     });
-    const editable=next.pattern.events.filter(hit=>generatedDrum(hit)&&!hit.anchor&&!locked(next,hit)&&(!scoped||scope.has(hit.id))).length;
+    const editable=next.pattern.events.filter(hit=>generatedDrum(hit)&&!hit.anchor&&!locked(next,hit)&&(!targetLane||hitLane(hit)===targetLane)&&(!scoped||scope.has(hit.id))).length;
     const byLane=new Map<string,Hit[]>();
     for(const hit of available){const lane=hitLane(hit);if(!byLane.has(lane))byLane.set(lane,[]);byLane.get(lane)!.push(hit);}
     const limit=Math.max(byLane.size,Math.ceil(editable*.2)),lanes=[...byLane.values()];
@@ -416,7 +416,7 @@ export class Editor {
       h.articulation.durationTicks=Math.max(1,Math.min(h.articulation.durationTicks,Math.floor(stop-start)));
     }
   }
-  fill(){
+  fill(targetLane?:string){
     const next=copy(this.state),range=next.selection.rows;
     if(!range)throw Error('Select an ending using row numbers or Select last beat.');
     if(['groove-v2','groove-v3','groove-v4'].includes(next.pattern.settings.algorithm??'')){
@@ -425,6 +425,7 @@ export class Editor {
       const additions=routeGeneratedDrums({...next.pattern,events:raw},next.pattern).events;
       let changed=false;
       for(const hit of additions){
+        if(targetLane&&hitLane(hit)!==targetLane)continue;
         if(!hit.trackId&&next.lockedRoles.includes(hit.role))continue;
         const occupied=next.pattern.events.filter(h=>hitLane(h)===hitLane(hit)&&Math.abs(h.baseTick+h.offsetTick-hit.baseTick-hit.offsetTick)<step*.5);
         if(occupied.some(h=>h.anchor||locked(next,h)||h.trackId&&!h.generatedDrumRole||h.baseTick+h.offsetTick<start||h.baseTick+h.offsetTick>=end))continue;
@@ -450,6 +451,7 @@ export class Editor {
     }
     let added=0;
     for(const hit of routeGeneratedDrums({...next.pattern,events:raw},next.pattern).events){
+      if(targetLane&&hitLane(hit)!==targetLane)continue;
       if(!hit.trackId&&next.lockedRoles.includes(hit.role))continue;
       const occupied=next.pattern.events.filter(old=>hitLane(old)===hitLane(hit)&&Math.abs(old.baseTick+old.offsetTick-hit.baseTick-hit.offsetTick)<spacing*.5);
       if(occupied.some(old=>old.anchor||locked(next,old)||old.trackId&&!old.generatedDrumRole))continue;

@@ -77,6 +77,12 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-30] - Track-Targeted Beat Editing (Codex)
+
+* Added an **Edit track** control under **Selection & locks**, with All drum tracks or an individual built-in/uploaded sample lane. The target combines with selected cells or rows, and fills can now be aimed at a specific ending on one track.
+* Passed the selected track through Mutate, Simplify, Increase complexity, Generate Fill and the rack Mutate action. Manual sample hits, locked notes, main anchors, other tracks and Undo/Redo keep their existing protections.
+* Updated `docs/DRUM-LANES.md` and added a two-uploaded-track regression check verifying each editor action changes only its target. Verification: `npm.cmd test` passed 213/213; `npm.cmd run test:site` passed root and Pages subpath browser checks.
+
 ### [2026-09-30] - Editing Generated Uploaded Sample-Track Beats (Codex)
 
 * Extended Mutate and genre fills to generated hits on uploaded sample tracks. Their assigned beat part determines mutation phrasing, while collision and gesture protection stays within each physical track. Manually entered or edited sample hits, anchors and individually locked hits remain untouched.
