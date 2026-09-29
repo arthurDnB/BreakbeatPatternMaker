@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Breakbeat Pattern Maker</title><link rel="stylesheet" href="./public/style.css?v=0.4.1-trackerfx"><link rel="stylesheet" href="./public/workspace.css?v=0.4.24-blank-project"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Breakbeat Pattern Maker</title><link rel="stylesheet" href="./public/style.css?v=0.4.1-trackerfx"><link rel="stylesheet" href="./public/workspace.css?v=0.4.25-blank-guide"></head>
 <body><main class="daw-chassis">
 <svg class="icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><symbol id="icon-shuffle" viewBox="0 0 24 24"><path d="M3 6h3c6 0 6 12 12 12h3m-3-3 3 3-3 3M3 18h3c2 0 3-1 4-3m4-6c1-2 2-3 4-3h3m-3-3 3 3-3 3"/></symbol><symbol id="icon-sliders" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16M9 2v6m6 1v6m-5 1v6"/></symbol><symbol id="icon-variation" viewBox="0 0 24 24"><path d="M4 7h12a4 4 0 0 1 4 4v2m-3-3 3 3 3-3M20 17H8a4 4 0 0 1-4-4v-2m3 3-3-3-3 3"/></symbol><symbol id="icon-grid" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 10h16M4 15h16M10 4v16m5-16v16"/></symbol><symbol id="icon-wave" viewBox="0 0 24 24"><path d="M2 12h3l2-7 4 14 3-10 2 5 2-2h4"/></symbol><symbol id="icon-follow" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M12 2v5m0 10v5M2 12h5m10 0h5"/></symbol></svg>
 
@@ -162,6 +162,16 @@
           <span class="key-pill">Z–M</span> Notes · <span class="key-pill">1–9</span> Vol · <span class="key-pill">Del</span> Cut · <span class="key-pill">Space</span> Play
         </div>
       </div>
+
+      <section id="blank-tracker-guide" class="blank-tracker-guide" aria-label="Start your blank pattern" hidden>
+        <div><strong>Blank tracker</strong><span>Choose a starting point, or select a cell and use + Note.</span></div>
+        <div class="blank-tracker-actions">
+          <button id="blank-add-sample" type="button">Add sample track</button>
+          <button id="blank-add-synth" type="button">Add synth track</button>
+          <button id="blank-import-break" type="button">Import break</button>
+          <button id="blank-generate-beat" type="button" class="accent">Generate beat</button>
+        </div>
+      </section>
 
       <div class="editor-tools" aria-label="Pattern editing">
         <details id="row-selection"><summary>Select rows…</summary><div class="selection-tools"><label>From row<input id="row-start" type="number" min="0" value="0"></label><label>To row<input id="row-end" type="number" min="0" value="31"></label><button id="select-range">Select rows</button></div></details>
@@ -455,4 +465,4 @@
   </div>
   <p class="footer-note" hidden>Single-shot tracker · Audio stays local. Save project includes your samples and settings; autosave restores your latest workspace on this browser. WAV includes tails; muted lanes are excluded. Pitch repitches the sound. MP3 export remains planned.</p>
 </footer>
-</main><script type="module" src="./dist/web.js?v=0.4.25-jazz-harmony"></script></body></html>
+</main><script type="module" src="./dist/web.js?v=0.4.26-blank-guide"></script></body></html>

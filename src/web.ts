@@ -290,6 +290,7 @@ function flashTrackMeter(role: Role, level = 1){
 }
 function render(){
   const container=el('grid'),scrollTop=container.scrollTop,scrollLeft=container.scrollLeft;
+  el('blank-tracker-guide').hidden=pattern.events.length>0;
   const active=document.activeElement as HTMLElement|null;
   const focusHit=active?.dataset.hit,focusRow=active?.dataset.row,focusCellRow=active?.dataset.cellRow,focusCellLane=active?.dataset.cellLane,focusField=active?.dataset.field;
   const openTracks=new Set(Array.from(container.querySelectorAll<HTMLDetailsElement>('.track-instrument-panel[open]')).map(panel=>panel.dataset.role));
@@ -1746,6 +1747,10 @@ function initTrackerLiveBar() {
 }
 
 initTrackerLiveBar();
+el('blank-add-sample').onclick=()=>el('add-user-track').click();
+el('blank-add-synth').onclick=()=>el('add-synth-track').click();
+el('blank-import-break').onclick=()=>el('import-break').click();
+el('blank-generate-beat').onclick=()=>el('generate').click();
 
 function initSubnavTabs() {
   const tabTracker = document.getElementById('tab-tracker');

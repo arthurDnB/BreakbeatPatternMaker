@@ -74,6 +74,11 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-09-29] - Blank Tracker First-Run Guide (Codex)
+
+* Added a compact guide inside an empty tracker with direct actions for sample track upload, synth track creation, break import, and beat generation. It uses the existing controls and disappears as soon as the active pattern contains a note; an empty project or pattern shows it again.
+* Added browser coverage for the blank state, synth track creation, and generation handoff. The browser test resets its project before unrelated clipboard checks so its original lane layout stays stable. Verification: `npm.cmd test` passed 202/202; `npm.cmd run test:site` passed root and Pages subpath builds, all 344 samples, sound browser, and break transcription checks.
+
 ### [2026-09-29] - Blank Tracker Project Option (Codex)
 
 * Changed **New project** to open a choice between **Blank tracker** and **Starter beat**. Blank projects retain the default four drum lanes and settings but clear all generated hits; Starter beat keeps the generated Jungle pattern. Added a reminder that starting a project replaces the current workspace.
