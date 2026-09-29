@@ -4,6 +4,7 @@ import {MELODY_SCALES} from './melody.js';
 import {random} from './random.js';
 
 type ChordFeel='sustain'|'pulse'|'offbeat'|'driving'|'fractured';
+type ChordGesture={tick:number;length:number;weight:number;voices:'full'|'upper'|'shell';label:string};
 const FEEL:Record<Settings['genre'],ChordFeel>={
   jungle:'pulse',dnb:'pulse',hiphop:'pulse',trap:'sustain',rap:'pulse',drill:'sustain',breakcore:'fractured',idm:'driving',hardcore:'driving',experimental:'fractured',
   breaks:'driving',bigbeat:'pulse',nuskoolbreaks:'driving',electrobreaks:'driving',breakbeathardcore:'driving',raggajungle:'driving',atmosphericjungle:'sustain',footworkjungle:'fractured',
@@ -44,6 +45,39 @@ function voiceChord(tones:readonly number[],rootPc:number,previous:readonly numb
   return [low,...winner];
 }
 
+/** Phrase-local comping: a clear chord statement, then optional lighter answers.
+ * Repeated gestures use the same harmony; they never spill into the next change. */
+function comping(change:{startTick:number;endTick:number;index:number},feel:ChordFeel,settings:Settings):ChordGesture[]{
+  const span=change.endTick-change.startTick,complexity=settings.complexity,spicy=settings.spicy??0;
+  const first=feel==='offbeat'?Math.round(span*.25):feel==='fractured'&&change.index%2?Math.round(span*.125):0;
+  const answerChance=random(settings.seed,`piano:answer:${settings.variation??0}:${change.index}`)();
+  const reply=feel==='sustain'?.66:feel==='pulse'?.54:feel==='offbeat'?.65:feel==='driving'?.47:.58;
+  const plan:{fraction:number;weight:number;voices:ChordGesture['voices'];label:string}[]=[{fraction:first/span,weight:1,voices:'full',label:'statement'}];
+  if(complexity>=.38&&answerChance<reply*(.45+complexity*.65)){
+    const fraction=feel==='sustain'?.68:feel==='pulse'?.5:feel==='offbeat'?.75:feel==='driving'?.5:.625;
+    plan.push({fraction,weight:.64,voices:'shell',label:'answer'});
+  }
+  if(complexity>=.76&&spicy>=.38&&change.index%2===1&&
+      random(settings.seed,`piano:pickup:${settings.variation??0}:${change.index}`)()<spicy*.68){
+    plan.push({fraction:.875,weight:.45,voices:'upper',label:'pickup'});
+  }
+  plan.sort((a,b)=>a.fraction-b.fraction);
+  return plan.map((gesture,index)=>{
+    const tick=change.startTick+Math.min(span-1,Math.round(gesture.fraction*span));
+    const next=index+1<plan.length?change.startTick+Math.round(plan[index+1]!.fraction*span):change.endTick;
+    const tail=feel==='sustain'&&index===0?Math.round(PPQ*.08):Math.round(PPQ*(index===0?.18:.12));
+    return {tick,length:Math.max(1,next-tick-tail),weight:gesture.weight,voices:gesture.voices,label:gesture.label};
+  });
+}
+
+function gestureVoices(notes:readonly number[],includeRoot:boolean,kind:ChordGesture['voices']):number[]{
+  if(kind==='full')return [...notes];
+  const upper=notes.slice(includeRoot?1:0);
+  if(kind==='upper')return upper.slice(-Math.min(2,upper.length));
+  // Leave the low root to the bass or the first attack; guide tones answer softly.
+  return upper.slice(0,Math.min(3,upper.length));
+}
+
 /** Four-part phrase harmony with separate voicing and rhythmic gesture decisions. */
 export function generatePiano(settings:Settings,trackId='generated-piano',bassPresent=false):Hit[]{
   const key=settings.melodyKey??0,scale=MELODY_SCALES[settings.melodyScale??'natural-minor'].intervals;
@@ -64,21 +98,20 @@ export function generatePiano(settings:Settings,trackId='generated-piano',bassPr
     }
     const notes=voiceChord(tonePcs,pc(root),previous,includeRoot);
     previous=notes.slice(includeRoot?1:0);
-    const span=change.endTick-change.startTick;
-    const offbeat=feel==='offbeat'?Math.min(Math.round(PPQ*.5),Math.round(span*.28)):
-      feel==='fractured'&&change.index%2?Math.min(Math.round(PPQ*.25),Math.round(span*.2)):0;
-    const startTick=change.startTick+offbeat;
-    const gap=feel==='sustain'?Math.round(PPQ*.06):feel==='offbeat'?Math.round(PPQ*.55):Math.round(PPQ*.3);
-    const durationTicks=Math.max(1,change.endTick-startTick-gap);
     const name=chromatic?`${NAMES[pc(root)]}${change.quality}`:chordName(root,third,seventh,withNine);
-    const human=Math.round((random(settings.seed,`piano:timing:${change.index}`)()*2-1)*settings.humanizeMs*settings.bpm*PPQ/60000);
-    const offsetTick=Math.max(-startTick,Math.min(PPQ,Math.round((settings.swing-.5)*offbeat*.5)+human));
-    notes.forEach((note,voice)=>out.push({
-      id:`piano-${change.index}-${voice}`,role:'percussion',trackId,sourceId:'kit.percussion',baseTick:startTick,offsetTick,
-      gain:Math.max(.25,Math.min(.78,.64-(voice===0?.07:0)+(random(settings.seed,`piano:velocity:${change.index}:${voice}`)()-.5)*.08)),
-      pan:voice===0?-.05:voice===notes.length-1?.05:0,anchor:false,ghost:false,
-      synthNote:{note,durationTicks},reason:`${name}: voice-led ${voice===0&&includeRoot?'root':'chord tone'} ${change.index+1}/${changes.length}.`
-    }));
+    comping(change,feel,settings).forEach((gesture,gestureIndex)=>{
+      const selected=gestureVoices(notes,includeRoot,gesture.voices);
+      const human=Math.round((random(settings.seed,`piano:timing:${change.index}:${gestureIndex}`)()*2-1)*settings.humanizeMs*settings.bpm*PPQ/60000);
+      const swung=gestureIndex>0?Math.round((settings.swing-.5)*PPQ*.35):0;
+      const offsetTick=Math.max(-gesture.tick,Math.min(PPQ,swung+human));
+      selected.forEach((note,voice)=>out.push({
+        id:`piano-${change.index}-${gestureIndex}-${voice}`,role:'percussion',trackId,sourceId:'kit.percussion',baseTick:gesture.tick,offsetTick,
+        gain:Math.max(.18,Math.min(.78,(.64-(voice===0&&includeRoot&&gestureIndex===0?.07:0))*gesture.weight+
+          (random(settings.seed,`piano:velocity:${change.index}:${gestureIndex}:${voice}`)()-.5)*.07)),
+        pan:voice===0?-.05:voice===selected.length-1?.05:0,anchor:false,ghost:false,
+        synthNote:{note,durationTicks:gesture.length},reason:`${name}: ${gesture.label} ${change.index+1}/${changes.length}.`
+      }));
+    });
   }
   return out;
 }

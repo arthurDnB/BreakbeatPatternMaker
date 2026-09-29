@@ -35,6 +35,30 @@ test('genre profiles shape chord rhythm while retaining seeded generation',()=>{
  assert.ok(garage.some(hit=>hit.baseTick%960!==0),'garage piano uses offbeat chord stabs');
 });
 
+test('piano comping adds softer guide-tone answers without smearing chord boundaries',()=>{
+ const low=generatePiano(settings('lofihiphop',{complexity:.2,spicy:0}));
+ const highSettings=settings('lofihiphop',{complexity:.92,spicy:.9});
+ const high=generatePiano(highSettings),plan=harmonyPlan(highSettings);
+ assert.ok(high.length>low.length,'complexity adds comping gestures');
+ assert.ok(high.some(hit=>hit.reason.includes('answer')),'extra attacks are musical answers');
+ assert.ok(high.some(hit=>hit.reason.includes('pickup')),'spicy adds a restrained pickup');
+ assert.deepEqual(high,generatePiano(highSettings),'comping remains deterministic');
+ for(const change of plan){
+  const gestures=high.filter(hit=>hit.baseTick>=change.startTick&&hit.baseTick<change.endTick);
+  const starts=[...new Set(gestures.map(hit=>hit.baseTick))];
+  assert.ok(starts.length<=3,'no change gets a machine-gun stack of chord attacks');
+  for(const hit of gestures){
+   assert.ok(hit.baseTick+hit.synthNote.durationTicks<=change.endTick,'a note ends within its own harmony');
+  }
+  if(starts.length>1){
+   const first=gestures.filter(hit=>hit.baseTick===starts[0]);
+   const answer=gestures.filter(hit=>hit.baseTick===starts[1]);
+   assert.ok(answer.length<first.length,'response thins the original voicing');
+   assert.ok(Math.max(...answer.map(hit=>hit.gain))<Math.min(...first.map(hit=>hit.gain)),'response sits below the statement');
+  }
+ }
+});
+
 test('short patterns have a shared changing progression and piano voices move smoothly',()=>{
  const s=settings('liquiddnb',{complexity:.7}),plan=harmonyPlan(s),piano=generatePiano(s);
  assert.equal(plan.length,4,'two bars state a four-chord phrase');
