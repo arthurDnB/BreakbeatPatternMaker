@@ -69,6 +69,14 @@ export class Editor {
     track.generationRole=generationRole;next.revision++;
     return this.commit(next,'Assign sample track beat part');
   }
+  setSampleTrackGenerationAmount(id:string,kind:'generationDensity'|'generationProbability',value:number):boolean{
+    const next=copy(this.state),track=next.pattern.userTracks?.find(item=>item.id===id);
+    if(!track||isSynthTrack(track))throw Error('Select an uploaded sample track.');
+    if(!Number.isFinite(value)||value<0||value>1)throw Error('Generation amount must be between 0% and 100%.');
+    if((track[kind]??1)===value)return false;
+    track[kind]=value;next.revision++;
+    return this.commit(next,kind==='generationDensity'?'Change sample track density':'Change sample track variation chance');
+  }
   updateSliceInstrument(instrument:NonNullable<Pattern['sliceInstruments']>[number]){
     const next=copy(this.state),index=next.pattern.sliceInstruments?.findIndex(i=>i.id===instrument.id)??-1;
     if(index<0)throw Error('This instrument is no longer in the active pattern.');

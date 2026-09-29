@@ -26,7 +26,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.3.0-alpha`
-* **Test Status:** 208 / 208 unit tests passing (`npm.cmd test`).
+* **Test Status:** 210 / 210 unit tests passing (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -70,11 +70,18 @@ This document maintains the running project state and change log so that multipl
 * [x] **Optional Melody Generation:** Drum, drum + melody, and melody modes with genre-aware bassline/lead synth motifs, key/scale choice, layer preservation, locks and Undo.
 * [x] **Configurable drum lanes:** The four built-in sample lanes can be renamed, hidden, and assigned beat-generator roles independently of their sounds; see `docs/DRUM-LANES.md`.
 * [x] **Generated uploaded sample tracks:** Additional sample tracks can receive any drum generator part while keeping manual notes, locks, track audio and project history; see `docs/DRUM-LANES.md`.
+* [x] **Sample track generation shaping:** Per-track optional hit density and variation chance keep the genre's anchors while controlling uploaded sample layers independently; see `docs/DRUM-LANES.md`.
 * [ ] *Note: Renoise integration has been retired in favor of the standalone in-browser instrument.*
 
 ---
 
 ## 📝 Change Log
+
+### [2026-09-30] - Per-Track Generation Density and Variation Chance (Codex)
+
+* Added a compact **Shape** section to uploaded sample tracks with optional-hit density and variation chance controls. Both are per-pattern track settings and default to 100% for existing projects.
+* Density keeps an exact, deterministic share of stronger optional notes; variation chance changes the admitted optional notes across variations. Main anchors, hand edits and locks remain in place. Added validation, Undo/Redo and project roundtrip coverage in the routing tests and updated the site browser check.
+* Documented how the two controls differ in `docs/DRUM-LANES.md`. Verification: `npm.cmd test` passed 210/210; `npm.cmd run test:site` passed root and Pages subpath checks.
 
 ### [2026-09-30] - Beat Generation on Uploaded Sample Tracks (Codex)
 

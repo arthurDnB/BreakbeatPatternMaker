@@ -36,7 +36,15 @@ export interface SliceInstrument {
 }
 /** User tracks retain a legacy role for compatible mixer and FX routing. */
 export interface TrackBase {id:string;name:string;role:Role;level:number;pan:number;mute:boolean;solo:boolean;color?:string}
-export interface SampleTrack extends TrackBase {kind?:'sample';sample:SliceRef;/** Beat part assigned to this uploaded-sample track. Omitted means manual-only. */generationRole?:Role|null}
+export interface SampleTrack extends TrackBase {
+  kind?:'sample';sample:SliceRef;
+  /** Beat part assigned to this uploaded-sample track. Omitted means manual-only. */
+  generationRole?:Role|null;
+  /** Stable fraction of optional generated hits retained on this track. */
+  generationDensity?:number;
+  /** Chance of retaining each optional hit for a specific variation. */
+  generationProbability?:number;
+}
 export type SynthWaveform='sine'|'triangle'|'saw'|'square';
 export type SynthPreset='bass'|'pluck'|'pad'|'piano';
 export interface SynthInstrument {preset:SynthPreset;waveform:SynthWaveform;attack:number;decay:number;sustain:number;release:number;lowpassHz:number;sampleBank?:'upright-kw';sample?:{assetId:string;rootNote:number}}

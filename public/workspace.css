@@ -2034,6 +2034,11 @@ input[type=range]::-webkit-slider-thumb:hover {
 .sample-track-generation { display:flex; align-items:center; gap:5px; min-width:0; font-size:10px; color:#95c4b9; }
 .sample-track-generation select { flex:1; min-width:0; max-width:100%; height:22px; padding:1px 4px; font-size:10px; color:#d9f6ee; background:#0a1512; border:1px solid #2a5248; border-radius:4px; }
 .sample-track-generation select:focus-visible { outline:2px solid #65dcc6; outline-offset:1px; }
+.sample-track-options { margin-top:2px; padding:2px 4px; border:1px solid #2a5248; border-radius:4px; color:#a8d6c9; font-size:10px; }
+.sample-track-options summary { cursor:pointer; white-space:nowrap; }
+.sample-track-options label { display:grid; grid-template-columns:1fr auto; gap:2px 4px; padding-top:5px; }
+.sample-track-options output { color:#d9f6ee; }
+.sample-track-options input[type=range] { grid-column:1 / -1; width:100%; accent-color:#55cdb7; }
 .user-track-col.synth-track-col { border-top-color:#aa85f4; }
 .user-track-col.synth-track-col .user-track-name { color:#d8c5ff; }
 .synth-instrument-card { display:grid; gap:8px; color:#e0d5fb; }

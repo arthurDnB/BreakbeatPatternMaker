@@ -88,6 +88,7 @@ function syncDrumLaneFields(){
   for(const role of ROLES){const fields=drumLaneFields.get(role)!,config=drumLane(pattern,role);if(document.activeElement!==fields.name)fields.name.value=config.name;fields.visible.checked=config.visible;fields.generation.value=config.generationRole??'';const hits=pattern.events.filter(hit=>!hit.trackId&&hit.role===role).length;fields.count.textContent=`${hits} hit${hits===1?'':'s'}`;}
 }
 const openSynthTrackIds=new Set<string>();
+const openSampleGenerationIds=new Set<string>();
 const trackerFields=['note','instrument','volume','pan','delay','effect'] as const;
 let cursorField:typeof trackerFields[number]='note';
 const assets=new Map<string,AudioAsset>();
@@ -403,13 +404,25 @@ function render(){
     const actions=document.createElement('div');actions.className='track-strip-btns';
     for(const [label,delta] of [['←',-1],['→',1]] as const){const button=document.createElement('button');button.textContent=label;button.title=delta<0?'Move track left':'Move track right';button.setAttribute('aria-label',button.title);button.onclick=()=>{if(editor.reorderUserTrack(track.id,delta as -1|1))refresh();};actions.append(button);}
     for(const [label,key] of [['M','mute'],['S','solo']] as const){const button=document.createElement('button');button.textContent=label;button.title=(track[key]?'Disable ':'Enable ')+(key==='mute'?'mute':'solo')+' for '+track.name;button.setAttribute('aria-pressed',String(track[key]));button.classList.toggle('is-muted',key==='mute'&&track.mute);button.classList.toggle('is-soloed',key==='solo'&&track.solo);button.onclick=()=>{editor.setUserTrackMixer(track.id,{[key]:!track[key]});refresh();};actions.append(button);}
-    const remove=document.createElement('button');remove.textContent='×';remove.title='Delete track';remove.setAttribute('aria-label','Delete '+track.name);remove.onclick=()=>{if(!confirm(`Delete “${track.name}” and its notes?`))return;try{editor.deleteUserTrack(track.id);openSynthTrackIds.delete(track.id);if(cursorTrackId===track.id){cursorTrackId=undefined;cursorLane='kick';}refresh();}catch(e){status(String(e),true);}};actions.append(remove);top.append(actions);
+    const remove=document.createElement('button');remove.textContent='×';remove.title='Delete track';remove.setAttribute('aria-label','Delete '+track.name);remove.onclick=()=>{if(!confirm(`Delete “${track.name}” and its notes?`))return;try{editor.deleteUserTrack(track.id);openSynthTrackIds.delete(track.id);openSampleGenerationIds.delete(track.id);if(cursorTrackId===track.id){cursorTrackId=undefined;cursorLane='kick';}refresh();}catch(e){status(String(e),true);}};actions.append(remove);top.append(actions);
     const mixer=document.createElement('div');mixer.className='track-strip-mixer';const fader=document.createElement('input');fader.type='range';fader.min='0';fader.max='2';fader.step='0.01';fader.value=String(track.level);fader.title=track.name+' level';fader.setAttribute('aria-label',track.name+' level');fader.onchange=()=>{editor.setUserTrackMixer(track.id,{level:Number(fader.value)});refresh();};const pan=document.createElement('input');pan.type='range';pan.min='-1';pan.max='1';pan.step='0.01';pan.value=String(track.pan);pan.title=track.name+' pan';pan.setAttribute('aria-label',track.name+' pan');pan.onchange=()=>{editor.setUserTrackMixer(track.id,{pan:Number(pan.value)});refresh();};mixer.append(fader,pan);strip.append(top,mixer);if(isSynthTrack(track))strip.append(synthInstrumentPanel(track));else{
       const routing=document.createElement('label');routing.className='sample-track-generation';routing.textContent='Beat part';
       const assignment=document.createElement('select');assignment.setAttribute('aria-label',`Beat generator part for ${track.name}`);assignment.title=`Choose which beat part the generator places on ${track.name}`;
       for(const [value,label] of [['','Manual only'],['kick','Kick'],['snare','Snare'],['hat','Hi-hat'],['percussion','Percussion']])assignment.append(new Option(label,value));
       assignment.value=track.generationRole??'';assignment.onchange=()=>{try{const role=assignment.value as Role||null;if(editor.setSampleTrackGeneration(track.id,role)){refresh();status(role?`${track.name} will receive ${role} notes on the next Beat or Variation generation.`:`${track.name} is manual only. Its generated notes will clear on the next Beat or Variation generation.`);}}catch(error){status(String(error),true);assignment.value=track.generationRole??'';}};
       routing.append(assignment);strip.append(routing);
+      const options=document.createElement('details');options.className='sample-track-options';options.open=openSampleGenerationIds.has(track.id);
+      const summary=document.createElement('summary');summary.textContent=`Shape · ${Math.round((track.generationDensity??1)*100)}% density · ${Math.round((track.generationProbability??1)*100)}% chance`;options.append(summary);
+      options.addEventListener('toggle',()=>{if(options.open)openSampleGenerationIds.add(track.id);else openSampleGenerationIds.delete(track.id);});
+      for(const [kind,label,help] of [['generationDensity','Optional hits','Keep a stable share of optional notes; main anchors remain.'],['generationProbability','Variation chance','Chance for each optional note on this generation; variations can differ.']] as const){
+        const control=document.createElement('label');control.textContent=label;control.title=help;
+        const amount=document.createElement('output');amount.textContent=`${Math.round((track[kind]??1)*100)}%`;
+        const slider=document.createElement('input');slider.type='range';slider.min='0';slider.max='100';slider.step='5';slider.value=String(Math.round((track[kind]??1)*100));slider.setAttribute('aria-label',`${label} for ${track.name}`);slider.setAttribute('aria-valuetext',amount.textContent);
+        slider.oninput=()=>{amount.textContent=`${slider.value}%`;slider.setAttribute('aria-valuetext',amount.textContent);};
+        slider.onchange=()=>{try{if(editor.setSampleTrackGenerationAmount(track.id,kind,Number(slider.value)/100)){openSampleGenerationIds.add(track.id);refresh();status(`${track.name}: ${label.toLowerCase()} ${slider.value}%. Generate again to hear the change.`);}}catch(error){status(String(error),true);slider.value=String(Math.round((track[kind]??1)*100));amount.textContent=`${slider.value}%`;slider.setAttribute('aria-valuetext',amount.textContent);}};
+        control.append(amount,slider);options.append(control);
+      }
+      strip.append(options);
     }th.append(strip);header.append(th);
   }
   head.append(header);table.append(head);

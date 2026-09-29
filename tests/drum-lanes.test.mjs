@@ -127,3 +127,43 @@ test('all built-in parts can route exclusively into an uploaded sample track whi
  assert.deepEqual(editor.state.pattern.events.filter(hit=>hit.trackId===sampleTrack.id),before);
  assert.throws(()=>compile({...editor.state.pattern,userTracks:editor.state.pattern.userTracks.map(track=>track.id===sampleTrack.id?{...track,generationRole:'bass'}:track)}),/generation role/);
 });
+
+test('sample-track density keeps a stable subset and chance changes optional notes without moving anchors',()=>{
+ const s={...settings,algorithm:'groove-v4',seed:'track-shape',bars:4,complexity:.9,spicy:.5};
+ const editor=new Editor(generate(s));editor.addUserTrack(sampleTrack);editor.setSampleTrackGeneration(sampleTrack.id,'hat');
+ const notes=()=>editor.state.pattern.events.filter(hit=>hit.trackId===sampleTrack.id);
+ editor.generateComposition(s,'Generate Beat');const full=notes(),anchors=full.filter(hit=>hit.anchor);
+ assert.ok(full.length>anchors.length+5);
+ editor.setSampleTrackGenerationAmount(sampleTrack.id,'generationDensity',.5);
+ editor.generateComposition(s,'Generate Beat');const half=notes();
+ assert.equal(half.filter(hit=>!hit.anchor).length,Math.round((full.length-anchors.length)*.5));
+ assert.deepEqual(half.filter(hit=>hit.anchor),anchors);
+ editor.generateComposition(s,'Generate Beat');assert.deepEqual(notes(),half,'same settings produce the same routed notes');
+ editor.setSampleTrackGenerationAmount(sampleTrack.id,'generationProbability',0);
+ editor.generateComposition(s,'Generate Beat');assert.deepEqual(notes(),anchors);
+ editor.setSampleTrackGenerationAmount(sampleTrack.id,'generationProbability',.5);
+ editor.generateComposition(s,'Generate Beat');const first=notes();
+ editor.generateComposition({...s,variation:1},'Variation');const second=notes();
+ assert.deepEqual(first.filter(hit=>hit.anchor),anchors);
+ assert.deepEqual(second.filter(hit=>hit.anchor),anchors);
+ assert.notDeepEqual(first.map(hit=>hit.id),second.map(hit=>hit.id),'chance changes the optional hits across variations');
+});
+
+test('sample-track controls are independent, undoable, validated, and saved with the project',()=>{
+ const editor=new Editor(generate(settings));editor.addUserTrack(sampleTrack);
+ const second={...sampleTrack,id:'track-second-upload',name:'Second layer'};editor.addUserTrack(second);
+ editor.setSampleTrackGeneration(sampleTrack.id,'hat');editor.setSampleTrackGeneration(second.id,'hat');
+ editor.setSampleTrackGenerationAmount(sampleTrack.id,'generationDensity',0);
+ editor.setSampleTrackGenerationAmount(sampleTrack.id,'generationProbability',.25);
+ assert.equal(editor.undo(),true);assert.equal(editor.state.pattern.userTracks.find(track=>track.id===sampleTrack.id).generationProbability,undefined);
+ assert.equal(editor.redo(),true);assert.equal(editor.state.pattern.userTracks.find(track=>track.id===sampleTrack.id).generationProbability,.25);
+ editor.generateComposition(settings,'Generate Beat');
+ const first=editor.state.pattern.events.filter(hit=>hit.trackId===sampleTrack.id),other=editor.state.pattern.events.filter(hit=>hit.trackId===second.id);
+ assert.ok(other.length>first.length);
+ assert.ok(first.every(hit=>hit.anchor));
+ const assets=new Map([[sampleAsset.id,sampleAsset]]),loaded=readProject(makeProject(editor.state,settings,defaultKitState(),assets)).project.editor.pattern;
+ assert.equal(loaded.userTracks.find(track=>track.id===sampleTrack.id).generationDensity,0);
+ assert.equal(loaded.userTracks.find(track=>track.id===sampleTrack.id).generationProbability,.25);
+ assert.throws(()=>editor.setSampleTrackGenerationAmount(sampleTrack.id,'generationDensity',-1),/between 0% and 100%/);
+ assert.throws(()=>compile({...loaded,userTracks:loaded.userTracks.map(track=>track.id===sampleTrack.id?{...track,generationProbability:1.1}:track)}),/sample track probability/);
+});
