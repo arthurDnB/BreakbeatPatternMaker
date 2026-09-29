@@ -2031,6 +2031,9 @@ input[type=range]::-webkit-slider-thumb:hover {
 .user-track-col .track-strip-btns button.is-muted { border-color:#e15a65; color:#ff8991; }
 .user-track-col .track-strip-btns button.is-soloed { border-color:#e6b957; color:#ffe09a; }
 .user-track-col .track-strip-mixer input[type=range] { width:100%; min-width:70px; accent-color:#55cdb7; }
+.sample-track-generation { display:flex; align-items:center; gap:5px; min-width:0; font-size:10px; color:#95c4b9; }
+.sample-track-generation select { flex:1; min-width:0; max-width:100%; height:22px; padding:1px 4px; font-size:10px; color:#d9f6ee; background:#0a1512; border:1px solid #2a5248; border-radius:4px; }
+.sample-track-generation select:focus-visible { outline:2px solid #65dcc6; outline-offset:1px; }
 .user-track-col.synth-track-col { border-top-color:#aa85f4; }
 .user-track-col.synth-track-col .user-track-name { color:#d8c5ff; }
 .synth-instrument-card { display:grid; gap:8px; color:#e0d5fb; }

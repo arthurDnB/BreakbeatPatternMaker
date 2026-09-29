@@ -39,7 +39,7 @@ export function withDrumKit(pattern:Pattern,kit:DrumKit,mix?:KitState):Pattern{
   }).flatMap(hit=>{
     const userTrack=hit.trackId?userTracks.get(hit.trackId):undefined;
     if(isSynthTrack(userTrack))return [{...hit,renderGain:hit.gain*userTrack.level,pan:Math.max(-1,Math.min(1,hit.pan+userTrack.pan))}];
-    const result=hit.slice||!kit[hit.role]?{...hit}:{...hit,slice:{...kit[hit.role]!}};
+    const result=hit.slice?{...hit}:userTrack&&!isSynthTrack(userTrack)?{...hit,slice:{...userTrack.sample}}:!kit[hit.role]?{...hit}:{...hit,slice:{...kit[hit.role]!}};
     if(['groove-v3','groove-v4'].includes(pattern.settings.algorithm??''))result.sourceKind=hit.sourceKind??(hit.slice?'slice':'oneShot');
     if(mix){
       result.reverse=!!hit.reverse||!!mix[hit.role].reverse;
@@ -66,7 +66,7 @@ export function withDrumKit(pattern:Pattern,kit:DrumKit,mix?:KitState):Pattern{
       }
     }
     const layer=mix?.[hit.role].layer;
-    if(!layer||layer.level===0||hit.mapped)return [result];
+    if(userTrack||!layer||layer.level===0||hit.mapped)return [result];
     let hash=2166136261;
     for(let i=0;i<hit.id.length;i++)hash=Math.imul(hash^hit.id.charCodeAt(i),16777619);
     const layerId=`layer-${hit.id.slice(0,58)}-${(hash>>>0).toString(16)}`;

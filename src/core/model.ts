@@ -36,7 +36,7 @@ export interface SliceInstrument {
 }
 /** User tracks retain a legacy role for compatible mixer and FX routing. */
 export interface TrackBase {id:string;name:string;role:Role;level:number;pan:number;mute:boolean;solo:boolean;color?:string}
-export interface SampleTrack extends TrackBase {kind?:'sample';sample:SliceRef}
+export interface SampleTrack extends TrackBase {kind?:'sample';sample:SliceRef;/** Beat part assigned to this uploaded-sample track. Omitted means manual-only. */generationRole?:Role|null}
 export type SynthWaveform='sine'|'triangle'|'saw'|'square';
 export type SynthPreset='bass'|'pluck'|'pad'|'piano';
 export interface SynthInstrument {preset:SynthPreset;waveform:SynthWaveform;attack:number;decay:number;sustain:number;release:number;lowpassHz:number;sampleBank?:'upright-kw';sample?:{assetId:string;rootNote:number}}
@@ -55,6 +55,8 @@ export interface Articulation {
 // 09/01/02 are accepted aliases for familiar older tracker notation.
 export interface EffectCommand {command:'0S'|'09'|'0B'|'0U'|'01'|'0D'|'02'|'0C'|'0R';param:number}
 export interface Hit {
+  /** Source beat part for notes routed into uploaded-sample tracks; manual edits clear this. */
+  generatedDrumRole?:Role;
   /** Pitched note on a synth track. Sample hits use pitch as relative semitones instead. */
   synthNote?:{note:number;durationTicks:number};
   /** Render-only track fader gain; saved notes keep their original velocity. */

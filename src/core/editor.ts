@@ -61,6 +61,14 @@ export class Editor {
     if(!updated.visible&&(next.selection.cells?.some(cell=>cell.lane===role)||next.selection.ids.some(id=>next.pattern.events.some(hit=>hit.id===id&&!hit.trackId&&hit.role===role))))next.selection=emptySelection();
     next.revision++;return this.commit(next,'Change drum lane');
   }
+  setSampleTrackGeneration(id:string,generationRole:Role|null):boolean{
+    const next=copy(this.state),track=next.pattern.userTracks?.find(item=>item.id===id);
+    if(!track||isSynthTrack(track))throw Error('Select an uploaded sample track.');
+    if(generationRole!==null&&!ROLES.includes(generationRole))throw Error('Invalid beat part.');
+    if((track.generationRole??null)===generationRole)return false;
+    track.generationRole=generationRole;next.revision++;
+    return this.commit(next,'Assign sample track beat part');
+  }
   updateSliceInstrument(instrument:NonNullable<Pattern['sliceInstruments']>[number]){
     const next=copy(this.state),index=next.pattern.sliceInstruments?.findIndex(i=>i.id===instrument.id)??-1;
     if(index<0)throw Error('This instrument is no longer in the active pattern.');
@@ -86,12 +94,14 @@ export class Editor {
     const hasLocks=next.lockedIds.length>0||next.lockedRoles.length>0;
     if(hasLocks&&(['bars','bpm','resolution'] as const).some(key=>old.settings[key]!==pattern.settings[key]))throw Error('Unlock hits and drum lanes before changing BPM, bars or resolution.');
     const kept=old.events.filter(h=>!h.trackId&&locked(next,h));
-    const userHits=old.events.filter(h=>!!h.trackId);
+    const regeneratingDrums=pattern.settings.generationMode!=='melody';
+    const userHits=old.events.filter(h=>!!h.trackId&&(!regeneratingDrums||!h.generatedDrumRole||locked(next,h)));
+    const protectedUserHits=userHits.filter(h=>h.generatedDrumRole&&locked(next,h));
     if(pattern.settings.generationMode!=='melody'&&kept.some(h=>pattern.settings.enabledRoles&&!pattern.settings.enabledRoles.includes(h.role)))throw Error('An excluded instrument has locked hits. Unlock them or include that instrument before generating.');
     const preservedIds=new Set(kept.map(h=>h.id));
     next.pattern=copy(pattern);
     if(old.drumLanes&&!next.pattern.drumLanes)next.pattern.drumLanes=copy(old.drumLanes);
-    if(old.userTracks?.length){next.pattern.userTracks=copy(old.userTracks);const scale=pattern.settings.bars/old.settings.bars;for(const hit of userHits){hit.baseTick=Math.min(pattern.settings.bars*4*PPQ-1,Math.round(hit.baseTick*scale));hit.offsetTick=Math.round(hit.offsetTick*scale);}next.pattern.events.push(...userHits);}
+    if(old.userTracks?.length){next.pattern.userTracks=copy(old.userTracks);const scale=pattern.settings.bars/old.settings.bars;for(const hit of userHits){hit.baseTick=Math.min(pattern.settings.bars*4*PPQ-1,Math.round(hit.baseTick*scale));hit.offsetTick=Math.round(hit.offsetTick*scale);}next.pattern.events=next.pattern.events.filter(h=>!userHits.some(saved=>h.id===saved.id)&&!protectedUserHits.some(held=>h.trackId===held.trackId&&h.baseTick===held.baseTick));next.pattern.events.push(...userHits);}
     for(const instrument of old.sliceInstruments??[])if(kept.some(h=>h.mapped?.instrumentId===instrument.id)&&!next.pattern.sliceInstruments?.some(i=>i.id===instrument.id))(next.pattern.sliceInstruments??=[]).push(copy(instrument));
     next.pattern.events=next.pattern.events.filter(h=>!!h.trackId||!next.lockedRoles.includes(h.role)&&!preservedIds.has(h.id)&&!kept.some(k=>k.role===h.role&&k.baseTick===h.baseTick)).concat(kept);
     if(melody){
@@ -118,8 +128,8 @@ export class Editor {
       for(const hit of pattern.events){hit.baseTick=Math.min(settings.bars*4*PPQ-1,Math.round(hit.baseTick*scale));hit.offsetTick=Math.max(-hit.baseTick,Math.min(PPQ,hit.offsetTick));}
     }
     if(preserveAnchors&&mode!=='melody'){
-      const anchors=old.events.filter(hit=>hit.anchor&&!hit.trackId);
-      pattern.events=pattern.events.filter(hit=>!hit.anchor&&!anchors.some(anchor=>anchor.id===hit.id||anchor.role===hit.role&&anchor.baseTick===hit.baseTick)).concat(copy(anchors));
+      const anchors=old.events.filter(hit=>hit.anchor&&(!hit.trackId||!!hit.generatedDrumRole));
+      pattern.events=pattern.events.filter(hit=>!hit.anchor&&!anchors.some(anchor=>anchor.id===hit.id||anchor.trackId===hit.trackId&&anchor.role===hit.role&&anchor.baseTick===hit.baseTick)).concat(copy(anchors));
     }
     if(mode==='drums')return this.replace(pattern,label);
     const part=settings.melodyPart??'bassline';
@@ -159,15 +169,15 @@ export class Editor {
     const algorithm=original.settings.algorithm;
     if(original.settings.generationMode&&original.settings.generationMode!=='drums')return this.generateComposition({...original.settings,algorithm:algorithm==='groove-v4'?'groove-v4':algorithm==='groove-v3'?'groove-v3':'groove-v2',variation:(original.settings.variation??0)+1},'Generate variation',true);
     const next=routeGeneratedDrums(generate({...original.settings,algorithm:algorithm==='groove-v4'?'groove-v4':algorithm==='groove-v3'?'groove-v3':'groove-v2',variation:(original.settings.variation??0)+1}),original);
-    const anchors=original.events.filter(h=>h.anchor);
-    next.events=next.events.filter(h=>!h.anchor&&!anchors.some(a=>a.id===h.id||(a.role===h.role&&a.baseTick===h.baseTick))).concat(copy(anchors));
+    const anchors=original.events.filter(h=>h.anchor&&(!h.trackId||!!h.generatedDrumRole));
+    next.events=next.events.filter(h=>!h.anchor&&!anchors.some(a=>a.id===h.id||(a.trackId===h.trackId&&a.role===h.role&&a.baseTick===h.baseTick))).concat(copy(anchors));
     return this.replace(next,'Generate variation');
   }
   write(hit:Hit,replaceId?:string){
     const next=copy(this.state),prior=next.pattern.events.find(h=>h.id===replaceId);
     if(!hit.trackId&&next.lockedRoles.includes(hit.role)||(prior&&locked(next,prior)))return false;
     if(replaceId&&!prior)throw Error('Select an existing hit to edit.');
-    next.pattern.events=next.pattern.events.filter(h=>h.id!==replaceId);next.pattern.events.push(copy(hit));
+    next.pattern.events=next.pattern.events.filter(h=>h.id!==replaceId);const manual=copy(hit);delete manual.generatedDrumRole;next.pattern.events.push(manual);
     next.pattern.events.sort((a,b)=>a.baseTick-b.baseTick||ROLES.indexOf(a.role)-ROLES.indexOf(b.role));
     next.selection={ids:[hit.id],rows:null};next.revision++;
     return this.commit(next,replaceId?'Edit hit':'Insert hit');
@@ -213,7 +223,7 @@ export class Editor {
       while(next.pattern.events.some(h=>h.id===moved.id))moved.id=`paste-${next.revision+1}-${serial++}`;
       const targetLane=String(target.lane),role=roleForLane(next.pattern,targetLane);if(!role)throw Error('Paste destination track no longer exists.');
       if(!!moved.synthNote!==isSynthTrack(next.pattern.userTracks?.find(t=>t.id===targetLane)))throw Error('Copy synth notes only to synth tracks and sample hits only to sample or drum tracks.');
-      moved.role=role;if(ROLES.includes(targetLane as Role))delete moved.trackId;else moved.trackId=targetLane;moved.sourceId='kit.'+role;moved.baseTick+=tickDelta;moved.anchor=false;
+      moved.role=role;if(ROLES.includes(targetLane as Role))delete moved.trackId;else moved.trackId=targetLane;moved.sourceId='kit.'+role;moved.baseTick+=tickDelta;moved.anchor=false;delete moved.generatedDrumRole;
       if(moved.baseTick<0||moved.baseTick>=next.pattern.settings.bars*4*PPQ)throw Error('Paste timing would extend beyond the pattern.');
       next.pattern.events.push(moved);
     }
@@ -245,7 +255,7 @@ export class Editor {
     next.pattern.events=next.pattern.events.filter(h=>!overwritten.has(h.id));
     for(const hit of next.pattern.events){if(!moving.has(hit.id))continue;const old=notes.find(n=>n.id===hit.id)!,target=order[order.indexOf(old.lane)+laneShift]!,role=roleForLane(next.pattern,target);if(!role)throw Error('Move destination track no longer exists.');
       if(!!hit.synthNote!==isSynthTrack(next.pattern.userTracks?.find(t=>t.id===target)))throw Error('Move synth notes only to synth tracks and sample hits only to sample or drum tracks.');
-      hit.baseTick+=rowShift*step;hit.role=role;if(ROLES.includes(target as Role))delete hit.trackId;else hit.trackId=target;hit.sourceId='kit.'+hit.role;if(hit.baseTick<0||hit.baseTick>=next.pattern.settings.bars*4*PPQ)throw Error('Move timing exceeds the pattern.');}
+      hit.baseTick+=rowShift*step;hit.role=role;if(ROLES.includes(target as Role))delete hit.trackId;else hit.trackId=target;hit.sourceId='kit.'+hit.role;delete hit.generatedDrumRole;if(hit.baseTick<0||hit.baseTick>=next.pattern.settings.bars*4*PPQ)throw Error('Move timing exceeds the pattern.');}
     next.pattern.events.sort((a,b)=>a.baseTick-b.baseTick||ROLES.indexOf(a.role)-ROLES.indexOf(b.role));
     next.selection={ids:[...moving.keys()],rows:null,cells:destinations.map(c=>({row:c.row,lane:c.lane}))};next.revision++;
     return this.commit(next,'Move tracker cells');
@@ -261,6 +271,7 @@ export class Editor {
     else if(field==='volume'){if(value<0||value>128)throw Error('Volume must be 00–80 hex.');hit.gain=value/128;}
     else if(field==='pan'){if(value<0||value>128)throw Error('Pan must be 00–80 hex.');hit.pan=value/64-1;}
     else {if(value<0||value>255)throw Error('Delay must be 00–FF hex.');const tick=(note.row+value/256)*rowTicks(next.pattern);hit.baseTick=Math.floor(tick);hit.fineOffset=tick-Math.floor(tick);hit.offsetTick=0;}
+    delete hit.generatedDrumRole;
     next.selection={ids:[id],rows:null,cells:[{row:note.row,lane:note.lane}]};next.revision++;
     return this.commit(next,`Edit tracker ${field}`);
   }
@@ -274,6 +285,7 @@ export class Editor {
     if(!hit)throw Error('Select a hit to edit.');
     if(locked(next,hit))throw Error('Unlock this hit before editing.');
     if(effect)hit.effect=copy(effect);else delete hit.effect;
+    delete hit.generatedDrumRole;
     next.revision++;
     return this.commit(next,effect?'Edit tracker FX':'Clear tracker FX');
   }

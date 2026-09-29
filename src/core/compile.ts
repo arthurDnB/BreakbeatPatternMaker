@@ -34,7 +34,7 @@ export function compile(pattern: Pattern, sources: Source[] = DEFAULT_SOURCES, l
       if(track.generatedPart!==undefined&&!['bassline','lead','piano'].includes(track.generatedPart))throw Error('Invalid generated melody track.');
       if(track.generatedPart&&(pattern.userTracks??[]).filter(other=>isSynthTrack(other)&&other.generatedPart===track.generatedPart).length>1)throw Error('Duplicate generated melody track.');
     }
-    else {if(track.kind!==undefined&&track.kind!=='sample')throw Error('Invalid track type.');bounded(track.sample.startFrame,0,23040000,'track sample start',true);bounded(track.sample.endFrame,track.sample.startFrame+1,23040000,'track sample end',true);bounded(track.sample.sampleRate,8000,192000,'track sample rate',true);
+    else {if(track.kind!==undefined&&track.kind!=='sample')throw Error('Invalid track type.');if(track.generationRole!==undefined&&track.generationRole!==null&&!ROLES.includes(track.generationRole))throw Error('Invalid sample track generation role.');bounded(track.sample.startFrame,0,23040000,'track sample start',true);bounded(track.sample.endFrame,track.sample.startFrame+1,23040000,'track sample end',true);bounded(track.sample.sampleRate,8000,192000,'track sample rate',true);
       identifier(track.sample.assetId,'track sample asset');text(track.sample.label,'track sample label',120);}
     bounded(track.level,0,2,'track level');bounded(track.pan,-1,1,'track pan');
     if(typeof track.mute!=='boolean'||typeof track.solo!=='boolean')throw Error('Invalid user track mixer state.');
@@ -81,6 +81,7 @@ export function compile(pattern: Pattern, sources: Source[] = DEFAULT_SOURCES, l
     if(!ROLES.includes(hit.role)) throw new Error('Unsupported event role.');
     const userTrack=hit.trackId?trackMap.get(hit.trackId):undefined;
     if(hit.trackId&&(!userTrack||userTrack.role!==hit.role))throw new Error('Missing or mismatched user track.');
+    if(hit.generatedDrumRole!==undefined&&(!userTrack||isSynthTrack(userTrack)||!ROLES.includes(hit.generatedDrumRole)))throw Error('Invalid generated sample-track hit.');
     if(isSynthTrack(userTrack)){
       if(!hit.synthNote||hit.slice||hit.mapped||hit.effect||hit.ratchets!==undefined||hit.gate!==undefined||hit.articulation||hit.reverse||hit.playbackRate!==undefined||hit.stretchRate!==undefined||hit.pitch!==undefined||hit.ghost)throw Error('Synth tracks require pitched notes without sample or sample FX data.');
       bounded(hit.synthNote.note,0,119,'synth note',true);bounded(hit.synthNote.durationTicks,1,PPQ*16,'synth note length',true);

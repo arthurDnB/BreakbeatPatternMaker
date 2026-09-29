@@ -26,7 +26,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.3.0-alpha`
-* **Test Status:** 205 / 205 unit tests passing (`npm.cmd test`).
+* **Test Status:** 208 / 208 unit tests passing (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -69,11 +69,19 @@ This document maintains the running project state and change log so that multipl
 * [x] **Sound Library Browser:** Shared searchable and filterable audition/selection for lanes and tracker hits, with browser-local Favorites and Recently used sounds.
 * [x] **Optional Melody Generation:** Drum, drum + melody, and melody modes with genre-aware bassline/lead synth motifs, key/scale choice, layer preservation, locks and Undo.
 * [x] **Configurable drum lanes:** The four built-in sample lanes can be renamed, hidden, and assigned beat-generator roles independently of their sounds; see `docs/DRUM-LANES.md`.
+* [x] **Generated uploaded sample tracks:** Additional sample tracks can receive any drum generator part while keeping manual notes, locks, track audio and project history; see `docs/DRUM-LANES.md`.
 * [ ] *Note: Renoise integration has been retired in favor of the standalone in-browser instrument.*
 
 ---
 
 ## 📝 Change Log
+
+### [2026-09-30] - Beat Generation on Uploaded Sample Tracks (Codex)
+
+* Added a compact **Beat part** selector to each uploaded sample track. Any number of tracks can receive Kick, Snare, Hi-hat or Percussion notes; built-in lanes can be left in Manual only mode for a fully custom sample beat.
+* Marked generated sample-track notes so regeneration replaces only those notes. Individually locked notes, hand-entered notes and notes manually edited in the tracker remain, with one Undo/Redo step per generation. Melody-only generation keeps custom drum tracks intact.
+* Corrected the shared drum-kit renderer to use each uploaded track's own sample for generated hits in Preview, song playback and WAV export. Added validation, project roundtrip, audio and browser tests; updated `docs/DRUM-LANES.md`.
+* Verification: `npm.cmd test` passed 208/208; `npm.cmd run test:site` passed root and Pages subpath browser checks.
 
 ### [2026-09-29] - Configurable Drum Lanes and Generator Routing (Codex)
 
