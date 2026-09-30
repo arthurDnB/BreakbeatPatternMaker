@@ -12,6 +12,8 @@ The local listening sheet is `test-results/think-uh-ab/source-study.html`. It co
 
 The `Ciel.mp3` excerpt is a finished mix. A diagnostic full-mix search compared the same approximate 20–440 ms cut from each of the first five source passages at several repitch speeds. The strongest peaks were passage 2 at 1.42× and 27.595 s (**0.339** correlation) and passage 3 at 1.42× and 27.594 s (**0.324**). These are only listening priorities: similar percussion, other layers, MP3 encoding, alignment, or processing can create or suppress peaks. A waveform correlation is neither a perceptual similarity score nor proof of the source. The analysis lives locally in `source-match.json` and `target-match.json`.
 
+The user subsequently marked a darker beat onset near **23.9 s** in a screenshot of the 23–28 s Ciel spectrogram. The mark's timing is estimated from the image ruler, not read from an audio edit point; it may be the drum attack rather than the start of the vocal. The local sheet now includes a focused **23.7–24.75 s** excerpt. Restricting correlation to the marked vicinity produced only weak peaks (maximum absolute value **0.273** in the sampled candidates), so the earlier 27.59 s peaks must not be mistaken for the user's intended sound. The immediate task is to decide by ear whether the target syllable begins before, on, or after the marked beat.
+
 ## Listening and editing sequence
 
 1. Compare `N0` and `N1` to decide whether the WAV extraction improves the raw sound. Audition `P1`–`P5` in full and note where the wanted vocal syllable actually occurs; compare the matching `P1`–`P5` windows, but do not assume the vocal repeats at the same relative time.
@@ -19,6 +21,8 @@ The `Ciel.mp3` excerpt is a finished mix. A diagnostic full-mix search compared 
 3. With the same source and cut, compare repitch at 1.12×, 1.42×, and 1.60×. Repitch changes pitch and duration together. Then compare the earlier K/L pitch-preserving stretch and local G1/G2 fixed-grain prototypes. The latter are exploratory offline renders, **not** production audio processors or app controls.
 4. Only after source, cut and timing are settled, test restrained high-pass/low-pass filtering, saturation, envelope or a short pitch bend. A high-pass does not truly separate an overlapping drum. Audition finalists in a repeated two-bar phrase at the target BPM and compare to Ciel in context.
 5. Have the user identify the best source and two nearest treatments by listening. If none has the correct syllable, search another source passage or later-generation Think sample; do not add speculative controls to compensate for the wrong recording.
+
+The user's additional [Human Synthetics Think-break video](https://www.youtube.com/watch?v=mRuI2lhSDcs) is a relevant workflow reference. Its public description says the producer samples and processes multiple Think breaks and demonstrates chops in Ableton Sampler and Drum Rack. We have not independently verified the precise EQ, warp, or effect settings shown in the full video; do not present guessed settings as its recipe. The app equivalent is to audition multiple source passages, make manual hit boundaries, then compare processing while preserving the phrase groove.
 
 The current app already supports per-hit trims, independent speed and pitch, repitch/stretch, Preview and WAV through one renderer; see [SAMPLE-SHAPER.md](SAMPLE-SHAPER.md). If listening establishes that a specific grain or formant behavior matters, prototype it against the winning cut, then integrate it as a versioned, undoable per-hit setting through that same renderer. Validate consistent Preview/WAV audio and save/reopen. Rubber Band is a possible formant-aware reference, but its GPL/commercial licensing requires resolution before bundling it.
 
@@ -31,6 +35,7 @@ The current app already supports per-hit trims, independent speed and pitch, rep
 - [Dogs On Acid Think-break production discussion](https://www.dogsonacid.com/threads/think-break.216526/) — practitioner advice on repitch, manual slices and preserving loose original timing; contributors disagree on the exact tambourine subdivision.
 - [Stranjah break-chopping tutorial](https://www.youtube.com/watch?v=8kreWKsu0tg) — description lists a dedicated Think chapter at 16:07.
 - [Groovin in G Renoise chopping breakdown](https://www.youtube.com/watch?v=WLSddo24Tic) — description lists a chopping/tuning chapter.
+- [Human Synthetics Think-break workflow](https://www.youtube.com/watch?v=mRuI2lhSDcs) — user-provided reference; public description covers sampling/processing multiple breaks and chopping to Ableton Sampler and Drum Rack.
 - [NITELIFE jungle vocal time-stretch techniques](https://nitelifeaudio.com/classic-techniques-timestretched-jungle-vocal/) — historical intentional grain artifacts; not a recipe for this Ciel recording.
 - [Rubber Band integration guide](https://breakfastquay.com/rubberband/integration.html) and [license](https://breakfastquay.com/rubberband/license.html) — formant-preserving options and integration constraints.
 

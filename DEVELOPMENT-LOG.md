@@ -77,6 +77,13 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-10-01] - Ciel Beat-Onset Focus for Think Audition (Codex)
+
+* Incorporated the user's screenshot mark near 23.9 s into the local Think audition. Added a focused 23.7–24.75 s Ciel excerpt and passage 2/3 repitch comparisons at 1.12× and 1.80×; all 30 audio players loaded in a browser check.
+* A constrained correlation search near the marked beat remained weak (maximum absolute value 0.273 in tested candidates), so neither the earlier 27.59 s result nor the dark waveform region establishes the vocal's source or exact onset. Updated `docs/THINK-BREAK-SHAPING.md` with this distinction and the user-supplied Human Synthetics Think-break tutorial as a workflow reference. Exact video processing settings were not independently verified.
+* Verification: `npm.cmd test` passed 214/214; `npm.cmd run test:site` passed root and Pages subpath plus sound-browser and break-transcription checks; the local audition page loaded all 30 audio players without browser errors.
+* The local audition audio remains ignored, and the unrelated `package.json` and chat-sync changes remain untouched.
+
 ### [2026-10-01] - Think Vocal Source-Matching and Shaping Study (Codex)
 
 * Matched the supplied 0.758-second `thinkbreak_uh.mp3` to `think--all5.wav` at 0.68875 s with 0.9950 native-rate normalized correlation. The exact WAV passage gives a source-preserving starting point for further chops.
