@@ -64,6 +64,12 @@ export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,
       if(asset.sampleRate!==hit.slice.sampleRate||hit.slice.endFrame>asset.channels[0]!.length)throw Error('Slice audio does not match its saved boundaries.');
       channels=asset.channels;sourceRate=asset.sampleRate;from=hit.slice.startFrame;to=hit.slice.endFrame;
     }else{if(!kit.has(hit.role))kit.set(hit.role,synthesize(hit.role,rate));channels=[kit.get(hit.role)!];to=channels[0]!.length;}
+    if(hit.sampleTrim){
+      const base=from,limit=to;
+      from=Math.min(limit-1,base+Math.round(hit.sampleTrim.startMs*sourceRate/1000));
+      to=Math.min(limit,base+Math.round(hit.sampleTrim.endMs*sourceRate/1000));
+      if(to<=from)throw Error('The sample trim has no audio. Adjust its start and end.');
+    }
     if(hit.stretchRate&&hit.stretchRate!==1){
       const key=`${hit.slice?.assetId??`synth-${hit.role}`}:${from}:${to}:${hit.stretchRate}:${sourceRate}`;
       let prepared=stretched.get(key);
@@ -106,6 +112,7 @@ export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,
     }).filter(v=>v.length>0&&(count===1||v.start<position));
   }).map(voice=>{
     if(voice.hit.mapped){const instrument=pattern.sliceInstruments!.find(i=>i.id===voice.hit.mapped!.instrumentId)!;voice.mappedRegion=instrument;}
+    if(voice.hit.sampleTrim){voice.fadeStart=true;voice.fadeEnd=true;voice.fadeMs=2;}
     return voice;
   });
   });
@@ -124,14 +131,14 @@ export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,
   // Unedited adjacent source segments must meet exactly. Only discontinuous
   // edges are faded; unconditional fades remove transients from reconstruction.
   for(const voice of voices.filter(v=>v.hit.mapped)){
-    const plain=(v:RenderVoice)=>!v.hit.pitch&&!v.hit.reverse&&!v.hit.effect&&!v.hit.gate&&!v.hit.decay&&(!v.hit.ratchets||v.hit.ratchets===1)&&(!v.hit.playbackRate||v.hit.playbackRate===1);
+    const plain=(v:RenderVoice)=>!v.hit.pitch&&!v.hit.reverse&&!v.hit.effect&&!v.hit.gate&&!v.hit.decay&&!v.hit.sampleTrim&&(!v.hit.ratchets||v.hit.ratchets===1)&&(!v.hit.playbackRate||v.hit.playbackRate===1);
     const frame=Math.round(voice.start*rate),end=frame+voice.length;
     const same=(v:RenderVoice)=>v!==voice&&v.hit.mapped?.instrumentId===voice.hit.mapped!.instrumentId&&v.hit.slice?.assetId===voice.hit.slice?.assetId&&v.hit.role===voice.hit.role&&v.hit.gain===voice.hit.gain&&v.hit.pan===voice.hit.pan&&plain(v)&&plain(voice);
     const previous=voices.some(v=>same(v)&&v.to===voice.from&&Math.abs(Math.round(v.start*rate)+v.length-frame)<=1);
     const next=voices.some(v=>same(v)&&v.from===voice.to&&Math.abs(Math.round(v.start*rate)-end)<=1);
     const definition=voice.mappedRegion!;
     const sourceStart=voice.from===definition.startFrame,sourceEnd=voice.to===definition.endFrame;
-    voice.fadeStart=!previous&&!sourceStart;voice.fadeEnd=!next&&!sourceEnd;
+    voice.fadeStart ||= !previous&&!sourceStart;voice.fadeEnd ||= !next&&!sourceEnd;
     if(definition.loopFadeMs&&options.loop){voice.fadeStart||=sourceStart;voice.fadeEnd||=sourceEnd;voice.fadeMs=definition.loopFadeMs;}
   }
   const end=voices.reduce((end,v)=>Math.max(end,v.start+v.length/rate+effectTail(effects[v.hit.role])),duration+.6);

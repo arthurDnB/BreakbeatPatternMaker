@@ -79,7 +79,9 @@ export interface Hit {
   ratchets?:number; gate?:number; // Repeats within one row; gate is a fraction of each repeat interval.
   decay?:number; // Sample envelope decay ratio (0.02 to 1.0; < 1 tightens sound and removes room reverb)
   playbackRate?:number; // 0.5–2x repitch; hit value overrides the lane sample default.
+  speedMode?:'repitch'|'stretch'; // Optional hit override; stretch separates duration from pitch.
   stretchRate?:number; // 0.5–2x duration change that preserves approximate source pitch.
+  sampleTrim?:{startMs:number;endMs:number}; // Non-destructive region within the resolved source.
   lowpassHz?:number; attackMs?:number;
   slice?:SliceRef; pitch?:number; fineOffset?:number;
   id: string; role: Role; trackId?:string; sourceId: string; baseTick: number; offsetTick: number;

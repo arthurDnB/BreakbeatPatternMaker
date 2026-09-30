@@ -3498,3 +3498,6 @@ tr.playing-row td { background:#0b1c18; }
 #sound-browser-empty { margin:0; padding:18px; color:#c2d5d0; text-align:center; line-height:1.5; }
 #sound-browser-empty[hidden] { display:none; }
 #sound-browser-clear-filters { margin-left:8px; padding:5px 9px; border-color:#367d71; color:#b9fff0; }
+.hit-trim-controls{margin-top:10px;padding:10px;border:1px solid #275049;border-radius:8px;background:#071412}
+.hit-trim-wave{display:block;width:100%;height:64px;margin:8px 0;border:1px solid #31564d;border-radius:5px;background:#030908;touch-action:none;cursor:ew-resize}
+.hit-trim-controls .chop-options input[type=number]{width:86px}

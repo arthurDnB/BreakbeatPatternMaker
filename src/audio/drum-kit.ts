@@ -51,10 +51,13 @@ export function withDrumKit(pattern:Pattern,kit:DrumKit,mix?:KitState):Pattern{
       result.pitch=Math.max(-48,Math.min(48,(hit.pitch??0)+mix[hit.role].tune));
       const slot=mix[hit.role];
       const soundShape:SampleShape=hit.slice&&hit.slice.assetId!==sampleKey(slot)?slot.sampleProfiles?.[hit.slice.assetId]??{}:slot;
-      if(hit.playbackRate!==undefined||soundShape.playbackRate!==undefined||soundShape.followBpm){
+      if(hit.playbackRate!==undefined||hit.speedMode!==undefined||soundShape.playbackRate!==undefined||soundShape.followBpm){
         const speed=hit.playbackRate??effectiveSampleSpeed(soundShape,pattern.settings.bpm).rate;
-        if(soundShape.speedMode==='stretch'){
-          result.stretchRate=speed;
+        if((hit.speedMode??soundShape.speedMode)==='stretch'){
+          // The later pitch resampling changes duration too. Compensate its
+          // ratio in the stretch stage so the requested hit speed stays musical.
+          const compensated=speed/2**((result.pitch??0)/12);
+          result.stretchRate=Math.max(.5,Math.min(2,compensated));
           result.playbackRate=1;
         }else result.playbackRate=speed;
       }
@@ -71,7 +74,7 @@ export function withDrumKit(pattern:Pattern,kit:DrumKit,mix?:KitState):Pattern{
     for(let i=0;i<hit.id.length;i++)hash=Math.imul(hash^hit.id.charCodeAt(i),16777619);
     const layerId=`layer-${hit.id.slice(0,58)}-${(hash>>>0).toString(16)}`;
     const tickShift=Math.round(layer.offsetMs/1000*pattern.settings.bpm/60*960);
-    const secondary={...result,id:layerId,layerOf:hit.id,slice:{...layer.slice},sourceKind:'oneShot' as const,
+    const secondary={...result,id:layerId,layerOf:hit.id,slice:{...layer.slice},sampleTrim:undefined,sourceKind:'oneShot' as const,
       gain:Math.min(1,result.gain*layer.level),phaseInvert:layer.phaseInvert,
       offsetTick:Math.max(-960,Math.min(960,result.offsetTick+tickShift)),reason:'Layer: '+layer.slice.label};
     return [result,secondary];

@@ -77,6 +77,14 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-10-01] - Per-Hit Waveform Cut and Independent Speed/Pitch Shaping (Codex)
+
+* Added a non-destructive sample cut to the hit inspector: waveform markers plus exact millisecond start/end inputs, pending Preview, Apply, Undo/Redo, and project persistence. The shared audio renderer applies the cut before stretching and fades both new edges for 2 ms, so saved pattern/song playback and WAV use the same region.
+* Added a per-hit Repitch/Stretch mode override. Stretch now compensates the duration change from a later pitch shift when the internal stretch ratio is within its 0.5×–2× range. Extreme pitch/speed combinations still clamp to that range. The main hit cut does not alter a separate drum layer.
+* Fixed the duplicate `edit-target` DOM ID that could overwrite the Edit track selector, and made choosing the lane sound clear an old explicit sample assignment. Documented use and DSP limits in `docs/SAMPLE-SHAPER.md`.
+* Extended the local Think vocal A/B page with trimmed pitch-preserving candidates K–M. They are audition hypotheses; no match to the Ciel reference is claimed. The local WAVs remain ignored under `test-results/`.
+* Verification: `npm.cmd test` passed 214/214, `npm.cmd run test:site` passed root and Pages subpath plus sound-browser and break-transcription browser checks. A focused browser check confirmed trim draft, Preview, Apply and Undo. Pre-existing changes in `package.json` and `scripts/sync-chat-to-codex.mjs` were left untouched.
+
 ### [2026-09-30] - Track-Targeted Beat Editing (Codex)
 
 * Added an **Edit track** control under **Selection & locks**, with All drum tracks or an individual built-in/uploaded sample lane. The target combines with selected cells or rows, and fills can now be aimed at a specific ending on one track.

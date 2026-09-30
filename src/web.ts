@@ -1174,7 +1174,7 @@ function currentAsset(){
   if(!assets.has(current.id))assets.set(current.id,{id:current.id,name:current.name,sampleRate:current.buffer.sampleRate,channels:Array.from({length:current.buffer.numberOfChannels},(_,i)=>current.buffer.getChannelData(i))});
   return {...current,asset:assets.get(current.id)!};
 }
-const hitFields=['edit-row','edit-lane','edit-sound','edit-volume','edit-pan','edit-delay','edit-pitch','edit-synth-note','edit-synth-length','edit-reverse','edit-ratchets','edit-gate','edit-burst-span','edit-speed-override','edit-speed','edit-lowpass-override','edit-lowpass','edit-attack-override','edit-attack','edit-decay-override','edit-decay'] as const;
+const hitFields=['edit-row','edit-lane','edit-sound','edit-volume','edit-pan','edit-delay','edit-pitch','edit-synth-note','edit-synth-length','edit-reverse','edit-ratchets','edit-gate','edit-burst-span','edit-speed-override','edit-speed','edit-speed-mode','edit-lowpass-override','edit-lowpass','edit-attack-override','edit-attack','edit-decay-override','edit-decay','edit-trim-enabled','edit-trim-start','edit-trim-end'] as const;
 type HitDraft=Partial<Record<typeof hitFields[number],string>>;
 const hitDrafts=new Map<Editor,Map<string,HitDraft>>();
 let draftTargets:{slot:number;id:string}[]=[];
@@ -1190,6 +1190,7 @@ function updateDraftStatus(){
  input('hit-revert').disabled=!pending;input('hit-unlock').hidden=!isLocked;el('hit-unlock').textContent=hit&&editor.state.lockedRoles.includes(hit.role)?'Unlock lane and hit':'Unlock hit';
  for(const id of [...hitFields,'edit-pitch-slider'])input(id).disabled=isLocked;
  for(const name of ['speed','lowpass','attack','decay'])input('edit-'+name).disabled=isLocked||!input('edit-'+name+'-override').checked;
+ for(const name of ['start','end'])input('edit-trim-'+name).disabled=isLocked||!input('edit-trim-enabled').checked;
  input('hit-apply').disabled=!hit||isLocked||!pending;input('hit-insert').disabled=isLocked;
  el('hit-preview').textContent=pending?'Preview pending hit':'Preview selected hit';
  el('hit-draft-status').classList.toggle('pending',pending);
@@ -1202,7 +1203,56 @@ function syncHitShape(){
   const lowpass=Number(input('edit-lowpass').value);el('edit-lowpass-value').textContent=lowpass>=20000?'Open':lowpass+' Hz';
   el('edit-attack-value').textContent=input('edit-attack').value+' ms';
   el('edit-decay-value').textContent=Math.round(Number(input('edit-decay').value)*100)+'%';
+  const start=Number(input('edit-trim-start').value),end=Number(input('edit-trim-end').value);
+  el('edit-trim-duration').textContent=Number.isFinite(start)&&Number.isFinite(end)?Math.max(0,end-start).toFixed(0)+' ms cut':'';
+  drawHitTrimWave();
 }
+let trimWaveAsset:AudioAsset|undefined,trimWaveFrom=0,trimWaveTo=0;
+let trimWaveCache:{asset:AudioAsset;from:number;to:number;width:number;peaks:Float32Array}|undefined;
+function drawHitTrimWave(){
+ const canvas=el<HTMLCanvasElement>('edit-trim-wave'),asset=trimWaveAsset;
+ if(!asset||trimWaveTo<=trimWaveFrom||canvas.clientWidth===0)return;
+ const width=Math.max(1,Math.round(canvas.clientWidth*(window.devicePixelRatio||1))),height=Math.max(1,Math.round(canvas.clientHeight*(window.devicePixelRatio||1)));
+ if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height;}
+ const ctx=canvas.getContext('2d');if(!ctx)return;ctx.clearRect(0,0,width,height);
+ const data=asset.channels[0]!,span=trimWaveTo-trimWaveFrom,center=height/2;
+ if(!trimWaveCache||trimWaveCache.asset!==asset||trimWaveCache.from!==trimWaveFrom||trimWaveCache.to!==trimWaveTo||trimWaveCache.width!==width){
+   const peaks=new Float32Array(width);
+   for(let x=0;x<width;x++){
+     const a=trimWaveFrom+Math.floor(x*span/width),b=Math.min(trimWaveTo,trimWaveFrom+Math.ceil((x+1)*span/width));
+     for(let i=a;i<b;i++)peaks[x]=Math.max(peaks[x]!,Math.abs(data[i]??0));
+   }
+   trimWaveCache={asset,from:trimWaveFrom,to:trimWaveTo,width,peaks};
+ }
+ ctx.fillStyle='#39bca8';
+ for(let x=0;x<width;x++){
+   const h=Math.max(1,Math.round(trimWaveCache.peaks[x]!*(height-8)/2));ctx.fillRect(x,center-h,1,h*2);
+ }
+ const total=span/asset.sampleRate*1000,start=Number(input('edit-trim-start').value),end=Number(input('edit-trim-end').value),x1=Math.max(0,Math.min(width,width*start/total)),x2=Math.max(0,Math.min(width,width*end/total));
+ if(input('edit-trim-enabled').checked){ctx.fillStyle='rgba(0,0,0,.54)';ctx.fillRect(0,0,x1,height);ctx.fillRect(x2,0,width-x2,height);}
+ ctx.fillStyle='#f4be6d';ctx.fillRect(x1-2,0,4,height);ctx.fillStyle='#8ef0cd';ctx.fillRect(x2-2,0,4,height);
+}
+let draggingTrim:'start'|'end'|undefined;
+const trimCanvas=el<HTMLCanvasElement>('edit-trim-wave');
+el('hit-editor').addEventListener('toggle',()=>requestAnimationFrame(drawHitTrimWave));
+el('hit-sample-controls').addEventListener('toggle',()=>requestAnimationFrame(drawHitTrimWave));
+window.addEventListener('resize',drawHitTrimWave);
+trimCanvas.addEventListener('pointerdown',event=>{
+ if(!trimWaveAsset||input('edit-trim-enabled').disabled)return;
+ const rect=trimCanvas.getBoundingClientRect(),length=(trimWaveTo-trimWaveFrom)/trimWaveAsset.sampleRate*1000,ms=(event.clientX-rect.left)/rect.width*length;
+ draggingTrim=Math.abs(ms-Number(input('edit-trim-start').value))<=Math.abs(ms-Number(input('edit-trim-end').value))?'start':'end';
+ input('edit-trim-enabled').checked=true;trimCanvas.setPointerCapture(event.pointerId);
+ const min=draggingTrim==='start'?0:Number(input('edit-trim-start').value)+5,max=draggingTrim==='start'?Number(input('edit-trim-end').value)-5:length;
+ const field=input('edit-trim-'+draggingTrim);field.disabled=false;field.value=String(Math.round(Math.max(min,Math.min(max,ms))));field.dispatchEvent(new Event('input',{bubbles:true}));
+});
+trimCanvas.addEventListener('pointermove',event=>{
+ if(!draggingTrim||!trimWaveAsset)return;
+ const length=(trimWaveTo-trimWaveFrom)/trimWaveAsset.sampleRate*1000,rect=trimCanvas.getBoundingClientRect(),ms=(event.clientX-rect.left)/rect.width*length;
+ const min=draggingTrim==='start'?0:Number(input('edit-trim-start').value)+5,max=draggingTrim==='start'?Number(input('edit-trim-end').value)-5:length;
+ const field=input('edit-trim-'+draggingTrim);field.value=String(Math.round(Math.max(min,Math.min(max,ms))));field.dispatchEvent(new Event('input',{bubbles:true}));
+});
+trimCanvas.addEventListener('pointerup',()=>{draggingTrim=undefined;});
+trimCanvas.addEventListener('pointercancel',()=>{draggingTrim=undefined;});
 for(const id of hitFields)input(id).addEventListener('input',()=>{syncHitShape();captureHitDraft();});
 function revertHitDraft(){if(entryKey)draftMap().delete(entryKey);pitchGesture=undefined;render();}
 el('hit-revert').onclick=revertHitDraft;
@@ -1243,6 +1293,15 @@ function updateEntry(hit?:Hit){
   }else{input('edit-row').value=String(rowAnchor);input('edit-lane').value=cursorLane;}
   const shapeRole=hit?.role??cursorLane,slot=kitPanel.mix[shapeRole];
   const selectedSlice=hit?resolveSlice(pattern,hit):undefined;
+  const hitTrack=hit?.trackId?pattern.userTracks?.find(t=>t.id===hit.trackId):undefined;
+  const trimSlice=selectedSlice??(hitTrack&&!isSynthTrack(hitTrack)?hitTrack.sample:undefined)??drumKit[shapeRole];
+  trimWaveAsset=trimSlice?assets.get(trimSlice.assetId):undefined;trimWaveFrom=trimSlice?.startFrame??0;trimWaveTo=trimSlice?.endFrame??0;
+  const trimLength=trimSlice?Math.floor((trimSlice.endFrame-trimSlice.startFrame)/trimSlice.sampleRate*1000):0;
+  el('hit-trim-controls').hidden=!hit||!trimWaveAsset;
+  input('edit-trim-start').max=String(Math.max(0,trimLength-5));input('edit-trim-end').max=String(trimLength);
+  input('edit-trim-enabled').checked=!!hit?.sampleTrim;
+  input('edit-trim-start').value=String(hit?.sampleTrim?.startMs??0);input('edit-trim-end').value=String(hit?.sampleTrim?.endMs??trimLength);
+  input('edit-speed-mode').value=hit?.speedMode??'inherit';
   const shape=selectedSlice&&selectedSlice.assetId!==slot.assetId?slot.sampleProfiles?.[selectedSlice.assetId]??{}:slot;
   for(const [name,key,fallback] of [['speed','playbackRate',1],['lowpass','lowpassHz',20000],['attack','attackMs',0],['decay','decay',1]] as const){
     const own=hit?.[key];input('edit-'+name+'-override').checked=own!==undefined;
@@ -1264,7 +1323,7 @@ function updateEntry(hit?:Hit){
   input('hit-apply').disabled=editor.state.selection.ids.length!==1;
   input('hit-delete').disabled=selectedIds(editor.state).size===0;
   updateDraftStatus();
-  el('edit-target').textContent=hit?.synthNote?`Synth: ${activeTrack?.name??'instrument'} · ${noteName(hit.synthNote.note)} · ${+(hit.synthNote.durationTicks/960).toFixed(2)} beats · ${locked(editor.state,hit)?'Locked':'Editable'}`:hit?((resolveSlice(pattern,hit)??drumKit[hit.role])?'Sound: '+(resolveSlice(pattern,hit)??drumKit[hit.role])!.label:'Sound: demo '+hit.role)+' · '+(locked(editor.state,hit)?'Locked':'Editable'):'Cursor: row '+rowAnchor+' / '+(activeTrack?.name??cursorLane);
+  el('edit-hit-target').textContent=hit?.synthNote?`Synth: ${activeTrack?.name??'instrument'} · ${noteName(hit.synthNote.note)} · ${+(hit.synthNote.durationTicks/960).toFixed(2)} beats · ${locked(editor.state,hit)?'Locked':'Editable'}`:hit?((resolveSlice(pattern,hit)??drumKit[hit.role])?'Sound: '+(resolveSlice(pattern,hit)??drumKit[hit.role])!.label:'Sound: demo '+hit.role)+' · '+(locked(editor.state,hit)?'Locked':'Editable'):'Cursor: row '+rowAnchor+' / '+(activeTrack?.name??cursorLane);
 }
 function entryHit(replace:boolean,pitchOverride?:number){
   const row=Number(input('edit-row').value),delay=Number(input('edit-delay').value),volume=Number(input('edit-volume').value),pan=Number(input('edit-pan').value),pitch=pitchOverride??Number(input('edit-pitch').value);
@@ -1281,6 +1340,7 @@ function entryHit(replace:boolean,pitchOverride?:number){
   const hit:Hit={id:prior?.id??'entry-'+crypto.randomUUID(),role,...(trackId?{trackId}:{}),sourceId:'kit.'+role,baseTick:Math.floor(tick),fineOffset:tick-Math.floor(tick),offsetTick:0,gain:volume/128,pan:pan/64-1,pitch,reverse:input('edit-reverse').checked,ratchets:Number(input('edit-ratchets').value),...(Number(input('edit-gate').value)?{gate:Number(input('edit-gate').value)}:{}),...(prior?.effect?{effect:{...prior.effect}}:{}),anchor:prior?.anchor??false,ghost:prior?.ghost??false,reason:'A manually entered tracker hit.'};
   if(track&&!isSynthTrack(track))hit.slice={...track.sample};else if(prior?.slice)hit.slice={...prior.slice};
   if(input('edit-speed-override').checked)hit.playbackRate=Number(input('edit-speed').value);
+  if(input('edit-speed-mode').value!=='inherit')hit.speedMode=input('edit-speed-mode').value as 'repitch'|'stretch';
   if(input('edit-lowpass-override').checked)hit.lowpassHz=Number(input('edit-lowpass').value);
   if(input('edit-attack-override').checked)hit.attackMs=Number(input('edit-attack').value);
   if(input('edit-decay-override').checked)hit.decay=Number(input('edit-decay').value);
@@ -1300,8 +1360,16 @@ function entryHit(replace:boolean,pitchOverride?:number){
   if(prior&&oldNote?.row===row&&oldNote.delay===delay){hit.baseTick=prior.baseTick;hit.offsetTick=prior.offsetTick;hit.fineOffset=prior.fineOffset;}
   const sound=input('edit-sound').value;
   if(sound==='slice'){const a=currentAsset();hit.slice=sliceReference(a.asset,a.markers,a.selected);if(['groove-v3','groove-v4'].includes(pattern.settings.algorithm??''))hit.sourceKind='slice';}
+  else if(sound==='demo'&&!track)delete hit.slice;
   else if(sound==='keep'&&prior?.mapped)hit.mapped={...prior.mapped};
   else if(sound==='keep'&&prior?.slice)hit.slice={...prior.slice};
+  if(input('edit-trim-enabled').checked){
+    const source=hit.slice??drumKit[role],startMs=Number(input('edit-trim-start').value),endMs=Number(input('edit-trim-end').value);
+    if(!source)throw Error('Choose an audio sample before trimming this hit.');
+    const available=(source.endFrame-source.startFrame)/source.sampleRate*1000;
+    if(!Number.isFinite(startMs)||!Number.isFinite(endMs)||startMs<0||endMs-startMs<5||endMs>available+.5)throw Error('Trim must fit inside the sample and keep at least 5 ms of audio.');
+    hit.sampleTrim={startMs,endMs};
+  }
   if(['groove-v3','groove-v4'].includes(pattern.settings.algorithm??'')){
     if(sound!=='slice'&&sound!=='keep')hit.sourceKind='oneShot';
     if(prior&&oldNote?.volume===volume)hit.gain=prior.gain;

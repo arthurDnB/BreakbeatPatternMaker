@@ -99,7 +99,7 @@ export function readProject(raw:unknown,replacement?:AudioAsset){
   for(const pattern of projectPatterns(p)){
     for(const track of pattern.userTracks??[]){if(isSynthTrack(track)){if(track.instrument.sample){const asset=assets.get(track.instrument.sample.assetId);if(!asset||asset.channels[0]!.length/asset.sampleRate>20)throw Error('Missing piano sample audio.');}continue;}const asset=assets.get(track.sample.assetId);if(!asset||asset.sampleRate!==track.sample.sampleRate||track.sample.endFrame>asset.channels[0]!.length)throw Error('Missing user track audio.');}
     for(const instrument of pattern.sliceInstruments??[]){const a=assets.get(instrument.assetId);if(!a||a.sampleRate!==instrument.sampleRate||instrument.endFrame>a.channels[0]!.length)throw Error('Missing instrument audio.');}
-    for(const hit of pattern.events){const slice=resolveSlice(pattern,hit);if(slice){const a=assets.get(slice.assetId);if(!a||a.sampleRate!==slice.sampleRate||slice.endFrame>a.channels[0]!.length)throw Error('Missing slice audio.');}}
+    for(const hit of pattern.events){const slice=resolveSlice(pattern,hit);if(slice){const a=assets.get(slice.assetId);if(!a||a.sampleRate!==slice.sampleRate||slice.endFrame>a.channels[0]!.length)throw Error('Missing slice audio.');if(hit.sampleTrim&&hit.sampleTrim.endMs>(slice.endFrame-slice.startFrame)/slice.sampleRate*1000+.5)throw Error('Sample trim exceeds its source audio.');}}
   }
   return {project:p,assets,migrated};
 }

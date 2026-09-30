@@ -69,7 +69,9 @@ export function compile(pattern: Pattern, sources: Source[] = DEFAULT_SOURCES, l
     if(hit.gate!==undefined)bounded(hit.gate,.05,1,'gate');
     if(hit.decay!==undefined)bounded(hit.decay,.02,1,'decay');
     if(hit.playbackRate!==undefined)bounded(hit.playbackRate,.5,2,'sample speed');
+    if(hit.speedMode!==undefined&&!['repitch','stretch'].includes(hit.speedMode))throw Error('Invalid hit speed mode.');
     if(hit.stretchRate!==undefined)bounded(hit.stretchRate,.5,2,'time-stretch speed');
+    if(hit.sampleTrim){bounded(hit.sampleTrim.startMs,0,20000,'sample trim start');bounded(hit.sampleTrim.endMs,hit.sampleTrim.startMs+5,20000,'sample trim end');}
     if(hit.lowpassHz!==undefined)bounded(hit.lowpassHz,200,20000,'sample low-pass');
     if(hit.attackMs!==undefined)bounded(hit.attackMs,0,50,'sample attack');
     if(hit.pitch!==undefined)bounded(hit.pitch,-48,48,'pitch',true);
@@ -83,7 +85,7 @@ export function compile(pattern: Pattern, sources: Source[] = DEFAULT_SOURCES, l
     if(hit.trackId&&(!userTrack||userTrack.role!==hit.role))throw new Error('Missing or mismatched user track.');
     if(hit.generatedDrumRole!==undefined&&(!userTrack||isSynthTrack(userTrack)||!ROLES.includes(hit.generatedDrumRole)))throw Error('Invalid generated sample-track hit.');
     if(isSynthTrack(userTrack)){
-      if(!hit.synthNote||hit.slice||hit.mapped||hit.effect||hit.ratchets!==undefined||hit.gate!==undefined||hit.articulation||hit.reverse||hit.playbackRate!==undefined||hit.stretchRate!==undefined||hit.pitch!==undefined||hit.ghost)throw Error('Synth tracks require pitched notes without sample or sample FX data.');
+      if(!hit.synthNote||hit.slice||hit.mapped||hit.effect||hit.ratchets!==undefined||hit.gate!==undefined||hit.articulation||hit.reverse||hit.playbackRate!==undefined||hit.speedMode!==undefined||hit.stretchRate!==undefined||hit.sampleTrim||hit.pitch!==undefined||hit.ghost)throw Error('Synth tracks require pitched notes without sample or sample FX data.');
       bounded(hit.synthNote.note,0,119,'synth note',true);bounded(hit.synthNote.durationTicks,1,PPQ*16,'synth note length',true);
     }else if(hit.synthNote)throw Error('A pitched synth note requires a synth track.');
     const source=sourceMap.get(hit.sourceId);

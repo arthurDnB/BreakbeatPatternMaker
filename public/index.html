@@ -199,18 +199,25 @@
               <div class="chop-options"><label><span id="edit-ratchets-label">Ratchets per row</span><select id="edit-ratchets"><option value="1">1 · Single hit</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></label><label id="burst-span-field" hidden>Burst span<select id="edit-burst-span"><option value="0">One tracker row</option><option value="120">1/32 note</option><option value="240">1/16 note</option><option value="480">1/8 note</option><option value="960">1 beat</option><option value="1920">2 beats</option><option value="3840">1 bar</option></select></label><label>Gate length<select id="edit-gate"><option value="0">Full sample</option><option value="1">100% of repeat interval</option><option value="0.75">75%</option><option value="0.5">50%</option><option value="0.25">25%</option><option value="0.1">10%</option><option value="0.05">5%</option></select></label></div>
               <p id="articulation-help">Ratchets divide one tracker row into equal repeats. Gate shortens each attack; 50% leaves half its interval silent. Ratchets retrigger the sample and stop each attack at the next repeat. Effects can ring beyond the gate.</p>
             </details>
-            <details id="hit-sample-controls"><summary>Sample speed &amp; tone</summary>
+            <details id="hit-sample-controls"><summary>Sample cut, speed &amp; tone</summary>
               <p>Repitch changes speed and pitch together. Check a control to override this instrument's sample setting for the selected hit.</p>
               <div class="sample-shape-grid">
                 <label><input id="edit-speed-override" type="checkbox"> Hit speed <output id="edit-speed-value">1.00×</output><input id="edit-speed" aria-label="Hit sample speed" type="range" min="0.5" max="2" step="0.01" value="1"></label>
+                <label>Speed mode<select id="edit-speed-mode" aria-label="Selected hit speed mode"><option value="inherit">Use instrument setting</option><option value="repitch">Repitch · pitch follows speed</option><option value="stretch">Stretch · keep pitch</option></select></label>
                 <label><input id="edit-lowpass-override" type="checkbox"> Low-pass <output id="edit-lowpass-value">Open</output><input id="edit-lowpass" aria-label="Hit low-pass filter frequency" type="range" min="200" max="20000" step="100" value="20000"></label>
                 <label><input id="edit-attack-override" type="checkbox"> Attack <output id="edit-attack-value">0 ms</output><input id="edit-attack" aria-label="Hit sample attack time" type="range" min="0" max="50" step="1" value="0"></label>
                 <label><input id="edit-decay-override" type="checkbox"> Decay <output id="edit-decay-value">100%</output><input id="edit-decay" aria-label="Hit sample decay amount" type="range" min="0.02" max="1" step="0.01" value="1"></label>
               </div>
+              <div id="hit-trim-controls" class="hit-trim-controls" hidden>
+                <label><input id="edit-trim-enabled" type="checkbox"> Use a precise sample cut</label>
+                <canvas id="edit-trim-wave" class="hit-trim-wave" height="64" aria-label="Sample waveform; drag the start or end marker"></canvas>
+                <div class="chop-options"><label>Start (ms)<input id="edit-trim-start" type="number" min="0" step="1" value="0"></label><label>End (ms)<input id="edit-trim-end" type="number" min="5" step="1" value="500"></label><span id="edit-trim-duration" class="help"></span></div>
+                <small>Drag either waveform marker or enter millisecond values. The source remains unchanged. Preview the cut before applying.</small>
+              </div>
             </details>
             <label id="hit-drafts-label" hidden>Pending edits in this session<select id="hit-drafts"><option value="">Go to a pending hit…</option></select></label><p id="hit-draft-status" role="status"></p>
             <div class="actions"><button id="hit-revert" disabled>Revert changes</button><button id="hit-unlock" hidden>Unlock hit</button><button id="hit-preview" disabled>Preview selected hit</button><button id="hit-insert">Insert hit</button><button id="hit-apply">Apply to selected hit</button><button id="hit-delete">Delete selected hits</button><label class="loop-label"><input id="edit-reverse" type="checkbox">Reverse hit</label><label class="loop-label"><input id="keyboard-entry" type="checkbox" checked>Keyboard entry</label></div>
-            <p id="edit-target">Choose a grid cell or hit.</p><small>Focus the grid. Arrow keys move the cursor; Tab changes lane. Z S X D C V G B H N J M enter C–B at the pitch offset above. Delete clears selected hits; Ctrl/Cmd+C/V/D copy, paste, or duplicate cells. Space plays/stops. Keyboard entry must be enabled to write notes. Locks are respected.</small>
+            <p id="edit-hit-target">Choose a grid cell or hit.</p><small>Focus the grid. Arrow keys move the cursor; Tab changes lane. Z S X D C V G B H N J M enter C–B at the pitch offset above. Delete clears selected hits; Ctrl/Cmd+C/V/D copy, paste, or duplicate cells. Space plays/stops. Keyboard entry must be enabled to write notes. Locks are respected.</small>
           </fieldset>
         </details>
       </div>

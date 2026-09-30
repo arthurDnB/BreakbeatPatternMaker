@@ -41,6 +41,37 @@ test('lane stretch survives shared playback rendering without changing the sourc
   mix.percussion.speedMode='repitch';assert.equal(withDrumKit(pattern,kit,mix).events[0].playbackRate,2);
 });
 
+test('per-hit trim and speed mode share render, undo, and project storage',()=>{
+  const samples=sine(220,rate),asset={id:'trim-tone',name:'Trim tone',sampleRate:rate,channels:[samples]};
+  const slice={assetId:asset.id,startFrame:0,endFrame:samples.length,sampleRate:rate,label:asset.name};
+  const hit={id:'trim-hit',role:'percussion',sourceId:'kit.percussion',baseTick:0,offsetTick:0,gain:.5,pan:0,anchor:false,ghost:false,reason:'Trim test',slice,sampleTrim:{startMs:100,endMs:500},playbackRate:1.5,speedMode:'stretch'};
+  const pattern={engineVersion:'0.3.0',ppq:960,settings:{...defaults(),algorithm:'groove-v4',bars:1,bpm:120},events:[hit]};
+  const kit={percussion:slice},mix=defaultKitState(),assets=new Map([[asset.id,asset]]);
+  const prepared=withDrumKit(pattern,kit,mix);
+  assert.equal(prepared.events[0].stretchRate,1.5);assert.equal(prepared.events[0].playbackRate,1);
+  const preview=renderPerformance(prepared,assets,rate).channels;
+  assert.ok(Math.abs(frequency(preview[0].slice(0,rate/5))-220)<15);
+  assert.ok(preview[0].slice(0,rate/5).some(v=>Math.abs(v)>.01));
+  assert.equal(preview[0][0],0,'trim fades the new cut edge');
+  assert.ok(preview[0].slice(Math.round(rate*.31)).every(v=>v===0));
+  const pitched=withDrumKit({...pattern,events:[{...hit,pitch:5}]},kit,mix);
+  assert.ok(Math.abs(pitched.events[0].stretchRate-1.5/2**(5/12))<1e-9);
+  const pitchedAudio=renderPerformance(pitched,assets,rate).channels[0];
+  assert.ok(pitchedAudio.slice(Math.round(rate*.31)).every(v=>v===0),'pitch and speed keep the trimmed duration');
+  mix.percussion.speedMode='stretch';
+  const repitched=withDrumKit({...pattern,events:[{...hit,speedMode:'repitch'}]},kit,mix);
+  assert.equal(repitched.events[0].playbackRate,1.5);
+  assert.equal(repitched.events[0].stretchRate,undefined);
+  const editor=new Editor(pattern);editor.write({...hit,sampleTrim:{startMs:150,endMs:450}},hit.id);
+  assert.deepEqual(editor.state.pattern.events[0].sampleTrim,{startMs:150,endMs:450});
+  editor.undo();assert.deepEqual(editor.state.pattern.events[0].sampleTrim,{startMs:100,endMs:500});
+  editor.redo();assert.deepEqual(editor.state.pattern.events[0].sampleTrim,{startMs:150,endMs:450});
+  const saved=makeProject(editor.state,pattern.settings,mix,assets),loaded=readProject(JSON.parse(JSON.stringify(saved)));
+  assert.deepEqual(loaded.project.editor.pattern.events[0].sampleTrim,{startMs:150,endMs:450});
+  assert.deepEqual(renderPerformance(withDrumKit(loaded.project.editor.pattern,kit,mix),loaded.assets,rate).channels,
+    renderPerformance(withDrumKit(editor.state.pattern,kit,mix),assets,rate).channels);
+});
+
 test('master protection links channels, keeps clean audio unchanged, and estimates intersample peaks',()=>{
   const quiet=[Float32Array.from([0,.2,-.2,0]),Float32Array.from([0,-.1,.1,0])];
   const before=quiet.map(c=>c.slice());const clean=protectMaster(quiet);
