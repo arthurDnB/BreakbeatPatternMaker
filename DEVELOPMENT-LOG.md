@@ -77,6 +77,14 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-10-01] - Think Vocal Source-Matching and Shaping Study (Codex)
+
+* Matched the supplied 0.758-second `thinkbreak_uh.mp3` to `think--all5.wav` at 0.68875 s with 0.9950 native-rate normalized correlation. The exact WAV passage gives a source-preserving starting point for further chops.
+* Built a local, ignored `test-results/think-uh-ab/source-study.html` audition sheet with 24 A/B candidates plus the Ciel reference: five provisional Think passages, matched-position windows, lossless-source cuts, repitch, coloration and exploratory granular renders. A browser check loaded all 25 audio players without page errors.
+* Full-mix correlation weakly prioritized passages 2 and 3 at 1.42× around 27.59 s in Ciel; documented that this does not identify the recording or its production chain. Added `docs/THINK-BREAK-SHAPING.md` with the findings, listening sequence, sources and a conditional DSP integration path. Original audio remains outside Git; no unverified processor was added to the app.
+* Verification: `npm.cmd test` passed 214/214; `npm.cmd run test:site` passed root and Pages subpath plus sound-browser and break-transcription browser checks. The local audition sheet loaded all 25 audio players without page errors.
+* Preserved unrelated local `package.json` and `scripts/sync-chat-to-codex.mjs` changes.
+
 ### [2026-10-01] - Per-Hit Waveform Cut and Independent Speed/Pitch Shaping (Codex)
 
 * Added a non-destructive sample cut to the hit inspector: waveform markers plus exact millisecond start/end inputs, pending Preview, Apply, Undo/Redo, and project persistence. The shared audio renderer applies the cut before stretching and fades both new edges for 2 ms, so saved pattern/song playback and WAV use the same region.
