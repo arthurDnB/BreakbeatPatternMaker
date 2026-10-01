@@ -36,7 +36,8 @@ test('older scratch and vinyl instruments migrate to sampled percussion and back
  assert.deepEqual(vinylOpened.project.vinylTexture,{enabled:true,catalogId:'lofi2-vinyl-08',levelDb:-10});
  assert.equal(vinylOpened.project.kit.percussion.choice,'lofi2-perc-02');
 });
-test('bundled audio matches recorded provenance hashes and CC0 license records',()=>{
- const catalog=JSON.parse(readFileSync('public/samples/catalog.json','utf8'));assert.equal(catalog.length,344);
- for(const sound of catalog){const data=readFileSync('.'+sound.path);assert.equal(createHash('sha256').update(data).digest('hex'),sound.sha256);assert.equal(sound.license,'CC0-1.0');assert.equal(data.toString('ascii',0,4),'RIFF');}
+test('bundled audio matches provenance hashes and approved license records',()=>{
+ const catalog=JSON.parse(readFileSync('public/samples/catalog.json','utf8'));assert.equal(catalog.length,345);
+ for(const sound of catalog){const data=readFileSync('.'+sound.path);assert.equal(createHash('sha256').update(data).digest('hex'),sound.sha256);assert.ok(['CC0-1.0','CC-BY-4.0'].includes(sound.license));if(sound.license==='CC-BY-4.0'){assert.ok(sound.author);assert.ok(sound.source);assert.ok(sound.changes);assert.equal(sound.licenseUrl,'https://creativecommons.org/licenses/by/4.0/');}assert.equal(data.toString('ascii',0,4),'RIFF');}
+ const think=catalog.find(sound=>sound.id==='think-uh-plus6');assert.equal(think?.author,'Arthur DnB');assert.equal(think?.role,'percussion');
 });

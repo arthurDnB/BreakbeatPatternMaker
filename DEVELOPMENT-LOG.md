@@ -77,6 +77,12 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-10-01] - Bundle Think Vocal Chop Instrument (Codex)
+
+* Added the passage 2 Think-style vocal chop repitched exactly +6 semitones as a bundled percussion sample. The user identified it as their original re-performance and asked for attribution under their name; catalog and sample credits list Arthur DnB under CC BY 4.0.
+* Added **Think Vocal Chop · +6 st** as a selectable kit preset, so Groove V4 can generate it through its existing percussion rhythm lane. Extended the deployment allowlist to accept attributed CC BY 4.0 records while keeping SHA-256 validation; updated counts and license checks to 345 samples.
+* Verification: `npm.cmd test` passed 215/215; `npm.cmd run test:site` passed root and Pages subpath, sound browser, and break transcription smoke checks.
+
 ### [2026-10-01] - Passage 2 Think Speed Audition (Codex)
 
 * Based on the user's listening identification of provisional Think passage 2 (2.23–4.46 s), added a local, ignored `test-results/think-uh-ab/passage-2-speed.html` A/B sheet. Its 0.75–2.25× speed control repitches the full passage or an adjustable cut; 14 matched-level WAV candidates cover seven fixed rates for both the passage and the provisional same-position window. Linked it from the existing source-study page. No source audio is distributed.

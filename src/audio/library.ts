@@ -2063,6 +2063,12 @@ export const LIBRARY = [
     "role": "percussion",
     "name": "UDNB Percussion 82",
     "path": "/public/samples/udnb-perc-82.wav"
+  },
+  {
+    "id": "think-uh-plus6",
+    "role": "percussion",
+    "name": "Think Vocal Chop (+6 st)",
+    "path": "/public/samples/think-uh-plus6.wav"
   }
 ] as const;
 
@@ -2076,6 +2082,14 @@ export interface KitPreset {
 }
 
 export const KIT_PRESETS: KitPreset[] = [
+  {
+    id: 'think-uh-jungle',
+    name: 'Think Vocal Chop · +6 st',
+    description: 'Jungle kit with Arthur DnB’s original Think-style vocal re-performance as a tuned percussion accent.',
+    slots: {kick:'udnb-kick-01',snare:'udnb-snare-08',hat:'udnb-hat-11',percussion:'think-uh-plus6'},
+    levels: {kick:.9,snare:.9,hat:.8,percussion:.58},
+    decays: {percussion:.82},
+  },
   {
     id: 'udnb-jungle',
     name: 'Jungle Break Kit · UDNB',

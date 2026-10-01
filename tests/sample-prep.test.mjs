@@ -33,3 +33,11 @@ test('every genre default kit resolves to playable library sounds',()=>{
     }
   }
 });
+
+test('Think +6 vocal chop is bundled and selectable as a percussion kit preset',()=>{
+  assert.ok(LIBRARY.some(sound=>sound.id==='think-uh-plus6'&&sound.role==='percussion'));
+  const preset=KIT_PRESETS.find(item=>item.id==='think-uh-jungle');
+  assert.ok(preset);
+  assert.equal(preset.slots.percussion,'think-uh-plus6');
+  assert.equal(preset.levels.percussion,.58);
+});
