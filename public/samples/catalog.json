@@ -3222,11 +3222,11 @@
     "name": "Think Vocal Chop (+6 st)",
     "role": "percussion",
     "path": "/public/samples/think-uh-plus6.wav",
-    "sha256": "39bbf699569b5f45ddfbb8431cda239b1c48df901c520f871c12ce876407d09f",
+    "sha256": "573445ce57f2434cb6a69330dbb037db437e7f0ac12ad3507eec8fbc2c0e8fd1",
     "license": "CC-BY-4.0",
     "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
     "author": "Arthur DnB",
-    "source": "Author-supplied original Think-style break re-performance",
-    "changes": "Passage 2 vocal chop; repitched +6 semitones"
+    "source": "Author-supplied original Think-style break re-performance; source-matched to the author's supplied single-hit sample",
+    "changes": "Full 0.758 s single hit retained; repitched +6 semitones"
   }
 ]
