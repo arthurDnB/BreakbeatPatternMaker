@@ -29,7 +29,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.3.0-alpha`
-* **Test Status:** 231 / 231 unit tests passing (`npm.cmd test`).
+* **Test Status:** 231 unit tests passing; 18 pilot-profile gates skip until DeepSeek registers the V5 overrides (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -80,6 +80,12 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-10-02] - Groove V5 Pilot Genre Quality Gate (Codex)
+
+* Added `tests/groove-v5-genres.test.mjs` for Jungle, Liquid DnB, Boom Bap, Trap, Two Step Garage, Dubstep, Breakcore and AmenScience. Each registered profile must pass runtime contract validation, generate its declared kick/snare anchors deterministically through both the direct and public V5 paths, and admit Complexity layers without removing earlier notes.
+* Once any V5 override is registered, the suite requires all eight pilots. When all are present it also requires distinct combined kick/snare rhythms at matched tempo for two seeds. Canonical individual snare placements may be shared; the combined groove must differ. The checks skip while the registry is empty so this test-only handoff can land before DeepSeek's profile work.
+* Verification: `npm.cmd test` passed 231 existing tests with 18 pilot gates skipped; `npm.cmd run test:site` passed root/subpath, sound-browser and break-browser checks. Unrelated UI and local tooling edits were left untouched.
 
 ### [2026-10-02] - Groove V5 Core Contract and Deterministic Pipeline (Codex)
 
