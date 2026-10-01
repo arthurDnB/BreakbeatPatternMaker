@@ -2067,8 +2067,8 @@ export const LIBRARY = [
   {
     "id": "think-uh-plus6",
     "role": "percussion",
-    "name": "Think Vocal Passage 2 (+6 st)",
-    "path": "/public/samples/think-uh-passage2-plus6-full.wav"
+    "name": "Think Passage 2 (1.42x)",
+    "path": "/public/samples/think-passage2-142x.wav"
   }
 ] as const;
 
@@ -2084,8 +2084,8 @@ export interface KitPreset {
 export const KIT_PRESETS: KitPreset[] = [
   {
     id: 'think-uh-jungle',
-    name: 'Think Passage 2 · +6 st',
-    description: 'Jungle kit featuring the complete 2.23-second Think passage 2 re-performance repitched +6 semitones.',
+    name: 'Think Passage 2 · 1.42x',
+    description: 'Jungle kit featuring the complete 2.23-second Think passage 2 at 1.42x speed (+6.1 semitones).',
     slots: {kick:'udnb-kick-01',snare:'udnb-snare-08',hat:'udnb-hat-11',percussion:'think-uh-plus6'},
     levels: {kick:.9,snare:.9,hat:.8,percussion:.58},
     decays: {percussion:.82},

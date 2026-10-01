@@ -77,6 +77,11 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-10-01] - Match Think Audition Passage Speed (Codex)
+
+* Matched the Fine adjustment screenshot: complete 2.23 s Passage 2 audio player at 1.42x speed (+6.1 semitones), rendered as a 1.570 s sample. Used a fresh asset path and updated the catalog, kit label, credits and sample guidance.
+* Verification: `npm.cmd test` passed 215/215, including a duration/hash check for the 1.42x render; `npm.cmd run test:site` built all 345 licensed WAVs, but the browser smoke phase stalled without output and was interrupted.
+
 ### [2026-10-01] - Use Full Think Passage 2 Sample (Codex)
 
 * Corrected the target to the complete 2.23-second Passage 2 clip from the Fine adjustment audition, rendered at the user-confirmed +6 semitones (1.577 seconds). Replaced the unrelated provisional single-hit crop and renamed the asset so it cannot be confused with that extraction or served from its old URL.

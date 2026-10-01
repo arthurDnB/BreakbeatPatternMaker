@@ -39,5 +39,5 @@ test('older scratch and vinyl instruments migrate to sampled percussion and back
 test('bundled audio matches provenance hashes and approved license records',()=>{
  const catalog=JSON.parse(readFileSync('public/samples/catalog.json','utf8'));assert.equal(catalog.length,345);
  for(const sound of catalog){const data=readFileSync('.'+sound.path);assert.equal(createHash('sha256').update(data).digest('hex'),sound.sha256);assert.ok(['CC0-1.0','CC-BY-4.0'].includes(sound.license));if(sound.license==='CC-BY-4.0'){assert.ok(sound.author);assert.ok(sound.source);assert.ok(sound.changes);assert.equal(sound.licenseUrl,'https://creativecommons.org/licenses/by/4.0/');}assert.equal(data.toString('ascii',0,4),'RIFF');}
- const think=catalog.find(sound=>sound.id==='think-uh-plus6');assert.equal(think?.author,'Arthur DnB');assert.equal(think?.role,'percussion');
+ const think=catalog.find(sound=>sound.id==='think-uh-plus6');assert.equal(think?.author,'Arthur DnB');assert.equal(think?.role,'percussion');assert.equal(think?.name,'Think Passage 2 (1.42x)');assert.equal(think?.path,'/public/samples/think-passage2-142x.wav');const pcm=readFileSync('.'+think.path);assert.equal(pcm.readUInt32LE(24),44100);assert.ok(Math.abs((pcm.length-44)/2/44100-2.23/1.42)<.001,'bundled render follows the 2.23 s passage at the selected 1.42x speed');
 });

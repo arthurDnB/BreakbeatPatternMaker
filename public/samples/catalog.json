@@ -3219,14 +3219,14 @@
   },
   {
     "id": "think-uh-plus6",
-    "name": "Think Vocal Passage 2 (+6 st)",
+    "name": "Think Passage 2 (1.42x)",
     "role": "percussion",
-    "path": "/public/samples/think-uh-passage2-plus6-full.wav",
-    "sha256": "0b90e161f808c17a140ea1867d99ed224bc353760582ecb4ff1f09f34db5a944",
+    "path": "/public/samples/think-passage2-142x.wav",
+    "sha256": "df3912972b806e04d6f93b62ed72c8323a3c1542ddbe970a5949a47a10588ccc",
     "license": "CC-BY-4.0",
     "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
     "author": "Arthur DnB",
-    "source": "Author-supplied original Think-style break re-performance, passage 2 from the supplied 2.23 s source",
-    "changes": "Full passage 2 retained and repitched +6 semitones; 1.577 s render"
+    "source": "Author-supplied original Think-style break re-performance, complete 2.23 s Passage 2 as shown in the speed audition",
+    "changes": "Complete passage repitched at 1.42x (+6.1 semitones); 1.570 s render"
   }
 ]
