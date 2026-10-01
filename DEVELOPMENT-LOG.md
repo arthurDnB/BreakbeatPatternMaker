@@ -77,6 +77,11 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-10-01] - Add Think Passage 2 to Snare Choices (Codex)
+
+* Added a snare-role library alias for the existing Think Passage 2 sample. The snare picker can now use the same bundled WAV as the percussion picker, without duplicating audio or changing the default Think kit mapping.
+* Validation: tests and site checks were not run in this turn.
+
 ### [2026-10-01] - Clarify Tracker Bar Boundaries (Codex)
 
 * Added a compact `BAR n` marker to the beat column at the first row of each bar, while retaining the row index and beat position. Strengthened bar-start separators with a teal top rule, subtle row tint, and left-edge accent for faster visual scanning across the grid.

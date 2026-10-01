@@ -2069,6 +2069,12 @@ export const LIBRARY = [
     "role": "percussion",
     "name": "Think Passage 2 (1.42x)",
     "path": "/public/samples/think-passage2-142x.wav"
+  },
+  {
+    "id": "think-uh-plus6-snare",
+    "role": "snare",
+    "name": "Think Passage 2 (1.42x) · Snare",
+    "path": "/public/samples/think-passage2-142x.wav"
   }
 ] as const;
 
