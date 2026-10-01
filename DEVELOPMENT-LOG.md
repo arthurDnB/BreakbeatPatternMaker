@@ -77,6 +77,11 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-10-01] - Edit Pattern Bar Count in Tracker (Codex)
+
+* Added a Bars selector beside tracker Resolution and LPB, synchronized with the generator and active pattern. Extending leaves current notes in place; shortening removes out-of-range notes but is blocked if any removed hit is locked. Pattern length edits participate in the existing Undo/Redo history.
+* Validation: tests and site checks were not run in this turn.
+
 ### [2026-10-01] - Add Think Passage 2 to Snare Choices (Codex)
 
 * Added a snare-role library alias for the existing Think Passage 2 sample. The snare picker can now use the same bundled WAV as the percussion picker, without duplicating audio or changing the default Think kit mapping.

@@ -335,6 +335,7 @@ function render(){
   if(workspaceRestoreTracks){workspacePreferences.openTrackRoles.forEach(role=>openTracks.add(role));workspaceRestoreTracks=false;}
   const soundStore=el('drum-slots');for(const card of Array.from(container.querySelectorAll<HTMLElement>('.track-instrument-panel[data-role] .drum-slot')))soundStore.append(card);
   const selected=selectedIds(editor.state);
+  input('tracker-bars').value=String(pattern.settings.bars);
   input('tracker-resolution').value=String(pattern.settings.resolution);
   input('tracker-lpb').value=String(transfer.timing.lpb);
   const selectedCells=new Set((editor.state.selection.cells??[]).map(c=>`${c.row}:${c.lane}`));
@@ -610,7 +611,7 @@ function syncControls(){
   input('phraseLength').value=String(s.phraseLength??0);syncPhraseControls(s.phraseOffset??0);
   input('algorithm').value=s.algorithm??'legacy-v1';input('variation').value=String(s.variation??0);
   for(const [key,value] of Object.entries(s))if(key!=='enabledRoles'&&key!=='laneDensity'&&key!=='lpb')input(key).value=String(value);
-  input('tracker-resolution').value=String(s.resolution);input('tracker-lpb').value=String(s.lpb??s.resolution/4);
+  input('tracker-bars').value=String(s.bars);input('tracker-resolution').value=String(s.resolution);input('tracker-lpb').value=String(s.lpb??s.resolution/4);
   for(const r of ROLES)kitPanel.mix[r].include=!s.enabledRoles||s.enabledRoles.includes(r);kitPanel.restore(kitPanel.snapshot());
   presets();syncModeControls();
 }
@@ -976,6 +977,7 @@ function syncStructureControls(){
  input('fillAmount').title=v3&&structure!=='auto'?'Fill probability is used only by Auto-Fills.':'';
 }
 input('patternStructure').addEventListener('change',syncStructureControls);
+input('tracker-bars').addEventListener('change',()=>{const value=Number(input('tracker-bars').value) as 1|2|3|4,previous=pattern.settings.bars,shortening=value<previous;edit(()=>editor.setBars(value),shortening?'Tracker shortened; notes outside the new length were removed.':'Tracker pattern length changed.');if(pattern.settings.bars===previous)input('tracker-bars').value=String(previous);});
 input('tracker-resolution').addEventListener('change',()=>{const value=Number(input('tracker-resolution').value) as 8|16|32|64;input('resolution').value=String(value);edit(()=>editor.setResolution(value),'Tracker resolution changed; note timing is preserved.');});
 input('tracker-lpb').addEventListener('change',()=>edit(()=>editor.setLpb(Number(input('tracker-lpb').value) as 1|2|3|4|6|8|12|16|24|32),'Tracker LPB changed; hit timing is preserved.'));
 function syncPhraseControls(offset=Number(input('phraseOffset').value)||0){

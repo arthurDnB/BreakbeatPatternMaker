@@ -52,6 +52,7 @@ export class Editor {
   undo(){const item=this.past.pop();if(!item)return false;this.future.push({state:copy(this.state),label:item.label});this.state=item.state;return true;}
   redo(){const item=this.future.pop();if(!item)return false;this.past.push({state:copy(this.state),label:item.label});this.state=item.state;return true;}
   setTempo(bpm:number){if(!Number.isFinite(bpm)||bpm<32||bpm>999)throw Error('Tempo must be between 32 and 999 BPM.');const next=copy(this.state);next.pattern.settings.bpm=bpm;next.revision++;return this.commit(next,'Change BPM');}
+  setBars(bars:1|2|3|4){const next=copy(this.state);if(next.pattern.settings.bars===bars)return false;const endTick=bars*4*PPQ;const removed=next.pattern.events.filter(hit=>hit.baseTick+hit.offsetTick>=endTick);if(removed.some(hit=>locked(next,hit)))throw Error('Unlock hits beyond the new pattern length before shortening it.');next.pattern.events=next.pattern.events.filter(hit=>hit.baseTick+hit.offsetTick<endTick);next.pattern.settings.bars=bars;next.revision++;return this.commit(next,'Change pattern length');}
   setResolution(resolution:8|16|32|64){const next=copy(this.state);next.pattern.settings.resolution=resolution;next.pattern.settings.lpb=(resolution/4) as 2|4|8|16;next.revision++;return this.commit(next,'Change tracker resolution');}
   setLpb(lpb:1|2|3|4|6|8|12|16|24|32){const next=copy(this.state);next.pattern.settings.lpb=lpb;next.revision++;return this.commit(next,'Change tracker LPB');}
   setDrumLane(role:Role,patch:Partial<ReturnType<typeof drumLane>>):boolean{
