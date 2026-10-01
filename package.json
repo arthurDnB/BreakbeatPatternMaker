@@ -25,7 +25,8 @@
     "test:loop": "npm run build && node scripts/loop-browser-smoke.mjs",
     "test:loop-audit": "npm run build && node scripts/loop-generation-audit.mjs",
     "audit:samples": "node scripts/audit-samples.mjs",
-    "audit:breaks": "npm run build && node scripts/break-benchmark.mjs"
+    "audit:breaks": "npm run build && node scripts/break-benchmark.mjs",
+    "sync:chat": "node scripts/sync-chat-to-codex.mjs"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

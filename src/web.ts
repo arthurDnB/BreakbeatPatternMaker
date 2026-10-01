@@ -238,7 +238,7 @@ function settings(){
   s.melodyScale=input('melodyScale').value as MelodyScale;
   s.harmonyStyle=input('harmonyStyle').value as NonNullable<Settings['harmonyStyle']>;
   s.algorithm=input('algorithm').value as NonNullable<Pattern['settings']['algorithm']>;s.variation=Number(input('variation').value);
-  if(['groove-v3','groove-v4'].includes(s.algorithm??'')&&Number(input('phraseLength').value)){s.phraseLength=Number(input('phraseLength').value) as 4|8|16;s.phraseOffset=Number(input('phraseOffset').value);}
+  if(['groove-v3','groove-v4','groove-v5'].includes(s.algorithm??'')&&Number(input('phraseLength').value)){s.phraseLength=Number(input('phraseLength').value) as 4|8|16;s.phraseOffset=Number(input('phraseOffset').value);}
   s.enabledRoles=ROLES.filter(r=>kitPanel.mix[r].include);
   s.breakStyle=input('breakStyle').value as BreakStyle;
   if(input('breakLayer').value==='think-passage2')s.breakLayer='think-passage2';
@@ -246,8 +246,8 @@ function settings(){
   s.resolution=Number(input('resolution').value) as typeof s.resolution;
   if(pattern?.settings.lpb!==undefined)s.lpb=pattern.settings.lpb;
   s.spicy=Number(input('spicy').value);
-  if(s.algorithm==='groove-v4'&&input('hit-target-mode').value==='exact')s.hitTarget=Number(input('hit-target-number').value);
-  if(s.algorithm==='groove-v4')s.laneDensity=Object.fromEntries(ROLES.map(role=>[role,Number(input(`${role}-density`).value)])) as NonNullable<Settings['laneDensity']>;
+  if(['groove-v4','groove-v5'].includes(s.algorithm??'')&&input('hit-target-mode').value==='exact')s.hitTarget=Number(input('hit-target-number').value);
+  if(['groove-v4','groove-v5'].includes(s.algorithm??''))s.laneDensity=Object.fromEntries(ROLES.map(role=>[role,Number(input(`${role}-density`).value)])) as NonNullable<Settings['laneDensity']>;
   const ps=input('patternStructure').value; if(['groove','auto','fill','roll','build'].includes(ps)) s.patternStructure = ps as any;
   for(const name of ['complexity','syncopation','swing','humanizeMs','ghostAmount','fillAmount'] as const)s[name]=Number(input(name).value);
   return s;
@@ -967,47 +967,47 @@ function syncSliders(){
   const spicyEl=document.getElementById('spicy-value');
   if(spicyEl){
     const pct=Math.round(spicyVal*100);
-    const tag=spicyVal>=0.7?(['groove-v3','groove-v4'].includes(input('algorithm').value)?' 🔥 Expressive':' 🔥 Chaos'):spicyVal>=0.35?' 🌶️ Spicy':spicyVal>0?' 🌶️ Mild':' Off';
+    const tag=spicyVal>=0.7?(['groove-v3','groove-v4','groove-v5'].includes(input('algorithm').value)?' 🔥 Expressive':' 🔥 Chaos'):spicyVal>=0.35?' 🌶️ Spicy':spicyVal>0?' 🌶️ Mild':' Off';
     spicyEl.textContent=pct+'%'+tag;
     input('spicy').setAttribute('aria-valuetext',spicyEl.textContent);
   }
   syncHud();
 }
 function syncHitTargetControl(){
-  const bars=Number(input('bars').value)||2,max=bars*64,exact=input('hit-target-mode').value==='exact',v4=input('algorithm').value==='groove-v4';
+  const bars=Number(input('bars').value)||2,max=bars*64,exact=input('hit-target-mode').value==='exact',supportsExact=['groove-v4','groove-v5'].includes(input('algorithm').value);
   const value=Math.max(0,Math.min(max,Math.round(Number(input('hit-target-number').value)||0)));
   input('hit-target-number').max=String(max);input('hit-target-slider').max=String(max);
   input('hit-target-number').value=String(value);input('hit-target-slider').value=String(value);
   el('hit-target-value').textContent=String(value);
-  input('hit-target-mode').disabled=!v4;
-  input('hit-target-number').disabled=!v4||!exact;input('hit-target-slider').disabled=!v4||!exact;
-  el('hit-target-help').textContent=!v4?'Exact hits requires Groove v4.':exact?`${value} tracker notes across ${bars} ${bars===1?'bar':'bars'}; Think slices included, ratchets count once.`:'Auto uses the selected genre’s natural density.';
+  input('hit-target-mode').disabled=!supportsExact;
+  input('hit-target-number').disabled=!supportsExact||!exact;input('hit-target-slider').disabled=!supportsExact||!exact;
+  el('hit-target-help').textContent=!supportsExact?'Exact hits requires Groove v4 or v5.':exact?`${value} tracker notes across ${bars} ${bars===1?'bar':'bars'}; Think slices included, ratchets count once.`:'Auto uses the selected genre’s natural density.';
 }
 function breakDescription(){
   const key=input('breakStyle').value as BreakStyle;
   el('break-description').textContent=key==='genre'?'Use the selected genre’s rhythm.':BREAKS[key].description+' Genre still controls tempo suggestions, detail and fill intensity.';
 }
 function syncStructureControls(){
- const v3=['groove-v3','groove-v4'].includes(input('algorithm').value),structure=input('patternStructure').value,build=structure==='build'&&input('algorithm').value==='groove-v3';
- const v4=input('algorithm').value==='groove-v4';
- for(const role of ROLES){input(`${role}-density`).disabled=!v4;input(`${role}-density`).title=v4?'Adjust optional hits in this lane. Main kick and snare anchors remain.':'Instrument density requires Groove v4.';}
- input('patternStructure').disabled=!v3;
- input('patternStructure').title=v3?'Choose groove, ending or full snare build.':'Pattern structure requires Groove v3 or v4.';
+ const hasStructure=['groove-v3','groove-v4','groove-v5'].includes(input('algorithm').value),structure=input('patternStructure').value,build=structure==='build'&&input('algorithm').value==='groove-v3';
+ const supportsDensity=['groove-v4','groove-v5'].includes(input('algorithm').value);
+ for(const role of ROLES){input(`${role}-density`).disabled=!supportsDensity;input(`${role}-density`).title=supportsDensity?'Adjust optional hits in this lane. Main kick and snare anchors remain.':'Instrument density requires Groove v4 or Groove v5.';}
+ input('patternStructure').disabled=!hasStructure;
+ input('patternStructure').title=hasStructure?'Choose groove, ending or full snare build.':'Pattern structure requires Groove v3, Groove v4, or Groove v5.';
  for(const id of ['syncopation','ghostAmount','swing','breakStyle','variation','phraseLength','phraseOffset']){
-  input(id).disabled=v3&&build;
-  input(id).title=v3&&build?'Not used by a full snare build.':'';
+  input(id).disabled=hasStructure&&build;
+  input(id).title=hasStructure&&build?'Not used by a full snare build.':'';
  }
- input('fillAmount').disabled=v3&&structure!=='auto';
- input('fillAmount').title=v3&&structure!=='auto'?'Fill probability is used only by Auto-Fills.':'';
+ input('fillAmount').disabled=hasStructure&&structure!=='auto';
+ input('fillAmount').title=hasStructure&&structure!=='auto'?'Fill probability is used only by Auto-Fills.':'';
 }
 input('patternStructure').addEventListener('change',syncStructureControls);
 input('tracker-bars').addEventListener('change',()=>{const value=Number(input('tracker-bars').value) as 1|2|3|4,previous=pattern.settings.bars,shortening=value<previous;edit(()=>editor.setBars(value),shortening?'Tracker shortened; notes outside the new length were removed.':'Tracker pattern length changed.');if(pattern.settings.bars===previous)input('tracker-bars').value=String(previous);});
 input('tracker-resolution').addEventListener('change',()=>{const value=Number(input('tracker-resolution').value) as 8|16|32|64;input('resolution').value=String(value);edit(()=>editor.setResolution(value),'Tracker resolution changed; note timing is preserved.');});
 input('tracker-lpb').addEventListener('change',()=>edit(()=>editor.setLpb(Number(input('tracker-lpb').value) as 1|2|3|4|6|8|12|16|24|32),'Tracker LPB changed; hit timing is preserved.'));
 function syncPhraseControls(offset=Number(input('phraseOffset').value)||0){
- const v3=['groove-v3','groove-v4'].includes(input('algorithm').value),length=Number(input('phraseLength').value);
+ const hasStructure=['groove-v3','groove-v4','groove-v5'].includes(input('algorithm').value),length=Number(input('phraseLength').value);
  syncStructureControls();
- el('phrase-length-field').hidden=!v3;el('phrase-offset-field').hidden=!v3||!length;
+ el('phrase-length-field').hidden=!hasStructure;el('phrase-offset-field').hidden=!hasStructure||!length;
  const select=el<HTMLSelectElement>('phraseOffset');select.replaceChildren();
  for(let i=0;i<(length||1);i++){const option=document.createElement('option');option.value=String(i);option.textContent=String(i+1);select.append(option);}
  select.value=String(Math.min(offset,(length||1)-1));
@@ -1157,7 +1157,7 @@ function restoreGenerationDefaults(resetComposition=false){
  if(resetComposition){input('generationMode').value='drums';input('melodyPart').value='bassline';input('melodyKey').value='0';input('melodyScale').value='natural-minor';input('harmonyStyle').value='jazz';}
  for(const role of ROLES)input(`${role}-density`).value='1';
  input('hit-target-mode').value='auto';input('hit-target-number').value=String(Number(input('bars').value)*16);syncHitTargetControl();
- if(['groove-v3','groove-v4'].includes(keepEngine))input('algorithm').value=keepEngine;
+ if(['groove-v3','groove-v4','groove-v5'].includes(keepEngine))input('algorithm').value=keepEngine;
  const autoKit=document.getElementById('auto-kit') as HTMLInputElement | null;
  if(autoKit&&autoKit.checked){
    const defaultKitId=GENRE_KITS[genre]||'acoustic-break';
@@ -1362,7 +1362,7 @@ function updateEntry(hit?:Hit){
     const own=hit?.[key];input('edit-'+name+'-override').checked=own!==undefined;
     input('edit-'+name).value=String(own??(key==='playbackRate'?effectiveSampleSpeed(shape,pattern.settings.bpm).rate:shape[key])??fallback);
   }
-  const isV3=['groove-v3','groove-v4'].includes(pattern.settings.algorithm??'');
+  const isV3=['groove-v3','groove-v4','groove-v5'].includes(pattern.settings.algorithm??'');
   el('burst-span-field').hidden=!isV3;
   el('articulation-help').textContent=isV3?'Repeats divide the musical Burst span, independent of tracker resolution. Generated natural hits can sustain; Gate deliberately shortens attacks. Pitch and velocity contours are shown above.':'Ratchets divide one tracker row into equal repeats. Gate shortens each attack; 50% leaves half its interval silent. Effects can ring beyond the gate.';
   el('edit-ratchets-label').textContent=isV3?'Repeats in burst':'Ratchets per row';
@@ -1399,7 +1399,7 @@ function entryHit(replace:boolean,pitchOverride?:number){
   if(input('edit-lowpass-override').checked)hit.lowpassHz=Number(input('edit-lowpass').value);
   if(input('edit-attack-override').checked)hit.attackMs=Number(input('edit-attack').value);
   if(input('edit-decay-override').checked)hit.decay=Number(input('edit-decay').value);
-  if(['groove-v3','groove-v4'].includes(pattern.settings.algorithm??'')){
+  if(['groove-v3','groove-v4','groove-v5'].includes(pattern.settings.algorithm??'')){
     const duration=Number(input('edit-burst-span').value)||960/transfer.timing.lpb;
     const expression=prior?.articulation?structuredClone(prior.articulation):undefined;
     if(expression||hit.ratchets!>1||hit.gate!==undefined||Number(input('edit-burst-span').value)){
@@ -1414,7 +1414,7 @@ function entryHit(replace:boolean,pitchOverride?:number){
   const oldNote=prior&&transfer.notes.find(n=>n.id===prior.id);
   if(prior&&oldNote?.row===row&&oldNote.delay===delay){hit.baseTick=prior.baseTick;hit.offsetTick=prior.offsetTick;hit.fineOffset=prior.fineOffset;}
   const sound=input('edit-sound').value;
-  if(sound==='slice'){const a=currentAsset();hit.slice=sliceReference(a.asset,a.markers,a.selected);if(['groove-v3','groove-v4'].includes(pattern.settings.algorithm??''))hit.sourceKind='slice';}
+  if(sound==='slice'){const a=currentAsset();hit.slice=sliceReference(a.asset,a.markers,a.selected);if(['groove-v3','groove-v4','groove-v5'].includes(pattern.settings.algorithm??''))hit.sourceKind='slice';}
   else if(sound==='demo'&&!track)delete hit.slice;
   else if(sound==='keep'&&prior?.mapped)hit.mapped={...prior.mapped};
   else if(sound==='keep'&&prior?.slice)hit.slice={...prior.slice};
@@ -1430,7 +1430,7 @@ function entryHit(replace:boolean,pitchOverride?:number){
     if(!Number.isFinite(startMs)||!Number.isFinite(endMs)||startMs<0||endMs-startMs<5||endMs>available+.5)throw Error('Trim must fit inside the sample and keep at least 5 ms of audio.');
     hit.sampleTrim={startMs,endMs};
   }
-  if(['groove-v3','groove-v4'].includes(pattern.settings.algorithm??'')){
+  if(['groove-v3','groove-v4','groove-v5'].includes(pattern.settings.algorithm??'')){
     if(sound!=='slice'&&sound!=='keep')hit.sourceKind='oneShot';
     if(prior&&oldNote?.volume===volume)hit.gain=prior.gain;
     if(prior&&oldNote?.pan===pan)hit.pan=prior.pan;

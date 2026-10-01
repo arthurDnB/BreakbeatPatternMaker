@@ -29,7 +29,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.3.0-alpha`
-* **Test Status:** 231 unit tests passing; 18 pilot-profile gates skip until DeepSeek registers the V5 overrides (`npm.cmd test`).
+* **Test Status:** 249 unit tests passing (231 core + 18 Groove V5 pilot genre tests passing, 0 skipped, 0 failed); browser smoke tests passing (`npm.cmd test` and `npm.cmd run test:site`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -59,6 +59,7 @@ This document maintains the running project state and change log so that multipl
   - Hi-hat choke groups closing open hats across tracker steps and arrangement loop boundaries.
   - Isolated deterministic random streams (`v3Chance`, `v3Pick`) and Strudel-inspired Euclidean rhythmic distribution.
 * [x] **Groove V4 (Complete):** Typed, profile-driven composition for all 38 genres with separate Complexity layers and Spicy gestures; V1–V3 remain selectable for existing projects. See `docs/GROOVE-V4.md` for tuning guidance.
+* [x] **Groove V5 Pilot Engine & 8 Genre Profiles (Complete):** Opt-in engine pilot with authentic phrase planning, monotone Complexity layering, distinct anchor motifs, and full UI/browser integration for Jungle, Liquid DnB, Boom Bap, Trap, Two Step Garage, Dubstep, Breakcore, and AmenScience.
 * [x] **Arrangement editing history:** Undo/redo for sequence, slot, repeat and song-tempo changes with context-aware shortcuts.
 * [x] **Named song sections:** Optional per-step section labels are preserved in project data, shown in the arranger and transport, and included in history.
 * [x] **Visual song timeline:** Colored section blocks, playhead following, insertion gaps, drag reorder and pattern selection with arrangement undo/redo.
@@ -80,6 +81,13 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-10-02] - Groove V5 Pilot Milestone & Autonomous AI Office QA (Office: DeepSeek, Antigravity, Codex)
+
+* **DeepSeek Harness:** Authored all 8 pilot genre profiles in `src/core/groove-v5-profiles.ts` (Jungle, Liquid DnB, Boom Bap, Trap, Two Step Garage, Dubstep, Breakcore, AmenScience) satisfying the typed contract (`src/core/groove-v5-contract.ts`) with distinct kick/snare anchor motifs, monotonic complexity steps, and genre-specific fills and cadences.
+* **Antigravity (Integration & UI):** Wired Groove V5 into `src/web.ts` and `public/index.html` as an opt-in preview engine while keeping Groove V4 as default. Connected V5 to phrase length/offset, exact hits budgeting, lane densities, and burst span articulation. Created Playwright browser smoke test `scripts/groove-v5-browser-smoke.mjs`.
+* **Codex (Automated QA & Review):** Conducted full headless code review (`codex review --uncommitted`). Flagged and resolved control availability guards in `src/web.ts` (enabling Pattern Structure, lane density sliders, and phrase controls under Groove V5), fixed multiline command passing without shell truncation in `scripts/office-dispatch.mjs`, and established nonzero failure exit codes for `office verify`.
+* **Verification:** `npm.cmd test` passed all 249 unit tests (including all 18 pilot genre tests un-skipped and passing). `scripts/groove-v5-browser-smoke.mjs` passed engine switching, generation, variation, 28-hit Exact Target, undo, and control visibility. `npm.cmd run test:site` passed root and subpath browser smoke tests.
 
 ### [2026-10-02] - Groove V5 Pilot Genre Quality Gate (Codex)
 
