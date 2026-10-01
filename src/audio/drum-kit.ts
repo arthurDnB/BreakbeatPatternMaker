@@ -40,10 +40,10 @@ export function withDrumKit(pattern:Pattern,kit:DrumKit,mix?:KitState):Pattern{
     const userTrack=hit.trackId?userTracks.get(hit.trackId):undefined;
     if(isSynthTrack(userTrack))return [{...hit,renderGain:hit.gain*userTrack.level,pan:Math.max(-1,Math.min(1,hit.pan+userTrack.pan))}];
     const result=hit.slice?{...hit}:userTrack&&!isSynthTrack(userTrack)?{...hit,slice:{...userTrack.sample}}:!kit[hit.role]?{...hit}:{...hit,slice:{...kit[hit.role]!}};
-    if(['groove-v3','groove-v4'].includes(pattern.settings.algorithm??''))result.sourceKind=hit.sourceKind??(hit.slice?'slice':'oneShot');
+    if(['groove-v3','groove-v4','groove-v5'].includes(pattern.settings.algorithm??''))result.sourceKind=hit.sourceKind??(hit.slice?'slice':'oneShot');
     if(mix){
       result.reverse=!!hit.reverse||!!mix[hit.role].reverse;
-      if(['groove-v3','groove-v4'].includes(pattern.settings.algorithm??'')&&mix[hit.role].reverse&&hit.articulation?.repeats){
+      if(['groove-v3','groove-v4','groove-v5'].includes(pattern.settings.algorithm??'')&&mix[hit.role].reverse&&hit.articulation?.repeats){
         result.articulation={...hit.articulation,repeats:hit.articulation.repeats.map(r=>({...r,reverse:true}))};
       }
       result.gain*=mix[hit.role].level;

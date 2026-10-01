@@ -8,10 +8,10 @@ export function validateSettings(s: Settings): void {
   if(s.breakStyle!==undefined&&s.breakStyle!=='genre'&&!Object.hasOwn(BREAKS,s.breakStyle)) throw new Error('Unsupported break preset.');
   if(s.breakLayer!==undefined&&!['off','think-passage2'].includes(s.breakLayer))throw Error('Unsupported break layer.');
   if(s.enabledRoles!==undefined&&(!Array.isArray(s.enabledRoles)||s.enabledRoles.some(r=>!ROLES.includes(r))||new Set(s.enabledRoles).size!==s.enabledRoles.length))throw Error('Invalid enabled instruments.');
-  if(s.algorithm!==undefined&&!['legacy-v1','groove-v2','groove-v3','groove-v4'].includes(s.algorithm))throw Error('Unsupported generation engine.');
+  if(s.algorithm!==undefined&&!['legacy-v1','groove-v2','groove-v3','groove-v4','groove-v5'].includes(s.algorithm))throw Error('Unsupported generation engine.');
   if(s.algorithm==='legacy-v1'&&Object.hasOwn(NEW_GENRES,s.genre))throw Error('This genre requires Groove v2 or Groove v3.');
   if(s.variation!==undefined)bounded(s.variation,0,1000000,'variation',true);
-  if(s.phraseLength!==undefined&&(![4,8,16].includes(s.phraseLength)||!['groove-v3','groove-v4'].includes(s.algorithm??'')))throw Error('Phrase context requires Groove v3/v4 and 4, 8 or 16 bars.');
+  if(s.phraseLength!==undefined&&(![4,8,16].includes(s.phraseLength)||!['groove-v3','groove-v4','groove-v5'].includes(s.algorithm??'')))throw Error('Phrase context requires Groove v3/v4/v5 and 4, 8 or 16 bars.');
   if(s.phraseOffset!==undefined){if(s.phraseLength===undefined)throw Error('Choose a phrase length before its position.');bounded(s.phraseOffset,0,s.phraseLength-1,'phrase position',true);}
   text(s.seed, 'seed', 80);
   bounded(s.bpm, 32, 999, 'BPM'); bounded(s.bars, 1, 4, 'bars', true);
@@ -20,7 +20,7 @@ export function validateSettings(s: Settings): void {
   for (const k of ['complexity','syncopation','ghostAmount','fillAmount'] as const) bounded(s[k],0,1,k);
   if(s.spicy!==undefined) bounded(s.spicy,0,1,'spicy');
   if(s.hitTarget!==undefined){
-    if(s.algorithm!=='groove-v4')throw Error('Exact hits requires Groove v4.');
+    if(!['groove-v4','groove-v5'].includes(s.algorithm??''))throw Error('Exact hits requires Groove v4 or v5.');
     bounded(s.hitTarget,0,s.bars*64,'hit target',true);
   }
   if(s.laneDensity!==undefined){

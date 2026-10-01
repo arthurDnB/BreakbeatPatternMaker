@@ -12,7 +12,7 @@ export type MelodyPart = 'bassline' | 'lead' | 'piano';
 export type MelodyScale = 'major' | 'natural-minor' | 'harmonic-minor' | 'melodic-minor' | 'dorian' | 'phrygian' | 'lydian' | 'mixolydian' | 'locrian' | 'major-pentatonic' | 'minor-pentatonic' | 'blues' | 'whole-tone' | 'diminished' | 'double-harmonic' | 'hirajoshi';
 export type HarmonyStyle='genre'|'jazz'|'neo-soul'|'modal';
 export interface Settings {
-  algorithm?: 'legacy-v1' | 'groove-v2' | 'groove-v3' | 'groove-v4';
+  algorithm?: 'legacy-v1' | 'groove-v2' | 'groove-v3' | 'groove-v4' | 'groove-v5';
   variation?: number;
   phraseLength?:4|8|16; phraseOffset?:number; // V3 section position, zero-based bars.
   breakStyle?: BreakStyle;

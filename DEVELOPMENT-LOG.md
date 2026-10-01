@@ -29,7 +29,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.3.0-alpha`
-* **Test Status:** 225 / 225 unit tests passing (`npm.cmd test`).
+* **Test Status:** 231 / 231 unit tests passing (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -80,6 +80,14 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-10-02] - Groove V5 Core Contract and Deterministic Pipeline (Codex)
+
+* Added the typed V5 profile/phrase contract, a guarded eight-pilot override registry, and a documented handoff in `docs/GROOVE-V5-SYSTEM-DESIGN.md`. The current inherited V3/V4 baseline is an engineering fixture; DeepSeek's pilot profiles and listening review are still pending.
+* Implemented a seed-stable motif spine, explicit phrase plan, monotone Complexity layers, profile cadences, bounded Spicy gestures and V5-selected fills. Named random streams keep anchors unchanged across variation. V5 remains opt-in at the API level; Groove V4 stays the UI default.
+* Routed V5 through settings validation, editor variation/locks, Exact Hits after optional Think-layer merging, project persistence, and the shared V3+ audio voice/master path used for Preview and WAV. V5 Exact Hits draws from V5 profile vocabulary and reports its feasible maximum instead of inserting V4 notes.
+* Added six focused tests covering all 38 inherited profile baselines, determinism, phrase endings, Complexity/Spicy effects, locks, Undo/Redo, project roundtrip, audio output and Think-layer hit budgeting. Preserved unrelated local changes to `AGENTS.md`, `package.json`, `scripts/office-dispatch.mjs` and `scripts/sync-chat-to-codex.mjs`.
+* Verification: `npm.cmd test` passed 231/231; `npm.cmd run test:site` passed root/subpath, sound-browser and break-browser checks.
 
 ### [2026-10-02] - Persistent Codex and Antigravity Collaboration Guidance (Codex)
 

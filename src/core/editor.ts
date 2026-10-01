@@ -3,6 +3,8 @@ import {generate} from './generate.js';
 import {grooveFill,grooveTiming} from './groove.js';
 import {grooveV3Fill,grooveV3Timing} from './groove-v3.js';
 import {grooveV4Fill,grooveV4Timing} from './groove-v4.js';
+import {grooveV5Fill,grooveV5Timing} from './groove-v5.js';
+import {v5ProfileFor} from './groove-v5-baseline.js';
 import {V3_RULES} from './groove-v3-profiles.js';
 import {GROOVES} from './groove-profiles.js';
 import {compile} from './compile.js';
@@ -185,7 +187,7 @@ export class Editor {
   variation(){
     const original=this.state.pattern;
     const algorithm=original.settings.algorithm;
-    return this.generateComposition({...original.settings,algorithm:algorithm==='groove-v4'?'groove-v4':algorithm==='groove-v3'?'groove-v3':'groove-v2',variation:(original.settings.variation??0)+1},'Generate variation',true);
+    return this.generateComposition({...original.settings,algorithm:algorithm==='groove-v5'?'groove-v5':algorithm==='groove-v4'?'groove-v4':algorithm==='groove-v3'?'groove-v3':'groove-v2',variation:(original.settings.variation??0)+1},'Generate variation',true);
   }
   write(hit:Hit,replaceId?:string){
     const next=copy(this.state),prior=next.pattern.events.find(h=>h.id===replaceId);
@@ -315,9 +317,9 @@ export class Editor {
     for(const hit of changedHits){
       const step=rowTicks(next.pattern);
       let target=hit.baseTick+(rng()<.5?-step:step);
-      if(['groove-v2','groove-v3','groove-v4'].includes(next.pattern.settings.algorithm??'')){
+      if(['groove-v2','groove-v3','groove-v4','groove-v5'].includes(next.pattern.settings.algorithm??'')){
         const rule=GROOVES[next.pattern.settings.genre],origin=Math.floor(hit.baseTick/(4*PPQ))*4*PPQ;
-        const v3=['groove-v3','groove-v4'].includes(next.pattern.settings.algorithm??'')?V3_RULES[next.pattern.settings.genre]:undefined;
+        const v3=['groove-v3','groove-v4','groove-v5'].includes(next.pattern.settings.algorithm??'')?V3_RULES[next.pattern.settings.genre]:undefined;
         const role=beatRole(hit);
         const positions=v3?(role==='kick'?v3.pickups:role==='snare'?v3.ghosts:role==='hat'?[...v3.hats,...v3.hatDetails]:v3.percussion):(role==='kick'?rule.kickExtras:role==='snare'?rule.response:[1,3,5,7,9,11,13,15]);
         const choices=positions.map(n=>origin+(v3?n*240:Math.round(n*240/step)*step)).filter(t=>t!==hit.baseTick&&Math.abs(t-hit.baseTick)<=(v3?480:step*2));
@@ -326,7 +328,7 @@ export class Editor {
       const row=Math.floor(Math.max(0,Math.round((target+hit.offsetTick)/step*256))/256);
       const range=next.selection.rows;
       if(rng()<.65&&target>=0&&target<next.pattern.settings.bars*PPQ*4&&(!range||(row>=range[0]&&row<=range[1]))&&!next.pattern.events.some(e=>e.id!==hit.id&&hitLane(e)===hitLane(hit)&&e.baseTick===target)){
-        hit.baseTick=target;if(['groove-v2','groove-v3','groove-v4'].includes(next.pattern.settings.algorithm??'')){const laneRole=hit.role;hit.role=beatRole(hit);(next.pattern.settings.algorithm==='groove-v4'?grooveV4Timing:next.pattern.settings.algorithm==='groove-v3'?grooveV3Timing:grooveTiming)(hit,next.pattern.settings);hit.role=laneRole;}if(range)hit.offsetTick=Math.max(range[0]*step-hit.baseTick,Math.min((range[1]+1)*step-1-hit.baseTick,hit.offsetTick));hit.reason='This variation moves an ornament to a neighboring subdivision while retaining the main backbeat.';
+        hit.baseTick=target;if(['groove-v2','groove-v3','groove-v4','groove-v5'].includes(next.pattern.settings.algorithm??'')){const laneRole=hit.role;hit.role=beatRole(hit);if(next.pattern.settings.algorithm==='groove-v5')grooveV5Timing(hit,next.pattern.settings,v5ProfileFor(next.pattern.settings.genre));else (next.pattern.settings.algorithm==='groove-v4'?grooveV4Timing:next.pattern.settings.algorithm==='groove-v3'?grooveV3Timing:grooveTiming)(hit,next.pattern.settings);hit.role=laneRole;}if(range)hit.offsetTick=Math.max(range[0]*step-hit.baseTick,Math.min((range[1]+1)*step-1-hit.baseTick,hit.offsetTick));hit.reason='This variation moves an ornament to a neighboring subdivision while retaining the main backbeat.';
       }else{
         hit.gain=Math.round(Math.max(.08,Math.min(hit.ghost?.35:.85,hit.gain+(hit.gain>(hit.ghost?.27:.55)?-.12:.12)))*10000)/10000;
         hit.reason=hit.ghost?'This ghost snare has a revised quiet accent; the main backbeat stays in place.':'This variation changes the accent strength while preserving the rhythm.';
@@ -408,7 +410,7 @@ export class Editor {
     next.revision++;return this.commit(next,scoped?'Scramble selection':'Scramble break');
   }
   private boundGestures(next:EditorState,hits:Hit[],range:[number,number]|null){
-    if(!['groove-v3','groove-v4'].includes(next.pattern.settings.algorithm??''))return;
+    if(!['groove-v3','groove-v4','groove-v5'].includes(next.pattern.settings.algorithm??''))return;
     const ticksPerRow=rowTicks(next.pattern);
     const end=Math.min(next.pattern.settings.bars*4*PPQ,range?(range[1]+1)*ticksPerRow:Infinity);
     for(const h of hits){
@@ -422,9 +424,9 @@ export class Editor {
   fill(targetLane?:string){
     const next=copy(this.state),range=next.selection.rows;
     if(!range)throw Error('Select an ending using row numbers or Select last beat.');
-    if(['groove-v2','groove-v3','groove-v4'].includes(next.pattern.settings.algorithm??'')){
+    if(['groove-v2','groove-v3','groove-v4','groove-v5'].includes(next.pattern.settings.algorithm??'')){
       const step=rowTicks(next.pattern),start=range[0]*step,end=(range[1]+1)*step;
-      const raw=(next.pattern.settings.algorithm==='groove-v4'?grooveV4Fill:next.pattern.settings.algorithm==='groove-v3'?grooveV3Fill:grooveFill)({...next.pattern.settings,variation:next.revision},start,end);
+      const raw=(next.pattern.settings.algorithm==='groove-v5'?grooveV5Fill:next.pattern.settings.algorithm==='groove-v4'?grooveV4Fill:next.pattern.settings.algorithm==='groove-v3'?grooveV3Fill:grooveFill)({...next.pattern.settings,variation:next.revision},start,end);
       const additions=routeGeneratedDrums({...next.pattern,events:raw},next.pattern).events;
       let changed=false;
       for(const hit of additions){

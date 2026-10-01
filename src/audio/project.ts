@@ -21,7 +21,7 @@ export function needsVinylMigration(raw:unknown){
 export function makeProject(editor:EditorState,draft:Settings,kit:KitState,assets:Map<string,AudioAsset>,bank?:Bank,vinylTexture:VinylTexture=DEFAULT_VINYL_TEXTURE):Project{
   const patterns=[editor.pattern,...(bank?.slots.flatMap(s=>[...(s.editor?[s.editor.pattern]:[]),...(s.patternHistory?.map(h=>h.editor.pattern)??[])])??[])];
   const ids=new Set(patterns.flatMap(p=>[...(p.sliceInstruments??[]).map(i=>i.assetId),...(p.userTracks??[]).flatMap(t=>isSynthTrack(t)?t.instrument.sample?[t.instrument.sample.assetId]:[]:[t.sample.assetId]),...p.events.flatMap(h=>h.slice?[h.slice.assetId]:[])]));for(const r of ROLES){if(kit[r].assetId)ids.add(kit[r].assetId!);if(kit[r].uploadId)ids.add(kit[r].uploadId!);if(kit[r].layer)ids.add(kit[r].layer.slice.assetId);}
-  const v3=['groove-v3','groove-v4'].includes(draft.algorithm??'')||patterns.some(p=>['groove-v3','groove-v4'].includes(p.settings.algorithm??'')||p.events.some(h=>h.articulation||h.effect));
+  const v3=['groove-v3','groove-v4','groove-v5'].includes(draft.algorithm??'')||patterns.some(p=>['groove-v3','groove-v4','groove-v5'].includes(p.settings.algorithm??'')||p.events.some(h=>h.articulation||h.effect));
   if([...ids].some(legacyId)||Object.values(kit).some(s=>legacyId(s.choice)))throw Error('Old vinyl instrument must be migrated before saving.');
   const piano=patterns.some(p=>p.userTracks?.some(track=>isSynthTrack(track)&&track.instrument.preset==='piano'));
   const sampledPiano=patterns.some(p=>p.userTracks?.some(track=>isSynthTrack(track)&&(track.instrument.sample||track.instrument.sampleBank)));

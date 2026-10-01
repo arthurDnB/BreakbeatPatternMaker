@@ -98,7 +98,7 @@ export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,
       }
       return effectVoices;
     }
-    if(['groove-v3','groove-v4'].includes(pattern.settings.algorithm??''))return planV3Voices(pattern,hit,channels,sourceRate,from,to,origin,options.loop ? Infinity : position,rate);
+    if(['groove-v3','groove-v4','groove-v5'].includes(pattern.settings.algorithm??''))return planV3Voices(pattern,hit,channels,sourceRate,from,to,origin,options.loop ? Infinity : position,rate);
     const count=hit.ratchets??1,interval=240/pattern.settings.bpm/pattern.settings.resolution/count;
     const naturalLength=Math.ceil((to-from)/sourceRate/ratio*rate),decayActive=hit.decay!==undefined&&hit.decay<1;
     const decayMax=decayActive?Math.max(Math.round(rate*.02),Math.round(naturalLength*hit.decay!)):naturalLength;
@@ -200,7 +200,7 @@ export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,
   if(options.vinylTexture)mixVinylTexture(channels,rate,options.vinylTexture.asset,options.vinylTexture.levelDb,!!options.loop);
   // Preserve published V1–V3 PCM exactly. The cleaner linear output guard is
   // available to new Groove V4 work without rewriting older saved exports.
-  if(patterns.some(p=>p.settings.algorithm!=='groove-v4')){
+  if(patterns.some(p=>!['groove-v4','groove-v5'].includes(p.settings.algorithm??''))){
     const transparent=patterns.every(p=>p.events.every(h=>h.mapped));
     for(const ch of channels)for(let i=0;i<ch.length;i++){
       const v=ch[i]!,abs=Math.abs(v);

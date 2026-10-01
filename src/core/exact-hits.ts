@@ -1,5 +1,6 @@
 import {PPQ,ROLES,type Hit,type Pattern,type Role} from './model.js';
 import {generateGrooveV4,grooveV4Timing,v4Chance} from './groove-v4.js';
+import {generateGrooveV5,v5Chance} from './groove-v5.js';
 import {routeGeneratedDrums} from './drum-lanes.js';
 import {V3_RULES} from './groove-v3-profiles.js';
 
@@ -12,8 +13,10 @@ export function balanceExactHits(pattern:Pattern,lockedIds:readonly string[],loc
  const target=pattern.settings.hitTarget;
  if(target===undefined)return;
  const s=pattern.settings,all=pattern.events.filter(drum);
+ const v5=s.algorithm==='groove-v5';
  const denseDensity=Object.fromEntries(ROLES.map(role=>[role,s.laneDensity?.[role]===0?0:2])) as Record<Role,number>;
- const dense=generateGrooveV4({...s,hitTarget:undefined,complexity:1,ghostAmount:1,fillAmount:1,laneDensity:denseDensity});
+ const denseSettings={...s,hitTarget:undefined,complexity:1,ghostAmount:1,fillAmount:1,laneDensity:denseDensity};
+ const dense=v5?generateGrooveV5(denseSettings):generateGrooveV4(denseSettings);
  const denseRouted=routeGeneratedDrums(dense,pattern);
  const roleOf=(hit:Hit)=>hit.generatedDrumRole??hit.role;
  const weights=new Map<Role,number>(ROLES.map(role=>[role,Math.max(1,denseRouted.events.filter(hit=>roleOf(hit)===role).length+all.filter(hit=>hit.trackId&&hit.generatedDrumRole===role).length)]));
@@ -26,7 +29,7 @@ export function balanceExactHits(pattern:Pattern,lockedIds:readonly string[],loc
   const base=role==='snare'?2.5:role==='kick'?2:role==='hat'?1.5:1;
   const beat=position(hit)%(4*PPQ);
   return base+hit.gain*2+(beat%PPQ===0?1:0)+(hit.mapped?.instrumentId==='think-passage2-uh'?1.5:0)-(hit.id.startsWith('exact-')?1:0)
-   +(v4Chance(s,'exact-rank',hit.id)*.35);
+   +((v5?v5Chance:v4Chance)(s,'exact-rank',hit.id)*.35);
  };
  const choose=(pool:Hit[],initial:Hit[],count:number):Hit[]=>{
   const chosen:Hit[]=[],remaining=[...pool],roleCounts=new Map<Role,number>(ROLES.map(role=>[role,initial.filter(hit=>roleOf(hit)===role).length]));
@@ -62,6 +65,15 @@ export function balanceExactHits(pattern:Pattern,lockedIds:readonly string[],loc
  // First use real genre vocabulary at maximum detail. The hit target, not
  // Complexity, decides how many notes are admitted from this reservoir.
  for(const hit of denseRouted.events)if(!hit.anchor)add(hit);
+ // V5's exact target uses only its own profile vocabulary. A target beyond
+ // that reservoir fails explicitly instead of quietly inserting V4 notes.
+ if(v5){
+  const needed=target-pattern.events.filter(drum).length;
+  if(reservoir.length<needed)throw Error(`Exact hits cannot reach ${target} with the Groove V5 profile and enabled lanes. Maximum available: ${target-needed+reservoir.length}.`);
+  pattern.events.push(...choose(reservoir,pattern.events.filter(drum),needed));
+  pattern.events.sort((a,b)=>a.baseTick-b.baseTick||ROLES.indexOf(a.role)-ROLES.indexOf(b.role)||a.id.localeCompare(b.id));
+  return;
+ }
  // Complete the pool with genre-ranked sixteenth slots when the profile alone
  // cannot reach the requested count. A lane never receives two notes on a slot.
  const rule=V3_RULES[s.genre];
