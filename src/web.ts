@@ -439,7 +439,8 @@ function render(){
   const view=input('view').value;
   for(let row=0;row<transfer.timing.lines;row++){
     const isBar=row%(transfer.timing.lpb*4)===0,isBeat=row%transfer.timing.lpb===0;
-    const tr=document.createElement('tr');tr.className=(isBar?'bar-start ':'')+(isBeat?'beat':'');tr.dataset.playRow=String(row);
+    const barNumber=Math.floor(row/(transfer.timing.lpb*4))+1;
+    const tr=document.createElement('tr');tr.className=(isBar?'bar-start ':'')+(isBeat?'beat':'');tr.dataset.playRow=String(row);tr.dataset.bar=String(barNumber);
     const range=editor.state.selection.rows;
     if(range&&row>=range[0]&&row<=range[1])tr.classList.add('selected-row');
     const position=row/transfer.timing.lpb;
@@ -450,7 +451,8 @@ function render(){
         const button=document.createElement('button');button.className='row-select';button.dataset.row=String(row);button.textContent=value;
         button.setAttribute('aria-label',`Select row ${row}`);button.setAttribute('aria-pressed',String(!!range&&row>=range[0]&&row<=range[1]));
         button.onclick=e=>selectRows(e.shiftKey?rowAnchor:row,row,!e.shiftKey);td.append(button);
-      }else td.textContent=value;
+      }else if(index===1&&isBar){const marker=document.createElement('span');marker.className='tracker-bar-marker';marker.textContent=`BAR ${barNumber}`;td.classList.add('tracker-bar-label-cell');td.append(marker,document.createTextNode(value));}
+      else td.textContent=value;
       tr.append(td);
     }
     const visibleLanes=[...visibleDrumRoles().map(id=>({id,name:drumLane(pattern,id).name,role:id as Role,track:undefined as UserTrack|undefined})),...(pattern.userTracks??[]).map(track=>({id:track.id,name:track.name,role:track.role,track}))];

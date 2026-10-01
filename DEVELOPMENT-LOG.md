@@ -77,6 +77,11 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-10-01] - Clarify Tracker Bar Boundaries (Codex)
+
+* Added a compact `BAR n` marker to the beat column at the first row of each bar, while retaining the row index and beat position. Strengthened bar-start separators with a teal top rule, subtle row tint, and left-edge accent for faster visual scanning across the grid.
+* Validation: tests and site checks were not run in this turn.
+
 ### [2026-10-01] - Match Think Audition Passage Speed (Codex)
 
 * Matched the Fine adjustment screenshot: complete 2.23 s Passage 2 audio player at 1.42x speed (+6.1 semitones), rendered as a 1.570 s sample. Used a fresh asset path and updated the catalog, kit label, credits and sample guidance.

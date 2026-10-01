@@ -2223,8 +2223,24 @@ tr.beat td {
   background: #0a0e16;
 }
 tr.bar-start td {
-  border-top: 2px solid #283750;
-  background: #0d121c;
+  border-top: 3px solid #168e76;
+  background: #0c1514;
+}
+tr.bar-start td:first-child {
+  border-left: 3px solid #168e76;
+}
+.tracker-bar-label-cell { white-space: nowrap; }
+.tracker-bar-marker {
+  display: inline-block;
+  margin-right: 5px;
+  padding: 1px 3px;
+  border: 1px solid #17634e;
+  border-radius: 3px;
+  background: #08382d;
+  color: #8ce8d0;
+  font: 700 8px/1.2 var(--font-mono);
+  letter-spacing: .04em;
+  vertical-align: 1px;
 }
 
 /* Playhead Scanning Row (Sketch Sample green timeline playhead) */
