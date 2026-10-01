@@ -2068,7 +2068,7 @@ export const LIBRARY = [
     "id": "think-uh-plus6",
     "role": "percussion",
     "name": "Think Vocal Chop (+6 st)",
-    "path": "/public/samples/think-uh-plus6.wav"
+    "path": "/public/samples/think-uh-plus6-full-vocal.wav"
   }
 ] as const;
 

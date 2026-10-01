@@ -80,8 +80,8 @@ This document maintains the running project state and change log so that multipl
 ### [2026-10-01] - Restore Think Vocal Chop Onset (Codex)
 
 * Replaced the provisional same-position crop from passage 2 with the full 0.758 s single hit source-matched against the user’s supplied vocal sample. Repitched the complete hit by +6 semitones, retaining its vocal onset rather than using an estimated cut point.
-* Updated the sample catalog hash and source/change notes, plus sample-quality documentation.
-* Verification: `npm.cmd test` passed 215/215; `npm.cmd run test:site` built the deployment package successfully (436 files, 345 WAVs), but the Edge browser smoke phase stalled without output and was interrupted.
+* Updated the sample catalog hash and source/change notes, plus sample-quality documentation. Renamed the public WAV to `/public/samples/think-uh-plus6-full-vocal.wav` and updated the library path so browsers/CDNs cannot keep serving the earlier provisional crop.
+* Verification: `npm.cmd test` passed 215/215; `npm.cmd run test:site` built the deployment package successfully (436 files, 345 WAVs), but the Edge browser smoke phase stalled without output and was interrupted. Follow-up unit tests passed 215/215 and `npm.cmd run build:site` packaged the cache-busted asset successfully; live Pages could not be reached from this session.
 
 ### [2026-10-01] - Bundle Think Vocal Chop Instrument (Codex)
 
