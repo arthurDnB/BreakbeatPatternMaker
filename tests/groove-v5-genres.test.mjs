@@ -82,3 +82,23 @@ test('all eight pilots have distinct combined kick/snare anchor rhythms at match
    assert.equal(motifs.size,PILOTS.length);
   }
  });
+
+test('raising Spicy retains previously edited hits and their gesture type across pilot genres',()=>{
+ for(const genre of PILOTS)for(let seed=0;seed<12;seed++){
+  const patterns=[0,.25,.5,.75,1].map(spicy=>generate({
+   ...settings(genre,`v5-spice-${seed}`,.8),spicy,humanizeMs:0,fillAmount:0
+  }));
+  const dry=new Map(patterns[0].events.map(hit=>[hit.id,hit]));
+  const edits=pattern=>new Map(pattern.events.flatMap(hit=>{
+   const before=dry.get(hit.id);
+   if(!before||hit.anchor)return [];
+   const kind=hit.articulation?.mode==='chop'?'chop':hit.ratchets>1?'roll':
+    hit.reverse?'reverse':hit.pitch!==undefined?'pitch':hit.offsetTick!==before.offsetTick?'push':undefined;
+   return kind?[[hit.id,kind]]:[];
+  }));
+  const stages=patterns.map(edits);
+  for(let index=1;index<stages.length;index++)for(const [id,kind] of stages[index-1])
+   assert.equal(stages[index].get(id),kind,`${genre}/${seed}: Spicy replaced ${id}'s ${kind} gesture`);
+  assert.ok(stages.at(-1).size>0,`${genre}/${seed}: maximum Spicy has no effect`);
+ }
+});

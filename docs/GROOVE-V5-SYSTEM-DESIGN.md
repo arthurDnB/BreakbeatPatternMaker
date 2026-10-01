@@ -27,3 +27,9 @@ Random streams are keyed by seed, genre, stage, layer and candidate, with the va
 - Before V5 is offered in the UI, integration tests must cover locks/manual notes, Exact Hits, Think slice layering, Undo/Redo, pattern and song Preview/WAV parity, and old-project loading. Any V5 candidate reservoir used for Exact Hits must come from V5's profile rather than silently inserting V4 vocabulary.
 
 Every agent follows `AGENTS.md`. Shared-checkout edits are serialized; unrelated local files are preserved. The release gate requires `npm.cmd test`, `npm.cmd run test:site`, a listening A/B pass and a reversible V4 fallback.
+
+## Repeatable listening comparison
+
+Run `npm.cmd run build` and then `node scripts/groove-v5-audition.mjs`. The script writes an ignored local page at `test-results/groove-v5-audition/index.html`, 40 WAVs and a machine-readable `report.json`. Use `--smoke` for one genre, or `--seed=your-seed` to test a second phrase. Each pilot gets the same licensed kit and tempo for five variants: V4 baseline, V5 baseline, V5 with more Complexity, V5 with more Spicy, and V5 with both raised. The page provides genre-fit and groove scores, notes and a JSON export of the listener's responses.
+
+The report's hit counts, articulation counts and peak levels are diagnostics, not music-quality scores. In the first fixed-seed comparison, V5 had substantially more hat/percussion notes than V4 in Jungle, Trap, Breakcore and AmenScience; whether that improves the groove requires blind listening and reference comparison. Profile comments and automated tests must not be described as independent listening validation.

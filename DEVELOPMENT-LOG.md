@@ -82,6 +82,26 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-10-02] - "RE-TRACK v4.2" Cyberpunk Tracker DAW Layout Overhaul (Antigravity)
+
+* **Workstation Studio Layout Overhaul:**
+  - Upgraded global application layout to match the professional cyberpunk tracker DAW aesthetic of **RE-TRACK v4.2**:
+    - **Header & Hardware Transport:** Added `RE-TRACK v4.2` logo, DAW menu bar (`FILE EDIT VIEW TRACK SONG OPTIONS HELP`), real-time telemetry pills (`● DSP: 14%`, `48.0 kHz / 64 spl`, `RAM: 1.8 GB`), hardware mode buttons (`▶ SONG`, `▷ PAT`, `■`, `● REC`), glowing HUD badges (`BPM 174.00`, `LPB 04`, `TPL 12`, `OCT 04`), and animated stereo peak meter with numerical readout.
+    - **Three-Column Grid Architecture:**
+      - **Left Column:** Matrix Sequencer displaying pattern bank and arrangement sequences with high-contrast active block highlighting and controls.
+      - **Center Column:** Renoise-style cyber-tracker grid with hex row numbering (`00`..`1F`), glowing cyan cursor line, and responsive inspector tools.
+      - **Right Column (Sample Rack & Wave Preview):** Added `#tray-right` containing interactive sample slot cards (`#sample-rack-list`) with metadata badges (`[ONE-SHOT]`, `[BEAT-SYNC]`, `[ACTIVE]`, memory sizes), and real-time oscilloscope canvas (`#re-track-wave-canvas`).
+    - **Bottom Modular Rack (Tabbed):**
+      - Created `#re-track-dsp-panel` housing 5 hardware stompbox units: `01: ANALOG FILTER` (Moog Ladder), `02: STEREO DISTORT` (Tube), `03: MOD PHASER` (8-Pole), `04: BUS COMP` (VCA with Gain Reduction meter), `05: MAXIMIZER` (Peak).
+      - Added interactive SVG Rotary Dials (`.rotary-dial`) with 270° radial LED arcs, numeric readouts, and pointer drag/wheel interaction two-way bound to the master audio DSP engine (`#dsp-hp`, `#dsp-res`, `#dsp-drive`, `#dsp-lp`, `#dsp-wet`, `#dsp-delay`, `#dsp-feedback`, `#dsp-mix`, `#dsp-punch`).
+      - Added tab switcher between `[DSP FX CHAIN]` and `[BEAT GENERATOR]`.
+    - **Footer Status Strip:** Added hardware status telemetry (`● AUDIO ENGINE: ONLINE`, CoreMIDI status, song position counter, active instrument badge, and hex cursor coordinate `0x00`).
+* **Non-Regression & Quality Assurance:**
+  - Preserved all existing functional element IDs (`#play`, `#bpm`, `#grid`, `#arranger`, `#quick-fx-panel`, `#undo`, `#redo`, `#master-dsp-rack`, etc.) and CSS contracts (`body` black background, `#play` border-radius 50%, `.workspace > .grid-heading .legend` presence).
+  - All 252 unit tests passed (`npm.cmd test`).
+  - All 19 Groove V5 genre pilot tests passed (`node tests/groove-v5-genres.test.mjs`).
+  - Full static site build and Playwright browser smoke test suite passed on both root and subpath mounts (`npm.cmd run test:site`).
+
 ### [2026-10-02] - Groove V5 Upper-Complexity Profile Refinement (Codex)
 
 * Added quiet, phrase-specific upper-Complexity layers to the Liquid DnB, Boom Bap, Trap, Two Step Garage, Dubstep, Breakcore, and AmenScience pilot profiles in `src/core/groove-v5-profiles.ts`. Jungle already had layers in that range. This removes the observed medium-to-maximum plateau without changing protected kick/snare anchors or V4's default behavior.

@@ -3,24 +3,58 @@
 <body><main class="daw-chassis">
 <svg class="icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><symbol id="icon-shuffle" viewBox="0 0 24 24"><path d="M3 6h3c6 0 6 12 12 12h3m-3-3 3 3-3 3M3 18h3c2 0 3-1 4-3m4-6c1-2 2-3 4-3h3m-3-3 3 3-3 3"/></symbol><symbol id="icon-sliders" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16M9 2v6m6 1v6m-5 1v6"/></symbol><symbol id="icon-variation" viewBox="0 0 24 24"><path d="M4 7h12a4 4 0 0 1 4 4v2m-3-3 3 3 3-3M20 17H8a4 4 0 0 1-4-4v-2m3 3-3-3-3 3"/></symbol><symbol id="icon-grid" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 10h16M4 15h16M10 4v16m5-16v16"/></symbol><symbol id="icon-wave" viewBox="0 0 24 24"><path d="M2 12h3l2-7 4 14 3-10 2 5 2-2h4"/></symbol><symbol id="icon-follow" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M12 2v5m0 10v5M2 12h5m10 0h5"/></symbol></svg>
 
-<!-- Coherent Modern Studio Title Bar -->
-<header class="app-header tracker-header">
+<!-- Coherent Modern Studio Title Bar & RE-TRACK v4.2 Pro Interface -->
+<header class="app-header tracker-header re-track-header">
   <div class="daw-window-bar">
-    <div class="daw-window-controls" aria-hidden="true">
-      <span class="window-dot dot-close"></span>
-      <span class="window-dot dot-min"></span>
-      <span class="window-dot dot-max"></span>
+    <div class="re-track-brand-group">
+      <div class="re-track-logo-mark">
+        <span class="logo-bars"><span></span><span></span><span></span></span>
+        <strong class="re-track-logo-title">RE-TRACK</strong>
+        <span class="re-track-ver-badge">v4.2</span>
+      </div>
+      <nav class="re-track-menubar" aria-label="Application menu">
+        <span>FILE</span><span>EDIT</span><span>VIEW</span><span>TRACK</span><span>SONG</span><span>OPTIONS</span><span>HELP</span>
+      </nav>
     </div>
-    <div class="daw-brand">
-      <p class="eyebrow">BREAKBEAT LAB</p>
-      <h1>Breakbeat Pattern Maker</h1>
+    <div class="re-track-telemetry">
+      <span class="telemetry-pill dsp-pill"><span class="dot-green">●</span> DSP: <strong id="telemetry-dsp">14%</strong></span>
+      <span class="telemetry-pill rate-pill">48.0 kHz / 64 spl</span>
+      <span class="telemetry-pill ram-pill">RAM: 1.8 GB</span>
+      <button class="re-track-tool-icon" title="Settings" type="button" aria-label="Settings">⚙</button>
+      <button class="re-track-tool-icon" title="User Profile" type="button" aria-label="User Profile">👤</button>
     </div>
   </div>
 
-  <nav class="daw-subnav-tabs" aria-label="Workstation views">
-    <button class="daw-tab active" id="tab-tracker" type="button"><span class="tab-indicator tab-indicator-cyan"></span> Tracker</button>
-    <button class="daw-tab" id="tab-sounds" type="button"><span class="tab-indicator tab-indicator-amber"></span> Drum Kit</button>
-    <button class="daw-tab" id="tab-arranger" type="button"><span class="tab-indicator tab-indicator-purple"></span> Arrangement</button>
+  <div class="re-track-transport-row">
+    <div class="re-track-play-group">
+      <button type="button" id="btn-song-mode" class="transport-mode-btn is-active">▶ SONG</button>
+      <button type="button" id="btn-pat-mode" class="transport-mode-btn">▷ PAT</button>
+      <button type="button" id="btn-stop-mode" class="transport-square-btn" title="Stop">■</button>
+      <button type="button" id="btn-rec-mode" class="transport-rec-btn" title="Record"><span class="dot-red">●</span> REC</button>
+    </div>
+    <div class="re-track-hud-group">
+      <div class="hud-pill hud-pill-bpm">BPM <strong id="hud-val-bpm">174.00</strong></div>
+      <div class="hud-pill hud-pill-lpb">LPB <strong id="hud-val-lpb">04</strong></div>
+      <div class="hud-pill hud-pill-tpl">TPL <strong>12</strong></div>
+      <div class="hud-pill hud-pill-oct">OCT <strong>04</strong></div>
+      <button type="button" class="hud-icon-btn is-active" title="Loop Pattern">🔁</button>
+      <button type="button" class="hud-icon-btn" title="Metronome">⏱</button>
+    </div>
+    <div class="re-track-meter-group">
+      <div class="stereo-peak-meter">
+        <div class="meter-channel"><span class="ch-lbl">L</span><div class="meter-track"><div class="meter-bar" id="meter-bar-l" style="width: 78%"></div></div></div>
+        <div class="meter-channel"><span class="ch-lbl">R</span><div class="meter-track"><div class="meter-bar" id="meter-bar-r" style="width: 72%"></div></div></div>
+      </div>
+      <span class="meter-db-val" id="meter-db-val">-0.2 dB</span>
+    </div>
+  </div>
+
+  <nav class="daw-subnav-tabs re-track-subnav-tabs" aria-label="Workstation views">
+    <button class="daw-tab active" id="tab-tracker" type="button"><span class="tab-indicator tab-indicator-cyan"></span> PATTERN EDITOR</button>
+    <button class="daw-tab" id="tab-mixer" type="button"><span class="tab-indicator tab-indicator-amber"></span> MIXER VIEW</button>
+    <button class="daw-tab" id="tab-sounds" type="button"><span class="tab-indicator tab-indicator-amber"></span> SAMPLE EDITOR</button>
+    <button class="daw-tab" id="tab-plugins" type="button"><span class="tab-indicator tab-indicator-purple"></span> INSTRUMENT PLUGIN RACK</button>
+    <button class="daw-tab" id="tab-arranger" type="button"><span class="tab-indicator tab-indicator-purple"></span> AUTOMATION CURVES</button>
   </nav>
 
   <section class="project-bar">
@@ -227,6 +261,33 @@
       <p id="inspector-hint" hidden></p>
     </section>
   </div>
+
+  <div id="resize-right" class="panel-splitter" role="separator" aria-label="Resize sample rack" aria-orientation="vertical" tabindex="0"></div>
+
+  <!-- 3. RIGHT TRAY: SAMPLE RACK & WAVE PREVIEW -->
+  <aside class="daw-tray daw-tray-right re-track-right-col" id="tray-right" aria-label="Sample rack and wave preview">
+    <div class="tray-header sample-rack-header">
+      <span class="tray-title"><span class="tray-dot"></span> SAMPLE RACK</span>
+      <span class="sample-rack-count-badge" id="sample-rack-count">6/128 SLOTS</span>
+      <div class="sample-rack-actions">
+        <button type="button" id="rack-load-btn" class="rack-btn">+ LOAD</button>
+        <button type="button" id="rack-dup-btn" class="rack-btn">⧉ DUP</button>
+        <button type="button" id="rack-edit-btn" class="rack-btn">✏ EDIT</button>
+      </div>
+    </div>
+    <div class="sample-rack-body">
+      <div class="sample-rack-list" id="sample-rack-list">
+        <!-- Dynamic sample slot cards -->
+      </div>
+      <div class="wave-preview-panel" id="wave-preview-panel">
+        <div class="wave-preview-header">
+          <span class="wave-preview-title"><span class="dot-cyan">●</span> WAVE PREVIEW</span>
+          <span class="wave-preview-spec">48000Hz / 24-bit PCM</span>
+        </div>
+        <canvas id="re-track-wave-canvas" class="re-track-wave-canvas" width="320" height="90" aria-label="Audio waveform oscilloscope"></canvas>
+      </div>
+    </div>
+  </aside>
 </div>
 
 <!-- 4. BOTTOM TRAY: GENERATOR, SLICER & FX RACK (Retractable) -->
@@ -289,12 +350,124 @@
   <div class="tray-collapsed-bar" id="bar-tray-bottom" title="Click to expand Bottom tray">
     <button class="bar-expand-btn" aria-label="Expand Beat Generator" type="button">▲ BEAT GENERATOR</button>
   </div>
-  <div class="tray-rack-tabs" role="tablist" aria-label="Bottom tray view switcher">
-    <button type="button" class="tray-rack-tab active" id="tab-generator" role="tab" aria-selected="true" aria-controls="controls"><svg class="tool-icon"><use href="#icon-grid"/></svg> Beat Generator</button>
+  <div class="tray-rack-tabs re-track-rack-tabs" role="tablist" aria-label="Bottom tray view switcher">
+    <button type="button" class="tray-rack-tab active" id="tab-fx-chain" role="tab" aria-selected="true" aria-controls="re-track-dsp-panel"><span class="tab-badge-purple">🎛</span> DSP FX CHAIN: [TRK 03 - REESE BASS]</button>
+    <button type="button" class="tray-rack-tab" id="tab-generator" role="tab" aria-selected="false" aria-controls="controls"><svg class="tool-icon"><use href="#icon-grid"/></svg> Beat Generator</button>
     <button type="button" class="tray-rack-tab" id="tab-slicer" role="tab" aria-selected="false" aria-controls="sample-drop" hidden>Waveform Slicer</button>
     <button type="button" class="tray-rack-tab" id="tab-fx" role="tab" aria-selected="false" aria-controls="quick-fx-panel" hidden>Master DSP</button>
   </div>
   <div class="tray-body">
+    <!-- RE-TRACK v4.2 Modular Hardware DSP Stompbox Rack -->
+    <section id="re-track-dsp-panel" class="re-track-dsp-panel" aria-label="Modular DSP FX Chain">
+      <div class="dsp-chain-header">
+        <div class="dsp-chain-badge-group">
+          <span class="dsp-chain-pill">🎛 DSP FX CHAIN: [TRK 03 - REESE BASS]</span>
+          <span class="dsp-chain-meta">LATENCY: <strong>0 spl (0.0 ms)</strong></span>
+          <span class="dsp-chain-sep">|</span>
+          <span class="dsp-chain-meta">ROUTING: <strong class="accent-amber">TRACK -&gt; MASTER SEND</strong></span>
+        </div>
+        <div class="dsp-chain-actions">
+          <button type="button" class="dsp-action-btn">+ ADD DEVICE</button>
+          <button type="button" class="dsp-action-btn">≡ PRESETS</button>
+        </div>
+      </div>
+
+      <div class="dsp-stompbox-chain" id="dsp-stompbox-chain">
+        <!-- 01: ANALOG FILTER -->
+        <article class="stompbox-unit stompbox-filter">
+          <header class="stompbox-header">
+            <span class="stompbox-title">01: ANALOG FILTER</span>
+            <span class="stompbox-badge badge-cyan">24dB</span>
+            <button type="button" class="stompbox-byp" data-device="filter">BYP</button>
+          </header>
+          <div class="stompbox-knobs">
+            <div class="rotary-dial" data-knob-id="filter-cutoff" data-min="0" data-max="2000" data-val="420" data-unit="Hz" data-label="CUTOFF" data-bind-input="dsp-hp"></div>
+            <div class="rotary-dial" data-knob-id="filter-reso" data-min="0" data-max="1" data-val="0.68" data-unit="%" data-scale="100" data-label="RESO" data-bind-input="dsp-res"></div>
+            <div class="rotary-dial" data-knob-id="filter-drive" data-min="0" data-max="1" data-val="0.53" data-unit="dB" data-scale="6" data-prefix="+" data-label="DRIVE" data-bind-input="dsp-drive"></div>
+          </div>
+          <footer class="stompbox-footer">
+            <span>MOOG LADDER</span>
+            <span class="stompbox-mode">CLEAN</span>
+          </footer>
+        </article>
+
+        <!-- 02: STEREO DISTORT -->
+        <article class="stompbox-unit stompbox-distort">
+          <header class="stompbox-header">
+            <span class="stompbox-title">02: STEREO DISTORT</span>
+            <span class="stompbox-badge badge-amber">TUBE</span>
+            <button type="button" class="stompbox-byp" data-device="distort">BYP</button>
+          </header>
+          <div class="stompbox-knobs">
+            <div class="rotary-dial" data-knob-id="distort-drive" data-min="0" data-max="1" data-val="0.70" data-unit="dB" data-scale="12" data-prefix="+" data-label="DRIVE" data-bind-input="dsp-drive"></div>
+            <div class="rotary-dial" data-knob-id="distort-warmth" data-min="200" data-max="20000" data-val="5800" data-unit="kHz" data-scale="0.001" data-label="WARMTH" data-bind-input="dsp-lp"></div>
+            <div class="rotary-dial" data-knob-id="distort-wet" data-min="0" data-max="1" data-val="0.85" data-unit="%" data-scale="100" data-label="WET" data-bind-input="dsp-wet"></div>
+          </div>
+          <footer class="stompbox-footer">
+            <span>SAT: ASYMMETRIC</span>
+            <span class="stompbox-mode">OVERSAMP 4X</span>
+          </footer>
+        </article>
+
+        <!-- 03: MOD PHASER -->
+        <article class="stompbox-unit stompbox-phaser">
+          <header class="stompbox-header">
+            <span class="stompbox-title">03: MOD PHASER</span>
+            <span class="stompbox-badge badge-purple">8-POLE</span>
+            <button type="button" class="stompbox-byp" data-device="phaser">BYP</button>
+          </header>
+          <div class="stompbox-knobs">
+            <div class="rotary-dial" data-knob-id="phaser-rate" data-min="30" data-max="1000" data-val="340" data-unit="Hz" data-scale="0.001" data-label="RATE" data-bind-input="dsp-delay"></div>
+            <div class="rotary-dial" data-knob-id="phaser-fback" data-min="0" data-max="0.75" data-val="0.39" data-unit="%" data-scale="100" data-label="F-BACK" data-bind-input="dsp-feedback"></div>
+            <div class="rotary-dial" data-knob-id="phaser-depth" data-min="0" data-max="0.6" data-val="0.42" data-unit="%" data-scale="100" data-label="DEPTH" data-bind-input="dsp-mix"></div>
+          </div>
+          <footer class="stompbox-footer">
+            <span>STEREO 90°</span>
+            <span class="stompbox-mode">SYNC: 2/1</span>
+          </footer>
+        </article>
+
+        <!-- 04: BUS COMP -->
+        <article class="stompbox-unit stompbox-comp">
+          <header class="stompbox-header">
+            <span class="stompbox-title">04: BUS COMP</span>
+            <span class="stompbox-badge badge-cyan">VCA</span>
+            <button type="button" class="stompbox-byp" data-device="comp">BYP</button>
+          </header>
+          <div class="stompbox-knobs">
+            <div class="rotary-dial" data-knob-id="comp-thresh" data-min="0" data-max="1" data-val="0.58" data-unit="dB" data-scale="-24" data-label="THRESH" data-bind-input="dsp-punch"></div>
+            <div class="rotary-dial" data-knob-id="comp-ratio" data-min="0" data-max="1" data-val="0.50" data-unit=": 1" data-scale="8" data-label="RATIO" data-bind-input="dsp-res"></div>
+            <div class="comp-meter-slot">
+              <span class="comp-meter-lbl">GR</span>
+              <div class="comp-meter-bar-track"><div class="comp-meter-bar-fill" id="comp-gr-fill"></div></div>
+              <span class="comp-meter-readout" id="comp-gr-val">-4.5dB</span>
+            </div>
+          </div>
+          <footer class="stompbox-footer">
+            <span>ATK 10 | REL 120</span>
+            <span class="stompbox-mode">MKP +2dB</span>
+          </footer>
+        </article>
+
+        <!-- 05: MAXIMIZER -->
+        <article class="stompbox-unit stompbox-maximizer">
+          <header class="stompbox-header">
+            <span class="stompbox-title">05: MAXIMIZER</span>
+            <span class="stompbox-badge badge-amber">PEAK</span>
+            <button type="button" class="stompbox-byp" data-device="maximizer">BYP</button>
+          </header>
+          <div class="stompbox-knobs">
+            <div class="rotary-dial" data-knob-id="max-ceil" data-min="0" data-max="1" data-val="0.05" data-unit="dB" data-scale="-2" data-label="CEIL" data-bind-input="dsp-punch"></div>
+            <div class="rotary-dial" data-knob-id="max-release" data-min="30" data-max="500" data-val="65" data-unit="ms" data-label="RELEASE" data-bind-input="dsp-delay"></div>
+            <div class="rotary-dial" data-knob-id="max-boost" data-min="0" data-max="1" data-val="0.50" data-unit="dB" data-scale="8" data-prefix="+" data-label="BOOST" data-bind-input="dsp-drive"></div>
+          </div>
+          <footer class="stompbox-footer">
+            <span>CURVE: EXP</span>
+            <span class="stompbox-mode">LOOKAHEAD 2ms</span>
+          </footer>
+        </article>
+      </div>
+    </section>
     <!-- Chopper retained for future use; hidden on initial load for smoke test compliance -->
     <section hidden id="sample-drop" class="sample-panel" aria-label="Sample import and audition">
       <div class="grid-heading"><h2>Break sample</h2><label>Import WAV<input id="sample-file" type="file" accept=".wav,audio/wav"></label></div>
@@ -464,14 +637,19 @@
   </div>
 </dialog>
 
-<footer class="daw-footer">
+<footer class="daw-footer re-track-footer">
   <div class="footer-status-bar">
     <div class="footer-left">
-      <span class="footer-live-indicator" title="Engine status">●</span>
-      <span class="footer-shortcuts"><kbd>Space</kbd> Play/Stop &nbsp;|&nbsp; <kbd>Z–M</kbd> Notes &nbsp;|&nbsp; <kbd>1–9</kbd> Vel &nbsp;|&nbsp; <kbd>Del</kbd> Cut &nbsp;|&nbsp; <kbd>Tab</kbd> Column &nbsp;|&nbsp; <kbd>Arrows</kbd> Move</span>
+      <span class="footer-live-indicator online" id="footer-engine-status" title="Audio Engine: Online"><span class="led-dot">●</span> AUDIO ENGINE: ONLINE</span>
+      <span class="footer-midi-indicator"><span class="badge-blue">CoreMIDI:</span> IN (USB-1)</span>
+      <span class="footer-pos-indicator">POS: <strong id="footer-pos">001.01.00</strong></span>
+      <span class="footer-active-inst">INST: <strong id="footer-inst" class="accent-amber">00 (909 KICK)</strong></span>
+      <span class="footer-hex-pos">HEX: <strong id="footer-hex-row" class="accent-cyan">0x00</strong></span>
     </div>
     <div class="footer-right">
-      <span class="footer-engine-tag">Breakbeat Studio · CC0 Audio</span>
+      <span class="footer-shortcuts"><kbd>Space</kbd> Play/Stop &nbsp;|&nbsp; <kbd>Z–M</kbd> Notes &nbsp;|&nbsp; <kbd>1–9</kbd> Vel &nbsp;|&nbsp; <kbd>Del</kbd> Cut &nbsp;|&nbsp; <kbd>Tab</kbd> Column &nbsp;|&nbsp; <kbd>Arrows</kbd> Move</span>
+      <span class="footer-audio-spec">48.0 kHz 32-bit float</span>
+      <span class="footer-engine-tag">RE-TRACK v4.2</span>
     </div>
   </div>
   <p class="footer-note" hidden>Single-shot tracker · Audio stays local. Save project includes your samples and settings; autosave restores your latest workspace on this browser. WAV includes tails; muted lanes are excluded. Pitch repitches the sound. MP3 export remains planned.</p>

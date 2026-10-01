@@ -2,7 +2,8 @@ import type {Genre} from './model.js';
 import type {V5Profile} from './groove-v5-contract.js';
 
 /**
- * The eight reviewed Groove V5 pilot profiles.
+ * The eight authored Groove V5 pilot profiles. Automated structural checks
+ * pass; listening review against genre references is still pending.
  *
  * Each entry is declarative profile data only: no callbacks, no random functions
  * and no audio references. Validation is owned by `validateV5Profile` in
@@ -16,9 +17,9 @@ import type {V5Profile} from './groove-v5-contract.js';
  * - Liquid DnB: rolling "k11" second bar, dense swung sixteenth hats, restrained
  *   ghosts, no reverse/chop, and musical +7 pitch options only.
  * - Boom Bap: laid-back snare (large dragMs), heavy 8th swing, sparse kick pickup
- *   vocabulary and a two-gesture, low-budget spice policy.
- * - Trap: halftime snare on beat 3, 8th/16th/32nd hat ladder, 808 kick slides,
- *   triplet-style rolls (6 repeats) and downward pitch steps.
+ *   vocabulary and a low-budget spice policy.
+ * - Trap: halftime snare on beat 3, a layered hat ladder, six-repeat bursts
+ *   when timing permits, and downward pitch steps.
  * - Two Step Garage: shuffled kick on the "and", signature rim/woodblock
  *   percussion, whole-step hats, reverse+pull spice and a high response weight.
  * - Dubstep: near-empty halftime spine, very sparse pulse, reverse/pitch spice

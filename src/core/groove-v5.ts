@@ -180,9 +180,11 @@ function spice(c:State):void {
   });
   const budget=Math.min(candidates.length,Math.ceil(amount*policy.maxPerBar));
   for(const item of candidates.slice(0,budget)){
-   const allowed=policy.gestures.filter(gesture=>amount>=thresholds[gesture]);
-   if(!allowed.length)continue;
-   const gesture=allowed[Math.floor(v5Chance(s,'spice-type',item.id)*allowed.length)]!;
+   // Fix each hit's gesture independently of slider position. Filtering the
+   // gesture list by amount before selection could replace a roll or push
+   // with a weaker edit when Spicy was raised.
+   const gesture=policy.gestures[Math.floor(v5Chance(s,'spice-type',item.id)*policy.gestures.length)]!;
+   if(amount<thresholds[gesture])continue;
    if(gesture==='roll'||gesture==='chop'){
     if(articulate(c,item,gesture,amount))item.reason+=gesture==='roll'?' A bounded velocity roll adds motion.':' A short source-offset chop adds motion.';
    }else if(gesture==='reverse'){

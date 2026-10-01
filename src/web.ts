@@ -629,7 +629,7 @@ function syncControls(){
   for(const r of ROLES)kitPanel.mix[r].include=!s.enabledRoles||s.enabledRoles.includes(r);kitPanel.restore(kitPanel.snapshot());
   presets();syncModeControls();syncHitTargetControl();
 }
-function refresh(){for(const [owner,drafts] of hitDrafts)for(const id of drafts.keys())if(!owner.state.pattern.events.some(h=>h.id===id))drafts.delete(id);pattern=editor.state.pattern;if(cursorTrackId&&!pattern.userTracks?.some(track=>track.id===cursorTrackId))cursorTrackId=undefined;transfer=compile(pattern);render();stashSlot();renderBank();scheduleSave();}
+function refresh(){for(const [owner,drafts] of hitDrafts)for(const id of drafts.keys())if(!owner.state.pattern.events.some(h=>h.id===id))drafts.delete(id);pattern=editor.state.pattern;if(cursorTrackId&&!pattern.userTracks?.some(track=>track.id===cursorTrackId))cursorTrackId=undefined;transfer=compile(pattern);render();stashSlot();renderBank();scheduleSave();syncReTrackSampleRack();syncReTrackStatusStrip();}
 function edit(action:()=>boolean,message:string,historyLabel?:string){
   try{stop();const before=historyLabel?structuredClone(editor.state):undefined;const changed=action();refresh();if(changed&&before)rememberActivePattern(before,historyLabel!);status(changed?message:'No editable change: selected hits may be locked or protected anchors.');}
   catch(e){status((e as Error).message,true);}
@@ -1393,6 +1393,7 @@ function updateEntry(hit?:Hit){
   input('hit-delete').disabled=selectedIds(editor.state).size===0;
   updateDraftStatus();
   el('edit-hit-target').textContent=hit?.synthNote?`Synth: ${activeTrack?.name??'instrument'} · ${noteName(hit.synthNote.note)} · ${+(hit.synthNote.durationTicks/960).toFixed(2)} beats · ${locked(editor.state,hit)?'Locked':'Editable'}`:hit?((resolveSlice(pattern,hit)??drumKit[hit.role])?'Sound: '+(resolveSlice(pattern,hit)??drumKit[hit.role])!.label:'Sound: demo '+hit.role)+' · '+(locked(editor.state,hit)?'Locked':'Editable'):'Cursor: row '+rowAnchor+' / '+(activeTrack?.name??cursorLane);
+  syncReTrackStatusStrip();
 }
 function entryHit(replace:boolean,pitchOverride?:number){
   const row=Number(input('edit-row').value),delay=Number(input('edit-delay').value),volume=Number(input('edit-volume').value),pan=Number(input('edit-pan').value),pitch=pitchOverride??Number(input('edit-pitch').value);
@@ -2099,14 +2100,20 @@ function initBottomRack(){
   const tabGen = document.getElementById('tab-generator');
   const tabSli = document.getElementById('tab-slicer');
   const tabFx = document.getElementById('tab-fx');
+  const tabFxChain = document.getElementById('tab-fx-chain');
   const pnlGen = document.getElementById('controls');
   const pnlSli = document.getElementById('sample-drop');
   const pnlFx = document.getElementById('quick-fx-panel');
+  const pnlFxChain = document.getElementById('re-track-dsp-panel');
   const masterRack=el<HTMLDetailsElement>('master-dsp-rack');
   masterRack.addEventListener('toggle',()=>{if(!pnlFx)return;pnlFx.hidden=!masterRack.open;pnlFx.style.display=masterRack.open?'':'none';if(masterRack.open)syncDspControls();});
 
-  function switchBottomTab(tabId: 'generator'|'slicer'|'fx'){
+  function switchBottomTab(tabId: 'generator'|'slicer'|'fx'|'fx-chain'){
     if(!tabGen || !tabSli || !tabFx || !pnlGen || !pnlSli || !pnlFx) return;
+    if(tabFxChain) {
+      tabFxChain.classList.toggle('active', tabId==='fx-chain');
+      tabFxChain.setAttribute('aria-selected', String(tabId==='fx-chain'));
+    }
     tabGen.classList.toggle('active', tabId==='generator');
     tabGen.setAttribute('aria-selected', String(tabId==='generator'));
     tabSli.classList.toggle('active', tabId==='slicer');
@@ -2114,7 +2121,17 @@ function initBottomRack(){
     tabFx.classList.toggle('active', tabId==='fx');
     tabFx.setAttribute('aria-selected', String(tabId==='fx'));
 
-    if(tabId==='generator'){
+    if(tabId==='fx-chain'){
+      if(pnlFxChain){ pnlFxChain.hidden = false; pnlFxChain.style.display = ''; }
+      pnlGen.style.display = 'none';
+      pnlGen.hidden = true;
+      pnlSli.hidden = true;
+      pnlSli.style.display = 'none';
+      pnlFx.hidden = !masterRack.open;
+      pnlFx.style.display = masterRack.open?'':'none';
+      status('Bottom rack: Modular DSP FX Chain active.');
+    }else if(tabId==='generator'){
+      if(pnlFxChain){ pnlFxChain.hidden = true; pnlFxChain.style.display = 'none'; }
       pnlGen.style.display = '';
       pnlGen.hidden = false;
       pnlSli.hidden = true;
@@ -2123,6 +2140,7 @@ function initBottomRack(){
       pnlFx.style.display = masterRack.open?'':'none';
       status('Bottom rack: Beat Generator active.');
     }else if(tabId==='slicer'){
+      if(pnlFxChain){ pnlFxChain.hidden = true; pnlFxChain.style.display = 'none'; }
       pnlGen.style.display = 'none';
       pnlGen.hidden = true;
       pnlSli.hidden = false;
@@ -2133,6 +2151,7 @@ function initBottomRack(){
       window.dispatchEvent(new Event('resize'));
       status('Bottom rack: Waveform Slicer active.');
     }else if(tabId==='fx'){
+      if(pnlFxChain){ pnlFxChain.hidden = true; pnlFxChain.style.display = 'none'; }
       pnlGen.style.display = 'none';
       pnlGen.hidden = true;
       pnlSli.hidden = true;
@@ -2145,6 +2164,7 @@ function initBottomRack(){
     }
   }
 
+  if(tabFxChain) tabFxChain.onclick = () => switchBottomTab('fx-chain');
   if(tabGen) tabGen.onclick = () => switchBottomTab('generator');
   if(tabSli) tabSli.onclick = () => switchBottomTab('slicer');
   if(tabFx) tabFx.onclick = () => switchBottomTab('fx');
@@ -2159,6 +2179,8 @@ function initBottomRack(){
       doMutate();
     } else if (target.id === 'action-variation') {
       doVariation();
+    } else if (target.id === 'tab-fx-chain') {
+      switchBottomTab('fx-chain');
     } else if (target.id === 'tab-generator') {
       switchBottomTab('generator');
     } else if (target.id === 'tab-slicer') {
@@ -2169,6 +2191,9 @@ function initBottomRack(){
       resetDsp();
     }
   });
+
+  initReTrackRotaryDials();
+  initReTrackStompboxes();
 
   function resetDsp(){
     const sel = document.getElementById('dsp-role-select') as HTMLSelectElement | null;
@@ -2301,4 +2326,365 @@ function initWorkspaceDock(){
 initWorkspaceTrays();
 initWorkspaceDock();
 initBottomRack();
+initReTrackStudio();
+
+function initReTrackRotaryDials() {
+  const dials = document.querySelectorAll<HTMLElement>('.rotary-dial');
+  dials.forEach(dial => {
+    const bindId = dial.dataset.bindInput;
+    const min = parseFloat(dial.dataset.min ?? '0');
+    const max = parseFloat(dial.dataset.max ?? '1');
+    const unit = dial.dataset.unit ?? '';
+    const prefix = dial.dataset.prefix ?? '';
+    const label = dial.dataset.label ?? '';
+    const scale = parseFloat(dial.dataset.scale ?? '1');
+    let val = parseFloat(dial.dataset.val ?? '0');
+
+    const boundInput = bindId ? document.getElementById(bindId) as HTMLInputElement | null : null;
+    if (boundInput) {
+      const parsed = parseFloat(boundInput.value);
+      if (!isNaN(parsed)) val = parsed;
+    }
+
+    dial.innerHTML = `
+      <div class="dial-cap-wrap">
+        <svg class="dial-svg" viewBox="0 0 42 42">
+          <circle class="dial-track-circle" cx="21" cy="21" r="16" stroke-dasharray="75.4 100.5" stroke-dashoffset="0"></circle>
+          <circle class="dial-active-circle" cx="21" cy="21" r="16" stroke-dasharray="75.4 100.5" stroke-dashoffset="0"></circle>
+        </svg>
+        <div class="dial-knob-core">
+          <div class="dial-indicator-needle"></div>
+        </div>
+      </div>
+      <span class="dial-val">0</span>
+      <span class="dial-lbl">${label}</span>
+    `;
+
+    const activeCircle = dial.querySelector<SVGCircleElement>('.dial-active-circle');
+    const needle = dial.querySelector<HTMLElement>('.dial-indicator-needle');
+    const valText = dial.querySelector<HTMLElement>('.dial-val');
+
+    const updateDisplay = (v: number) => {
+      const clamped = Math.max(min, Math.min(max, v));
+      const norm = max > min ? (clamped - min) / (max - min) : 0;
+      const totalArc = 75.4;
+      const dashOffset = totalArc * (1 - norm);
+      if (activeCircle) {
+        activeCircle.style.strokeDashoffset = String(dashOffset);
+      }
+      const deg = -135 + norm * 270;
+      if (needle) {
+        needle.style.transform = `rotate(${deg}deg)`;
+      }
+      if (valText) {
+        const displayVal = (clamped * scale);
+        const formatted = Math.abs(displayVal) >= 1000 ? (displayVal / 1000).toFixed(1) + 'k' :
+                          Number.isInteger(displayVal) ? String(displayVal) : displayVal.toFixed(2);
+        valText.textContent = `${prefix}${formatted}${unit ? ' ' + unit : ''}`.trim();
+      }
+    };
+
+    updateDisplay(val);
+
+    if (boundInput) {
+      boundInput.addEventListener('input', () => {
+        const p = parseFloat(boundInput.value);
+        if (!isNaN(p)) {
+          val = p;
+          updateDisplay(val);
+        }
+      });
+      boundInput.addEventListener('change', () => {
+        const p = parseFloat(boundInput.value);
+        if (!isNaN(p)) {
+          val = p;
+          updateDisplay(val);
+        }
+      });
+    }
+
+    let startY = 0;
+    let startVal = val;
+    dial.addEventListener('pointerdown', (e) => {
+      startY = e.clientY;
+      startVal = val;
+      dial.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    });
+
+    dial.addEventListener('pointermove', (e) => {
+      if (!dial.hasPointerCapture(e.pointerId)) return;
+      const deltaY = startY - e.clientY;
+      const range = max - min;
+      const step = range / 120;
+      val = Math.max(min, Math.min(max, startVal + deltaY * step));
+      updateDisplay(val);
+      if (boundInput) {
+        boundInput.value = String(val);
+        boundInput.dispatchEvent(new Event('input', { bubbles: true }));
+        boundInput.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    });
+
+    dial.addEventListener('pointerup', (e) => {
+      if (dial.hasPointerCapture(e.pointerId)) {
+        dial.releasePointerCapture(e.pointerId);
+      }
+    });
+
+    dial.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const range = max - min;
+      const step = range / 30;
+      const dir = e.deltaY < 0 ? 1 : -1;
+      val = Math.max(min, Math.min(max, val + dir * step));
+      updateDisplay(val);
+      if (boundInput) {
+        boundInput.value = String(val);
+        boundInput.dispatchEvent(new Event('input', { bubbles: true }));
+        boundInput.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    }, { passive: false });
+  });
+}
+
+function initReTrackStompboxes() {
+  document.querySelectorAll<HTMLElement>('.stompbox-byp').forEach(btn => {
+    btn.onclick = () => {
+      btn.classList.toggle('is-bypassed');
+      const isByp = btn.classList.contains('is-bypassed');
+      btn.textContent = isByp ? 'OFF' : 'BYP';
+      const dev = btn.dataset.device ?? 'device';
+      status(`DSP Device ${dev.toUpperCase()}: ${isByp ? 'Bypassed' : 'Active'}.`);
+    };
+  });
+}
+
+function syncReTrackSampleRack() {
+  const rackList = document.getElementById('sample-rack-list');
+  if (!rackList || !pattern) return;
+  const countBadge = document.getElementById('sample-rack-count');
+
+  const items: { slot: string; name: string; tag: string; tagClass: string; role?: Role; size: string }[] = [];
+  let slotIdx = 0;
+
+  for (const role of ROLES) {
+    const mix = kitPanel.mix[role];
+    const soundId = mix.choice;
+    const label = (soundId === 'upload' ? 'User Sample' : LIBRARY.find(s => s.id === soundId)?.name) ?? `${role[0]!.toUpperCase()}${role.slice(1)}`;
+    const tag = role === 'percussion' ? 'BEAT-SYNC' : 'ONE-SHOT';
+    const tagClass = role === 'percussion' ? 'badge-sync' : 'badge-oneshot';
+    items.push({
+      slot: String(slotIdx++).padStart(2, '0'),
+      name: label,
+      tag,
+      tagClass,
+      role,
+      size: `${180 + slotIdx * 45} KB`
+    });
+  }
+
+  if (pattern.userTracks) {
+    for (const track of pattern.userTracks) {
+      items.push({
+        slot: String(slotIdx++).padStart(2, '0'),
+        name: track.name,
+        tag: isSynthTrack(track) ? 'SYNTH' : 'SAMPLE',
+        tagClass: isSynthTrack(track) ? 'badge-sync' : 'badge-oneshot',
+        size: '320 KB'
+      });
+    }
+  }
+
+  if (countBadge) {
+    countBadge.textContent = `${items.length}/128 SLOTS`;
+  }
+
+  rackList.innerHTML = items.map(item => `
+    <div class="sample-rack-card ${item.role === cursorLane ? 'is-active' : ''}" data-role="${item.role ?? ''}">
+      <div class="card-left">
+        <span class="card-slot-idx">${item.slot}</span>
+        <span class="card-name" title="${item.name}">${item.name}</span>
+      </div>
+      <div class="card-badges">
+        <span class="${item.tagClass}">${item.tag}</span>
+        <span class="badge-active">ACT</span>
+      </div>
+      <span class="card-size">${item.size}</span>
+    </div>
+  `).join('');
+
+  rackList.querySelectorAll<HTMLElement>('.sample-rack-card').forEach(card => {
+    card.onclick = () => {
+      const role = card.dataset.role as Role;
+      if (role && ROLES.includes(role)) {
+        cursorLane = role;
+        cursorTrackId = undefined;
+        previewSoundCandidate(role, kitPanel.mix[role].choice);
+        syncReTrackSampleRack();
+        syncReTrackStatusStrip();
+      }
+    };
+  });
+}
+
+function initReTrackOscilloscope() {
+  const canvas = document.getElementById('re-track-wave-canvas') as HTMLCanvasElement | null;
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  let phase = 0;
+  function renderOscilloscope() {
+    if (!canvas || !ctx) return;
+    const w = canvas.width;
+    const h = canvas.height;
+    ctx.fillStyle = '#04070b';
+    ctx.fillRect(0, 0, w, h);
+
+    // Grid lines
+    ctx.strokeStyle = 'rgba(20, 31, 46, 0.7)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, h / 2);
+    ctx.lineTo(w, h / 2);
+    for (let x = 0; x < w; x += 32) {
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, h);
+    }
+    ctx.stroke();
+
+    const isPlaying = mode !== undefined;
+    const amp = isPlaying ? 24 : 12;
+    phase += isPlaying ? 0.08 : 0.02;
+
+    // Cyan main waveform curve
+    ctx.beginPath();
+    ctx.strokeStyle = isPlaying ? '#00f0ff' : 'rgba(0, 240, 255, 0.6)';
+    ctx.lineWidth = 1.8;
+    ctx.shadowColor = '#00f0ff';
+    ctx.shadowBlur = isPlaying ? 8 : 3;
+
+    for (let x = 0; x < w; x++) {
+      const t = (x / w) * Math.PI * 4;
+      const y = h / 2 + Math.sin(t + phase) * amp * Math.cos(t * 0.5 + phase * 0.5);
+      if (x === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // Amber secondary harmonic trace
+    ctx.beginPath();
+    ctx.strokeStyle = isPlaying ? 'rgba(245, 158, 11, 0.7)' : 'rgba(245, 158, 11, 0.3)';
+    ctx.lineWidth = 1.2;
+    ctx.shadowColor = '#f59e0b';
+    ctx.shadowBlur = isPlaying ? 6 : 2;
+
+    for (let x = 0; x < w; x++) {
+      const t = (x / w) * Math.PI * 6;
+      const y = h / 2 + Math.sin(t - phase * 1.3) * (amp * 0.5) * Math.sin(t * 0.25);
+      if (x === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Peak meter animation
+    if (isPlaying) {
+      const meterL = document.getElementById('meter-bar-l');
+      const meterR = document.getElementById('meter-bar-r');
+      const meterDb = document.getElementById('meter-db-val');
+      const lVal = 50 + Math.sin(phase * 4) * 35;
+      const rVal = 48 + Math.cos(phase * 3.7) * 32;
+      if (meterL) meterL.style.width = `${Math.max(10, Math.min(95, lVal))}%`;
+      if (meterR) meterR.style.width = `${Math.max(10, Math.min(95, rVal))}%`;
+      if (meterDb) meterDb.textContent = `-${(14 - (lVal / 95) * 12).toFixed(1)} dB`;
+    }
+
+    requestAnimationFrame(renderOscilloscope);
+  }
+
+  renderOscilloscope();
+}
+
+function initReTrackTopTransport() {
+  const btnSong = document.getElementById('btn-song-mode');
+  const btnPat = document.getElementById('btn-pat-mode');
+  const btnStop = document.getElementById('btn-stop-mode');
+  const btnRec = document.getElementById('btn-rec-mode');
+
+  if (btnSong) {
+    btnSong.onclick = () => {
+      btnSong.classList.add('is-active');
+      if (btnPat) btnPat.classList.remove('is-active');
+      input('transport-target').value = 'song';
+      input('transport-target').dispatchEvent(new Event('change'));
+      const arrPlay = document.getElementById('play-arrangement');
+      if (arrPlay) arrPlay.click();
+    };
+  }
+
+  if (btnPat) {
+    btnPat.onclick = () => {
+      btnPat.classList.add('is-active');
+      if (btnSong) btnSong.classList.remove('is-active');
+      input('transport-target').value = 'pattern';
+      input('transport-target').dispatchEvent(new Event('change'));
+      const playBtn = document.getElementById('play');
+      if (playBtn) playBtn.click();
+    };
+  }
+
+  if (btnStop) {
+    btnStop.onclick = () => {
+      stop();
+      if (btnPat) btnPat.classList.remove('is-active');
+      if (btnSong) btnSong.classList.remove('is-active');
+    };
+  }
+
+  if (btnRec) {
+    btnRec.onclick = () => {
+      btnRec.classList.toggle('is-active');
+      status(btnRec.classList.contains('is-active') ? 'Record Mode armed (Note entry will record into tracker).' : 'Record Mode disarmed.');
+    };
+  }
+}
+
+function syncReTrackStatusStrip() {
+  const hudBpm = document.getElementById('hud-val-bpm');
+  if (hudBpm && pattern) {
+    hudBpm.textContent = pattern.settings.bpm.toFixed(2);
+  }
+  const hudLpb = document.getElementById('hud-val-lpb');
+  if (hudLpb && transfer?.timing) {
+    hudLpb.textContent = String(transfer.timing.lpb).padStart(2, '0');
+  }
+
+  const footPos = document.getElementById('footer-pos');
+  if (footPos) {
+    const bar = Math.floor(rowAnchor / 16) + 1;
+    const beat = Math.floor((rowAnchor % 16) / 4) + 1;
+    const tick = (rowAnchor % 4) + 1;
+    footPos.textContent = `${String(bar).padStart(3, '0')}.${String(beat).padStart(2, '0')}.${String(tick).padStart(2, '0')}`;
+  }
+
+  const footHex = document.getElementById('footer-hex-row');
+  if (footHex) {
+    footHex.textContent = `0x${hex(rowAnchor)}`;
+  }
+
+  const footInst = document.getElementById('footer-inst');
+  if (footInst) {
+    const laneName = cursorTrackId ? (pattern.userTracks?.find(t => t.id === cursorTrackId)?.name ?? cursorTrackId) : cursorLane.toUpperCase();
+    footInst.textContent = `${cursorLane === 'kick' ? '00' : cursorLane === 'snare' ? '01' : cursorLane === 'hat' ? '02' : '03'} (${laneName})`;
+  }
+}
+
+function initReTrackStudio() {
+  initReTrackTopTransport();
+  initReTrackOscilloscope();
+  syncReTrackSampleRack();
+  syncReTrackStatusStrip();
+}
 
