@@ -77,6 +77,12 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-10-01] - Passage 2 Think Speed Audition (Codex)
+
+* Based on the user's listening identification of provisional Think passage 2 (2.23–4.46 s), added a local, ignored `test-results/think-uh-ab/passage-2-speed.html` A/B sheet. Its 0.75–2.25× speed control repitches the full passage or an adjustable cut; 14 matched-level WAV candidates cover seven fixed rates for both the passage and the provisional same-position window. Linked it from the existing source-study page. No source audio is distributed.
+* Updated `docs/THINK-BREAK-SHAPING.md` with the passage selection, the provisional nature of the cut boundaries, and the distinction between browser playback and offline audition renders. The Ciel mix does not establish an exact source or speed.
+* Verification: generated 14 WAVs and checked duration, peak limits and page link; local page JavaScript parses; `npm.cmd test` passed 214/214; `npm.cmd run test:site` passed root and Pages subpath plus sound-browser and break-transcription checks. Preserved unrelated `package.json` and chat-sync script changes.
+
 ### [2026-10-01] - Ciel Beat-Onset Focus for Think Audition (Codex)
 
 * Incorporated the user's screenshot mark near 23.9 s into the local Think audition. Added a focused 23.7–24.75 s Ciel excerpt and passage 2/3 repitch comparisons at 1.12× and 1.80×; all 30 audio players loaded in a browser check.
