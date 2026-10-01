@@ -6,6 +6,7 @@ export type Role = typeof ROLES[number];
 export interface DrumLane {name:string;visible:boolean;generationRole:Role|null}
 export type Genre = 'jungle' | 'dnb' | 'hiphop' | 'trap' | 'rap' | 'drill' | 'breakcore' | 'idm' | 'hardcore' | 'experimental' | 'breaks' | 'bigbeat' | 'nuskoolbreaks' | 'electrobreaks' | 'breakbeathardcore' | 'raggajungle' | 'atmosphericjungle' | 'footworkjungle' | 'downtempo' | 'lofihiphop' | 'boombap' | 'mellowbeats' | 'liquiddnb' | 'jumpup' | 'garage' | 'speedgarage' | 'twostepgarage' | 'dub' | 'psydub' | 'dubstep' | 'brostep' | 'postdubstep' | 'drumfunk' | 'amenscience' | 'atmosphericbreakcore' | 'triphop' | 'halftimednb' | 'neurofunk';
 export type BreakStyle = 'genre' | 'amen' | 'think' | 'apache' | 'funkyDrummer' | 'hotPants';
+export type BreakLayer = 'off' | 'think-passage2';
 export type GenerationMode = 'drums' | 'melody' | 'both';
 export type MelodyPart = 'bassline' | 'lead' | 'piano';
 export type MelodyScale = 'major' | 'natural-minor' | 'harmonic-minor' | 'melodic-minor' | 'dorian' | 'phrygian' | 'lydian' | 'mixolydian' | 'locrian' | 'major-pentatonic' | 'minor-pentatonic' | 'blues' | 'whole-tone' | 'diminished' | 'double-harmonic' | 'hirajoshi';
@@ -15,6 +16,7 @@ export interface Settings {
   variation?: number;
   phraseLength?:4|8|16; phraseOffset?:number; // V3 section position, zero-based bars.
   breakStyle?: BreakStyle;
+  breakLayer?: BreakLayer;
   enabledRoles?: Role[];
   genre: Genre; seed: string; bpm: number; bars: number;
   resolution: 8 | 16 | 32 | 64; /** Tracker lines per beat; omitted patterns follow resolution / 4. */
@@ -38,6 +40,8 @@ export interface SliceInstrument {
 export interface TrackBase {id:string;name:string;role:Role;level:number;pan:number;mute:boolean;solo:boolean;color?:string}
 export interface SampleTrack extends TrackBase {
   kind?:'sample';sample:SliceRef;
+  /** Identifies a managed sliced break track without changing user sample tracks. */
+  generatedBreakLayer?:'think-passage2';
   /** Beat part assigned to this uploaded-sample track. Omitted means manual-only. */
   generationRole?:Role|null;
   /** Stable fraction of optional generated hits retained on this track. */

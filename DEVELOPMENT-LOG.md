@@ -77,6 +77,13 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-10-01] - Opt-In Chopped Think Passage Generator Layer (Codex)
+
+* Added **Break Layer → Think Passage 2 · chopped** independently of the existing rhythm preset. Generation places deterministic, genre-guided mapped slices on a dedicated Think Break sample track alongside the current kit; Variation, locked and manual hits, Undo/Redo, save/reopen and the shared Preview/WAV path retain the layer.
+* Added a native-rate loader for the bundled unmodified WAV, a ten-slice onset map plus the user-identified intact “uh” phrase, and a direct **Edit Think slices** track control. Slice-map edits survive toggling the layer off and on. The older full-clip kit is clearly labeled as a legacy full-passage retrigger.
+* Added focused engine/audio/project tests and browser smoke coverage for root and GitHub Pages subpath, including keyboard and + Note entry on the Think track and graceful handling of a failed sample load. The provisional slice-role labels are based on onset and waveform analysis and still require independent listening review; see `docs/THINK-BREAK-LAYER.md`.
+* Verification: `npm.cmd test` passed 221/221; `npm.cmd run test:site` passed root/subpath browser checks, WAV/project roundtrip, sound library and break transcription checks.
+
 ### [2026-10-01] - Edit Pattern Bar Count in Tracker (Codex)
 
 * Added a Bars selector beside tracker Resolution and LPB, synchronized with the generator and active pattern. Extending leaves current notes in place; shortening removes out-of-range notes but is blocked if any removed hit is locked. Pattern length edits participate in the existing Undo/Redo history.

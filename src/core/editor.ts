@@ -12,6 +12,7 @@ import {generatePiano} from './piano.js';
 import {validateSettings} from './settings.js';
 import {SYNTH_PRESETS} from '../audio/synth-instrument.js';
 import {drumLane,routeGeneratedDrums} from './drum-lanes.js';
+import {addThinkBreakLayer,THINK_BREAK_INSTRUMENT_ID,THINK_VOCAL_INSTRUMENT_ID} from './think-break.js';
 import {PPQ, ROLES, isSynthTrack, type Pattern, type Role, type Hit, type EffectCommand, type SynthInstrument, type SynthTrack, type MelodyPart, type Settings} from './model.js';
 
 export interface CellPosition {row:number;lane:string}
@@ -113,8 +114,8 @@ export class Editor {
     const preservedIds=new Set(kept.map(h=>h.id));
     next.pattern=copy(pattern);
     if(old.drumLanes&&!next.pattern.drumLanes)next.pattern.drumLanes=copy(old.drumLanes);
-    if(old.userTracks?.length){next.pattern.userTracks=copy(old.userTracks);const scale=pattern.settings.bars/old.settings.bars;for(const hit of userHits){hit.baseTick=Math.min(pattern.settings.bars*4*PPQ-1,Math.round(hit.baseTick*scale));hit.offsetTick=Math.round(hit.offsetTick*scale);}next.pattern.events=next.pattern.events.filter(h=>!userHits.some(saved=>h.id===saved.id)&&!protectedUserHits.some(held=>h.trackId===held.trackId&&h.baseTick===held.baseTick));next.pattern.events.push(...userHits);}
-    for(const instrument of old.sliceInstruments??[])if(kept.some(h=>h.mapped?.instrumentId===instrument.id)&&!next.pattern.sliceInstruments?.some(i=>i.id===instrument.id))(next.pattern.sliceInstruments??=[]).push(copy(instrument));
+    if(old.userTracks?.length){const incoming=next.pattern.userTracks??[];next.pattern.userTracks=[...copy(old.userTracks),...incoming.filter(track=>!old.userTracks!.some(saved=>saved.id===track.id))];const scale=pattern.settings.bars/old.settings.bars;for(const hit of userHits){hit.baseTick=Math.min(pattern.settings.bars*4*PPQ-1,Math.round(hit.baseTick*scale));hit.offsetTick=Math.round(hit.offsetTick*scale);}next.pattern.events=next.pattern.events.filter(h=>!userHits.some(saved=>h.id===saved.id)&&!protectedUserHits.some(held=>h.trackId===held.trackId&&h.baseTick===held.baseTick));next.pattern.events.push(...userHits);}
+    for(const instrument of old.sliceInstruments??[])if(([THINK_BREAK_INSTRUMENT_ID,THINK_VOCAL_INSTRUMENT_ID].includes(instrument.id)||[...kept,...userHits].some(h=>h.mapped?.instrumentId===instrument.id))&&!next.pattern.sliceInstruments?.some(i=>i.id===instrument.id))(next.pattern.sliceInstruments??=[]).push(copy(instrument));
     next.pattern.events=next.pattern.events.filter(h=>!!h.trackId||!next.lockedRoles.includes(h.role)&&!preservedIds.has(h.id)&&!kept.some(k=>k.role===h.role&&k.baseTick===h.baseTick)).concat(kept);
     if(melody){
       next.pattern.userTracks??=[];
@@ -126,6 +127,7 @@ export class Editor {
       const used=new Set(next.pattern.events.map(hit=>hit.id));
       next.pattern.events.push(...melody.notes.filter(hit=>!used.has(hit.id)&&!heldRows.has(Math.floor((hit.baseTick+hit.offsetTick)/rowTicks))));
     }
+    if(pattern.settings.breakLayer!=='think-passage2'&&next.pattern.userTracks)next.pattern.userTracks=next.pattern.userTracks.filter(track=>isSynthTrack(track)||track.generatedBreakLayer!=='think-passage2'||next.pattern.events.some(hit=>hit.trackId===track.id));
     next.pattern.events.sort((a,b)=>a.baseTick-b.baseTick||ROLES.indexOf(a.role)-ROLES.indexOf(b.role));
     next.selection=emptySelection();next.revision++;
     return this.commit(next,label);
@@ -134,7 +136,8 @@ export class Editor {
   generateComposition(settings:Settings,label='Generate',preserveAnchors=false):boolean{
     validateSettings(settings);
     const mode=settings.generationMode??'drums',old=this.state.pattern;
-    const pattern:Pattern=mode==='melody'?{...copy(old),settings:copy(settings),events:copy(old.events.filter(hit=>!hit.trackId))}:routeGeneratedDrums(generate(settings),old);
+    const generated=mode==='melody'?undefined:generate(settings);
+    const pattern:Pattern=mode==='melody'?{...copy(old),settings:copy(settings),events:copy(old.events.filter(hit=>!hit.trackId))}:addThinkBreakLayer(routeGeneratedDrums(generated!,old),generated!,old);
     if(mode==='melody'&&settings.bars!==old.settings.bars){
       const scale=settings.bars/old.settings.bars;
       for(const hit of pattern.events){hit.baseTick=Math.min(settings.bars*4*PPQ-1,Math.round(hit.baseTick*scale));hit.offsetTick=Math.max(-hit.baseTick,Math.min(PPQ,hit.offsetTick));}
@@ -179,11 +182,7 @@ export class Editor {
   variation(){
     const original=this.state.pattern;
     const algorithm=original.settings.algorithm;
-    if(original.settings.generationMode&&original.settings.generationMode!=='drums')return this.generateComposition({...original.settings,algorithm:algorithm==='groove-v4'?'groove-v4':algorithm==='groove-v3'?'groove-v3':'groove-v2',variation:(original.settings.variation??0)+1},'Generate variation',true);
-    const next=routeGeneratedDrums(generate({...original.settings,algorithm:algorithm==='groove-v4'?'groove-v4':algorithm==='groove-v3'?'groove-v3':'groove-v2',variation:(original.settings.variation??0)+1}),original);
-    const anchors=original.events.filter(h=>h.anchor&&(!h.trackId||!!h.generatedDrumRole));
-    next.events=next.events.filter(h=>!h.anchor&&!anchors.some(a=>a.id===h.id||(a.trackId===h.trackId&&a.role===h.role&&a.baseTick===h.baseTick))).concat(copy(anchors));
-    return this.replace(next,'Generate variation');
+    return this.generateComposition({...original.settings,algorithm:algorithm==='groove-v4'?'groove-v4':algorithm==='groove-v3'?'groove-v3':'groove-v2',variation:(original.settings.variation??0)+1},'Generate variation',true);
   }
   write(hit:Hit,replaceId?:string){
     const next=copy(this.state),prior=next.pattern.events.find(h=>h.id===replaceId);

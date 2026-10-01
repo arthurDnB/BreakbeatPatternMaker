@@ -2090,8 +2090,8 @@ export interface KitPreset {
 export const KIT_PRESETS: KitPreset[] = [
   {
     id: 'think-uh-jungle',
-    name: 'Think Passage 2 · 1.42x',
-    description: 'Jungle kit featuring the complete 2.23-second Think passage 2 at 1.42x speed (+6.1 semitones).',
+    name: 'Think Passage 2 · full clip (legacy)',
+    description: 'Retriggers the complete Think passage as percussion. For chopped generation, choose a regular kit and enable Break Layer: Think Passage 2.',
     slots: {kick:'udnb-kick-01',snare:'udnb-snare-08',hat:'udnb-hat-11',percussion:'think-uh-plus6'},
     levels: {kick:.9,snare:.9,hat:.8,percussion:.58},
     decays: {percussion:.82},

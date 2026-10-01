@@ -1,3 +1,4 @@
+import './think-break-site-smoke.mjs';
 import {createServer} from 'node:http';import {readFile,readdir} from 'node:fs/promises';import {resolve,extname,sep} from 'node:path';import {chromium} from 'playwright';import assert from 'node:assert/strict';import {LIBRARY,KIT_PRESETS} from '../dist/audio/library.js';
 const root=resolve('site');
 async function files(dir){return (await Promise.all((await readdir(dir,{withFileTypes:true})).map(e=>e.isDirectory()?files(resolve(dir,e.name)):[resolve(dir,e.name)]))).flat();}

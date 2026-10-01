@@ -6,6 +6,7 @@ import {BREAKS} from './breaks.js';
 export function validateSettings(s: Settings): void {
   if (!s || !Object.hasOwn(PROFILES, s.genre)) throw new Error('Unsupported genre.');
   if(s.breakStyle!==undefined&&s.breakStyle!=='genre'&&!Object.hasOwn(BREAKS,s.breakStyle)) throw new Error('Unsupported break preset.');
+  if(s.breakLayer!==undefined&&!['off','think-passage2'].includes(s.breakLayer))throw Error('Unsupported break layer.');
   if(s.enabledRoles!==undefined&&(!Array.isArray(s.enabledRoles)||s.enabledRoles.some(r=>!ROLES.includes(r))||new Set(s.enabledRoles).size!==s.enabledRoles.length))throw Error('Invalid enabled instruments.');
   if(s.algorithm!==undefined&&!['legacy-v1','groove-v2','groove-v3','groove-v4'].includes(s.algorithm))throw Error('Unsupported generation engine.');
   if(s.algorithm==='legacy-v1'&&Object.hasOwn(NEW_GENRES,s.genre))throw Error('This genre requires Groove v2 or Groove v3.');

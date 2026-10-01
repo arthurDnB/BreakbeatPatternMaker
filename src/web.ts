@@ -7,6 +7,8 @@ import {defaultKitState} from './audio/drum-kit.js';
 import {setupDrumKit,withDrumKit,effectiveSampleSpeed} from './audio/drum-kit.js';
 import {KIT_PRESETS,GENRE_KITS,LIBRARY} from './audio/library.js';
 import {ensureLibraryAudio} from './audio/library-audio.js';
+import {ensureThinkBreakAudio} from './audio/think-break-audio.js';
+import {THINK_BREAK_INSTRUMENT_ID} from './core/think-break.js';
 import {DEFAULT_VINYL_TEXTURE,VINYL_TEXTURES,loadVinylTexture,mixVinylTexture,type VinylTexture} from './audio/vinyl-texture.js';
 import {setupSoundBrowser} from './audio/sound-browser.js';
 import {setupBreakPanel} from './audio/break-panel.js';
@@ -42,7 +44,7 @@ el('tray-bottom').prepend(el('transport'));
 el('master-dsp-host').append(el('quick-fx-panel'));
 el('quick-fx-panel').hidden=false;
 const advancedGrid=el('advanced-generation').querySelector<HTMLElement>('.advanced')!;
-for(const [name,ids] of [['Pattern',['breakStyle','resolution','phraseLength','phraseOffset']],['Groove',['syncopation','swing','humanizeMs','ghostAmount']],['Structure',['patternStructure','fillAmount','seed']]] as const){
+for(const [name,ids] of [['Pattern',['breakStyle','breakLayer','resolution','phraseLength','phraseOffset']],['Groove',['syncopation','swing','humanizeMs','ghostAmount']],['Structure',['patternStructure','fillAmount','seed']]] as const){
  const group=document.createElement('fieldset');group.className='generator-group';const legend=document.createElement('legend');legend.textContent=name;group.append(legend);
  for(const id of ids){const label=el(id).closest('label');if(label)group.append(label);}advancedGrid.append(group);
 }
@@ -238,6 +240,7 @@ function settings(){
   if(['groove-v3','groove-v4'].includes(s.algorithm??'')&&Number(input('phraseLength').value)){s.phraseLength=Number(input('phraseLength').value) as 4|8|16;s.phraseOffset=Number(input('phraseOffset').value);}
   s.enabledRoles=ROLES.filter(r=>kitPanel.mix[r].include);
   s.breakStyle=input('breakStyle').value as BreakStyle;
+  if(input('breakLayer').value==='think-passage2')s.breakLayer='think-passage2';
   s.seed=input('seed').value;s.bpm=Number(input('bpm').value);s.bars=Number(input('bars').value);
   s.resolution=Number(input('resolution').value) as typeof s.resolution;
   if(pattern?.settings.lpb!==undefined)s.lpb=pattern.settings.lpb;
@@ -415,7 +418,9 @@ function render(){
     for(const [label,delta] of [['←',-1],['→',1]] as const){const button=document.createElement('button');button.textContent=label;button.title=delta<0?'Move track left':'Move track right';button.setAttribute('aria-label',button.title);button.onclick=()=>{if(editor.reorderUserTrack(track.id,delta as -1|1))refresh();};actions.append(button);}
     for(const [label,key] of [['M','mute'],['S','solo']] as const){const button=document.createElement('button');button.textContent=label;button.title=(track[key]?'Disable ':'Enable ')+(key==='mute'?'mute':'solo')+' for '+track.name;button.setAttribute('aria-pressed',String(track[key]));button.classList.toggle('is-muted',key==='mute'&&track.mute);button.classList.toggle('is-soloed',key==='solo'&&track.solo);button.onclick=()=>{editor.setUserTrackMixer(track.id,{[key]:!track[key]});refresh();};actions.append(button);}
     const remove=document.createElement('button');remove.textContent='×';remove.title='Delete track';remove.setAttribute('aria-label','Delete '+track.name);remove.onclick=()=>{if(!confirm(`Delete “${track.name}” and its notes?`))return;try{editor.deleteUserTrack(track.id);openSynthTrackIds.delete(track.id);openSampleGenerationIds.delete(track.id);if(cursorTrackId===track.id){cursorTrackId=undefined;cursorLane='kick';}refresh();}catch(e){status(String(e),true);}};actions.append(remove);top.append(actions);
-    const mixer=document.createElement('div');mixer.className='track-strip-mixer';const fader=document.createElement('input');fader.type='range';fader.min='0';fader.max='2';fader.step='0.01';fader.value=String(track.level);fader.title=track.name+' level';fader.setAttribute('aria-label',track.name+' level');fader.onchange=()=>{editor.setUserTrackMixer(track.id,{level:Number(fader.value)});refresh();};const pan=document.createElement('input');pan.type='range';pan.min='-1';pan.max='1';pan.step='0.01';pan.value=String(track.pan);pan.title=track.name+' pan';pan.setAttribute('aria-label',track.name+' pan');pan.onchange=()=>{editor.setUserTrackMixer(track.id,{pan:Number(pan.value)});refresh();};mixer.append(fader,pan);strip.append(top,mixer);if(isSynthTrack(track))strip.append(synthInstrumentPanel(track));else{
+    const mixer=document.createElement('div');mixer.className='track-strip-mixer';const fader=document.createElement('input');fader.type='range';fader.min='0';fader.max='2';fader.step='0.01';fader.value=String(track.level);fader.title=track.name+' level';fader.setAttribute('aria-label',track.name+' level');fader.onchange=()=>{editor.setUserTrackMixer(track.id,{level:Number(fader.value)});refresh();};const pan=document.createElement('input');pan.type='range';pan.min='-1';pan.max='1';pan.step='0.01';pan.value=String(track.pan);pan.title=track.name+' pan';pan.setAttribute('aria-label',track.name+' pan');pan.onchange=()=>{editor.setUserTrackMixer(track.id,{pan:Number(pan.value)});refresh();};mixer.append(fader,pan);strip.append(top,mixer);if(isSynthTrack(track))strip.append(synthInstrumentPanel(track));else if(track.generatedBreakLayer==='think-passage2'){
+      const editSlices=document.createElement('button');editSlices.className='sample-track-generation';editSlices.textContent='Edit Think slices';editSlices.title='Audition and adjust the Think break markers';editSlices.onclick=()=>{const instrument=pattern.sliceInstruments?.find(item=>item.id===THINK_BREAK_INSTRUMENT_ID);if(instrument)breakPanel.open(instrument);};strip.append(editSlices);
+    }else{
       const routing=document.createElement('label');routing.className='sample-track-generation';routing.textContent='Beat part';
       const assignment=document.createElement('select');assignment.setAttribute('aria-label',`Beat generator part for ${track.name}`);assignment.title=`Choose which beat part the generator places on ${track.name}`;
       for(const [value,label] of [['','Manual only'],['kick','Kick'],['snare','Snare'],['hat','Hi-hat'],['percussion','Percussion']])assignment.append(new Option(label,value));
@@ -608,6 +613,7 @@ function syncControls(){
   input('generationMode').value=s.generationMode??'drums';input('melodyPart').value=s.melodyPart??'bassline';input('melodyKey').value=String(s.melodyKey??0);input('melodyScale').value=s.melodyScale??'natural-minor';input('harmonyStyle').value=s.harmonyStyle??'jazz';
   for(const role of ROLES)input(`${role}-density`).value=String(s.laneDensity?.[role]??1);
   input('patternStructure').value=s.patternStructure??'auto';
+  input('breakLayer').value=s.breakLayer??'off';
   input('phraseLength').value=String(s.phraseLength??0);syncPhraseControls(s.phraseOffset??0);
   input('algorithm').value=s.algorithm??'legacy-v1';input('variation').value=String(s.variation??0);
   for(const [key,value] of Object.entries(s))if(key!=='enabledRoles'&&key!=='laneDensity'&&key!=='lpb')input(key).value=String(value);
@@ -627,13 +633,13 @@ function stop(){
   playToken++;setPlayButton(false);el('song-position').textContent='Song stopped';document.querySelector('.playing-row')?.classList.remove('playing-row');
   resetHud();renderComparisonControls();
 }
-function buildLayer(layer:'drums'|'bassline'|'lead'|'piano'){
+async function buildLayer(layer:'drums'|'bassline'|'lead'|'piano'){
   if(pendingCount()){status('Apply or Revert pending hit edits before generating a new pattern.',true);return;}
   stop();
-  try{const requested=settings();requested.generationMode=layer==='drums'?'drums':'melody';if(layer!=='drums')requested.melodyPart=layer;input('generationMode').value=requested.generationMode;input('melodyPart').value=requested.melodyPart??'bassline';if(layer==='drums'&&!requested.enabledRoles?.length)throw Error('Include at least one drum instrument to generate the beat.');const before=editor?structuredClone(editor.state):undefined;let changed=false;if(!editor){editor=new Editor(generate({...requested,generationMode:'drums'}));if(layer!=='drums')changed=editor.generateComposition(requested,`Generate ${layer==='bassline'?'Bass':layer==='lead'?'Melody':'Piano'}`);}else changed=editor.generateComposition(requested,`Generate ${layer==='drums'?'Beat':layer==='bassline'?'Bass':layer==='lead'?'Melody':'Piano'}`);if(layer!=='drums'){const track=editor.state.pattern.userTracks?.find(track=>isSynthTrack(track)&&track.generatedPart===layer);if(track){cursorTrackId=track.id;cursorLane=track.role;}}refresh();if(changed&&before)rememberActivePattern(before,`Before Generate ${layer}`);status(`${layer==='drums'?'Beat':layer==='bassline'?'Bassline':layer==='lead'?'Melody':'Piano chords'} generated from seed “${pattern.settings.seed}”. Other layers and locked notes were preserved.${before?' Undo restores the previous pattern.':''}`);}
+  try{const requested=settings();requested.generationMode=layer==='drums'?'drums':'melody';if(layer!=='drums')requested.melodyPart=layer;input('generationMode').value=requested.generationMode;input('melodyPart').value=requested.melodyPart??'bassline';if(layer==='drums'&&!requested.enabledRoles?.length)throw Error('Include at least one drum instrument to generate the beat.');if(layer==='drums'&&requested.breakLayer==='think-passage2')await ensureThinkBreakAudio(assets);const before=editor?structuredClone(editor.state):undefined;let changed=false;if(!editor){editor=new Editor(generate({...requested,generationMode:'drums'}));if(layer!=='drums'||requested.breakLayer==='think-passage2')changed=editor.generateComposition(requested,'Generate Beat');}else changed=editor.generateComposition(requested,`Generate ${layer==='drums'?'Beat':layer==='bassline'?'Bass':layer==='lead'?'Melody':'Piano'}`);if(layer!=='drums'){const track=editor.state.pattern.userTracks?.find(track=>isSynthTrack(track)&&track.generatedPart===layer);if(track){cursorTrackId=track.id;cursorLane=track.role;}}refresh();if(changed&&before)rememberActivePattern(before,`Before Generate ${layer}`);status(`${layer==='drums'?'Beat':layer==='bassline'?'Bassline':layer==='lead'?'Melody':'Piano chords'} generated from seed “${pattern.settings.seed}”. Other layers and locked notes were preserved.${before?' Undo restores the previous pattern.':''}`);}
   catch(e){status((e as Error).message,true);}
 }
-function build(){buildLayer('drums');}
+function build(){void buildLayer('drums');}
 function download(){
   el<HTMLDetailsElement>('more-actions').open=false;
   const url=URL.createObjectURL(new Blob([patternJSON()],{type:'application/json'}));
@@ -1055,7 +1061,7 @@ document.addEventListener('keydown',event=>{
   else if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='y'){event.preventDefault();if(inArranger){const label=arrangementHistory?.redoLabel;if(arrangementHistory?.redo()){bank=arrangementHistory.bank;arrangementHistorySync(`Redid: ${label??'arrangement change'}.`);}else status('Nothing to redo.');}else history('redo');}
   else if(!event.ctrlKey&&!event.metaKey&&!event.altKey&&event.key.toLowerCase()==='f'){event.preventDefault();followPlayhead=!followPlayhead;syncFollowPlayhead();status(`Follow playhead ${followPlayhead?'enabled':'disabled'}.`);}
 });
-el('regenerate').onclick=()=>{if(pendingCount()){status('Apply or Revert pending hit edits before generating a variation.',true);return;}edit(()=>editor.variation(),'Related variation generated. Seed, core motif, anchors and locks are retained.','Before variation');syncControls();};
+el('regenerate').onclick=async()=>{if(pendingCount()){status('Apply or Revert pending hit edits before generating a variation.',true);return;}try{if(pattern.settings.breakLayer==='think-passage2')await ensureThinkBreakAudio(assets);edit(()=>editor.variation(),'Related variation generated. Seed, core motif, anchors and locks are retained.','Before variation');syncControls();}catch(error){status((error as Error).message,true);}};
 el('export-wav').onclick=async()=>{
   try{
     if(input('export-target').value==='song'){await exportArrangement();return;}
@@ -1101,6 +1107,7 @@ el('breakStyle').onchange=()=>{breakDescription();dirty();};
 function restoreGenerationDefaults(resetComposition=false){
  const genre=input('genre').value as Genre;
  const keepEngine=input('algorithm').value;
+ if(resetComposition)input('breakLayer').value='off';
  input('phraseLength').value='0';syncPhraseControls(0);
  input('algorithm').querySelector<HTMLOptionElement>('[value="legacy-v1"]')!.disabled=Object.hasOwn(NEW_GENRES,genre);
  for(const [key,value] of Object.entries(genreDefaults(genre)))input(key).value=String(value);
@@ -1342,7 +1349,7 @@ function entryHit(replace:boolean,pitchOverride?:number){
     compile({...pattern,events:[hit]});return {hit,prior};
   }
   const hit:Hit={id:prior?.id??'entry-'+crypto.randomUUID(),role,...(trackId?{trackId}:{}),sourceId:'kit.'+role,baseTick:Math.floor(tick),fineOffset:tick-Math.floor(tick),offsetTick:0,gain:volume/128,pan:pan/64-1,pitch,reverse:input('edit-reverse').checked,ratchets:Number(input('edit-ratchets').value),...(Number(input('edit-gate').value)?{gate:Number(input('edit-gate').value)}:{}),...(prior?.effect?{effect:{...prior.effect}}:{}),anchor:prior?.anchor??false,ghost:prior?.ghost??false,reason:'A manually entered tracker hit.'};
-  if(track&&!isSynthTrack(track))hit.slice={...track.sample};else if(prior?.slice)hit.slice={...prior.slice};
+  if(track&&!isSynthTrack(track)&&track.generatedBreakLayer!=='think-passage2')hit.slice={...track.sample};else if(prior?.slice)hit.slice={...prior.slice};
   if(input('edit-speed-override').checked)hit.playbackRate=Number(input('edit-speed').value);
   if(input('edit-speed-mode').value!=='inherit')hit.speedMode=input('edit-speed-mode').value as 'repitch'|'stretch';
   if(input('edit-lowpass-override').checked)hit.lowpassHz=Number(input('edit-lowpass').value);
@@ -1367,6 +1374,11 @@ function entryHit(replace:boolean,pitchOverride?:number){
   else if(sound==='demo'&&!track)delete hit.slice;
   else if(sound==='keep'&&prior?.mapped)hit.mapped={...prior.mapped};
   else if(sound==='keep'&&prior?.slice)hit.slice={...prior.slice};
+  if(track&&!isSynthTrack(track)&&track.generatedBreakLayer==='think-passage2'&&(sound==='keep'||sound==='demo')&&!hit.mapped){
+    const instrument=pattern.sliceInstruments?.find(item=>item.id===THINK_BREAK_INSTRUMENT_ID);
+    if(!instrument)throw Error('The Think slice map is missing. Regenerate the break layer.');
+    hit.mapped={instrumentId:instrument.id,note:instrument.slices[0]!.note};hit.sourceKind='slice';
+  }
   if(input('edit-trim-enabled').checked){
     const source=hit.slice??drumKit[role],startMs=Number(input('edit-trim-start').value),endMs=Number(input('edit-trim-end').value);
     if(!source)throw Error('Choose an audio sample before trimming this hit.');
@@ -1582,7 +1594,10 @@ el('grid').addEventListener('keydown', event => {
       return n && n.row === rowAnchor && n.lane === (cursorTrackId??cursorLane);
     });
     const selectedHit=pattern.events.find(h=>editor.state.selection.ids.includes(h.id)&&h.role===cursorLane&&h.trackId===cursorTrackId)??hitAtCursor;
-    const instrument=pattern.sliceInstruments?.find(i=>i.id===selectedHit?.mapped?.instrumentId)??(cursorLane==='percussion'?pattern.sliceInstruments?.[0]:undefined);
+    const cursorTrack=pattern.userTracks?.find(track=>track.id===cursorTrackId);
+    const instrument=pattern.sliceInstruments?.find(i=>i.id===selectedHit?.mapped?.instrumentId)
+      ??(cursorTrack&&!isSynthTrack(cursorTrack)&&cursorTrack.generatedBreakLayer==='think-passage2'?pattern.sliceInstruments?.find(i=>i.id===THINK_BREAK_INSTRUMENT_ID):undefined)
+      ??(!cursorTrack&&cursorLane==='percussion'?pattern.sliceInstruments?.[0]:undefined);
     let changed:boolean;
     if(isSynthTrack(pattern.userTracks?.find(track=>track.id===cursorTrackId))){
       const note=Number(input('synth-octave').value)*12+semitone;
@@ -1592,7 +1607,7 @@ el('grid').addEventListener('keydown', event => {
       const note=Number(input('slice-octave').value)*12+semitone;
       if(!instrument.slices.some(s=>s.note===note))throw Error('This key has no slice. Choose a mapped note or another slice octave.');
       if(selectedHit?.mapped)changed=editor.editTrackerValue(selectedHit.id,'note',note);
-      else {const tick=rowAnchor*960/transfer.timing.lpb;changed=editor.write({id:'slice-entry-'+crypto.randomUUID(),role:cursorLane,sourceId:'kit.'+cursorLane,sourceKind:'slice',mapped:{instrumentId:instrument.id,note},baseTick:Math.floor(tick),fineOffset:tick-Math.floor(tick),offsetTick:0,gain:1,pan:0,pitch:0,anchor:false,ghost:false,reason:'Mapped slice keyboard entry.'},selectedHit?.id);}
+      else {const tick=rowAnchor*960/transfer.timing.lpb,role=cursorTrack?.role??cursorLane;changed=editor.write({id:'slice-entry-'+crypto.randomUUID(),role,...(cursorTrackId?{trackId:cursorTrackId}:{}),sourceId:'kit.'+role,sourceKind:'slice',mapped:{instrumentId:instrument.id,note},baseTick:Math.floor(tick),fineOffset:tick-Math.floor(tick),offsetTick:0,gain:1,pan:0,pitch:0,anchor:false,ghost:false,reason:'Mapped slice keyboard entry.'},selectedHit?.id);}
     }else changed=writeEntry(!!hitAtCursor,basePitch+semitone);
     if (changed) {
       void auditionCursor(cursorLane);
