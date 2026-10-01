@@ -14,9 +14,9 @@ const drumCount=pattern=>pattern.events.filter(hit=>!hit.synthNote).length;
 test('V5 capacity matches the feasible exact target for a sparse pilot profile',()=>{
  const settings=config('dubstep',{algorithm:'groove-v5',seed:'break-042'});
  const capacity=maximumV5ExactHits(generate(settings));
- assert.equal(capacity,20);
+ assert.equal(capacity,22);
  assert.equal(drumCount(generate({...settings,hitTarget:capacity})),capacity);
- assert.throws(()=>generate({...settings,hitTarget:capacity+1}),/Maximum available: 20/);
+ assert.throws(()=>generate({...settings,hitTarget:capacity+1}),/Maximum available: 22/);
 });
 
 test('V5 reported capacity is reachable across pilot genres and pattern structures',()=>{

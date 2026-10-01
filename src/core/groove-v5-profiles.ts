@@ -184,7 +184,11 @@ export const V5_PROFILE_OVERRIDES:Partial<Record<Genre,V5Profile>>={
    {id:'liquid-call-hat',role:'hat',minimum:.45,on:['opening','continuation'],notes:[
     {step:5.5,gain:.2,probability:.6}]},
    {id:'liquid-answer-perc',role:'percussion',minimum:.6,on:['response','turnaround'],notes:[
-    {step:13.5,gain:.3,probability:.7}]}
+    {step:13.5,gain:.3,probability:.7}]},
+   {id:'liquid-high-call',role:'hat',minimum:.75,on:['opening','continuation'],notes:[
+    {step:4.5,gain:.16}]},
+   {id:'liquid-high-answer',role:'percussion',minimum:.9,on:['response','turnaround'],notes:[
+    {step:9.5,gain:.2}]}
   ],
   cadences:[
    {id:'liquid-cadence-snare',role:'snare',minimum:.3,notes:[
@@ -250,7 +254,11 @@ export const V5_PROFILE_OVERRIDES:Partial<Record<Genre,V5Profile>>={
    {id:'boombap-call-snare',role:'snare',minimum:.5,on:['opening','continuation'],notes:[
     {step:7,gain:.26,probability:.55,ghost:true}]},
    {id:'boombap-answer-snare',role:'snare',minimum:.6,on:['response','turnaround'],notes:[
-    {step:15,gain:.28,probability:.7,ghost:true}]}
+    {step:15,gain:.28,probability:.7,ghost:true}]},
+   {id:'boombap-high-call',role:'percussion',minimum:.75,on:['opening','continuation'],notes:[
+    {step:5,gain:.22}]},
+   {id:'boombap-high-answer',role:'hat',minimum:.9,on:['response','turnaround'],notes:[
+    {step:13.5,gain:.18}]}
   ],
   cadences:[
    {id:'boombap-cadence-snare',role:'snare',minimum:.3,notes:[
@@ -335,7 +343,11 @@ export const V5_PROFILE_OVERRIDES:Partial<Record<Genre,V5Profile>>={
     {step:5,gain:.28,probability:.6},
     {step:13,gain:.3,probability:.6}]},
    {id:'trap-answer-hat',role:'hat',minimum:.6,on:['response','turnaround'],notes:[
-    {step:15.5,gain:.22,probability:.6}]}
+    {step:15.5,gain:.22,probability:.6}]},
+   {id:'trap-high-call',role:'hat',minimum:.75,on:['opening','continuation'],notes:[
+    {step:6.5,gain:.16}]},
+   {id:'trap-high-answer',role:'hat',minimum:.9,on:['response','turnaround'],notes:[
+    {step:15.25,gain:.17}]}
   ],
   cadences:[
    {id:'trap-cadence-hat',role:'hat',minimum:.25,notes:[
@@ -418,7 +430,11 @@ export const V5_PROFILE_OVERRIDES:Partial<Record<Genre,V5Profile>>={
    {id:'twostep-call-rim',role:'percussion',minimum:.5,on:['opening','continuation'],notes:[
     {step:6.5,gain:.3,probability:.65}]},
    {id:'twostep-answer-rim',role:'percussion',minimum:.6,on:['response','turnaround'],notes:[
-    {step:13.5,gain:.32,probability:.7}]}
+    {step:13.5,gain:.32,probability:.7}]},
+   {id:'twostep-high-call',role:'hat',minimum:.75,on:['opening','continuation'],notes:[
+    {step:5.5,gain:.18}]},
+   {id:'twostep-high-answer',role:'percussion',minimum:.9,on:['response','turnaround'],notes:[
+    {step:15.5,gain:.22}]}
   ],
   cadences:[
    {id:'twostep-cadence-rim',role:'percussion',minimum:.3,notes:[
@@ -479,7 +495,11 @@ export const V5_PROFILE_OVERRIDES:Partial<Record<Genre,V5Profile>>={
    {id:'dubstep-call-perc',role:'percussion',minimum:.55,on:['opening','continuation'],notes:[
     {step:6,gain:.3,probability:.55}]},
    {id:'dubstep-answer-perc',role:'percussion',minimum:.6,on:['response','turnaround'],notes:[
-    {step:14,gain:.3,probability:.65}]}
+    {step:14,gain:.3,probability:.65}]},
+   {id:'dubstep-high-call',role:'percussion',minimum:.75,on:['opening','continuation'],notes:[
+    {step:6.5,gain:.2}]},
+   {id:'dubstep-high-answer',role:'hat',minimum:.9,on:['response','turnaround'],notes:[
+    {step:15.5,gain:.16}]}
   ],
   cadences:[
    {id:'dubstep-cadence-perc',role:'percussion',minimum:.3,notes:[
@@ -577,7 +597,11 @@ export const V5_PROFILE_OVERRIDES:Partial<Record<Genre,V5Profile>>={
    {id:'breakcore-call-snare',role:'snare',minimum:.5,on:['opening','continuation'],notes:[
     {step:7,gain:.28,probability:.6,ghost:true}]},
    {id:'breakcore-answer-snare',role:'snare',minimum:.6,on:['response','turnaround'],notes:[
-    {step:15.5,gain:.3,probability:.7,ghost:true}]}
+    {step:15.5,gain:.3,probability:.7,ghost:true}]},
+   {id:'breakcore-high-call',role:'percussion',minimum:.75,on:['opening','continuation'],notes:[
+    {step:2.5,gain:.22}]},
+   {id:'breakcore-high-answer',role:'snare',minimum:.9,on:['response','turnaround'],notes:[
+    {step:13.5,gain:.24,ghost:true}]}
   ],
   cadences:[
    {id:'breakcore-cadence-snare',role:'snare',minimum:.2,notes:[
@@ -686,7 +710,11 @@ export const V5_PROFILE_OVERRIDES:Partial<Record<Genre,V5Profile>>={
    {id:'amenscience-answer-snare',role:'snare',minimum:.6,on:['response','turnaround'],notes:[
     {step:11.5,gain:.32,probability:.7,ghost:true}]},
    {id:'amenscience-answer-perc',role:'percussion',minimum:.7,on:['response','turnaround'],notes:[
-    {step:15.5,gain:.3,probability:.6}]}
+    {step:15.5,gain:.3,probability:.6}]},
+   {id:'amenscience-high-call',role:'percussion',minimum:.75,on:['opening','continuation'],notes:[
+    {step:7.5,gain:.22}]},
+   {id:'amenscience-high-answer',role:'snare',minimum:.9,on:['response','turnaround'],notes:[
+    {step:13.5,gain:.24,ghost:true}]}
   ],
   cadences:[
    {id:'amenscience-cadence-snare',role:'snare',minimum:.2,notes:[

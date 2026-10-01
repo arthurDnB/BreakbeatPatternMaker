@@ -82,6 +82,12 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-10-02] - Groove V5 Upper-Complexity Profile Refinement (Codex)
+
+* Added quiet, phrase-specific upper-Complexity layers to the Liquid DnB, Boom Bap, Trap, Two Step Garage, Dubstep, Breakcore, and AmenScience pilot profiles in `src/core/groove-v5-profiles.ts`. Jungle already had layers in that range. This removes the observed medium-to-maximum plateau without changing protected kick/snare anchors or V4's default behavior.
+* Strengthened `tests/groove-v5-genres.test.mjs` so every pilot must add non-anchor detail above medium Complexity for two seeds. Updated the Dubstep Exact Hits capacity expectation in `tests/exact-hits.test.mjs` and `scripts/groove-v5-browser-smoke.mjs` from 20 to 22 to match the expanded profile vocabulary.
+* Verification: `npm.cmd test` passed 251/251; `npm.cmd run test:site` passed root/subpath, sound browser, break transcription and Groove V5 browser checks. Listening-based authenticity and cross-seed quality evaluation remain open; these structural checks do not establish a release-quality musical result.
+
 ### [2026-10-02] - Groove V5 Exact-Hit Capacity and Required Browser QA (Codex)
 
 * Added a reusable V5 capacity calculation in `src/core/exact-hits.ts` using the same dense genre vocabulary as Exact Hits. The generator's maximum and the UI's offered range now agree; the default two-bar Dubstep target changes from impossible 32 to feasible 20 when Exact is selected, without adding generic V4 notes or altering Auto mode.

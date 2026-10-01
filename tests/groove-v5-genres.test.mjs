@@ -63,6 +63,8 @@ for(const genre of PILOTS){
     }
     assert.ok(optional(patterns.at(-1)).size>optional(patterns[0]).size,
      `${genre}: full Complexity must add at least one non-anchor hit`);
+    assert.ok(optional(patterns.at(-1)).size>optional(patterns[2]).size,
+     `${genre}: upper Complexity range must add detail beyond the medium setting`);
    }
   });
 }
