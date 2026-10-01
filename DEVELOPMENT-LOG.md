@@ -20,6 +20,9 @@ This document maintains the running project state and change log so that multipl
    * Document each change under the [Change Log](#change-log) section with date, summary of files modified, and rationale.
 5. **Git commit and push:**
    * Commit with a descriptive message. Pushing to `main` automatically triggers GitHub Pages deployment via `.github/workflows/deploy.yml`.
+6. **Work with Antigravity:**
+   * Treat Codex and Antigravity as collaborators on the same project. Check for active handovers and shared edits before starting; communicate scope, findings, and any blockers when coordination tools are available; avoid duplicate or conflicting changes.
+   * At handoff, share the commit or working-tree state, verification results, remaining risks, and the next agreed action. Follow Arthur's latest priority, and stop when Arthur asks you to wait.
 
 ---
 
@@ -77,6 +80,10 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-10-02] - Persistent Codex and Antigravity Collaboration Guidance (Codex)
+
+* Added a durable collaboration rule to this shared development guide: coordinate work with Antigravity, check handovers and shared changes, avoid overlapping edits, and provide actionable status at handoff. This records Arthur's request that both assistants communicate and work together.
 
 ### [2026-10-02] - Browser MP3 Export (Codex)
 
