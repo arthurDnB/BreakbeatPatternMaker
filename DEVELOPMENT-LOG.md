@@ -77,6 +77,12 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-10-01] - Use Full Think Passage 2 Sample (Codex)
+
+* Corrected the target to the complete 2.23-second Passage 2 clip from the Fine adjustment audition, rendered at the user-confirmed +6 semitones (1.577 seconds). Replaced the unrelated provisional single-hit crop and renamed the asset so it cannot be confused with that extraction or served from its old URL.
+* Updated the catalog, kit label/description, credits and sample-quality documentation.
+* Verification: `npm.cmd test` passed 215/215; `npm.cmd run test:site` built the package with 345 licensed WAVs, but the Edge browser smoke phase again stalled without output and was interrupted.
+
 ### [2026-10-01] - Restore Think Vocal Chop Onset (Codex)
 
 * Replaced the provisional same-position crop from passage 2 with the full 0.758 s single hit source-matched against the user’s supplied vocal sample. Repitched the complete hit by +6 semitones, retaining its vocal onset rather than using an estimated cut point.
