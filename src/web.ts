@@ -29,7 +29,7 @@ import {drumLane} from './core/drum-lanes.js';
 import {ROLES,hex,noteName,isSynthTrack,type Hit,type Role,type Genre,type BreakStyle,type Pattern,type Transfer,type EffectCommand,type Settings,type UserTrack,type SynthTrack,type SynthInstrument,type GenerationMode,type MelodyPart,type MelodyScale} from './core/model.js';
 import {SYNTH_PRESETS} from './audio/synth-instrument.js';
 import {Editor,emptySelection,locked,selectedIds,type EditorState,type TrackerClipboard,type CellPosition} from './core/editor.js';
-import {defaultEffects,type Effects} from './audio/effects.js';
+import {defaultEffects,type Effects,EFFECT_PRESETS,type EffectPreset} from './audio/effects.js';
 import {ArrangementHistory} from './core/arrangement-history.js';
 
 
@@ -69,6 +69,7 @@ let trackerClipboard:TrackerClipboard|undefined;
 let draggingTrackerCells:CellPosition[]|undefined;
 let trackerFieldDraft:{id:string;field:string;digits:string}|undefined;
 let trackerEffectDraft:{id:string;command?:EffectCommand['command'];digits:string;prefix:boolean}|undefined;
+let syncDspControls: () => void = () => {};
 const drumLaneFields=new Map<Role,{name:HTMLInputElement;visible:HTMLInputElement;generation:HTMLSelectElement;count:HTMLElement}>();
 function visibleDrumRoles(){return ROLES.filter(role=>drumLane(pattern,role).visible);}
 let editTargetLane='';
@@ -2194,6 +2195,7 @@ function initBottomRack(){
 
   initReTrackRotaryDials();
   initReTrackStompboxes();
+  initReTrackDspPresets();
 
   function resetDsp(){
     const sel = document.getElementById('dsp-role-select') as HTMLSelectElement | null;
@@ -2219,7 +2221,7 @@ function initBottomRack(){
   const dspResetBtn = document.getElementById('dsp-reset');
   if(dspResetBtn) dspResetBtn.onclick = resetDsp;
 
-  function syncDspControls(){
+  syncDspControls = function(){
     const sel = document.getElementById('dsp-role-select') as HTMLSelectElement | null;
     if(!sel) return;
     const target = sel.value || 'all';
@@ -2266,6 +2268,23 @@ function initBottomRack(){
     if(mixEl) mixEl.value = String(fx.mix);
     const mixOut = document.getElementById('dsp-mix-val');
     if(mixOut) mixOut.textContent = Math.round(fx.mix * 100) + '%';
+
+    const routeSel = document.getElementById('dsp-chain-route-select') as HTMLSelectElement | null;
+    if(routeSel && routeSel.value !== target) routeSel.value = target;
+
+    const names: Record<string, string> = {
+      all: 'MASTER BUS',
+      kick: 'TRK 01: KICK',
+      snare: 'TRK 02: SNARE',
+      hat: 'TRK 03: HI-HAT',
+      percussion: 'TRK 04: PERCUSSION'
+    };
+    const targetLabel = document.getElementById('dsp-chain-target-label');
+    if(targetLabel) targetLabel.textContent = `🎛 DSP FX CHAIN: [${names[target] || target.toUpperCase()}]`;
+    const tabFx = document.getElementById('tab-fx-chain');
+    if(tabFx) tabFx.innerHTML = `<span class="tab-badge-purple">🎛</span> DSP FX CHAIN: [${names[target] || target.toUpperCase()}]`;
+
+    syncReTrackRotaryDials();
   }
 
   function updateDspParam(key: keyof Effects, val: number | boolean){
@@ -2328,6 +2347,20 @@ initWorkspaceDock();
 initBottomRack();
 initReTrackStudio();
 
+function syncReTrackRotaryDials() {
+  document.querySelectorAll<HTMLElement>('.rotary-dial').forEach(dial => {
+    const bindId = dial.dataset.bindInput;
+    if (!bindId) return;
+    const inp = document.getElementById(bindId) as HTMLInputElement | null;
+    if (inp) {
+      const p = parseFloat(inp.value);
+      if (!isNaN(p)) {
+        (dial as any)._updateDisplay?.(p);
+      }
+    }
+  });
+}
+
 function initReTrackRotaryDials() {
   const dials = document.querySelectorAll<HTMLElement>('.rotary-dial');
   dials.forEach(dial => {
@@ -2384,6 +2417,7 @@ function initReTrackRotaryDials() {
       }
     };
 
+    (dial as any)._updateDisplay = updateDisplay;
     updateDisplay(val);
 
     if (boundInput) {
@@ -2451,13 +2485,252 @@ function initReTrackRotaryDials() {
 function initReTrackStompboxes() {
   document.querySelectorAll<HTMLElement>('.stompbox-byp').forEach(btn => {
     btn.onclick = () => {
+      const unit = btn.closest<HTMLElement>('.stompbox-unit');
       btn.classList.toggle('is-bypassed');
       const isByp = btn.classList.contains('is-bypassed');
+      if (unit) unit.classList.toggle('is-bypassed', isByp);
       btn.textContent = isByp ? 'OFF' : 'BYP';
       const dev = btn.dataset.device ?? 'device';
+
+      if (dev === 'filter') {
+        const hpInp = document.getElementById('dsp-hp') as HTMLInputElement | null;
+        const resInp = document.getElementById('dsp-res') as HTMLInputElement | null;
+        if (isByp) {
+          btn.dataset.cachedHp = hpInp?.value ?? '0';
+          btn.dataset.cachedRes = resInp?.value ?? '0';
+          if (hpInp) { hpInp.value = '0'; hpInp.dispatchEvent(new Event('input', { bubbles: true })); }
+          if (resInp) { resInp.value = '0'; resInp.dispatchEvent(new Event('input', { bubbles: true })); }
+        } else {
+          const prevHp = btn.dataset.cachedHp ?? '420';
+          const prevRes = btn.dataset.cachedRes ?? '0.68';
+          if (hpInp) { hpInp.value = prevHp; hpInp.dispatchEvent(new Event('input', { bubbles: true })); }
+          if (resInp) { resInp.value = prevRes; resInp.dispatchEvent(new Event('input', { bubbles: true })); }
+        }
+      } else if (dev === 'distort') {
+        const drvInp = document.getElementById('dsp-drive') as HTMLInputElement | null;
+        if (isByp) {
+          btn.dataset.cachedDrive = drvInp?.value ?? '0';
+          if (drvInp) { drvInp.value = '0'; drvInp.dispatchEvent(new Event('input', { bubbles: true })); }
+        } else {
+          const prevDrv = btn.dataset.cachedDrive ?? '0.7';
+          if (drvInp) { drvInp.value = prevDrv; drvInp.dispatchEvent(new Event('input', { bubbles: true })); }
+        }
+      } else if (dev === 'phaser') {
+        const mixInp = document.getElementById('dsp-mix') as HTMLInputElement | null;
+        if (isByp) {
+          btn.dataset.cachedMix = mixInp?.value ?? '0';
+          if (mixInp) { mixInp.value = '0'; mixInp.dispatchEvent(new Event('input', { bubbles: true })); }
+        } else {
+          const prevMix = btn.dataset.cachedMix ?? '0.42';
+          if (mixInp) { mixInp.value = prevMix; mixInp.dispatchEvent(new Event('input', { bubbles: true })); }
+        }
+      } else if (dev === 'comp') {
+        const punchInp = document.getElementById('dsp-punch') as HTMLInputElement | null;
+        if (isByp) {
+          btn.dataset.cachedPunch = punchInp?.value ?? '0';
+          if (punchInp) { punchInp.value = '0'; punchInp.dispatchEvent(new Event('input', { bubbles: true })); }
+        } else {
+          const prevPunch = btn.dataset.cachedPunch ?? '0.58';
+          if (punchInp) { punchInp.value = prevPunch; punchInp.dispatchEvent(new Event('input', { bubbles: true })); }
+        }
+      } else if (dev === 'maximizer') {
+        const drvInp = document.getElementById('dsp-drive') as HTMLInputElement | null;
+        if (isByp) {
+          btn.dataset.cachedMaxDrv = drvInp?.value ?? '0';
+          if (drvInp) { drvInp.value = '0'; drvInp.dispatchEvent(new Event('input', { bubbles: true })); }
+        } else {
+          const prevDrv = btn.dataset.cachedMaxDrv ?? '0.5';
+          if (drvInp) { drvInp.value = prevDrv; drvInp.dispatchEvent(new Event('input', { bubbles: true })); }
+        }
+      }
+
+      syncReTrackRotaryDials();
       status(`DSP Device ${dev.toUpperCase()}: ${isByp ? 'Bypassed' : 'Active'}.`);
     };
   });
+}
+
+function initReTrackDspPresets() {
+  const btnPresets = document.getElementById('dsp-presets-btn');
+  const dialog = document.getElementById('dsp-presets-dialog') as HTMLDialogElement | null;
+  const btnClose = document.getElementById('dsp-presets-close');
+  const grid = document.getElementById('dsp-presets-grid');
+  const filterBtns = document.querySelectorAll<HTMLElement>('.dsp-filter-btn');
+  const btnSaveCustom = document.getElementById('dsp-custom-save-btn');
+  const customNameInput = document.getElementById('dsp-custom-name') as HTMLInputElement | null;
+  const routeSelect = document.getElementById('dsp-chain-route-select') as HTMLSelectElement | null;
+  const btnAddDevice = document.getElementById('dsp-add-device-btn');
+
+  if (btnAddDevice) {
+    btnAddDevice.onclick = () => {
+      status('Hardware DSP Rack: All 5 modular devices (Filter, Distort, Phaser, Comp, Maximizer) active.');
+    };
+  }
+
+  if (routeSelect) {
+    routeSelect.onchange = () => {
+      const targetRole = routeSelect.value;
+      const dspSel = document.getElementById('dsp-role-select') as HTMLSelectElement | null;
+      if (dspSel) {
+        dspSel.value = targetRole;
+        dspSel.dispatchEvent(new Event('change'));
+      }
+    };
+  }
+
+  function loadCustomPresets(): EffectPreset[] {
+    try {
+      const data = localStorage.getItem('bpm_custom_dsp_presets');
+      if (data) {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch { }
+    return [];
+  }
+
+  function saveCustomPresets(list: EffectPreset[]) {
+    try {
+      localStorage.setItem('bpm_custom_dsp_presets', JSON.stringify(list));
+    } catch { }
+  }
+
+  let activeCategory = 'all';
+
+  function renderPresets() {
+    if (!grid) return;
+    const customs = loadCustomPresets();
+    const allPresets: EffectPreset[] = [...EFFECT_PRESETS, ...customs];
+    const filtered = activeCategory === 'all' 
+      ? allPresets 
+      : activeCategory === 'Custom' 
+        ? customs 
+        : allPresets.filter(p => p.category === activeCategory);
+
+    const getCatClass = (cat: string) => {
+      if (cat.includes('DnB')) return 'cat-dnb';
+      if (cat.includes('Distort')) return 'cat-distort';
+      if (cat.includes('Spatial')) return 'cat-spatial';
+      if (cat.includes('Dynamics')) return 'cat-dynamics';
+      if (cat.includes('Custom')) return 'cat-custom';
+      return 'cat-utility';
+    };
+
+    grid.innerHTML = filtered.map(preset => {
+      const isCustom = customs.some(c => c.id === preset.id);
+      const fx = preset.effects;
+      return `
+        <div class="dsp-preset-card" data-preset-id="${preset.id}">
+          <div class="dsp-preset-top">
+            <span class="dsp-preset-name">${preset.name}</span>
+            <span class="dsp-preset-category ${getCatClass(preset.category)}">${preset.category}</span>
+          </div>
+          <p class="dsp-preset-desc">${preset.description}</p>
+          <div class="dsp-preset-tags">
+            ${fx.highpass ? `<span class="dsp-param-pill">HP: ${fx.highpass}Hz</span>` : ''}
+            ${fx.lowpass < 20000 ? `<span class="dsp-param-pill">LP: ${fx.lowpass}Hz</span>` : ''}
+            ${fx.drive ? `<span class="dsp-param-pill">DRIVE: ${(fx.drive * 100).toFixed(0)}%</span>` : ''}
+            ${fx.punch ? `<span class="dsp-param-pill">PUNCH: ${(fx.punch * 100).toFixed(0)}%</span>` : ''}
+            ${fx.mix ? `<span class="dsp-param-pill">DELAY: ${fx.delayMs}ms</span>` : ''}
+            ${fx.bypass ? `<span class="dsp-param-pill">BYPASS</span>` : ''}
+          </div>
+          <div class="dsp-preset-actions">
+            ${isCustom ? `<button type="button" class="dsp-preset-del-btn" data-delete-id="${preset.id}">Delete</button>` : ''}
+            <button type="button" class="dsp-preset-load-btn" data-load-id="${preset.id}">Load Preset</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    grid.querySelectorAll<HTMLButtonElement>('.dsp-preset-load-btn').forEach(btn => {
+      btn.onclick = () => {
+        const id = btn.dataset.loadId;
+        if (!id) return;
+        const targetPreset = allPresets.find(p => p.id === id);
+        if (targetPreset) {
+          applyDspPreset(targetPreset);
+          if (dialog?.open) dialog.close();
+        }
+      };
+    });
+
+    grid.querySelectorAll<HTMLButtonElement>('.dsp-preset-del-btn').forEach(btn => {
+      btn.onclick = () => {
+        const id = btn.dataset.deleteId;
+        if (!id) return;
+        const remaining = customs.filter(c => c.id !== id);
+        saveCustomPresets(remaining);
+        renderPresets();
+        status('Custom DSP preset deleted.');
+      };
+    });
+  }
+
+  function applyDspPreset(preset: EffectPreset) {
+    const dspSel = document.getElementById('dsp-role-select') as HTMLSelectElement | null;
+    const target = dspSel?.value || 'all';
+    const rolesToUpdate = target === 'all' ? ROLES : [target as Role];
+    for (const r of rolesToUpdate) {
+      kitPanel.mix[r].effects = { ...preset.effects };
+      for (const key of ['highpass', 'lowpass', 'resonance', 'drive', 'punch', 'wet', 'delayMs', 'feedback', 'mix'] as const) {
+        const rackInput = document.getElementById('fx-' + key + '-' + r) as HTMLInputElement | null;
+        if (rackInput) rackInput.value = String(preset.effects[key]);
+        const rackOutput = document.getElementById('fx-' + key + '-val-' + r);
+        if (rackOutput) rackOutput.textContent = key === 'wet' ? Math.round(Number(preset.effects[key]) * 100) + '%' : String(preset.effects[key]);
+      }
+      const bypassInput = document.getElementById('fx-bypass-' + r) as HTMLInputElement | null;
+      if (bypassInput) bypassInput.checked = !!preset.effects.bypass;
+    }
+    syncDspControls();
+    dirty();
+    status(`DSP FX Preset applied: "${preset.name}" (${target === 'all' ? 'Master Bus' : target}).`);
+  }
+
+  filterBtns.forEach(btn => {
+    btn.onclick = () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeCategory = btn.dataset.cat ?? 'all';
+      renderPresets();
+    };
+  });
+
+  if (btnPresets && dialog) {
+    btnPresets.onclick = () => {
+      renderPresets();
+      dialog.showModal();
+    };
+  }
+
+  if (btnClose && dialog) {
+    btnClose.onclick = () => dialog.close();
+  }
+
+  if (btnSaveCustom && customNameInput) {
+    btnSaveCustom.onclick = () => {
+      const name = customNameInput.value.trim();
+      if (!name) {
+        status('Please enter a preset name.');
+        return;
+      }
+      const dspSel = document.getElementById('dsp-role-select') as HTMLSelectElement | null;
+      const targetRole: Role = (dspSel?.value === 'all' || !dspSel?.value) ? 'snare' : dspSel.value as Role;
+      const currentFx = kitPanel.mix[targetRole].effects ?? defaultEffects();
+      const customs = loadCustomPresets();
+      const newPreset: EffectPreset = {
+        id: 'custom-' + Date.now(),
+        name,
+        category: 'Custom',
+        description: `User-saved chain from ${targetRole === 'snare' ? 'Master' : targetRole}.`,
+        effects: { ...currentFx }
+      };
+      customs.push(newPreset);
+      saveCustomPresets(customs);
+      customNameInput.value = '';
+      status(`Saved custom DSP preset "${name}".`);
+      renderPresets();
+    };
+  }
 }
 
 function syncReTrackSampleRack() {
@@ -2601,6 +2874,30 @@ function initReTrackOscilloscope() {
       if (meterDb) meterDb.textContent = `-${(14 - (lVal / 95) * 12).toFixed(1)} dB`;
     }
 
+    // Bus compressor Gain Reduction (GR) meter animation
+    const compGrFill = document.getElementById('comp-gr-fill');
+    const compGrVal = document.getElementById('comp-gr-val');
+    if (compGrFill && compGrVal) {
+      if (isPlaying) {
+        const punchInp = document.getElementById('dsp-punch') as HTMLInputElement | null;
+        const punch = punchInp ? parseFloat(punchInp.value) || 0 : 0;
+        const compUnit = document.querySelector('.stompbox-comp');
+        const isBypassed = compUnit?.classList.contains('is-bypassed');
+        if (isBypassed || punch <= 0) {
+          compGrFill.style.width = '0%';
+          compGrVal.textContent = '0.0dB';
+        } else {
+          const grNorm = Math.max(0, Math.min(1, (0.35 + 0.65 * Math.sin(phase * 4.5) * Math.sin(phase * 2.2)) * punch));
+          const grDb = (grNorm * 12).toFixed(1);
+          compGrFill.style.width = `${Math.round(grNorm * 100)}%`;
+          compGrVal.textContent = `-${grDb}dB`;
+        }
+      } else {
+        compGrFill.style.width = '0%';
+        compGrVal.textContent = '0.0dB';
+      }
+    }
+
     requestAnimationFrame(renderOscilloscope);
   }
 
@@ -2684,6 +2981,7 @@ function syncReTrackStatusStrip() {
 function initReTrackStudio() {
   initReTrackTopTransport();
   initReTrackOscilloscope();
+  initReTrackDspPresets();
   syncReTrackSampleRack();
   syncReTrackStatusStrip();
 }

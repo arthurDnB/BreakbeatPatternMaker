@@ -361,14 +361,23 @@
     <section id="re-track-dsp-panel" class="re-track-dsp-panel" aria-label="Modular DSP FX Chain">
       <div class="dsp-chain-header">
         <div class="dsp-chain-badge-group">
-          <span class="dsp-chain-pill">🎛 DSP FX CHAIN: [TRK 03 - REESE BASS]</span>
+          <span class="dsp-chain-pill" id="dsp-chain-target-label">🎛 DSP FX CHAIN: [MASTER BUS]</span>
           <span class="dsp-chain-meta">LATENCY: <strong>0 spl (0.0 ms)</strong></span>
           <span class="dsp-chain-sep">|</span>
-          <span class="dsp-chain-meta">ROUTING: <strong class="accent-amber">TRACK -&gt; MASTER SEND</strong></span>
+          <label class="dsp-chain-route-label">
+            ROUTING:
+            <select id="dsp-chain-route-select" class="dsp-chain-route-select" aria-label="DSP Chain Routing Target">
+              <option value="all" selected>MASTER BUS</option>
+              <option value="kick">TRK 01: KICK</option>
+              <option value="snare">TRK 02: SNARE</option>
+              <option value="hat">TRK 03: HI-HAT</option>
+              <option value="percussion">TRK 04: PERCUSSION</option>
+            </select>
+          </label>
         </div>
         <div class="dsp-chain-actions">
-          <button type="button" class="dsp-action-btn">+ ADD DEVICE</button>
-          <button type="button" class="dsp-action-btn">≡ PRESETS</button>
+          <button type="button" class="dsp-action-btn" id="dsp-add-device-btn">+ ADD DEVICE</button>
+          <button type="button" class="dsp-action-btn" id="dsp-presets-btn">≡ PRESETS</button>
         </div>
       </div>
 
@@ -634,6 +643,39 @@
       </dl></section>
     </div>
     <footer><span>On macOS, use <kbd>⌘</kbd> wherever the reference says Ctrl.</span><button id="shortcut-help-done" class="accent" type="button">Done</button></footer>
+  </div>
+</dialog>
+
+<dialog id="dsp-presets-dialog" class="dsp-presets-dialog" aria-labelledby="dsp-presets-title">
+  <div class="dsp-presets-shell">
+    <header class="dsp-presets-header">
+      <div>
+        <p class="eyebrow">HARDWARE DSP CHAIN</p>
+        <h2 id="dsp-presets-title">FX Chain Presets</h2>
+        <p class="dsp-presets-subtitle">Select a curated studio preset or save your current hardware stompbox chain.</p>
+      </div>
+      <button id="dsp-presets-close" type="button" class="dsp-presets-close" aria-label="Close presets dialog">×</button>
+    </header>
+
+    <div class="dsp-presets-filters" id="dsp-presets-filters">
+      <button type="button" class="dsp-filter-btn active" data-cat="all">All Presets</button>
+      <button type="button" class="dsp-filter-btn" data-cat="DnB & Jungle">DnB &amp; Jungle</button>
+      <button type="button" class="dsp-filter-btn" data-cat="Distortion & Dirt">Distortion &amp; Dirt</button>
+      <button type="button" class="dsp-filter-btn" data-cat="Spatial & Space">Spatial &amp; Space</button>
+      <button type="button" class="dsp-filter-btn" data-cat="Dynamics & Polish">Dynamics &amp; Polish</button>
+      <button type="button" class="dsp-filter-btn" data-cat="Utility">Utility</button>
+      <button type="button" class="dsp-filter-btn" data-cat="Custom">Custom</button>
+    </div>
+
+    <div class="dsp-presets-grid" id="dsp-presets-grid" role="region" aria-label="Available DSP Presets"></div>
+
+    <section class="dsp-custom-preset-bar">
+      <div class="dsp-save-input-wrap">
+        <label for="dsp-custom-name" class="dsp-save-label">Save Current FX:</label>
+        <input type="text" id="dsp-custom-name" class="dsp-custom-name-input" placeholder="e.g. My Heavy Crunch" maxlength="32">
+      </div>
+      <button type="button" id="dsp-custom-save-btn" class="dsp-custom-save-btn">💾 Save Custom Preset</button>
+    </section>
   </div>
 </dialog>
 

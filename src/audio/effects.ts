@@ -22,6 +22,165 @@ export const defaultEffects = (): Effects => ({
   mix: 0,
   wet: 1
 });
+export interface EffectPreset {
+  id: string;
+  name: string;
+  category: 'DnB & Jungle' | 'Distortion & Dirt' | 'Spatial & Space' | 'Dynamics & Polish' | 'Utility' | 'Custom';
+  description: string;
+  effects: Effects;
+}
+
+export const EFFECT_PRESETS: EffectPreset[] = [
+  {
+    id: 'amen-slammer',
+    name: 'Amen Slammer',
+    category: 'DnB & Jungle',
+    description: 'High punch, aggressive harmonic drive, and low-end containment tailored for classic jungle breaks.',
+    effects: {
+      bypass: false,
+      highpass: 35,
+      lowpass: 18000,
+      resonance: 0.15,
+      punch: 0.85,
+      drive: 0.35,
+      delayMs: 120,
+      feedback: 0.15,
+      mix: 0.08,
+      wet: 1
+    }
+  },
+  {
+    id: 'reese-saturator',
+    name: 'Reese Saturator',
+    category: 'Distortion & Dirt',
+    description: 'Warm asymmetrical tanh tape overdrive with resonant lowpass warmth and subtle echo.',
+    effects: {
+      bypass: false,
+      highpass: 25,
+      lowpass: 7500,
+      resonance: 0.3,
+      punch: 0.2,
+      drive: 0.65,
+      delayMs: 180,
+      feedback: 0.2,
+      mix: 0.1,
+      wet: 0.95
+    }
+  },
+  {
+    id: 'liquid-space',
+    name: 'Liquid Air & Space',
+    category: 'Spatial & Space',
+    description: 'Lush stereo ping-pong slapback delay with sparkling high-end air and resonant filter presence.',
+    effects: {
+      bypass: false,
+      highpass: 150,
+      lowpass: 16000,
+      resonance: 0.2,
+      punch: 0.1,
+      drive: 0.05,
+      delayMs: 360,
+      feedback: 0.45,
+      mix: 0.35,
+      wet: 0.85
+    }
+  },
+  {
+    id: 'lofi-tape-crunch',
+    name: 'Lo-Fi Tape Crunch',
+    category: 'Distortion & Dirt',
+    description: 'Bandpass telephone/SP-1200 style character with saturated bite and short flutter delay.',
+    effects: {
+      bypass: false,
+      highpass: 280,
+      lowpass: 4800,
+      resonance: 0.4,
+      punch: 0.4,
+      drive: 0.55,
+      delayMs: 65,
+      feedback: 0.25,
+      mix: 0.15,
+      wet: 1
+    }
+  },
+  {
+    id: 'dub-space-echo',
+    name: 'Dub Space Echo',
+    category: 'Spatial & Space',
+    description: 'Deep resonant tape delay with cascading feedback loops and scooped low-mids.',
+    effects: {
+      bypass: false,
+      highpass: 120,
+      lowpass: 9000,
+      resonance: 0.35,
+      punch: 0,
+      drive: 0.18,
+      delayMs: 480,
+      feedback: 0.65,
+      mix: 0.5,
+      wet: 0.9
+    }
+  },
+  {
+    id: 'crisp-vca-glue',
+    name: 'Crisp VCA Bus Glue',
+    category: 'Dynamics & Polish',
+    description: 'Transparent bus transient sculpting with gentle warmth and tight sub control.',
+    effects: {
+      bypass: false,
+      highpass: 30,
+      lowpass: 19500,
+      resonance: 0.05,
+      punch: 0.6,
+      drive: 0.12,
+      delayMs: 200,
+      feedback: 0,
+      mix: 0,
+      wet: 1
+    }
+  },
+  {
+    id: 'sub-bass-cleaner',
+    name: 'Sub-Bass Cleaner',
+    category: 'Utility',
+    description: 'Tight 45Hz highpass rumble filter with gentle top roll-off and zero echo.',
+    effects: {
+      bypass: false,
+      highpass: 45,
+      lowpass: 17500,
+      resonance: 0.1,
+      punch: 0.3,
+      drive: 0,
+      delayMs: 250,
+      feedback: 0.1,
+      mix: 0,
+      wet: 1
+    }
+  },
+  {
+    id: 'clean-bypass',
+    name: 'Clean Bypass',
+    category: 'Utility',
+    description: 'Flat neutral response with DSP stage bypassed.',
+    effects: {
+      bypass: true,
+      highpass: 0,
+      lowpass: 20000,
+      resonance: 0,
+      punch: 0,
+      drive: 0,
+      delayMs: 250,
+      feedback: 0.3,
+      mix: 0,
+      wet: 1
+    }
+  }
+];
+
+export function getEffectPreset(id: string): EffectPreset | undefined {
+  return EFFECT_PRESETS.find(p => p.id === id);
+}
+
 export function validateEffects(f: Effects) {
   if (!f || typeof f.bypass !== 'boolean') throw Error('Invalid effects.');
   for (const [key, min, max] of [

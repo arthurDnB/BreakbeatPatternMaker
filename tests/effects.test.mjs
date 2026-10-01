@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {defaultEffects,processEffects} from '../dist/audio/effects.js';import {renderPerformance} from '../dist/audio/performance.js';import {generate} from '../dist/core/generate.js';import {defaults} from '../dist/core/profiles.js';import {defaultKitState,withDrumKit} from '../dist/audio/drum-kit.js';import {makeProject,readProject} from '../dist/audio/project.js';import {Editor} from '../dist/core/editor.js';
+import {defaultEffects,processEffects,EFFECT_PRESETS,getEffectPreset,validateEffects} from '../dist/audio/effects.js';import {renderPerformance} from '../dist/audio/performance.js';import {generate} from '../dist/core/generate.js';import {defaults} from '../dist/core/profiles.js';import {defaultKitState,withDrumKit} from '../dist/audio/drum-kit.js';import {makeProject,readProject} from '../dist/audio/project.js';import {Editor} from '../dist/core/editor.js';
 test('reverse reads only the assigned region and does not change source audio',()=>{
  const p=generate(defaults());const source=new Float32Array([.1,.2,.3,.4,.5]),before=source.slice(),asset={id:'reverse-test',name:'test',sampleRate:44100,channels:[source]};
  p.events=[{...p.events[0],gain:1,reverse:true,slice:{assetId:asset.id,startFrame:1,endFrame:4,sampleRate:44100,label:'slice'}}];
@@ -44,3 +44,21 @@ test('effects wet/dry crossfading: 0 is completely dry, 1 is fully processed, 0.
  assert.throws(()=>processEffects([input.slice()],rate,{...defaultEffects(),wet:1.05}),/effect wet/);
  assert.throws(()=>processEffects([input.slice()],rate,{...defaultEffects(),wet:NaN}),/effect wet/);
 });
+test('curated DSP effect presets are valid, retrievable, and process audio cleanly',()=>{
+ assert.ok(Array.isArray(EFFECT_PRESETS) && EFFECT_PRESETS.length >= 8);
+ const rate = 44100;
+ for (const preset of EFFECT_PRESETS) {
+  assert.ok(preset.id && typeof preset.id === 'string');
+  assert.ok(preset.name && typeof preset.name === 'string');
+  assert.ok(preset.category && typeof preset.category === 'string');
+  assert.ok(preset.description && typeof preset.description === 'string');
+  assert.doesNotThrow(() => validateEffects(preset.effects));
+  assert.equal(getEffectPreset(preset.id)?.id, preset.id);
+
+  const testBuf = [new Float32Array(512).fill(0.2)];
+  assert.doesNotThrow(() => processEffects(testBuf, rate, preset.effects));
+  assert.ok(testBuf[0].every(Number.isFinite));
+ }
+ assert.equal(getEffectPreset('non-existent-preset'), undefined);
+});
+

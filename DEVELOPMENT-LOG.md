@@ -82,6 +82,27 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-10-02] - Modular DSP FX Chain Presets & True Audio Processing (Antigravity)
+
+* **Curated DSP FX Chain Presets:**
+  - Exported typed `EffectPreset` interface and `EFFECT_PRESETS` catalog with 8 curated sound design presets (`Amen Slammer`, `Reese Saturator`, `Liquid Air & Space`, `Lo-Fi Tape Crunch`, `Dub Space Echo`, `Crisp VCA Bus Glue`, `Sub-Bass Cleaner`, `Clean Bypass`) in `src/audio/effects.ts`.
+  - Added `getEffectPreset(id)` lookup helper with full unit test coverage in `tests/effects.test.mjs`.
+* **Interactive Presets UI Modal:**
+  - Added `#dsp-presets-dialog` modal dialog in `public/index.html` opened via the `≡ PRESETS` button.
+  - Features real-time category filtering (`All`, `DnB & Jungle`, `Distortion & Dirt`, `Spatial & Space`, `Dynamics & Polish`, `Utility`, `Custom`).
+  - Added custom preset persistence allowing users to save their current stompbox settings to `localStorage` under `bpm_custom_dsp_presets`, load, and delete them on demand.
+* **DSP Routing Selector:**
+  - Added `#dsp-chain-route-select` in the DSP chain header, allowing live switching between `MASTER BUS` and individual drum lanes (`TRK 01: KICK`, `TRK 02: SNARE`, `TRK 03: HI-HAT`, `TRK 04: PERCUSSION`).
+  - Synchronized with `kitPanel.mix` and `#dsp-role-select`, automatically updating all stompbox knobs and header telemetry when routing changes.
+* **Authentic Hardware Stompbox Bypass & Parameter Caching:**
+  - Updated all 5 stompbox `BYP` buttons (`filter`, `distort`, `phaser`, `comp`, `maximizer`) to cache previous knob positions, visually dim the unit (`.is-bypassed`), turn off status badges, and zero out or bypass the corresponding DSP module.
+  - Toggling back to active restores the previous cached parameters immediately into the audio engine and updates the rotary dials.
+* **Dynamic Gain Reduction (GR) Meter Animation:**
+  - Hooked the `04: BUS COMP` GR meter (`#comp-gr-fill`, `#comp-gr-val`) into the real-time audio playback animation loop, dynamically pulsing and displaying decibel reduction based on compressor punch during playback.
+* **Verification & Quality Gates:**
+  - All 253 unit tests passed (`npm.cmd test`).
+  - Full site build and Playwright browser smoke test suite passed on both root and subpath mounts (`npm.cmd run test:site`).
+
 ### [2026-10-02] - "RE-TRACK v4.2" Cyberpunk Tracker DAW Layout Overhaul (Antigravity)
 
 * **Workstation Studio Layout Overhaul:**
