@@ -18,6 +18,7 @@ import {downloadBytes} from './audio/render.js';
 import {renderPerformance,renderSequence} from './audio/performance.js';
 import {ensurePianoBankAudio} from './audio/piano-bank.js';
 import {encodeWav} from './audio/wav.js';
+import {encodeMp3} from './audio/mp3.js';
 import {reconstruct,sliceReference,type AudioAsset} from './audio/slices.js';
 import {BREAKS} from './core/breaks.js';
 import {defaults,genreDefaults,PROFILES} from './core/profiles.js';
@@ -1103,6 +1104,27 @@ el('export-wav').onclick=async()=>{
     );
   }
   catch(e){const detail=(e as Error).message;fileFeedback(`WAV export failed. Try exporting a shorter pattern or freeing browser memory. Details: ${detail}`,true);status(`WAV export failed: ${detail}. A shorter render may help.`,true);}
+};
+el('export-mp3').onclick=async()=>{
+  const button=input('export-mp3');button.disabled=true;
+  try{
+    const song=input('export-target').value==='song';
+    const isLoop=input('export-mode').value!=='tail';
+    await vinylOptions();
+    if(song){stashSlot();await preparePianoAudio(arrange(bank!));}
+    else await preparePianoAudio([pattern]);
+    const audio=song?arrangementAudio(44100):renderPerformance(
+      withDrumKit(pattern,drumKit,kitPanel.mix),assets,44100,effectMap(),
+      isLoop?{loop:true,...readyVinylOptions()}:{trimSilence:true,maxTailSeconds:3,...readyVinylOptions()}
+    );
+    const duration=audio.channels[0]!.length/audio.sampleRate,trim=masterTrimNote(audio.attenuation);
+    const filename=song?'breakbeat-arrangement.mp3':isLoop?transfer.genre+'-pattern.mp3':transfer.genre+'-pattern-tail.mp3';
+    fileFeedback(`Encoding ${filename} at 192 kbps…`);
+    downloadBytes(await encodeMp3(audio.channels,audio.sampleRate),filename,'audio/mpeg');
+    fileFeedback(`${filename} downloaded · ${song?'Full song arrangement':'Active pattern'} · ${duration.toFixed(2)} s of rendered audio at 192 kbps.${!song&&isLoop?' MP3 encoder padding can add a gap when looping; use WAV for exact loops.':''} Browser controls the download location.${trim}`);
+    status(`${song?'Song':'Pattern'} MP3 downloaded. Use WAV for exact seamless loops.`);
+  }catch(error){const detail=(error as Error).message;fileFeedback(`MP3 export failed: ${detail}`,true);status(`MP3 export failed: ${detail}`,true);}
+  finally{button.disabled=false;}
 };
 el('export').onclick=download;el('play').onclick=()=>{play().catch(e=>status(String(e),true));};
 el('copy').onclick=async()=>{

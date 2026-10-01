@@ -65,7 +65,8 @@ This document maintains the running project state and change log so that multipl
 * [x] **Vinyl Texture Rack (Complete):** Nine bundled textures have a user-controlled background playback layer, independent of genre, with loop crossfades and WAV/project support.
 * [x] **Break Transcription (Preview):** Local automatic slicing, mapped slice instruments, original-timing reconstruction, marker review and project v4. See `docs/BREAK-TRANSCRIPTION.md`.
 * [ ] **Break Transcription Production Gate:** One listener verified onset labels for eight two-second excerpts. Longer excerpts, a second independent annotator, additional unrelated breaks and full-loop listening remain before any industry-standard claim.
-* [ ] **Future Audio Roadmaps:** MP3 export, velocity-layered drum kits.
+* [x] **MP3 export:** Pattern and full-song audio can be encoded at 192 kbps from the same render as WAV. MP3 may contain encoder padding at loop boundaries; WAV remains the exact-loop export.
+* [ ] **Future Audio Roadmap:** Velocity-layered drum kits.
 * [x] **Sound Library Browser:** Shared searchable and filterable audition/selection for lanes and tracker hits, with browser-local Favorites and Recently used sounds.
 * [x] **Optional Melody Generation:** Drum, drum + melody, and melody modes with genre-aware bassline/lead synth motifs, key/scale choice, layer preservation, locks and Undo.
 * [x] **Configurable drum lanes:** The four built-in sample lanes can be renamed, hidden, and assigned beat-generator roles independently of their sounds; see `docs/DRUM-LANES.md`.
@@ -76,6 +77,13 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-10-02] - Browser MP3 Export (Codex)
+
+* Added **Export MP3** for the active pattern and full song arrangement. It uses the existing 44.1 kHz stereo performance renderer, selected loop/tail option, sample assets, synths, vinyl ambience and master processing, then encodes at 192 kbps in a Web Worker so the tracker stays responsive.
+* Shipped the unmodified `@breezystack/lamejs` 1.2.7 ESM encoder as a separate browser file with its LGPL-3.0 license and source attribution. The static-site build packages the worker and encoder for both root and repository-subpath hosting. WAV remains the recommended format for exact seamless loops because MP3 encoder padding can introduce a boundary gap.
+* Added a browser check covering pattern and song downloads, browser-decoded audible stereo output, and WAV coexistence. Preserved the unrelated local `package.json` and chat-sync script changes.
+* Verification: `npm.cmd test` passed 225/225; `node scripts/mp3-browser-smoke.mjs` passed; `npm.cmd run test:site` passed root/subpath, sound-browser and break-browser checks.
 
 ### [2026-10-01] - Exact Tracker Hit Target for Groove V4 (Codex)
 

@@ -6,7 +6,7 @@ Excluded instrument conflicts with locked hits must be resolved explicitly. Ghos
 
 Authentic commercial-break one-shots were not bundled because redistribution permission was not established. All shipped library files have pinned source URLs, hashes and CC0 notices.
 
-Next candidates: MP3 export, velocity-layered kits and stronger sample-browser filtering. Renoise integration is retired. Original long project documents are historical and superseded by this scope and README.md.
+Next candidates: velocity-layered kits and stronger sample-browser filtering. WAV and 192 kbps MP3 export share the pattern/song renderer; WAV remains the exact-loop format because MP3 encoder padding may add a loop gap. Renoise integration is retired. Original long project documents are historical and superseded by this scope and README.md.
 
 Implemented polish: simplified generator toolbar and advanced disclosure; Preview naming; per-lane high/low-pass, drive and delay with bypass; lane/per-hit reverse; shared DSP for preview and WAV; backward-compatible project persistence; OLED black theme and animated round transport control; tracker cell audition, rectangular cell selection, arrow navigation, and editable transport tempo.
 

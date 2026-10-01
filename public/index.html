@@ -31,8 +31,9 @@
     <button id="quick-start-toggle" class="quick-start-toggle" type="button" aria-controls="quick-start" aria-expanded="true">Hide guide</button>
     <button id="layout-stack" type="button" aria-pressed="false" title="Stack or unstack workspace panels">Stack panels</button>
     <div class="output-group">
-      <select id="export-target" aria-label="WAV export target"><option value="pattern">Active pattern</option><option value="song">Full song arrangement</option></select>
+      <select id="export-target" aria-label="Audio export target"><option value="pattern">Active pattern</option><option value="song">Full song arrangement</option></select>
       <button id="export-wav" class="export" title="Render and download the selected pattern or song as a WAV file">Export WAV ↓</button>
+      <button id="export-mp3" class="export" title="Render and download the selected pattern or song as a 192 kbps MP3 file">Export MP3 ↓</button>
       <select id="export-mode" class="export-mode-select" title="WAV export mode">
         <option value="loop" selected>Seamless loop · exact bars</option>
         <option value="tail">One shot · natural tail</option>
