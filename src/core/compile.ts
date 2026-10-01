@@ -65,6 +65,7 @@ export function compile(pattern: Pattern, sources: Source[] = DEFAULT_SOURCES, l
     }
     if(hit.reverse!==undefined&&typeof hit.reverse!=='boolean')throw Error('Invalid reverse flag.');
     if(hit.phaseInvert!==undefined&&typeof hit.phaseInvert!=='boolean')throw Error('Invalid phase invert flag.');
+    if(hit.manual!==undefined&&typeof hit.manual!=='boolean')throw Error('Invalid manual hit flag.');
     if(hit.ratchets!==undefined)bounded(hit.ratchets,1,8,'ratchets',true);
     if(hit.gate!==undefined)bounded(hit.gate,.05,1,'gate');
     if(hit.decay!==undefined)bounded(hit.decay,.02,1,'decay');

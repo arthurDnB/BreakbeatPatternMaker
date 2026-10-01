@@ -245,6 +245,7 @@ function settings(){
   s.resolution=Number(input('resolution').value) as typeof s.resolution;
   if(pattern?.settings.lpb!==undefined)s.lpb=pattern.settings.lpb;
   s.spicy=Number(input('spicy').value);
+  if(s.algorithm==='groove-v4'&&input('hit-target-mode').value==='exact')s.hitTarget=Number(input('hit-target-number').value);
   if(s.algorithm==='groove-v4')s.laneDensity=Object.fromEntries(ROLES.map(role=>[role,Number(input(`${role}-density`).value)])) as NonNullable<Settings['laneDensity']>;
   const ps=input('patternStructure').value; if(['groove','auto','fill','roll','build'].includes(ps)) s.patternStructure = ps as any;
   for(const name of ['complexity','syncopation','swing','humanizeMs','ghostAmount','fillAmount'] as const)s[name]=Number(input(name).value);
@@ -529,7 +530,9 @@ function render(){
   else if(focusRow)container.querySelector<HTMLElement>(`[data-row="${focusRow}"]`)?.focus({preventScroll:true});
   el('slice-octave-label').hidden=!pattern.sliceInstruments?.length;el('edit-break-slices').hidden=!pattern.sliceInstruments?.length;
   el('synth-octave-label').hidden=!isSynthTrack(pattern.userTracks?.find(track=>track.id===cursorTrackId));
-  el('summary').textContent=`${transfer.timing.bars} bars · ${transfer.timing.lines} rows · LPB ${transfer.timing.lpb} · ${transfer.notes.length} hits · ${pattern.settings.bpm.toFixed(1)} BPM · ${(pattern.settings.enabledRoles??ROLES).join(' + ')}`;
+  const synthCount=pattern.events.filter(hit=>!!hit.synthNote).length;
+  const hitSummary=pattern.settings.hitTarget!==undefined&&synthCount?`${pattern.events.length-synthCount} drum hits + ${synthCount} synth notes`:`${transfer.notes.length} hits`;
+  el('summary').textContent=`${transfer.timing.bars} bars · ${transfer.timing.lines} rows · LPB ${transfer.timing.lpb} · ${hitSummary} · ${pattern.settings.bpm.toFixed(1)} BPM · ${(pattern.settings.enabledRoles??ROLES).join(' + ')}`;
   el('generation-summary').textContent=(pattern.settings.enabledRoles??ROLES).map(r=>r==='hat'?'Hi-hat':r[0]!.toUpperCase()+r.slice(1)).join(' + ')+' · '+pattern.settings.bars+' bars · '+pattern.settings.bpm.toFixed(1)+' BPM';
   input('export').disabled=false;input('play').disabled=false;input('copy').disabled=false;
   const range=editor.state.selection.rows;
@@ -610,16 +613,19 @@ function selectRows(start:number,end:number,anchor=true){
 }
 function syncControls(){
   const s=editor.state.pattern.settings;
+  input('hit-target-mode').value=s.hitTarget===undefined?'auto':'exact';
+  input('hit-target-number').value=String(s.hitTarget??32);
+  input('hit-target-slider').value=String(s.hitTarget??32);
   input('generationMode').value=s.generationMode??'drums';input('melodyPart').value=s.melodyPart??'bassline';input('melodyKey').value=String(s.melodyKey??0);input('melodyScale').value=s.melodyScale??'natural-minor';input('harmonyStyle').value=s.harmonyStyle??'jazz';
   for(const role of ROLES)input(`${role}-density`).value=String(s.laneDensity?.[role]??1);
   input('patternStructure').value=s.patternStructure??'auto';
   input('breakLayer').value=s.breakLayer??'off';
   input('phraseLength').value=String(s.phraseLength??0);syncPhraseControls(s.phraseOffset??0);
   input('algorithm').value=s.algorithm??'legacy-v1';input('variation').value=String(s.variation??0);
-  for(const [key,value] of Object.entries(s))if(key!=='enabledRoles'&&key!=='laneDensity'&&key!=='lpb')input(key).value=String(value);
+  for(const [key,value] of Object.entries(s))if(key!=='enabledRoles'&&key!=='laneDensity'&&key!=='lpb'&&key!=='hitTarget')input(key).value=String(value);
   input('tracker-bars').value=String(s.bars);input('tracker-resolution').value=String(s.resolution);input('tracker-lpb').value=String(s.lpb??s.resolution/4);
   for(const r of ROLES)kitPanel.mix[r].include=!s.enabledRoles||s.enabledRoles.includes(r);kitPanel.restore(kitPanel.snapshot());
-  presets();syncModeControls();
+  presets();syncModeControls();syncHitTargetControl();
 }
 function refresh(){for(const [owner,drafts] of hitDrafts)for(const id of drafts.keys())if(!owner.state.pattern.events.some(h=>h.id===id))drafts.delete(id);pattern=editor.state.pattern;if(cursorTrackId&&!pattern.userTracks?.some(track=>track.id===cursorTrackId))cursorTrackId=undefined;transfer=compile(pattern);render();stashSlot();renderBank();scheduleSave();}
 function edit(action:()=>boolean,message:string,historyLabel?:string){
@@ -937,6 +943,7 @@ el('song-bpm').onchange=()=>{
  stop();if(arrangementMutation('Change song tempo',b=>{b.songBpm=bpm;})){renderBank();scheduleSave();status('Song tempo updated. Pattern tempos are unchanged.');}
 };
 function syncSliders(){
+  syncHitTargetControl();
   const bpm=Number(input('bpm').value);
   input('bpm-slider').max=String(Math.max(300,Number.isFinite(bpm)?bpm:300));
   input('bpm-slider').value=String(bpm);
@@ -964,6 +971,16 @@ function syncSliders(){
     input('spicy').setAttribute('aria-valuetext',spicyEl.textContent);
   }
   syncHud();
+}
+function syncHitTargetControl(){
+  const bars=Number(input('bars').value)||2,max=bars*64,exact=input('hit-target-mode').value==='exact',v4=input('algorithm').value==='groove-v4';
+  const value=Math.max(0,Math.min(max,Math.round(Number(input('hit-target-number').value)||0)));
+  input('hit-target-number').max=String(max);input('hit-target-slider').max=String(max);
+  input('hit-target-number').value=String(value);input('hit-target-slider').value=String(value);
+  el('hit-target-value').textContent=String(value);
+  input('hit-target-mode').disabled=!v4;
+  input('hit-target-number').disabled=!v4||!exact;input('hit-target-slider').disabled=!v4||!exact;
+  el('hit-target-help').textContent=!v4?'Exact hits requires Groove v4.':exact?`${value} tracker notes across ${bars} ${bars===1?'bar':'bars'}; Think slices included, ratchets count once.`:'Auto uses the selected genre’s natural density.';
 }
 function breakDescription(){
   const key=input('breakStyle').value as BreakStyle;
@@ -1100,6 +1117,10 @@ input('spicy').addEventListener('input',syncSliders);
 for(const id of ['syncopation','swing','humanizeMs','ghostAmount','fillAmount'])input(id).addEventListener('input',syncSliders);
 for(const role of ROLES)input(`${role}-density`).addEventListener('input',syncSliders);
 input('algorithm').addEventListener('change',()=>{syncSliders();syncPhraseControls();});
+input('hit-target-mode').addEventListener('change',()=>{syncHitTargetControl();dirty();});
+input('hit-target-slider').addEventListener('input',()=>{input('hit-target-number').value=input('hit-target-slider').value;syncHitTargetControl();dirty();});
+input('hit-target-number').addEventListener('change',()=>{syncHitTargetControl();dirty();});
+input('bars').addEventListener('change',syncHitTargetControl);
 input('generationMode').addEventListener('change',syncModeControls);
 input('phraseLength').addEventListener('change',()=>syncPhraseControls());
 
@@ -1113,6 +1134,7 @@ function restoreGenerationDefaults(resetComposition=false){
  for(const [key,value] of Object.entries(genreDefaults(genre)))input(key).value=String(value);
  if(resetComposition){input('generationMode').value='drums';input('melodyPart').value='bassline';input('melodyKey').value='0';input('melodyScale').value='natural-minor';input('harmonyStyle').value='jazz';}
  for(const role of ROLES)input(`${role}-density`).value='1';
+ input('hit-target-mode').value='auto';input('hit-target-number').value=String(Number(input('bars').value)*16);syncHitTargetControl();
  if(['groove-v3','groove-v4'].includes(keepEngine))input('algorithm').value=keepEngine;
  const autoKit=document.getElementById('auto-kit') as HTMLInputElement | null;
  if(autoKit&&autoKit.checked){
@@ -1645,8 +1667,9 @@ async function applyProject(raw:unknown){
   input('phraseLength').value=String(p.draft.phraseLength??0);syncPhraseControls(p.draft.phraseOffset??0);
   input('algorithm').value=p.draft.algorithm??'legacy-v1';input('variation').value=String(p.draft.variation??0);
   input('generationMode').value=p.draft.generationMode??'drums';input('melodyPart').value=p.draft.melodyPart??'bassline';input('melodyKey').value=String(p.draft.melodyKey??0);input('melodyScale').value=p.draft.melodyScale??'natural-minor';input('harmonyStyle').value=p.draft.harmonyStyle??'jazz';
+  input('hit-target-mode').value=p.draft.hitTarget===undefined?'auto':'exact';input('hit-target-number').value=String(p.draft.hitTarget??32);syncHitTargetControl();
   for(const role of ROLES)input(`${role}-density`).value=String(p.draft.laneDensity?.[role]??1);
-  for(const [key,value] of Object.entries(p.draft))if(key!=='enabledRoles'&&key!=='laneDensity')input(key).value=String(value);
+  for(const [key,value] of Object.entries(p.draft))if(key!=='enabledRoles'&&key!=='laneDensity'&&key!=='hitTarget')input(key).value=String(value);
   presets();refresh();syncVinylGenreAccent();restoreWorkspacePreferences();if(migrated)status('Older project sound updated: scratch and vinyl instrument hits now use Lo-Fi Percussion 02. Vinyl texture moved to background where available.');return true;
 }
 el('project-save').onclick=()=>{try{if(pendingCount())throw Error('Apply or Revert pending hit edits before saving a project backup.');const data=snapshot(),filename='breakbeat-project.bbproject';downloadBytes(new TextEncoder().encode(JSON.stringify(data)).buffer,filename,'application/json');fileFeedback(`Downloaded ${filename} · portable backup with embedded samples, kit, patterns and settings. Local autosave remains active in this browser. Your browser controls the download location.`);status('Portable project backup downloaded.');}catch(e){fileFeedback('Project backup failed: '+String(e),true);status(String(e),true);}};

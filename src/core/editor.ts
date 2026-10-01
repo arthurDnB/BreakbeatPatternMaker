@@ -13,6 +13,7 @@ import {validateSettings} from './settings.js';
 import {SYNTH_PRESETS} from '../audio/synth-instrument.js';
 import {drumLane,routeGeneratedDrums} from './drum-lanes.js';
 import {addThinkBreakLayer,THINK_BREAK_INSTRUMENT_ID,THINK_VOCAL_INSTRUMENT_ID} from './think-break.js';
+import {balanceExactHits} from './exact-hits.js';
 import {PPQ, ROLES, isSynthTrack, type Pattern, type Role, type Hit, type EffectCommand, type SynthInstrument, type SynthTrack, type MelodyPart, type Settings} from './model.js';
 
 export interface CellPosition {row:number;lane:string}
@@ -106,7 +107,8 @@ export class Editor {
     const next=copy(this.state),old=next.pattern;
     const hasLocks=next.lockedIds.length>0||next.lockedRoles.length>0;
     if(hasLocks&&(['bars','bpm','resolution'] as const).some(key=>old.settings[key]!==pattern.settings[key]))throw Error('Unlock hits and drum lanes before changing BPM, bars or resolution.');
-    const kept=old.events.filter(h=>!h.trackId&&locked(next,h));
+    const kept=old.events.filter(h=>!h.trackId&&(locked(next,h)||pattern.settings.hitTarget!==undefined&&(h.manual||!new RegExp(`^${h.role}-\\d+(?:-roll)?$`).test(h.id))));
+    if(pattern.settings.hitTarget!==undefined)for(const hit of kept)if(!hit.anchor&&!locked(next,hit))hit.manual=true;
     const regeneratingDrums=pattern.settings.generationMode!=='melody';
     const userHits=old.events.filter(h=>!!h.trackId&&(!regeneratingDrums||!h.generatedDrumRole||locked(next,h)));
     const protectedUserHits=userHits.filter(h=>h.generatedDrumRole&&locked(next,h));
@@ -128,6 +130,7 @@ export class Editor {
       next.pattern.events.push(...melody.notes.filter(hit=>!used.has(hit.id)&&!heldRows.has(Math.floor((hit.baseTick+hit.offsetTick)/rowTicks))));
     }
     if(pattern.settings.breakLayer!=='think-passage2'&&next.pattern.userTracks)next.pattern.userTracks=next.pattern.userTracks.filter(track=>isSynthTrack(track)||track.generatedBreakLayer!=='think-passage2'||next.pattern.events.some(hit=>hit.trackId===track.id));
+    if(regeneratingDrums)balanceExactHits(next.pattern,next.lockedIds,next.lockedRoles);
     next.pattern.events.sort((a,b)=>a.baseTick-b.baseTick||ROLES.indexOf(a.role)-ROLES.indexOf(b.role));
     next.selection=emptySelection();next.revision++;
     return this.commit(next,label);
@@ -188,7 +191,7 @@ export class Editor {
     const next=copy(this.state),prior=next.pattern.events.find(h=>h.id===replaceId);
     if(!hit.trackId&&next.lockedRoles.includes(hit.role)||(prior&&locked(next,prior)))return false;
     if(replaceId&&!prior)throw Error('Select an existing hit to edit.');
-    next.pattern.events=next.pattern.events.filter(h=>h.id!==replaceId);const manual=copy(hit);delete manual.generatedDrumRole;next.pattern.events.push(manual);
+    next.pattern.events=next.pattern.events.filter(h=>h.id!==replaceId);const manual=copy(hit);delete manual.generatedDrumRole;if(!manual.trackId&&!manual.anchor&&next.pattern.settings.hitTarget!==undefined)manual.manual=true;next.pattern.events.push(manual);
     next.pattern.events.sort((a,b)=>a.baseTick-b.baseTick||ROLES.indexOf(a.role)-ROLES.indexOf(b.role));
     next.selection={ids:[hit.id],rows:null};next.revision++;
     return this.commit(next,replaceId?'Edit hit':'Insert hit');
@@ -230,7 +233,7 @@ export class Editor {
     for(const target of destination)for(const source of target.source.hits){
       const oldNote=compile({...next.pattern,events:[source]}).notes[0]!;
       const moved=copy(source),tickDelta=(target.row-oldNote.row)*step;
-      moved.id=`paste-${next.revision+1}-${serial++}`;
+      moved.id=`paste-${next.revision+1}-${serial++}`;if(!moved.trackId&&!moved.anchor)moved.manual=true;
       while(next.pattern.events.some(h=>h.id===moved.id))moved.id=`paste-${next.revision+1}-${serial++}`;
       const targetLane=String(target.lane),role=roleForLane(next.pattern,targetLane);if(!role)throw Error('Paste destination track no longer exists.');
       if(!!moved.synthNote!==isSynthTrack(next.pattern.userTracks?.find(t=>t.id===targetLane)))throw Error('Copy synth notes only to synth tracks and sample hits only to sample or drum tracks.');
@@ -266,7 +269,7 @@ export class Editor {
     next.pattern.events=next.pattern.events.filter(h=>!overwritten.has(h.id));
     for(const hit of next.pattern.events){if(!moving.has(hit.id))continue;const old=notes.find(n=>n.id===hit.id)!,target=order[order.indexOf(old.lane)+laneShift]!,role=roleForLane(next.pattern,target);if(!role)throw Error('Move destination track no longer exists.');
       if(!!hit.synthNote!==isSynthTrack(next.pattern.userTracks?.find(t=>t.id===target)))throw Error('Move synth notes only to synth tracks and sample hits only to sample or drum tracks.');
-      hit.baseTick+=rowShift*step;hit.role=role;if(ROLES.includes(target as Role))delete hit.trackId;else hit.trackId=target;hit.sourceId='kit.'+hit.role;delete hit.generatedDrumRole;if(hit.baseTick<0||hit.baseTick>=next.pattern.settings.bars*4*PPQ)throw Error('Move timing exceeds the pattern.');}
+      hit.baseTick+=rowShift*step;hit.role=role;if(ROLES.includes(target as Role))delete hit.trackId;else hit.trackId=target;hit.sourceId='kit.'+hit.role;delete hit.generatedDrumRole;if(!hit.trackId&&!hit.anchor)hit.manual=true;if(hit.baseTick<0||hit.baseTick>=next.pattern.settings.bars*4*PPQ)throw Error('Move timing exceeds the pattern.');}
     next.pattern.events.sort((a,b)=>a.baseTick-b.baseTick||ROLES.indexOf(a.role)-ROLES.indexOf(b.role));
     next.selection={ids:[...moving.keys()],rows:null,cells:destinations.map(c=>({row:c.row,lane:c.lane}))};next.revision++;
     return this.commit(next,'Move tracker cells');
@@ -282,7 +285,7 @@ export class Editor {
     else if(field==='volume'){if(value<0||value>128)throw Error('Volume must be 00–80 hex.');hit.gain=value/128;}
     else if(field==='pan'){if(value<0||value>128)throw Error('Pan must be 00–80 hex.');hit.pan=value/64-1;}
     else {if(value<0||value>255)throw Error('Delay must be 00–FF hex.');const tick=(note.row+value/256)*rowTicks(next.pattern);hit.baseTick=Math.floor(tick);hit.fineOffset=tick-Math.floor(tick);hit.offsetTick=0;}
-    delete hit.generatedDrumRole;
+    delete hit.generatedDrumRole;if(!hit.trackId&&!hit.anchor)hit.manual=true;
     next.selection={ids:[id],rows:null,cells:[{row:note.row,lane:note.lane}]};next.revision++;
     return this.commit(next,`Edit tracker ${field}`);
   }
@@ -296,7 +299,7 @@ export class Editor {
     if(!hit)throw Error('Select a hit to edit.');
     if(locked(next,hit))throw Error('Unlock this hit before editing.');
     if(effect)hit.effect=copy(effect);else delete hit.effect;
-    delete hit.generatedDrumRole;
+    delete hit.generatedDrumRole;if(!hit.trackId&&!hit.anchor)hit.manual=true;
     next.revision++;
     return this.commit(next,effect?'Edit tracker FX':'Clear tracker FX');
   }

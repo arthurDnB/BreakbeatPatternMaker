@@ -19,6 +19,10 @@ export function validateSettings(s: Settings): void {
   if(s.lpb!==undefined&&!([1,2,3,4,6,8,12,16,24,32] as number[]).includes(s.lpb))throw Error('LPB must be 1, 2, 3, 4, 6, 8, 12, 16, 24 or 32.');
   for (const k of ['complexity','syncopation','ghostAmount','fillAmount'] as const) bounded(s[k],0,1,k);
   if(s.spicy!==undefined) bounded(s.spicy,0,1,'spicy');
+  if(s.hitTarget!==undefined){
+    if(s.algorithm!=='groove-v4')throw Error('Exact hits requires Groove v4.');
+    bounded(s.hitTarget,0,s.bars*64,'hit target',true);
+  }
   if(s.laneDensity!==undefined){
     if(!s.laneDensity||typeof s.laneDensity!=='object'||Array.isArray(s.laneDensity)||Object.keys(s.laneDensity).some(role=>!ROLES.includes(role as typeof ROLES[number])))throw Error('Invalid lane density.');
     for(const role of ROLES)if(s.laneDensity[role]!==undefined)bounded(s.laneDensity[role],0,2,`${role} density`);

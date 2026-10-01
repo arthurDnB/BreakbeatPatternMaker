@@ -26,6 +26,12 @@ Complexity changes note structure; Spicy changes performance. This separation le
 
 Advanced Generation also has Kick, Snare, Hi-hat and Percussion density controls for V4. Each defaults to 100%, which retains the genre profile's current behavior. Lower values remove optional hits from that lane; 0% leaves only protected kick/snare anchors. Higher values, up to 200%, bring in more profile-defined detail and fills. Use the instrument's Generate notes switch to silence a lane entirely. Density changes take effect on the next Generate or Variation and are saved with the pattern and project draft. Older saved patterns without density settings behave as 100% on every lane.
 
+### Exact Hits
+
+Advanced Generation offers **Hits → Auto / Exact**. Auto retains the earlier V4 result. Exact accepts an integer target up to 64 tracker notes per bar and applies it after kit routing, optional generated sample tracks, the Think slice layer, locks and manual notes have been merged. It counts drum and sample tracker notes, including Think slices; a ratchet remains one tracker note, and synth notes are excluded. Complexity still changes the available rhythmic detail, while Spicy changes note articulation.
+
+The budget keeps protected anchors, locked hits, manually entered notes and the Think layer's signature vocal phrase, then favors a genre-appropriate balance of roles and bars. A low target below the protected count or a high target beyond the enabled lanes' available positions reports the feasible bound without changing the pattern. Generate and Variation use the same saved target; editing notes afterwards can change the displayed count until the next generation. The target lives in generator settings, so older projects with no target retain Auto behavior.
+
 ## Editing a genre safely
 
 1. Change one profile entry in `groove-v4-profiles.ts`. Keep its `call` and `answer` notes within steps 0–15.5, gains within 0–1, and depths within 0–1. `fillSteps` should lie in the last part of the bar (10–15.5); selected-row fills scale that phrase into the chosen ending.

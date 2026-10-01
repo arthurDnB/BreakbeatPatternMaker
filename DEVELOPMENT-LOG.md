@@ -26,7 +26,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.3.0-alpha`
-* **Test Status:** 210 / 210 unit tests passing (`npm.cmd test`).
+* **Test Status:** 225 / 225 unit tests passing (`npm.cmd test`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -76,6 +76,13 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-10-01] - Exact Tracker Hit Target for Groove V4 (Codex)
+
+* Added an optional **Hits → Auto / Exact** slider and number field in Advanced Generation. Exact sets the total drum/sample tracker-note count across kit lanes, generated sample tracks and the chopped Think layer; ratchets count as one tracker note and synth notes are outside this budget. Auto preserves previous V4 generation.
+* Added a deterministic note-budget stage after routing and lock/manual-note preservation. It selects genre-based candidates while balancing instrument roles and bars, retains protected anchors, and gives a clear error when the target is impossible. Generate and Variation remain single Undo steps; older projects default to Auto.
+* Added focused unit and browser checks for 38 genres, pattern structures, Think slices, locks, manually authored hits, sample/synth tracks, project roundtrip and the control workflow. Kept the unrelated local `package.json` edit and `scripts/sync-chat-to-codex.mjs` outside this change.
+* Verification: `npm.cmd test` passed 225/225; `npm.cmd run test:site` passed root/subpath browser checks; `node scripts/exact-hits-browser-smoke.mjs` passed Generate, Variation and Undo.
 
 ### [2026-10-01] - Opt-In Chopped Think Passage Generator Layer (Codex)
 

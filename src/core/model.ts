@@ -24,6 +24,8 @@ export interface Settings {
   complexity: number; syncopation: number;
   swing: number; humanizeMs: number; ghostAmount: number; fillAmount: number;
   spicy?: number;
+  /** Optional exact number of drum/sample tracker notes after generation. */
+  hitTarget?: number;
   /** Groove V4 per-lane optional-hit density. Missing roles behave as 1 (100%). */
   laneDensity?: Partial<Record<Role,number>>;
   patternStructure?: 'groove'|'auto'|'fill'|'roll'|'build';
@@ -67,6 +69,8 @@ export interface Articulation {
 // 09/01/02 are accepted aliases for familiar older tracker notation.
 export interface EffectCommand {command:'0S'|'09'|'0B'|'0U'|'01'|'0D'|'02'|'0C'|'0R';param:number}
 export interface Hit {
+  /** User-authored or user-edited note; Exact Hits leaves it in place. */
+  manual?:boolean;
   /** Source beat part for notes routed into uploaded-sample tracks; manual edits clear this. */
   generatedDrumRole?:Role;
   /** Pitched note on a synth track. Sample hits use pitch as relative semitones instead. */
