@@ -29,7 +29,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.3.0-alpha`
-* **Test Status:** 249 unit tests passing (231 core + 18 Groove V5 pilot genre tests passing, 0 skipped, 0 failed); browser smoke tests passing (`npm.cmd test` and `npm.cmd run test:site`).
+* **Test Status:** 251 unit tests passing (0 skipped, 0 failed); browser smoke tests, including the Groove V5 workflow, passing (`npm.cmd test` and `npm.cmd run test:site`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -81,6 +81,13 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-10-02] - Groove V5 Exact-Hit Capacity and Required Browser QA (Codex)
+
+* Added a reusable V5 capacity calculation in `src/core/exact-hits.ts` using the same dense genre vocabulary as Exact Hits. The generator's maximum and the UI's offered range now agree; the default two-bar Dubstep target changes from impossible 32 to feasible 20 when Exact is selected, without adding generic V4 notes or altering Auto mode.
+* Updated `src/web.ts` to recompute the feasible range when relevant generation settings or enabled lanes change, and show the current profile limit. The optional Think layer retains its existing final-stage budgeting because its slice count depends on the merged tracker state.
+* Added 41 focused capacity checks in `tests/exact-hits.test.mjs` and a Dubstep clamp/generation check in `scripts/groove-v5-browser-smoke.mjs`. Added that browser smoke to the required `test:site` command in `package.json` so CI exercises V5 controls on every push.
+* Verification: `npm.cmd test` passed 251/251; `npm.cmd run test:site` passed root/subpath, sound browser, break transcription, and Groove V5 smoke checks.
 
 ### [2026-10-02] - Groove V5 Pilot Milestone & Autonomous AI Office QA (Office: DeepSeek, Antigravity, Codex)
 

@@ -52,8 +52,19 @@ try{
   await page.waitForFunction(()=>document.querySelector('#summary')?.textContent?.includes('28 hits'));
   assert.equal(await page.locator('#grid .hit').count(),28,'Exact hit budget must apply to V5');
 
+  // Dubstep's sparse pilot vocabulary cannot satisfy the generic 32-note default.
+  await page.selectOption('#genre','dubstep');
+  await page.selectOption('#hit-target-mode','exact');
+  assert.equal(await page.inputValue('#hit-target-number'),'20','V5 should choose the feasible profile capacity');
+  assert.equal(await page.locator('#hit-target-number').getAttribute('max'),'20');
+  await page.fill('#hit-target-number','32');
+  await page.locator('#hit-target-number').press('Tab');
+  assert.equal(await page.inputValue('#hit-target-number'),'20','Impossible manual targets must be clamped');
+  await page.click('#generate');
+  assert.equal(await page.locator('#grid .hit').count(),20,'The suggested Dubstep target must generate successfully');
+
   assert.deepEqual(errors,[]);
-  console.log('Groove V5 browser control, engine selection, generation, variation, exact hits, and undo passed.');
+  console.log('Groove V5 browser controls, variation, exact-hit capacity, and undo passed.');
 }finally{
   await browser.close();
   await new Promise(resolve=>server.close(resolve));

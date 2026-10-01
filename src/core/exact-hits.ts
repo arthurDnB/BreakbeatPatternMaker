@@ -8,16 +8,39 @@ const lane=(hit:Hit)=>hit.trackId??hit.role;
 const drum=(hit:Hit)=>!hit.synthNote;
 const position=(hit:Hit)=>hit.baseTick+hit.offsetTick;
 
+function densePattern(pattern:Pattern){
+ const s=pattern.settings;
+ const laneDensity=Object.fromEntries(ROLES.map(role=>[role,s.laneDensity?.[role]===0?0:2])) as Record<Role,number>;
+ const denseSettings={...s,hitTarget:undefined,complexity:1,ghostAmount:1,fillAmount:1,laneDensity};
+ const dense=s.algorithm==='groove-v5'?generateGrooveV5(denseSettings):generateGrooveV4(denseSettings);
+ return {source:dense,routed:routeGeneratedDrums(dense,pattern)};
+}
+
+function availableV5Hits(pattern:Pattern,dense:Pattern):Hit[]{
+ const usedIds=new Set(pattern.events.map(hit=>hit.id));
+ const usedPlaces=new Set(pattern.events.filter(drum).map(hit=>`${lane(hit)}:${hit.baseTick}`));
+ const available:Hit[]=[];
+ for(const hit of dense.events){
+  const place=`${lane(hit)}:${hit.baseTick}`;
+  if(hit.anchor||usedIds.has(hit.id)||usedPlaces.has(place))continue;
+  available.push(hit);usedIds.add(hit.id);usedPlaces.add(place);
+ }
+ return available;
+}
+
+/** Maximum notes V5 can supply from its genre vocabulary with the current settings. */
+export function maximumV5ExactHits(pattern:Pattern):number{
+ if(pattern.settings.algorithm!=='groove-v5')throw Error('Groove V5 is required to calculate its exact-hit capacity.');
+ return pattern.events.filter(drum).length+availableV5Hits(pattern,densePattern(pattern).routed).length;
+}
+
 /** Apply a note budget to the merged tracker state, before its Undo transaction commits. */
 export function balanceExactHits(pattern:Pattern,lockedIds:readonly string[],lockedRoles:readonly Role[]):void{
  const target=pattern.settings.hitTarget;
  if(target===undefined)return;
  const s=pattern.settings,all=pattern.events.filter(drum);
  const v5=s.algorithm==='groove-v5';
- const denseDensity=Object.fromEntries(ROLES.map(role=>[role,s.laneDensity?.[role]===0?0:2])) as Record<Role,number>;
- const denseSettings={...s,hitTarget:undefined,complexity:1,ghostAmount:1,fillAmount:1,laneDensity:denseDensity};
- const dense=v5?generateGrooveV5(denseSettings):generateGrooveV4(denseSettings);
- const denseRouted=routeGeneratedDrums(dense,pattern);
+ const {source:dense,routed:denseRouted}=densePattern(pattern);
  const roleOf=(hit:Hit)=>hit.generatedDrumRole??hit.role;
  const weights=new Map<Role,number>(ROLES.map(role=>[role,Math.max(1,denseRouted.events.filter(hit=>roleOf(hit)===role).length+all.filter(hit=>hit.trackId&&hit.generatedDrumRole===role).length)]));
  const totalWeight=[...weights.values()].reduce((sum,value)=>sum+value,0);
@@ -64,7 +87,7 @@ export function balanceExactHits(pattern:Pattern,lockedIds:readonly string[],loc
  };
  // First use real genre vocabulary at maximum detail. The hit target, not
  // Complexity, decides how many notes are admitted from this reservoir.
- for(const hit of denseRouted.events)if(!hit.anchor)add(hit);
+ for(const hit of v5?availableV5Hits(pattern,denseRouted):denseRouted.events.filter(hit=>!hit.anchor))add(hit);
  // V5's exact target uses only its own profile vocabulary. A target beyond
  // that reservoir fails explicitly instead of quietly inserting V4 notes.
  if(v5){

@@ -6,9 +6,28 @@ import {Editor} from '../dist/core/editor.js';
 import {compile} from '../dist/core/compile.js';
 import {makeProject,readProject} from '../dist/audio/project.js';
 import {defaultKitState} from '../dist/audio/drum-kit.js';
+import {maximumV5ExactHits} from '../dist/core/exact-hits.js';
 
 const config=(genre='jungle',patch={})=>({...genreDefaults(genre),seed:'exact-notes',bars:2,algorithm:'groove-v4',...patch});
 const drumCount=pattern=>pattern.events.filter(hit=>!hit.synthNote).length;
+
+test('V5 capacity matches the feasible exact target for a sparse pilot profile',()=>{
+ const settings=config('dubstep',{algorithm:'groove-v5',seed:'break-042'});
+ const capacity=maximumV5ExactHits(generate(settings));
+ assert.equal(capacity,20);
+ assert.equal(drumCount(generate({...settings,hitTarget:capacity})),capacity);
+ assert.throws(()=>generate({...settings,hitTarget:capacity+1}),/Maximum available: 20/);
+});
+
+test('V5 reported capacity is reachable across pilot genres and pattern structures',()=>{
+ for(const genre of ['jungle','liquiddnb','boombap','trap','twostepgarage','dubstep','breakcore','amenscience'])
+  for(const patternStructure of ['groove','auto','fill','roll','build']){
+   const settings=config(genre,{algorithm:'groove-v5',seed:'capacity-gate',patternStructure});
+   const capacity=maximumV5ExactHits(generate(settings));
+   assert.ok(capacity>=0&&capacity<=settings.bars*64,`${genre}/${patternStructure}: invalid capacity`);
+   assert.equal(drumCount(generate({...settings,hitTarget:capacity})),capacity,`${genre}/${patternStructure}: advertised capacity is unreachable`);
+  }
+});
 
 test('Exact Hits reaches the chosen tracker-note count across genres and structures',()=>{
  for(const genre of Object.keys(PROFILES))for(const target of [24,48]){

@@ -23,6 +23,7 @@ import {reconstruct,sliceReference,type AudioAsset} from './audio/slices.js';
 import {BREAKS} from './core/breaks.js';
 import {defaults,genreDefaults,PROFILES} from './core/profiles.js';
 import {generate,validateSettings} from './core/generate.js';
+import {maximumV5ExactHits} from './core/exact-hits.js';
 import {compile,serialize} from './core/compile.js';
 import {drumLane} from './core/drum-lanes.js';
 import {ROLES,hex,noteName,isSynthTrack,type Hit,type Role,type Genre,type BreakStyle,type Pattern,type Transfer,type EffectCommand,type Settings,type UserTrack,type SynthTrack,type SynthInstrument,type GenerationMode,type MelodyPart,type MelodyScale} from './core/model.js';
@@ -709,6 +710,7 @@ const kitPanel=setupDrumKit(assets,(refreshTracker=true)=>{
   if(gks) gks.value=matchedId;
   const desc = document.getElementById('generator-kit-desc');
   if(desc) desc.textContent = matching ? matching.description : 'Custom kit configuration';
+  if(input('hit-target-mode').value==='exact')syncHitTargetControl();
   if(editor){if(refreshTracker)refresh();else scheduleSave();}
 },auditionRole,()=>input('transport-target').value==='song'&&bank?bank.songBpm:pattern?.settings.bpm??Number(input('bpm').value),browseLaneSounds,id=>soundBrowser?.recordUsed(id));
 soundBrowser=setupSoundBrowser();
@@ -973,15 +975,24 @@ function syncSliders(){
   }
   syncHud();
 }
+let v5ExactCapacityCache:{key:string;value:number}|undefined;
 function syncHitTargetControl(){
-  const bars=Number(input('bars').value)||2,max=bars*64,exact=input('hit-target-mode').value==='exact',supportsExact=['groove-v4','groove-v5'].includes(input('algorithm').value);
+  const bars=Number(input('bars').value)||2,exact=input('hit-target-mode').value==='exact',algorithm=input('algorithm').value,supportsExact=['groove-v4','groove-v5'].includes(algorithm);
+  let max=bars*64,v5Capacity:number|undefined;
+  if(exact&&algorithm==='groove-v5'&&input('breakLayer').value!=='think-passage2'){
+    try{
+      const request={...settings(),hitTarget:undefined},key=JSON.stringify(request);
+      if(v5ExactCapacityCache?.key!==key)v5ExactCapacityCache={key,value:maximumV5ExactHits(generate(request))};
+      v5Capacity=v5ExactCapacityCache.value;max=Math.min(max,v5Capacity);
+    }catch{ /* Draft inputs can be temporarily invalid while the user edits them. Generate reports the error. */ }
+  }
   const value=Math.max(0,Math.min(max,Math.round(Number(input('hit-target-number').value)||0)));
   input('hit-target-number').max=String(max);input('hit-target-slider').max=String(max);
   input('hit-target-number').value=String(value);input('hit-target-slider').value=String(value);
   el('hit-target-value').textContent=String(value);
   input('hit-target-mode').disabled=!supportsExact;
   input('hit-target-number').disabled=!supportsExact||!exact;input('hit-target-slider').disabled=!supportsExact||!exact;
-  el('hit-target-help').textContent=!supportsExact?'Exact hits requires Groove v4 or v5.':exact?`${value} tracker notes across ${bars} ${bars===1?'bar':'bars'}; Think slices included, ratchets count once.`:'Auto uses the selected genre’s natural density.';
+  el('hit-target-help').textContent=!supportsExact?'Exact hits requires Groove v4 or v5.':exact?`${value} tracker notes across ${bars} ${bars===1?'bar':'bars'}; ratchets count once.${v5Capacity===undefined?'':` Current V5 profile supports up to ${v5Capacity}.`}`:'Auto uses the selected genre’s natural density.';
 }
 function breakDescription(){
   const key=input('breakStyle').value as BreakStyle;
@@ -1174,7 +1185,10 @@ function restoreGenerationDefaults(resetComposition=false){
 }
 el('restore-defaults').onclick=()=>restoreGenerationDefaults(true);
 el('view').onchange=()=>{saveWorkspacePreferences();render();};el('genre').onchange=()=>restoreGenerationDefaults();
-for(const control of document.querySelectorAll('#controls input, #controls select'))control.addEventListener('input',dirty);
+for(const control of document.querySelectorAll('#controls input, #controls select')){
+ control.addEventListener('input',dirty);
+ if(['seed','breakLayer','patternStructure','phraseLength','phraseOffset'].includes(control.id))control.addEventListener('change',syncHitTargetControl);
+}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)stop();});
 for(const family of ['Jungle & DnB','Hip-Hop & Downtempo','Garage','Dub & Bass','Breaks & Rave','Experimental']){
  const group=document.createElement('optgroup');group.label=family;
