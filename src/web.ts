@@ -31,6 +31,7 @@ import {SYNTH_PRESETS} from './audio/synth-instrument.js';
 import {Editor,emptySelection,locked,selectedIds,type EditorState,type TrackerClipboard,type CellPosition} from './core/editor.js';
 import {defaultEffects,type Effects,EFFECT_PRESETS,type EffectPreset} from './audio/effects.js';
 import {ArrangementHistory} from './core/arrangement-history.js';
+import {createRotaryKnob} from './ui/rotary-knob.js';
 
 
 const el=<T extends HTMLElement>(id:string)=>document.getElementById(id) as T;
@@ -278,25 +279,25 @@ function synthInstrumentPanel(track:SynthTrack):HTMLDetailsElement{
   const panel=document.createElement('details');panel.className='track-instrument-panel';panel.dataset.synthTrackId=track.id;panel.open=openSynthTrackIds.has(track.id);
   const summary=document.createElement('summary');summary.textContent='Synth / Tone';summary.setAttribute('aria-label',`Open ${track.name} synthesizer controls`);
   const card=document.createElement('div');card.className='drum-slot synth-instrument-card';
-  const heading=document.createElement('strong');heading.textContent=track.name+' instrument';card.append(heading);
-  const update=(patch:Partial<SynthInstrument>)=>{try{editor.setSynthInstrument(track.id,{...track.instrument,...patch});refresh();status(`Updated ${track.name} synthesizer.`);}catch(error){status(String(error),true);}};
+  const content=document.createElement('div');content.className='instrument-panel-content';
+  const heading=document.createElement('strong');heading.textContent=track.name+' instrument';content.append(heading);
+  const currentInstrument=()=>{const current=editor.state.pattern.userTracks?.find(item=>item.id===track.id);return isSynthTrack(current)?current.instrument:track.instrument;};
+  const update=(patch:Partial<SynthInstrument>,redraw=true)=>{try{editor.setSynthInstrument(track.id,{...currentInstrument(),...patch});if(redraw)refresh();else scheduleSave();status(`Updated ${track.name} synthesizer.`);}catch(error){status(String(error),true);}};
   const selectControl=(labelText:string,value:string,choices:readonly string[],change:(value:string)=>void)=>{
     const label=document.createElement('label'),select=document.createElement('select');label.textContent=labelText;
     for(const choice of choices){const option=document.createElement('option');option.value=choice;option.textContent=choice[0]!.toUpperCase()+choice.slice(1);select.append(option);}
-    select.value=value;select.onchange=()=>change(select.value);label.append(select);card.append(label);
+    select.value=value;select.onchange=()=>change(select.value);label.append(select);content.append(label);
   };
   selectControl('Preset',track.instrument.preset,['bass','pluck','pad','piano'],value=>update({...SYNTH_PRESETS[value as keyof typeof SYNTH_PRESETS]}));
   selectControl('Waveform',track.instrument.waveform,['sine','triangle','saw','square'],value=>update({waveform:value as SynthInstrument['waveform']}));
-  for(const [key,labelText,min,max,step] of [['attack','Attack',.001,2,.001],['decay','Decay',.001,3,.001],['sustain','Sustain',0,1,.01],['release','Release',.01,4,.01],['lowpassHz','Low-pass Hz',100,20000,10]] as const){
-    const label=document.createElement('label'),output=document.createElement('output'),control=document.createElement('input');label.textContent=labelText;
-    control.type='range';control.min=String(min);control.max=String(max);control.step=String(step);control.value=String(track.instrument[key]);control.setAttribute('aria-label',`${track.name} ${labelText}`);output.value=String(track.instrument[key]);
-    control.oninput=()=>{output.value=control.value;};control.onchange=()=>update({[key]:Number(control.value)});label.append(output,control);card.append(label);
+  for(const [key,labelText,min,max,step] of [['attack','Attack',.001,2,.001],['decay','Decay',.001,3,.001],['sustain','Sustain',0,1,.01],['release','Release',.01,4,.01],['lowpassHz','Low-pass',100,20000,10]] as const){
+    const knob=createRotaryKnob({id:`synth-${track.id}-${key}`,label:labelText,ariaLabel:`${track.name} ${labelText}`,value:track.instrument[key],min,max,step,scale:key==='lowpassHz'?'log':'linear',format:value=>key==='lowpassHz'?Math.round(value)+' Hz':key==='sustain'?Math.round(value*100)+'%':Math.round(value*1000)/1000+' s',onInput:value=>update({[key]:value},false)});content.append(knob.element);
   }
   if(track.instrument.preset==='piano'){
     const sample=track.instrument.sample,asset=sample?assets.get(sample.assetId):undefined;
-    const source=document.createElement('span');source.textContent=asset?`Piano source: ${asset.name}`:track.instrument.sampleBank==='upright-kw'?'Piano source: Upright Piano KW (CC0)':'Piano source: built-in tone';card.append(source);
+    const source=document.createElement('span');source.textContent=asset?`Piano source: ${asset.name}`:track.instrument.sampleBank==='upright-kw'?'Piano source: Upright Piano KW (CC0)':'Piano source: built-in tone';content.append(source);
     const upload=document.createElement('button'),file=document.createElement('input');upload.type='button';upload.textContent=asset?'Replace piano WAV':'Use piano WAV';file.type='file';file.accept='.wav,audio/wav';file.hidden=true;
-    upload.onclick=()=>file.click();file.onchange=async()=>{const selected=file.files?.[0];if(!selected)return;try{
+    upload.onclick=()=>file.click();file.onchange=async()=>{const selected=file.files?.[0];file.value='';if(!selected)return;try{
       if(selected.size>20*1024*1024)throw Error('Choose a piano WAV under 20 MB.');
       context??=new AudioContext();const decoded=await context.decodeAudioData(await selected.arrayBuffer());
       if(decoded.duration>20||!decoded.numberOfChannels)throw Error('Choose a piano note under 20 seconds.');
@@ -306,15 +307,16 @@ function synthInstrumentPanel(track:SynthTrack):HTMLDetailsElement{
       if(!isSynthTrack(current))throw Error('Piano track no longer exists.');
       openSynthTrackIds.add(track.id);editor.setSynthInstrument(track.id,{...current.instrument,sample:{assetId:id,rootNote:current.instrument.sample?.rootNote??72}});
       refresh();status(`Using “${selected.name}” for ${track.name}. Root is C-6 (MIDI 72); adjust it if the source note differs.`);
-    }catch(error){status('Could not use piano WAV: '+String(error),true);}};card.append(upload,file);
+    }catch(error){status('Could not use piano WAV: '+String(error),true);}};content.append(upload,file);
     if(sample){
-      const root=document.createElement('label'),note=document.createElement('input');root.textContent='Sample root note (MIDI)';note.type='number';note.min='0';note.max='119';note.value=String(sample.rootNote);note.onchange=()=>update({sample:{...sample,rootNote:Number(note.value)}});root.append(note);card.append(root);
-      const remove=document.createElement('button');remove.type='button';remove.textContent='Remove uploaded WAV';remove.onclick=()=>update({sample:undefined});card.append(remove);
+      const root=document.createElement('label'),note=document.createElement('input');root.textContent='Sample root note (MIDI)';note.type='number';note.min='0';note.max='119';note.value=String(sample.rootNote);note.onchange=()=>update({sample:{...currentInstrument().sample!,rootNote:Number(note.value)}});root.append(note);content.append(root);
+      const remove=document.createElement('button');remove.type='button';remove.textContent='Remove uploaded WAV';remove.onclick=()=>update({sample:undefined});content.append(remove);
     }
-    const bankButton=document.createElement('button');bankButton.type='button';bankButton.textContent='Use upright piano';bankButton.disabled=!sample&&track.instrument.sampleBank==='upright-kw';bankButton.onclick=()=>update({sample:undefined,sampleBank:'upright-kw'});card.append(bankButton);
-    const toneButton=document.createElement('button');toneButton.type='button';toneButton.textContent='Use built-in tone';toneButton.disabled=!sample&&!track.instrument.sampleBank;toneButton.onclick=()=>update({sample:undefined,sampleBank:undefined});card.append(toneButton);
+    const bankButton=document.createElement('button');bankButton.type='button';bankButton.textContent='Use upright piano';bankButton.disabled=!sample&&track.instrument.sampleBank==='upright-kw';bankButton.onclick=()=>update({sample:undefined,sampleBank:'upright-kw'});content.append(bankButton);
+    const toneButton=document.createElement('button');toneButton.type='button';toneButton.textContent='Use built-in tone';toneButton.disabled=!sample&&!track.instrument.sampleBank;toneButton.onclick=()=>update({sample:undefined,sampleBank:undefined});content.append(toneButton);
   }
-  const preview=document.createElement('button');preview.type='button';preview.textContent='Preview '+noteName(track.instrument.sample?.rootNote??(track.instrument.preset==='piano'?60:48));preview.onclick=()=>void auditionUserTrack(track);card.append(preview);
+  card.append(content);const footer=document.createElement('div');footer.className='instrument-preview-footer';
+  const preview=document.createElement('button');preview.type='button';preview.textContent='Preview '+noteName(track.instrument.sample?.rootNote??(track.instrument.preset==='piano'?60:48));preview.onclick=()=>{const current=editor.state.pattern.userTracks?.find(item=>item.id===track.id);if(current)void auditionUserTrack(current);};footer.append(preview);card.append(footer);
   panel.append(summary,card);panel.addEventListener('toggle',()=>{if(panel.open)openSynthTrackIds.add(track.id);else openSynthTrackIds.delete(track.id);if(panel.open)requestAnimationFrame(()=>positionInstrumentPanel(panel));});
   return panel;
 }
@@ -705,7 +707,7 @@ function browseLaneSounds(role:Role,opener:HTMLElement){
    preview:choice=>previewSoundCandidate(role,choice),apply:choice=>kitPanel.selectSound(role,choice)});
 }
 const kitPanel=setupDrumKit(assets,(refreshTracker=true)=>{
-  stop();samplePanel.stop();
+  if(refreshTracker){stop();samplePanel.stop();}
   const ks=document.getElementById('kit-preset-select') as HTMLSelectElement | null;
   const gks=document.getElementById('generator-kit-select') as HTMLSelectElement | null;
   const matching=KIT_PRESETS.find(p=>ROLES.every(r=>kitPanel.mix[r].choice===p.slots[r]));

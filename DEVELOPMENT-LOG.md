@@ -29,7 +29,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.2.3`
-* **Test Status:** 258 unit tests passing (0 skipped, 0 failed); all 6 browser smoke test suites passing (`npm.cmd test` and `npm.cmd run test:site`).
+* **Test Status:** 266 unit tests passing (0 skipped, 0 failed); all deployment site smoke checks passing (`npm.cmd test` and `npm.cmd run test:site`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -81,6 +81,14 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-10-02] - Instrument & Synth Panel Knobs, Stable Editing and Pinned Preview (Codex)
+- Added reusable accessible rotary controls with editable numeric values, keyboard operation, drag adjustment, and logarithmic frequency scaling in `src/ui/rotary-knob.ts`.
+- Converted continuous drum lane, sample-shaping, layer, and per-lane FX parameters to compact knobs; converted synth ADSR and filter controls while retaining their saved parameter model.
+- Split instrument panels into a scrollable content area and a persistent Preview footer. Parameter edits now save without stopping playback or rebuilding the tracker, preventing focus and scroll jumps.
+- Made sound-arrow selection await the requested sample load before auditioning, eliminating stale-sample previews.
+- Added short-viewport, footer, knob-edit, and sound-arrow browser checks to `scripts/instrument-panel-smoke.mjs` and the site test sequence. Updated asset cache version in `public/index.html`.
+- Verification: `npm.cmd test` (266 passed); `npm.cmd run test:site` passed, including root and GitHub Pages subpath smoke checks.
 
 ### [2026-10-02] - Acoustic Break Velocity-Layered Drum Kit (Codex)
 

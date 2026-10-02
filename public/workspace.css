@@ -47,6 +47,55 @@
   --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', Consolas, Menlo, monospace;
 }
 
+/* Compact instrument panels: keep controls scrollable while pinning Preview. */
+.track-instrument-panel .drum-slot {
+  display:flex !important;
+  flex-direction:column !important;
+  height:min(var(--instrument-panel-max-height, min(70vh,560px)), calc(100vh - 16px)) !important;
+  max-height:calc(100vh - 16px) !important;
+  min-height:150px;
+  overflow:hidden !important;
+  box-sizing:border-box;
+}
+.instrument-panel-content {
+  display:flex;
+  flex:1 1 auto;
+  flex-direction:column;
+  gap:9px;
+  min-height:0;
+  overflow:auto;
+  overscroll-behavior:contain;
+  padding:0 2px 8px 0;
+}
+.instrument-preview-footer {
+  position:sticky;
+  bottom:0;
+  z-index:2;
+  flex:0 0 auto;
+  padding:9px 0 0;
+  border-top:1px solid #243a37;
+  background:#0b1110;
+}
+.instrument-preview-footer button { width:100%; min-height:34px; }
+.rotary-knob-control { min-width:0; display:flex; flex-direction:column; gap:3px; padding:3px 4px; border:1px solid #1c302e; border-radius:6px; background:#080d0d; }
+.rotary-knob-caption { display:flex; align-items:center; justify-content:space-between; gap:5px; color:#9db3b0; font:600 9px var(--font-mono,monospace); }
+.rotary-knob-value { color:#55e7d0; font:700 9px var(--font-mono,monospace); white-space:nowrap; }
+.rotary-knob-row { display:flex; align-items:center; justify-content:center; gap:8px; min-height:34px; }
+.rotary-knob-dial { width:30px; height:30px; display:grid; place-items:center; flex:0 0 auto; border-radius:50%; cursor:ns-resize; touch-action:none; outline:none; }
+.rotary-knob-dial:focus-visible { box-shadow:0 0 0 2px #00e5c2; }
+.rotary-knob-dial[aria-disabled="true"] { opacity:.4; cursor:not-allowed; }
+.rotary-knob-ring { width:26px; height:26px; position:relative; display:block; border:2px solid #28413e; border-top-color:#00d9bb; border-right-color:#00d9bb; border-radius:50%; background:radial-gradient(circle at 35% 30%,#304643,#101918 65%); transform:rotate(var(--knob-angle,-135deg)); box-shadow:0 0 5px #00d9bb35; }
+.rotary-knob-indicator { position:absolute; left:50%; top:2px; width:2px; height:7px; border-radius:2px; background:#8fffee; transform:translateX(-50%); box-shadow:0 0 4px #00ffe1; }
+.rotary-knob-entry { width:68px !important; min-width:48px; height:24px !important; box-sizing:border-box; padding:2px 4px !important; text-align:center; font:600 10px var(--font-mono,monospace) !important; }
+.tone-panel,.effects-panel { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:5px; }
+.tone-panel>summary,.effects-panel>summary { grid-column:1/-1; }
+.tone-panel>label,.effects-panel>.loop-label { grid-column:1/-1; }
+.tone-panel>.rotary-knob-control,.effects-panel>.rotary-knob-control { grid-column:auto; }
+.synth-instrument-card .instrument-panel-content { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); align-content:start; }
+.synth-instrument-card .instrument-panel-content>strong,.synth-instrument-card .instrument-panel-content>span { grid-column:1/-1; }
+.synth-instrument-card .instrument-preview-footer { flex:0 0 auto; }
+@media(max-width:520px) { .tone-panel,.effects-panel,.synth-instrument-card .instrument-panel-content { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+
 *, *::before, *::after {
   box-sizing: border-box;
 }
@@ -5906,5 +5955,27 @@ main.daw-chassis {
   #quick-start .quick-start-steps { justify-content:flex-start; flex-wrap:wrap; }
   .daw-footer.re-track-footer { display:none !important; }
 }
+
+/* Keep the instrument editor stable while its controls are adjusted. */
+.track-instrument-panel .drum-slot { display:flex !important; flex-direction:column !important; height:min(var(--instrument-panel-max-height,min(70vh,560px)),calc(100vh - 16px)) !important; max-height:calc(100vh - 16px) !important; min-height:150px; overflow:hidden !important; box-sizing:border-box; }
+.instrument-panel-content { display:flex; flex:1 1 auto; flex-direction:column; gap:9px; min-height:0; overflow:auto; overscroll-behavior:contain; padding:0 2px 8px 0; }
+.instrument-preview-footer { position:sticky; bottom:0; z-index:2; flex:0 0 auto; padding:9px 0 0; border-top:1px solid #243a37; background:#0b1110; }
+.instrument-preview-footer button { width:100%; min-height:34px; }
+.rotary-knob-control { min-width:0; display:flex; flex-direction:column; gap:3px; padding:3px 4px; border:1px solid #1c302e; border-radius:6px; background:#080d0d; }
+.rotary-knob-caption { display:flex; align-items:center; justify-content:space-between; gap:5px; color:#9db3b0; font:600 9px var(--font-mono,monospace); }
+.rotary-knob-value { color:#55e7d0; font:700 9px var(--font-mono,monospace); white-space:nowrap; }
+.rotary-knob-row { display:flex; align-items:center; justify-content:center; gap:8px; min-height:34px; }
+.rotary-knob-dial { width:30px; height:30px; display:grid; place-items:center; flex:0 0 auto; border-radius:50%; cursor:ns-resize; touch-action:none; outline:none; }
+.rotary-knob-dial:focus-visible { box-shadow:0 0 0 2px #00e5c2; }
+.rotary-knob-dial[aria-disabled="true"] { opacity:.4; cursor:not-allowed; }
+.rotary-knob-ring { width:26px; height:26px; position:relative; display:block; border:2px solid #28413e; border-top-color:#00d9bb; border-right-color:#00d9bb; border-radius:50%; background:radial-gradient(circle at 35% 30%,#304643,#101918 65%); transform:rotate(var(--knob-angle,-135deg)); box-shadow:0 0 5px #00d9bb35; }
+.rotary-knob-indicator { position:absolute; left:50%; top:2px; width:2px; height:7px; border-radius:2px; background:#8fffee; transform:translateX(-50%); box-shadow:0 0 4px #00ffe1; }
+.rotary-knob-entry { width:68px !important; min-width:48px; height:24px !important; box-sizing:border-box; padding:2px 4px !important; text-align:center; font:600 10px var(--font-mono,monospace) !important; }
+.tone-panel,.effects-panel { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:5px; }
+.tone-panel>summary,.effects-panel>summary { grid-column:1/-1; }
+.tone-panel>label,.effects-panel>.loop-label { grid-column:1/-1; }
+.synth-instrument-card .instrument-panel-content { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); align-content:start; }
+.synth-instrument-card .instrument-panel-content>strong,.synth-instrument-card .instrument-panel-content>span { grid-column:1/-1; }
+@media(max-width:520px) { .tone-panel,.effects-panel,.synth-instrument-card .instrument-panel-content { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 
 

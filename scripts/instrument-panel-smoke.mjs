@@ -1,19 +1,37 @@
 import {chromium} from 'playwright';
 import assert from 'node:assert/strict';
+import {createServer} from 'node:http';
+import {readFile} from 'node:fs/promises';
+import {resolve,extname,sep} from 'node:path';
 
-const origin=process.env.APP_URL??'http://127.0.0.1:4173';
+const root=resolve('site'),mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.wav':'audio/wav','.json':'application/json'};
+const server=createServer(async(request,response)=>{try{const file=resolve(root,decodeURIComponent(new URL(request.url,'http://local').pathname).slice(1)||'index.html');if(!file.startsWith(root+sep))throw Error('invalid path');response.writeHead(200,{'Content-Type':mime[extname(file)]??'application/octet-stream'});response.end(await readFile(file));}catch{response.writeHead(404);response.end();}});
+await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+const origin=process.env.APP_URL??`http://127.0.0.1:${server.address().port}`;
 const browser=await chromium.launch({headless:true,channel:process.env.BROWSER_CHANNEL??'msedge'});
 try{
  const page=await browser.newPage({viewport:{width:1360,height:430}}),errors=[];
  page.on('pageerror',error=>errors.push(error.message));
- await page.goto(origin);await page.locator('.track-instrument-panel[data-role="kick"]>summary').click();
+ await page.goto(origin);await page.locator('#grid .hit').first().waitFor();await page.locator('.track-instrument-panel[data-role="kick"]').evaluate(element=>{element.open=true;element.dispatchEvent(new Event('toggle'));});
  const panel=page.locator('.track-instrument-panel[data-role="kick"] .drum-slot');
  await panel.waitFor({state:'visible'});
  await page.locator('#kit-shape-kick').evaluate(element=>{element.open=true;});
- const bounds=await panel.evaluate(element=>{const rect=element.getBoundingClientRect();return {top:rect.top,bottom:rect.bottom,height:rect.height,scrollHeight:element.scrollHeight,clientHeight:element.clientHeight,position:getComputedStyle(element).position};});
+ const bounds=await panel.evaluate(element=>{const rect=element.getBoundingClientRect();const content=element.querySelector('.instrument-panel-content');return {top:rect.top,bottom:rect.bottom,height:rect.height,scrollHeight:content.scrollHeight,clientHeight:content.clientHeight,position:getComputedStyle(element).position};});
  assert.equal(bounds.position,'fixed');assert.ok(bounds.top>=0);assert.ok(bounds.bottom<=430,`panel extends below viewport: ${JSON.stringify(bounds)}`);assert.ok(bounds.scrollHeight>bounds.clientHeight,'panel content should remain internally scrollable');
- await panel.evaluate(element=>{element.scrollTop=element.scrollHeight;});
- assert.ok(await panel.evaluate(element=>element.scrollTop>0),'panel content did not scroll');
+ const content=panel.locator('.instrument-panel-content'),preview=panel.locator('.instrument-preview-footer');
+ await content.evaluate(element=>{element.scrollTop=element.scrollHeight;});
+ assert.ok(await content.evaluate(element=>element.scrollTop>0),'panel content did not scroll');
+ const previewBottom=await preview.evaluate(element=>element.getBoundingClientRect().bottom);
+ assert.ok(previewBottom<=430&&previewBottom>0,'Preview footer should remain visible at the bottom of the panel');
+ const grid=page.locator('#grid'),scrollBefore=await grid.evaluate(element=>element.scrollTop),dial=page.locator('#kit-level-kick-knob');
+ await dial.focus();await dial.press('ArrowUp');
+ assert.equal(await dial.getAttribute('role'),'slider');
+ assert.ok(await panel.isVisible(),'adjusting a control must not close or rebuild the panel');
+ assert.equal(await grid.evaluate(element=>element.scrollTop),scrollBefore,'adjusting a control must not jump the tracker');
+ const soundSelect=page.locator('#kit-choice-kick');
+ await page.locator('.track-instrument-panel[data-role="kick"] .sound-next-btn').evaluate(element=>element.click());
+ await page.waitForFunction(()=>{const info=document.querySelector('#kit-info-kick');return !!info&&!info.textContent?.includes('Loading sound');});
+ assert.notEqual(await soundSelect.inputValue(),'acoustic-bass-drum-24-dampened','sound arrow should advance the selected sound');
  assert.deepEqual(errors,[]);
  console.log('Instrument panel: stays inside a short viewport and scrolls through all controls.');
-}finally{await browser.close();}
+}finally{await browser.close();if(!process.env.APP_URL)await new Promise(resolve=>server.close(resolve));}
