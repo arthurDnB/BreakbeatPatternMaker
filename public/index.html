@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Breakbeat Pattern Maker</title><link rel="stylesheet" href="./public/style.css?v=0.4.1-trackerfx"><link rel="stylesheet" href="./public/workspace.css?v=0.4.26-lane-routing"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Breakbeat Pattern Maker</title><link rel="stylesheet" href="./public/style.css?v=0.4.1-trackerfx"><link rel="stylesheet" href="./public/workspace.css?v=0.4.28-workstation-dock"></head>
 <body><main class="daw-chassis">
 <svg class="icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><symbol id="icon-shuffle" viewBox="0 0 24 24"><path d="M3 6h3c6 0 6 12 12 12h3m-3-3 3 3-3 3M3 18h3c2 0 3-1 4-3m4-6c1-2 2-3 4-3h3m-3-3 3 3-3 3"/></symbol><symbol id="icon-sliders" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16M9 2v6m6 1v6m-5 1v6"/></symbol><symbol id="icon-variation" viewBox="0 0 24 24"><path d="M4 7h12a4 4 0 0 1 4 4v2m-3-3 3 3 3-3M20 17H8a4 4 0 0 1-4-4v-2m3 3-3-3-3 3"/></symbol><symbol id="icon-grid" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 10h16M4 15h16M10 4v16m5-16v16"/></symbol><symbol id="icon-wave" viewBox="0 0 24 24"><path d="M2 12h3l2-7 4 14 3-10 2 5 2-2h4"/></symbol><symbol id="icon-follow" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M12 2v5m0 10v5M2 12h5m10 0h5"/></symbol></svg>
 
@@ -32,6 +32,7 @@
       <button id="project-new" type="button" class="hdr-btn">New</button>
       <button id="quick-start-toggle" class="quick-start-toggle hdr-btn" type="button" aria-controls="quick-start" aria-expanded="true">Guide</button>
       <button id="layout-stack" type="button" class="hdr-btn" aria-pressed="false" title="Stack or unstack workspace panels">Stack</button>
+      <button type="button" id="tab-fx-chain" class="hdr-btn dsp-dock-trigger" aria-expanded="false" aria-controls="dsp-dock" title="Open the DSP FX inspector">FX chain</button>
       <div class="output-group">
         <select id="export-target" aria-label="Audio export target"><option value="pattern">Pattern</option><option value="song">Song</option></select>
         <button id="export-wav" class="export hdr-btn-export" title="Render and download WAV">Export WAV ↓</button>
@@ -262,6 +263,12 @@
     </section>
   </div>
 
+  <div id="resize-dsp" class="panel-splitter dsp-splitter" role="separator" aria-label="Resize DSP inspector" aria-orientation="vertical" tabindex="0" hidden></div>
+  <aside id="dsp-dock" class="dsp-dock" aria-label="DSP FX inspector" hidden>
+    <div class="dsp-dock-header"><strong>DSP FX CHAIN</strong><button type="button" id="close-dsp-dock" aria-label="Close DSP FX inspector" title="Close DSP FX inspector">×</button></div>
+    <div id="dsp-dock-body" class="dsp-dock-body"></div>
+  </aside>
+
   <div id="resize-right" class="panel-splitter" role="separator" aria-label="Resize sample rack" aria-orientation="vertical" tabindex="0"></div>
 
   <!-- 3. RIGHT TRAY: SAMPLE RACK & WAVE PREVIEW -->
@@ -291,7 +298,7 @@
 </div>
 
 <!-- 4. BOTTOM TRAY: GENERATOR, SLICER & FX RACK (Retractable) -->
-<div id="resize-stage" class="panel-splitter panel-splitter-horizontal" role="separator" aria-label="Resize tracker height" aria-orientation="horizontal" tabindex="0" title="Drag to resize the tracker"></div>
+<div id="resize-stage" class="panel-splitter panel-splitter-horizontal" role="separator" aria-label="Resize generator height" aria-orientation="horizontal" tabindex="0" title="Drag to resize the generator"></div>
 <section class="daw-tray-bottom" id="tray-bottom" aria-label="Beat generator, waveform slicer, and effects rack">
   <!-- Global Hardware Transport Bar -->
   <div class="transport daw-transport" id="transport" aria-label="Playback and navigation">
@@ -352,7 +359,6 @@
   </div>
   <div class="tray-rack-tabs re-track-rack-tabs" role="tablist" aria-label="Bottom tray view switcher">
     <button type="button" class="tray-rack-tab active" id="tab-generator" role="tab" aria-selected="true" aria-controls="controls"><svg class="tool-icon"><use href="#icon-grid"/></svg> Beat Generator</button>
-    <button type="button" class="tray-rack-tab" id="tab-fx-chain" role="tab" aria-selected="false" aria-controls="re-track-dsp-panel"><span class="tab-badge-purple">🎛</span> DSP FX Chain: [Master Bus]</button>
     <button type="button" class="tray-rack-tab" id="tab-slicer" role="tab" aria-selected="false" aria-controls="sample-drop" hidden>Waveform Slicer</button>
     <button type="button" class="tray-rack-tab" id="tab-fx" role="tab" aria-selected="false" aria-controls="quick-fx-panel" hidden>Master DSP</button>
   </div>
@@ -912,4 +918,4 @@
   </div>
   <p class="footer-note" hidden>Single-shot tracker · Audio stays local. Save project includes your samples and settings; autosave restores your latest workspace on this browser. WAV includes tails; muted lanes are excluded. Pitch repitches the sound. MP3 export remains planned.</p>
 </footer>
-</main><script type="module" src="./dist/web.js?v=0.4.27-lane-routing"></script></body></html>
+</main><script type="module" src="./dist/web.js?v=0.4.28-workstation-dock"></script></body></html>

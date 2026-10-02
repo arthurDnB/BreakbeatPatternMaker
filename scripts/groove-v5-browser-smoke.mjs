@@ -22,6 +22,7 @@ try{
   page.on('pageerror',error=>errors.push(error.message));
   await page.goto(`http://127.0.0.1:${server.address().port}/`);
   await page.locator('#grid .hit').first().waitFor();
+  await page.click('#tab-generator');
 
   // Test selecting Groove V5
   await page.selectOption('#algorithm','groove-v5');

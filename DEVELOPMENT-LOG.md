@@ -82,6 +82,26 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-10-02] - Tracker-First DAW Workstation UI Revamp, Centered Fixed Transport & Right DSP Inspector Dock (Antigravity)
+
+* **Tracker-First Flex Expansion & Zero Dead Space:**
+  - Solved tracker squishing by giving `#grid` full flexible vertical space (`flex: 1 1 auto !important; height: 100% !important; min-height: 520px !important;`), allowing standard viewports to comfortably display 16–25+ rows without cramped scrollbars.
+  - Resolved the empty gray panel below the Pattern Bank in `#tray-left` by matching heights, removing redundant dead-space containers, and ensuring flush borders.
+* **Collapsed Beat Generator Drawer on Startup:**
+  - Configured Beat Generator (`#tray-bottom`) to initialize closed on application startup (`setTrayBottom(true)` with `is-collapsed` and `▸ GENERATOR` toggle badge), granting 100% initial stage height to the pattern grid and instrument rack.
+  - Can be toggled open on demand as a hardware drawer without displacing or resizing the transport controls.
+* **Persistent Bottom Transport Bar with Immobile Centered Play Button:**
+  - Relocated `#transport` out of `#tray-bottom` into a persistent fixed dock at the bottom edge of the DAW (`main.daw-chassis`).
+  - Anchored the circular `#play` button directly into `#transport` with a 3-column symmetric grid layout (`grid-template-columns: minmax(0, 1fr) 40px minmax(0, 1fr)`), fixing it perfectly in the horizontal center of the viewport so it never shifts or scrolls away.
+* **Collapsible Right Inspector DSP FX Dock:**
+  - Extracted the modular stompbox DSP FX chain out of the bottom tray into a dedicated collapsible right inspector dock (`<aside id="dsp-dock">`).
+  - Added `#tab-fx-chain` toggle button in the top global header bar and a draggable vertical splitter `#resize-dsp`.
+  - Added programmatic toggle controller `setDspDock(open: boolean)` in `src/web.ts`, guaranteeing generator and DSP controls never crowd each other.
+* **Quality Gates & Comprehensive Smoke Testing:**
+  - Added `scripts/workstation-layout-smoke.mjs` verifying default-collapsed boot, tracker height (>600px), centered play button stability during drawer expansion, DSP inspector dock toggling, and 390px mobile responsiveness.
+  - Updated `scripts/site-browser-smoke.mjs`, `scripts/think-break-site-smoke.mjs`, and `scripts/groove-v5-browser-smoke.mjs` for seamless test coverage across all mounts.
+  - Verified 253/253 unit tests pass (`npm.cmd test`) and all browser smoke suites pass (`npm.cmd run test:site`).
+
 ### [2026-10-02] - Groove V5 Stable Spicy Gestures and Listening Comparison (Codex)
 
 * Fixed `src/core/groove-v5.ts` so each optional hit's Spicy gesture is selected independently of slider position. Raising Spicy now adds or intensifies expressive edits without redrawing an earlier hit's gesture merely because another gesture became eligible. Added a multi-seed, eight-genre regression gate in `tests/groove-v5-genres.test.mjs`.

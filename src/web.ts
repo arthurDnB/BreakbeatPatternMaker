@@ -42,7 +42,11 @@ const selectionSummary=document.createElement('summary');selectionSummary.textCo
 document.querySelector<HTMLElement>('.workspace > .grid-heading')!.append(document.querySelector<HTMLElement>('.workspace > .legend')!);
 el<HTMLDetailsElement>('hit-articulation').open=true;
 // Keep the existing audio/editor controls, but dock them beside the work they edit.
-el('tray-bottom').prepend(el('transport'));
+el('tray-bottom').after(el('transport'));
+el('transport').append(el('play'));
+el('bar-tray-bottom').append(el('tab-generator'));
+el('dsp-dock-body').append(el('re-track-dsp-panel'));
+el('controls').prepend(el('controls').querySelector<HTMLElement>('.gen-trigger-toolbar')!);
 el('master-dsp-host').append(el('quick-fx-panel'));
 el('quick-fx-panel').hidden=false;
 const advancedGrid=el('advanced-generation').querySelector<HTMLElement>('.advanced')!;
@@ -2032,6 +2036,11 @@ function initWorkspaceTrays() {
     if (!bottomTray) return;
     bottomTray.classList.toggle('tray-bottom-collapsed', collapsed);
     if (toggleBottom) toggleBottom.textContent = collapsed ? '▲' : '▼';
+    const expandButton = barBottom?.querySelector<HTMLButtonElement>('.bar-expand-btn');
+    if (expandButton) {
+      expandButton.textContent = collapsed ? '▸ GENERATOR' : '▾ GENERATOR';
+      expandButton.setAttribute('aria-expanded', String(!collapsed));
+    }
     try { localStorage.setItem('bpm_tray_bottom', collapsed ? '1' : '0'); } catch {}
   };
 
@@ -2042,14 +2051,18 @@ function initWorkspaceTrays() {
   if (railRight) railRight.onclick = () => setTrayRight(false);
 
   if (toggleBottom) toggleBottom.onclick = () => setTrayBottom(!bottomTray?.classList.contains('tray-bottom-collapsed'));
-  if (barBottom) barBottom.onclick = () => setTrayBottom(false);
+  if (barBottom) barBottom.onclick = event => {
+    if ((event.target as HTMLElement).closest('#tab-generator')) return;
+    setTrayBottom(!bottomTray?.classList.contains('tray-bottom-collapsed'));
+  };
 
   // Restore states from localStorage if saved
   try {
     if (localStorage.getItem('bpm_tray_left') === '1') setTrayLeft(true);
     if (localStorage.getItem('bpm_tray_right') === '1') setTrayRight(true);
-    if (localStorage.getItem('bpm_tray_bottom') === '1') setTrayBottom(true);
   } catch {}
+  // The tracker owns the opening viewport. The generator opens only on request.
+  setTrayBottom(true);
 
   // Keyboard shortcuts Alt+1 (Left), Alt+2 (Bottom), Alt+3 (Right)
   window.addEventListener('keydown', (e) => {
@@ -2072,6 +2085,21 @@ function initWorkspaceTrays() {
     setTrayLeft(false);
     origShowArranger?.call(el('show-arrangement'), e);
   };
+}
+
+function setDspDock(open: boolean) {
+  const dock = el<HTMLElement>('dsp-dock');
+  const splitter = el<HTMLElement>('resize-dsp');
+  const trigger = el<HTMLButtonElement>('tab-fx-chain');
+  dock.hidden = !open;
+  splitter.hidden = !open;
+  el('studio-layout').classList.toggle('dsp-open', open);
+  trigger.setAttribute('aria-expanded', String(open));
+  trigger.classList.toggle('active', open);
+  if (open) {
+    syncDspControls();
+    syncReTrackRotaryDials();
+  }
 }
 
 function initBottomRack(){
@@ -2108,12 +2136,19 @@ function initBottomRack(){
   const pnlFxChain = document.getElementById('re-track-dsp-panel');
   const masterRack=el<HTMLDetailsElement>('master-dsp-rack');
   masterRack.addEventListener('toggle',()=>{if(!pnlFx)return;pnlFx.hidden=!masterRack.open;pnlFx.style.display=masterRack.open?'':'none';if(masterRack.open)syncDspControls();});
+  if (pnlFxChain) {
+    pnlFxChain.hidden = false;
+    pnlFxChain.style.display = 'flex';
+    pnlFxChain.classList.add('is-active');
+  }
+  el('close-dsp-dock').onclick = () => setDspDock(false);
 
   function switchBottomTab(tabId: 'generator'|'slicer'|'fx'|'fx-chain'){
     if(!tabGen || !tabSli || !tabFx || !pnlGen || !pnlSli || !pnlFx) return;
-    if(tabFxChain) {
-      tabFxChain.classList.toggle('active', tabId==='fx-chain');
-      tabFxChain.setAttribute('aria-selected', String(tabId==='fx-chain'));
+    if(tabId==='fx-chain') {
+      setDspDock(true);
+      status('DSP FX inspector open.');
+      return;
     }
     tabGen.classList.toggle('active', tabId==='generator');
     tabGen.setAttribute('aria-selected', String(tabId==='generator'));
@@ -2122,31 +2157,7 @@ function initBottomRack(){
     tabFx.classList.toggle('active', tabId==='fx');
     tabFx.setAttribute('aria-selected', String(tabId==='fx'));
 
-    if(tabId==='fx-chain'){
-      if(pnlFxChain){
-        pnlFxChain.hidden = false;
-        pnlFxChain.style.display = 'flex';
-        pnlFxChain.classList.add('is-active');
-      }
-      pnlGen.style.display = 'none';
-      pnlGen.hidden = true;
-      pnlGen.classList.remove('is-active');
-      pnlSli.hidden = true;
-      pnlSli.style.display = 'none';
-      pnlSli.classList.remove('is-active');
-      if(pnlFx){
-        pnlFx.hidden = !masterRack.open;
-        pnlFx.style.display = masterRack.open?'':'none';
-      }
-      syncDspControls();
-      syncReTrackRotaryDials();
-      status('Bottom rack: Modular DSP FX Chain active.');
-    }else if(tabId==='generator'){
-      if(pnlFxChain){
-        pnlFxChain.hidden = true;
-        pnlFxChain.style.display = 'none';
-        pnlFxChain.classList.remove('is-active');
-      }
+    if(tabId==='generator'){
       pnlGen.style.display = 'flex';
       pnlGen.hidden = false;
       pnlGen.classList.add('is-active');
@@ -2159,11 +2170,6 @@ function initBottomRack(){
       }
       status('Bottom rack: Beat Generator active.');
     }else if(tabId==='slicer'){
-      if(pnlFxChain){
-        pnlFxChain.hidden = true;
-        pnlFxChain.style.display = 'none';
-        pnlFxChain.classList.remove('is-active');
-      }
       pnlGen.style.display = 'none';
       pnlGen.hidden = true;
       pnlGen.classList.remove('is-active');
@@ -2178,11 +2184,6 @@ function initBottomRack(){
       window.dispatchEvent(new Event('resize'));
       status('Bottom rack: Waveform Slicer active.');
     }else if(tabId==='fx'){
-      if(pnlFxChain){
-        pnlFxChain.hidden = true;
-        pnlFxChain.style.display = 'none';
-        pnlFxChain.classList.remove('is-active');
-      }
       pnlGen.style.display = 'none';
       pnlGen.hidden = true;
       pnlGen.classList.remove('is-active');
@@ -2197,8 +2198,12 @@ function initBottomRack(){
     }
   }
 
-  if(tabFxChain) tabFxChain.onclick = () => switchBottomTab('fx-chain');
-  if(tabGen) tabGen.onclick = () => switchBottomTab('generator');
+  if(tabFxChain) tabFxChain.onclick = () => setDspDock(el('dsp-dock').hidden === true);
+  if(tabGen) tabGen.onclick = event => {
+    event.stopPropagation();
+    if (el('tray-bottom').classList.contains('tray-bottom-collapsed')) el('bar-tray-bottom').querySelector<HTMLButtonElement>('.bar-expand-btn')?.click();
+    switchBottomTab('generator');
+  };
   if(tabSli) tabSli.onclick = () => switchBottomTab('slicer');
   if(tabFx) tabFx.onclick = () => switchBottomTab('fx');
 
@@ -2212,10 +2217,6 @@ function initBottomRack(){
       doMutate();
     } else if (target.id === 'action-variation') {
       doVariation();
-    } else if (target.id === 'tab-fx-chain') {
-      switchBottomTab('fx-chain');
-    } else if (target.id === 'tab-generator') {
-      switchBottomTab('generator');
     } else if (target.id === 'tab-slicer') {
       switchBottomTab('slicer');
     } else if (target.id === 'tab-fx') {
@@ -2315,7 +2316,7 @@ function initBottomRack(){
     const targetLabel = document.getElementById('dsp-chain-target-label');
     if(targetLabel) targetLabel.textContent = `🎛 DSP FX CHAIN: [${names[target] || target.toUpperCase()}]`;
     const tabFx = document.getElementById('tab-fx-chain');
-    if(tabFx) tabFx.innerHTML = `<span class="tab-badge-purple">🎛</span> DSP FX CHAIN: [${names[target] || target.toUpperCase()}]`;
+    if(tabFx) tabFx.title = `DSP FX inspector: ${names[target] || target.toUpperCase()}`;
 
     syncReTrackRotaryDials();
   }
@@ -2358,22 +2359,29 @@ function initBottomRack(){
 }
 
 function initWorkspaceDock(){
- const shell=el('studio-layout'),stack=el<HTMLButtonElement>('layout-stack'),splitter=el('resize-left'),stageSplitter=el('resize-stage');
+ const shell=el('studio-layout'),stack=el<HTMLButtonElement>('layout-stack'),splitter=el('resize-left'),stageSplitter=el('resize-stage'),dspSplitter=el('resize-dsp');
  for(const id of workspacePanelIds)el<HTMLDetailsElement>(id).addEventListener('toggle',scheduleWorkspaceSave);
  el('grid').addEventListener('scroll',scheduleWorkspaceSave,{passive:true});el('song-timeline').addEventListener('scroll',scheduleWorkspaceSave,{passive:true});window.addEventListener('scroll',scheduleWorkspaceSave,{passive:true});
  const setStack=(active:boolean)=>{shell.classList.toggle('is-stacked',active);stack.setAttribute('aria-pressed',String(active));stack.textContent=active?'Side by side':'Stack panels';try{localStorage.setItem('bpm_layout_stacked',active?'1':'0');}catch{}};
- try{setStack(localStorage.getItem('bpm_layout_stacked')==='1');const saved=Number(localStorage.getItem('bpm_pattern_width'));if(saved>=180&&saved<=520)shell.style.setProperty('--tray-left-w',saved+'px');const height=Number(localStorage.getItem('bpm_tracker_height'));if(height>=300&&height<=1400)shell.style.setProperty('--tracker-height',height+'px');}catch{setStack(false);}
+ try{setStack(localStorage.getItem('bpm_layout_stacked')==='1');const saved=Number(localStorage.getItem('bpm_pattern_width'));if(saved>=180&&saved<=520)shell.style.setProperty('--tray-left-w',saved+'px');const generatorHeight=Number(localStorage.getItem('bpm_generator_height'));if(generatorHeight>=120&&generatorHeight<=560)document.documentElement.style.setProperty('--generator-height',generatorHeight+'px');const dspWidth=Number(localStorage.getItem('bpm_dsp_width'));if(dspWidth>=260&&dspWidth<=600)shell.style.setProperty('--dsp-width',dspWidth+'px');}catch{setStack(false);}
  stack.onclick=()=>setStack(!shell.classList.contains('is-stacked'));
  let startX=0,startWidth=0;
  splitter.onpointerdown=e=>{if(shell.classList.contains('is-stacked'))return;startX=e.clientX;startWidth=el('tray-left').getBoundingClientRect().width;splitter.setPointerCapture(e.pointerId);splitter.classList.add('is-dragging');};
  splitter.onpointermove=e=>{if(!splitter.hasPointerCapture(e.pointerId))return;const width=Math.max(180,Math.min(520,startWidth+e.clientX-startX));shell.style.setProperty('--tray-left-w',width+'px');};
  splitter.onpointerup=e=>{if(splitter.hasPointerCapture(e.pointerId))splitter.releasePointerCapture(e.pointerId);splitter.classList.remove('is-dragging');try{localStorage.setItem('bpm_pattern_width',String(Math.round(el('tray-left').getBoundingClientRect().width)));}catch{}};
  splitter.onkeydown=e=>{if(!['ArrowLeft','ArrowRight'].includes(e.key))return;e.preventDefault();const width=Math.max(180,Math.min(520,el('tray-left').getBoundingClientRect().width+(e.key==='ArrowRight'?20:-20)));shell.style.setProperty('--tray-left-w',width+'px');try{localStorage.setItem('bpm_pattern_width',String(width));}catch{}};
+ const generator=el('tray-bottom');
+ const setGeneratorHeight=(height:number)=>document.documentElement.style.setProperty('--generator-height',Math.max(120,Math.min(Math.min(560,window.innerHeight*.48),height))+'px');
  let startY=0,startHeight=0;
- stageSplitter.onpointerdown=e=>{startY=e.clientY;startHeight=el('grid').getBoundingClientRect().height;stageSplitter.setPointerCapture(e.pointerId);stageSplitter.classList.add('is-dragging');};
- stageSplitter.onpointermove=e=>{if(!stageSplitter.hasPointerCapture(e.pointerId))return;shell.style.setProperty('--tracker-height',Math.max(300,Math.min(1400,startHeight+e.clientY-startY))+'px');};
- stageSplitter.onpointerup=e=>{if(stageSplitter.hasPointerCapture(e.pointerId))stageSplitter.releasePointerCapture(e.pointerId);stageSplitter.classList.remove('is-dragging');try{localStorage.setItem('bpm_tracker_height',String(Math.round(el('grid').getBoundingClientRect().height)));}catch{}};
- stageSplitter.onkeydown=e=>{if(!['ArrowUp','ArrowDown'].includes(e.key))return;e.preventDefault();const height=Math.max(300,Math.min(1400,el('grid').getBoundingClientRect().height+(e.key==='ArrowDown'?30:-30)));shell.style.setProperty('--tracker-height',height+'px');try{localStorage.setItem('bpm_tracker_height',String(height));}catch{}};
+ stageSplitter.onpointerdown=e=>{if(generator.classList.contains('tray-bottom-collapsed'))return;startY=e.clientY;startHeight=generator.getBoundingClientRect().height;stageSplitter.setPointerCapture(e.pointerId);stageSplitter.classList.add('is-dragging');};
+ stageSplitter.onpointermove=e=>{if(!stageSplitter.hasPointerCapture(e.pointerId))return;setGeneratorHeight(startHeight+startY-e.clientY);};
+ stageSplitter.onpointerup=e=>{if(stageSplitter.hasPointerCapture(e.pointerId))stageSplitter.releasePointerCapture(e.pointerId);stageSplitter.classList.remove('is-dragging');try{localStorage.setItem('bpm_generator_height',String(Math.round(generator.getBoundingClientRect().height)));}catch{}};
+ stageSplitter.onkeydown=e=>{if(!['ArrowUp','ArrowDown'].includes(e.key))return;e.preventDefault();setGeneratorHeight(generator.getBoundingClientRect().height+(e.key==='ArrowUp'?30:-30));try{localStorage.setItem('bpm_generator_height',String(Math.round(generator.getBoundingClientRect().height)));}catch{}};
+ let startXDock=0,startWidthDock=0;
+ dspSplitter.onpointerdown=e=>{startXDock=e.clientX;startWidthDock=el('dsp-dock').getBoundingClientRect().width;dspSplitter.setPointerCapture(e.pointerId);dspSplitter.classList.add('is-dragging');};
+ dspSplitter.onpointermove=e=>{if(!dspSplitter.hasPointerCapture(e.pointerId))return;shell.style.setProperty('--dsp-width',Math.max(260,Math.min(600,startWidthDock+startXDock-e.clientX))+'px');};
+ dspSplitter.onpointerup=e=>{if(dspSplitter.hasPointerCapture(e.pointerId))dspSplitter.releasePointerCapture(e.pointerId);dspSplitter.classList.remove('is-dragging');try{localStorage.setItem('bpm_dsp_width',String(Math.round(el('dsp-dock').getBoundingClientRect().width)));}catch{}};
+ dspSplitter.onkeydown=e=>{if(!['ArrowLeft','ArrowRight'].includes(e.key))return;e.preventDefault();const width=Math.max(260,Math.min(600,el('dsp-dock').getBoundingClientRect().width+(e.key==='ArrowLeft'?20:-20)));shell.style.setProperty('--dsp-width',width+'px');try{localStorage.setItem('bpm_dsp_width',String(width));}catch{}};
 }
 initWorkspaceTrays();
 initWorkspaceDock();

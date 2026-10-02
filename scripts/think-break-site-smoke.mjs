@@ -24,6 +24,8 @@ try{
     page.on('response',response=>{if(response.status()>=400)errors.push(`${response.status()} ${response.url()}`);});
     try{
       await page.goto(`http://127.0.0.1:${server.address().port}${prefix}`);
+      assert.equal(await page.locator('#tray-bottom').evaluate(element=>element.classList.contains('tray-bottom-collapsed')),true);
+      await page.click('#tab-generator');
       await page.click('#generate');
       await page.locator('#grid .hit').first().waitFor();
       await page.locator('#advanced-generation').evaluate(element=>element.open=true);
