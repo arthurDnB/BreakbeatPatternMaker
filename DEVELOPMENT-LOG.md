@@ -82,6 +82,13 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-10-02] - Groove V5 Stable Spicy Gestures and Listening Comparison (Codex)
+
+* Fixed `src/core/groove-v5.ts` so each optional hit's Spicy gesture is selected independently of slider position. Raising Spicy now adds or intensifies expressive edits without redrawing an earlier hit's gesture merely because another gesture became eligible. Added a multi-seed, eight-genre regression gate in `tests/groove-v5-genres.test.mjs`.
+* Added `scripts/groove-v5-audition.mjs`, a repeatable local comparison using licensed genre kits: V4 baseline, V5 baseline, and separate Complexity/Spicy changes for all eight pilots. It creates 40 WAVs, an HTML listening/score page and a machine-readable report under ignored `test-results/groove-v5-audition/`. Updated `docs/GROOVE-V5-SYSTEM-DESIGN.md` with usage and a note about denser V5 hats/percussion in several fast genres. Corrected profile comments that overstated listening review or existing gestures.
+* Stabilized concurrent UI browser QA: `scripts/site-browser-smoke.mjs` now waits for the asynchronously opened DSP control and gives bundled sample decoding a diagnostic 60-second timeout; `scripts/think-break-site-smoke.mjs` explicitly generates a first beat because a blank project is valid.
+* Verification: all 40 WAVs were nonempty, valid RIFF/WAVE files with measured peaks between 0.462 and 0.96; after the concurrent UI merge, `npm.cmd test` passed 253/253 and `npm.cmd run test:site` passed Think layer, root/subpath sample loading, sound browser, break transcription and V5 controls. A human reference listening pass is still required before calling the profiles musically validated.
+
 ### [2026-10-02] - Compact 2-Column Beat Generator, Tracker Flex Expansion & Strict DSP Tab Isolation (Antigravity)
 
 * **Tracker Flex-Fill Expansion & Zero Black Void:**
