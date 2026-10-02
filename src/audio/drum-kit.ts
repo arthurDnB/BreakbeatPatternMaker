@@ -158,7 +158,7 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:(refreshTrack
     const heading=document.createElement('div');heading.className='sound-heading';const badge=document.createElement('span');badge.id='kit-badge-'+role;badge.className='sound-badge';heading.append(title,badge);
     const actions=document.createElement('div');actions.className='sound-actions';actions.append(upload,openSlicer,clear,file);
     const routing=document.createElement('div');routing.className='sound-routing';routing.append(include.l,mute.l,solo.l);
-    const gainLabel=levelKnob.element;levelKnob.output.id='kit-level-value-'+role;
+    levelKnob.output.id='kit-level-value-'+role;
     const shape=document.createElement('details');shape.className='tone-panel';shape.id='kit-shape-'+role;const shapeSummary=document.createElement('summary');shapeSummary.textContent='Pitch & playback';shape.append(shapeSummary);
     const reverse=checkbox('kit-reverse-'+role,'Reverse all hits in this lane');
     const decayKnob=createRotaryKnob({id:'kit-decay-'+role,label:'Decay / Tightness',ariaLabel:'Decay / Tightness for '+title.textContent,value:1,min:.05,max:1,step:.01,format:value=>Math.round(value*100)+'%',onInput:value=>{mix[role].decay=value;rememberShape(mix[role]);update();changed(false);}}),decayLabel=decayKnob.element;
@@ -176,7 +176,9 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:(refreshTrack
     const matchBpm=document.createElement('button');matchBpm.type='button';matchBpm.id='kit-match-bpm-'+role;matchBpm.textContent='Match BPM once';matchBpm.title='Set manual speed to current BPM ÷ original BPM once.';
     const followBpm=checkbox('kit-follow-bpm-'+role,'Follow BPM as tempo changes');
     const tempoInfo=document.createElement('p');tempoInfo.id='kit-tempo-info-'+role;tempoInfo.className='sample-tempo-info';tempoInfo.setAttribute('role','status');
-    shape.append(tuneKnob.element,makeLabel('Speed mode',speedMode),speed.wrapper,makeLabel('Original break BPM',sourceBpm),matchBpm,followBpm.l,tempoInfo,lowpass.wrapper,attack.wrapper,decayLabel,reverse.l);
+    const shapingKnobs=document.createElement('div');shapingKnobs.className='rotary-knob-grid sample-shaping-knobs';shapingKnobs.append(levelKnob.element,tuneKnob.element,speed.wrapper,lowpass.wrapper,attack.wrapper,decayLabel);
+    const tempoControls=document.createElement('div');tempoControls.className='sample-tempo-controls';tempoControls.append(makeLabel('Speed mode',speedMode),makeLabel('Original BPM',sourceBpm),matchBpm,followBpm.l,tempoInfo);
+    shape.append(shapingKnobs,tempoControls,reverse.l);
     const layerPanel=document.createElement('details');layerPanel.className='tone-panel';layerPanel.id='kit-layer-'+role;
     const layerHeading=document.createElement('summary');layerHeading.textContent='Layer a second sound';layerPanel.append(layerHeading);
     const layerChoice=document.createElement('select');layerChoice.id='kit-layer-choice-'+role;
@@ -186,8 +188,9 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:(refreshTrack
     const layerOffsetKnob=createRotaryKnob({id:'kit-layer-offset-'+role,label:'Layer offset',ariaLabel:'Layer offset for '+title.textContent,value:0,min:-10,max:10,step:.1,format:value=>value.toFixed(1)+' ms',onInput:value=>{if(!mix[role].layer)return;mix[role].layer.offsetMs=value;update();changed(false);}});
     const layerInvert=checkbox('kit-layer-invert-'+role,'Invert layer polarity');
     const layerStatus=document.createElement('p');layerStatus.id='kit-layer-status-'+role;layerStatus.className='sample-tempo-info';layerStatus.setAttribute('role','status');
-    layerPanel.append(makeLabel('Layer sound',layerChoice),layerLevel.wrapper,layerOffsetKnob.element,layerInvert.l,layerStatus);
-    const content=document.createElement('div');content.className='instrument-panel-content';content.append(heading,soundContainer,info,actions,routing,gainLabel,shape,layerPanel);
+    const layerKnobs=document.createElement('div');layerKnobs.className='rotary-knob-grid layer-knobs';layerKnobs.append(layerLevel.wrapper,layerOffsetKnob.element);
+    layerPanel.append(makeLabel('Layer sound',layerChoice),layerKnobs,layerInvert.l,layerStatus);
+    const content=document.createElement('div');content.className='instrument-panel-content';content.append(heading,soundContainer,info,actions,routing,shape,layerPanel);
     card.append(content);
     const previewFooter=document.createElement('div');previewFooter.className='instrument-preview-footer';previewFooter.append(play);card.append(previewFooter);root.append(card);
     const fx=document.createElement('details');fx.className='effects-panel';fx.id='effects-'+role;const summary=document.createElement('summary');summary.textContent='Effects';fx.append(summary);

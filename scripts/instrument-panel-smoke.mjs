@@ -12,13 +12,17 @@ const browser=await chromium.launch({headless:true,channel:process.env.BROWSER_C
 try{
  const page=await browser.newPage({viewport:{width:1360,height:430}}),errors=[];
  page.on('pageerror',error=>errors.push(error.message));
- await page.goto(origin);await page.locator('#grid .hit').first().waitFor();await page.locator('.track-instrument-panel[data-role="kick"]').evaluate(element=>{element.open=true;element.dispatchEvent(new Event('toggle'));});
+ await page.goto(origin);await page.locator('#grid .hit').first().waitFor();await page.waitForFunction(()=>{const details=document.querySelector('.track-instrument-panel[data-role="kick"]');if(!details)return false;if(!details.open){details.open=true;details.dispatchEvent(new Event('toggle'));}return getComputedStyle(details.querySelector('.drum-slot')).display!=='none';});
  const panel=page.locator('.track-instrument-panel[data-role="kick"] .drum-slot');
  await panel.waitFor({state:'visible'});
  await page.locator('#kit-shape-kick').evaluate(element=>{element.open=true;});
  const bounds=await panel.evaluate(element=>{const rect=element.getBoundingClientRect();const content=element.querySelector('.instrument-panel-content');return {top:rect.top,bottom:rect.bottom,height:rect.height,scrollHeight:content.scrollHeight,clientHeight:content.clientHeight,position:getComputedStyle(element).position};});
  assert.equal(bounds.position,'fixed');assert.ok(bounds.top>=0);assert.ok(bounds.bottom<=430,`panel extends below viewport: ${JSON.stringify(bounds)}`);assert.ok(bounds.scrollHeight>bounds.clientHeight,'panel content should remain internally scrollable');
  const content=panel.locator('.instrument-panel-content'),preview=panel.locator('.instrument-preview-footer');
+ const sampleColumns=await panel.locator('.sample-shaping-knobs').evaluate(element=>getComputedStyle(element).gridTemplateColumns.split(' ').length);
+ const fxColumns=await panel.locator('.effects-panel').evaluate(element=>getComputedStyle(element).gridTemplateColumns.split(' ').length);
+ assert.equal(sampleColumns,3,'sample-shaping knobs should use a compact three-column grid');
+ assert.equal(fxColumns,3,'FX knobs should use a compact three-column grid');
  await content.evaluate(element=>{element.scrollTop=element.scrollHeight;});
  assert.ok(await content.evaluate(element=>element.scrollTop>0),'panel content did not scroll');
  const previewBottom=await preview.evaluate(element=>element.getBoundingClientRect().bottom);

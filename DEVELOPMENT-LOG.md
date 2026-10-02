@@ -82,6 +82,12 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-10-03] - Instrument Panel Horizontal Control Layout (Codex)
+- Reorganized the drum lane’s level, pitch, speed, tone, attack, and decay knobs into a three-column grid; grouped speed mode and BPM matching tools into a separate compact options area.
+- Arranged second-layer controls side by side and kept effects and synth parameters in responsive horizontal grids, reducing panel height while preserving editable numeric fields and labels.
+- Expanded `scripts/instrument-panel-smoke.mjs` to assert the three-column sample and FX layouts in addition to stable scrolling, pinned Preview, no tracker jump, and correct sound selection.
+- Verification: `npm.cmd test` passed 266 tests; `npm.cmd run test:site` passed all deployment browser checks at root and repository subpath.
+
 ### [2026-10-02] - Instrument & Synth Panel Knobs, Stable Editing and Pinned Preview (Codex)
 - Added reusable accessible rotary controls with editable numeric values, keyboard operation, drag adjustment, and logarithmic frequency scaling in `src/ui/rotary-knob.ts`.
 - Converted continuous drum lane, sample-shaping, layer, and per-lane FX parameters to compact knobs; converted synth ADSR and filter controls while retaining their saved parameter model.
