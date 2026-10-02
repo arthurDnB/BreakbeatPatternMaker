@@ -82,6 +82,23 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-10-02] - Fixed Transport Generator Triggers & Dedicated Parameter Drawer (Antigravity)
+
+* **Relocated Layer Generators to Persistent Bottom Transport Bar:**
+  - Moved the Beat Generator trigger actions (`TRIGGER LAYER: [⚡ BEAT] [⚡ BASS] [⚡ MELODY] [⚡ PIANO CHORDS] [⟳ VARIATION]`) from `#controls` directly into the fixed bottom transport bar (`#transport .transport-triggers`).
+  - Positioned them in `grid-column: 1` (`justify-self: end; margin-right: 12px;`) immediately adjacent to the centered Play button (`#play`), utilizing previously vacant space between navigation shortcuts and the master Play control.
+  - Triggers are permanently visible and clickable 100% of the time, allowing users to instantly generate drum beats, basslines, melodies, piano chords, and variations without opening the drawer.
+* **Dedicated Parameter Tweaking in Expandable Generator Drawer:**
+  - Removed duplicate trigger rows from `#controls`, dedicating the expandable bottom drawer entirely to sound design and parameter tweaking (`01 ENGINE & KIT CORE`, `02 RHYTHM DYNAMICS & TEMPO`, `03 KEY & HARMONY MAPPING`, `04 ADVANCED GROOVE MATRIX`).
+  - Added a clean `#restore-defaults` footer in `#controls` to reset options without crowding layer triggers.
+* **Responsive OLED Neon Styling & Viewport Scaling:**
+  - Styled tactile trigger buttons with crisp OLED neon accents: cyan glow for BEAT (`#00f5d4`), azure for BASS (`#38bdf8`), purple for MELODY (`#c084fc`), amber for PIANO (`#fbbf24`), and gold for VARIATION (`#ffd166`).
+  - Added responsive media queries: hides static text label below 1350px and compresses buttons cleanly on mobile (390px) to guarantee zero lateral overflow.
+* **Verification & Smoke Tests:**
+  - Updated `scripts/workstation-layout-smoke.mjs` verifying that triggers are descendants of `#transport`, visible and clickable when the drawer is collapsed, and positioned to the left of the centered Play button.
+  - Updated `scripts/exact-hits-browser-smoke.mjs` and `scripts/melody-browser-smoke.mjs` for drawer expand semantics.
+  - All 253 unit tests pass (`npm.cmd test`) and all browser smoke suites pass (`workstation-layout-smoke`, `sound-browser`, `groove-v5`, `exact-hits`, `melody-browser`).
+
 ### [2026-10-02] - Tracker-First DAW Workstation UI Revamp, Centered Fixed Transport & Right DSP Inspector Dock (Antigravity)
 
 * **Tracker-First Flex Expansion & Zero Dead Space:**

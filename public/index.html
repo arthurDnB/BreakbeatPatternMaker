@@ -309,6 +309,16 @@
       <button id="show-arrangement">Arrangement</button>
     </div>
 
+    <!-- Quick Layer Generation Toolbar (Fixed beside Play) -->
+    <div class="transport-triggers" id="transport-triggers" aria-label="Quick Layer Generators">
+      <span class="generator-label">TRIGGER LAYER:</span>
+      <button id="generate" class="accent gen-trigger-btn btn-beat" title="Generate or replace the drum beat; preserve bass, melody, piano and user tracks">⚡ BEAT</button>
+      <button id="generate-bass" class="gen-trigger-btn btn-bass" title="Generate or replace the bassline only">⚡ BASS</button>
+      <button id="generate-melody" class="gen-trigger-btn btn-melody" title="Generate or replace the lead melody only">⚡ MELODY</button>
+      <button id="generate-piano" class="gen-trigger-btn btn-piano" title="Generate lush genre-aware piano chords only">⚡ PIANO CHORDS</button>
+      <button id="regenerate" class="gen-tool-btn btn-variation" title="Generate a related variation">⟳ VARIATION</button>
+    </div>
+
     <div class="transport-center">
       <div class="toolbar-group transport-main">
         <label class="transport-target">Play <select id="transport-target" aria-label="Playback target"><option value="pattern">Pattern</option><option value="song">Song</option></select></label>
@@ -756,19 +766,9 @@
         </div>
       </div>
 
-      <!-- Module 5: Generator Trigger Deck (Full Width Bottom Bar) -->
-      <div class="generation-toolbar layer-generators gen-trigger-toolbar" aria-label="Generate pattern layers">
-        <div class="gen-trigger-group-left">
-          <span class="generator-label">TRIGGER LAYER:</span>
-          <button id="generate" class="accent gen-trigger-btn btn-beat" title="Generate or replace the drum beat; preserve bass, melody, piano and user tracks">⚡ BEAT</button>
-          <button id="generate-bass" class="gen-trigger-btn btn-bass" title="Generate or replace the bassline only">⚡ BASS</button>
-          <button id="generate-melody" class="gen-trigger-btn btn-melody" title="Generate or replace the lead melody only">⚡ MELODY</button>
-          <button id="generate-piano" class="gen-trigger-btn btn-piano" title="Generate lush genre-aware piano chords only">⚡ PIANO CHORDS</button>
-        </div>
-        <div class="gen-trigger-group-right">
-          <button id="regenerate" class="gen-tool-btn btn-variation">⟳ VARIATION</button>
-          <button id="restore-defaults" class="gen-tool-btn btn-restore" title="Reset all generation controls to the selected genre’s defaults">↺ RESTORE DEFAULTS</button>
-        </div>
+      <!-- Module 5: Generator Console Footer Actions -->
+      <div class="gen-options-footer" aria-label="Generation utility actions">
+        <button id="restore-defaults" class="gen-tool-btn btn-restore" title="Reset all generation controls to the selected genre’s defaults">↺ RESTORE DEFAULTS</button>
       </div>
     </section>
 

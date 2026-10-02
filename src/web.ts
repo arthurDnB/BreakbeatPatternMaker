@@ -46,7 +46,6 @@ el('tray-bottom').after(el('transport'));
 el('transport').append(el('play'));
 el('bar-tray-bottom').append(el('tab-generator'));
 el('dsp-dock-body').append(el('re-track-dsp-panel'));
-el('controls').prepend(el('controls').querySelector<HTMLElement>('.gen-trigger-toolbar')!);
 el('master-dsp-host').append(el('quick-fx-panel'));
 el('quick-fx-panel').hidden=false;
 const advancedGrid=el('advanced-generation').querySelector<HTMLElement>('.advanced')!;

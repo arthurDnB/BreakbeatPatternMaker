@@ -19,6 +19,7 @@ try{
  const context=await browser.newContext({viewport:{width:1440,height:950},acceptDownloads:true});
  const page=await context.newPage(),errors=[],pianoLoads=[];page.on('pageerror',error=>errors.push(error.message));page.on('response',response=>{if(response.url().includes('/public/piano/')&&response.url().endsWith('.flac'))pianoLoads.push(response.status());});
  await page.goto(`http://127.0.0.1:${server.address().port}/`);await page.locator('#grid .hit').first().waitFor();
+ await page.click('#bar-tray-bottom .bar-expand-btn');
  const save=async()=>{const download=page.waitForEvent('download');await page.click('#project-save');return JSON.parse((await readFile(await(await download).path())).toString());};
  assert.equal(await page.locator('#melody-options').isVisible(),true);
  assert.equal(await page.inputValue('#harmonyStyle'),'jazz');

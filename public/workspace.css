@@ -3536,8 +3536,7 @@ main.daw-chassis { gap:3px; }
 #controls .gen-card-matrix .gen-card-header { display:none; }
 #controls .gen-card-matrix .gen-card-body { padding:0; }
 #controls #advanced-generation>summary { min-height:24px; padding:2px 7px; color:#90dac2; }
-#controls #advanced-generation[open] .advanced { max-height:220px; overflow-y:auto; align-content:start; }
-#controls .gen-trigger-toolbar { margin-top:0 !important; padding:3px 6px !important; background:#07100c !important; }
+#controls .gen-options-footer { margin-top:2px !important; padding:3px 6px !important; display:flex !important; justify-content:flex-end !important; }
 
 #transport.transport.daw-transport { position:relative !important; top:auto !important; bottom:auto !important; z-index:40; display:grid !important; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center; min-height:48px; flex:0 0 48px !important; width:100%; box-sizing:border-box; margin:0 !important; padding:3px 9px; border:1px solid #285044; border-radius:5px; background:#030807 !important; box-shadow:0 -3px 18px #000a; }
 #transport .nav-shortcuts { grid-column:1; justify-self:start; min-width:0; }
@@ -5816,7 +5815,20 @@ main.daw-chassis {
 #drum-lane-config[open] { position:absolute; top:30px; left:12px; right:12px; z-index:64; max-height:min(52dvh,360px); overflow:auto; padding:7px 10px; border:1px solid #36735d; background:#08130f; box-shadow:0 16px 32px #000d; }
 #transport.transport.daw-transport { grid-template-columns:minmax(0,1fr) 40px minmax(0,1fr) !important; }
 #transport #play { position:relative !important; grid-column:2; grid-row:1; justify-self:center; }
-#transport .nav-shortcuts { grid-column:1; grid-row:1; }
+#transport .nav-shortcuts { grid-column:1; grid-row:1; justify-self:start; }
+#transport .transport-triggers { grid-column:1; grid-row:1; justify-self:end; display:flex !important; align-items:center !important; gap:5px !important; margin-right:12px !important; white-space:nowrap !important; flex-wrap:nowrap !important; z-index:2; }
+#transport .transport-triggers .generator-label { font:700 9px var(--font-mono); color:#5d7c71; letter-spacing:0.05em; margin-right:2px; }
+#transport .transport-triggers .gen-trigger-btn { font:800 10px var(--font-mono); letter-spacing:0.03em; padding:3px 9px; min-height:26px; height:26px; border-radius:4px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; white-space:nowrap; transition:all 0.12s ease; }
+#transport .transport-triggers .gen-trigger-btn.btn-beat { background:#082d24; border:1px solid #00f5d4; color:#00f5d4; box-shadow:0 0 10px rgba(0,245,212,0.25); }
+#transport .transport-triggers .gen-trigger-btn.btn-beat:hover { background:#00f5d4; color:#03100c; box-shadow:0 0 16px rgba(0,245,212,0.5); }
+#transport .transport-triggers .gen-trigger-btn.btn-bass { background:#141c2c; border:1px solid #38bdf8; color:#38bdf8; }
+#transport .transport-triggers .gen-trigger-btn.btn-bass:hover { background:#38bdf8; color:#081524; box-shadow:0 0 12px rgba(56,189,248,0.4); }
+#transport .transport-triggers .gen-trigger-btn.btn-melody { background:#25122e; border:1px solid #c084fc; color:#c084fc; }
+#transport .transport-triggers .gen-trigger-btn.btn-melody:hover { background:#c084fc; color:#170720; box-shadow:0 0 12px rgba(192,132,252,0.4); }
+#transport .transport-triggers .gen-trigger-btn.btn-piano { background:#271a08; border:1px solid #fbbf24; color:#fbbf24; }
+#transport .transport-triggers .gen-trigger-btn.btn-piano:hover { background:#fbbf24; color:#1a1003; box-shadow:0 0 12px rgba(251,191,36,0.4); }
+#transport .transport-triggers .btn-variation { background:#1f1a0d; border:1px solid #a38a3d; color:#ffd166; font:700 10px var(--font-mono); padding:3px 8px; min-height:26px; height:26px; border-radius:4px; cursor:pointer; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; transition:all 0.12s ease; }
+#transport .transport-triggers .btn-variation:hover { background:#ffd166; color:#1a1403; box-shadow:0 0 12px rgba(255,209,102,0.4); }
 #transport .transport-center { grid-column:3; grid-row:1; justify-self:start; padding-left:10px; }
 #transport .tray-session-hud { grid-column:3; grid-row:1; justify-self:end; }
 .studio-layout .dsp-dock:not([hidden]) { position:relative; z-index:60; }
@@ -5830,6 +5842,8 @@ main.daw-chassis {
 .dsp-dock .stompbox-unit { min-width:0; width:100%; }
 .dsp-dock .dsp-aux-racks { padding:7px; }
 @media(max-width:1500px) { #transport .tray-session-hud { display:none !important; } }
+@media(max-width:1350px) { #transport .transport-triggers .generator-label { display:none !important; } }
+@media(max-width:1150px) { #transport .transport-triggers .btn-variation { display:none !important; } }
 @media(max-width:1250px) { .studio-layout .dsp-dock:not([hidden]) { position:fixed; z-index:80; } }
 @media(max-width:800px) {
   .studio-layout { display:flex !important; flex:0 0 auto !important; flex-direction:column !important; order:2; width:100%; min-height:0 !important; height:auto !important; overflow:visible !important; }
@@ -5842,6 +5856,11 @@ main.daw-chassis {
   #tray-left { order:2 !important; width:100% !important; height:auto !important; max-height:260px !important; flex:0 0 auto !important; overflow:auto !important; }
   #tray-bottom { order:3 !important; }
   #transport.transport.daw-transport { position:fixed !important; top:auto !important; bottom:0 !important; left:0; right:0; grid-template-columns:minmax(0,1fr) 40px minmax(0,1fr) !important; min-height:52px; z-index:90; }
+  #transport .transport-triggers { margin-right:4px !important; gap:2px !important; }
+  #transport .transport-triggers .generator-label { display:none !important; }
+  #transport .transport-triggers .btn-variation { display:none !important; }
+  #transport .transport-triggers .gen-trigger-btn { padding:2px 5px !important; font-size:9px !important; min-height:22px !important; height:22px !important; gap:2px !important; }
+  #transport .nav-shortcuts button:not(#undo):not(#redo) { display:none !important; }
   #transport .transport-center { grid-column:3; max-width:100%; min-width:0; overflow-x:auto; overflow-y:hidden; padding-left:5px; }
   #transport .transport-target { display:none; }
   #quick-start:not([hidden]) { flex-wrap:wrap; }

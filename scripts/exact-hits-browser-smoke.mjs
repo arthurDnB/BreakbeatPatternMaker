@@ -20,6 +20,7 @@ try{
  const page=await browser.newPage();
  await page.goto(`http://127.0.0.1:${server.address().port}/`);
  await page.locator('#grid .hit').first().waitFor();
+ await page.click('#bar-tray-bottom .bar-expand-btn');
  await page.locator('#advanced-generation>summary').click();
  await page.selectOption('#hit-target-mode','exact');
  await page.fill('#hit-target-number','36');
