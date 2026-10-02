@@ -3,13 +3,30 @@ import {transcribeBreak,type AudioAsset} from './slices.js';
 import {validateWav} from './wav.js';
 import {renderPerformance} from './performance.js';
 import type {BreakAnalysis} from './break-analysis.js';
+import {getBreakPreset, getBreakPresetAsset} from './break-presets.js';
 
 interface Cut {frame:number;id:string;note:number;manual:boolean}
 export function setupBreakPanel(options:{settings:()=>Settings;assets:Map<string,AudioAsset>;stop:()=>void;create:(pattern:Pattern)=>void;update:(instrument:SliceInstrument)=>void}){
   const dialog=document.createElement('dialog');dialog.id='break-browser';dialog.setAttribute('aria-labelledby','break-title');
-  dialog.innerHTML=`<header><div><h2 id="break-title">Import break</h2><small>Slice transcription · Preview release · Audio stays on this device</small></div><button id="break-close" aria-label="Close break editor">Close</button></header>
-  <p>Import an isolated drum break, choose its region and bar count, then review the detected slices. Overlapping drums stay together in each slice.</p>
-  <label id="break-upload-label">WAV file <input id="break-file" type="file" accept=".wav,audio/wav"></label>
+  dialog.innerHTML=`<header><div><h2 id="break-title">Import break</h2><small>Slice transcription · Curated presets &amp; WAV import · Audio stays on this device</small></div><button id="break-close" aria-label="Close break editor">Close</button></header>
+  <p>Select a classic break preset or choose a custom WAV. Review the detected or verified slices, audition dry playback, and create a tracker instrument.</p>
+  <div class="break-preset-bar">
+    <label id="break-preset-label">Break preset
+      <select id="break-preset-select">
+        <optgroup label="Authentic Classic Break">
+          <option value="think-142x" selected>Think Break (1.42x Classic) · 1 Bar · 153 BPM</option>
+        </optgroup>
+        <optgroup label="Acoustic Break Recreations">
+          <option value="amen-classic">Amen Break · 2 Bars · 165 BPM · 16 Slices</option>
+          <option value="apache-bongo">Apache Break · 2 Bars · 165 BPM · 12 Slices</option>
+          <option value="funky-drummer">Funky Drummer · 2 Bars · 100 BPM · 16 Slices</option>
+          <option value="hot-pants">Hot Pants · 2 Bars · 110 BPM · 12 Slices</option>
+        </optgroup>
+        <option value="custom">Custom WAV file…</option>
+      </select>
+    </label>
+    <label id="break-upload-label">WAV file <input id="break-file" type="file" accept=".wav,audio/wav"></label>
+  </div>
   <fieldset id="break-controls" disabled><legend>Region and detection</legend><div class="break-controls">
   <label>Start (seconds)<input id="break-start" type="number" min="0" step=".001" value="0"></label>
   <label>End (seconds)<input id="break-end" type="number" min="0" step=".001" value="0"></label>
@@ -22,7 +39,7 @@ export function setupBreakPanel(options:{settings:()=>Settings;assets:Map<string
   <div class="break-controls"><label>Zoom<input id="break-zoom" type="range" min="1" max="16" step="1" value="1"></label><label>Scroll waveform<input id="break-scroll" type="range" min="0" max="1" step=".001" value="0"></label><button id="break-undo">Undo markers</button><button id="break-redo">Redo markers</button></div>
   <div id="break-slices" role="group" aria-label="Mapped slices"></div>
   <fieldset id="break-review" disabled><legend>Review</legend><div class="break-controls"><label>Selected marker (seconds)<input id="break-marker" type="number" step=".0001" min="0"></label><button id="break-move">Move marker</button><button id="break-add">Add marker</button><button id="break-delete">Delete marker</button><button id="break-preview-slice">Preview slice</button><button id="break-original">Original</button><button id="break-reconstructed">Reconstructed</button><button id="break-stop">Stop</button><label>Loop smoothing (ms)<input id="break-fade" type="number" min="0" max="10" step=".5" value="0"></label></div></fieldset>
-  <p id="break-status" role="status">Choose a WAV up to 50 MB / 2 minutes. Double-click the waveform to add a marker.</p>
+  <p id="break-status" role="status">Choose a WAV up to 50 MB / 2 minutes or select a curated preset. Double-click the waveform to add a marker.</p>
   <footer><button id="break-create" class="accent" disabled>Create instrument &amp; pattern</button><small>Original timing · no quantization · up to 120 slices</small></footer>`;
   document.body.append(dialog);
   const el=<T extends HTMLElement>(id:string)=>dialog.querySelector<T>('#break-'+id)!;
@@ -78,12 +95,38 @@ export function setupBreakPanel(options:{settings:()=>Settings;assets:Map<string
     cuts=instrument?instrument.slices.map(s=>({frame:s.startFrame,id:s.id,note:s.note,manual:true})):[{frame:0,id:'slice-0',note:0,manual:true}];
     past=[];future=[];selected=0;input('start').value=String(region[0]/a.sampleRate);input('end').value=String(region[1]/a.sampleRate);input('zoom').value='1';input('scroll').value='0';input('fade').value=String(instrument?.loopFadeMs??0);
     for(const id of ['start','end','region'])el<HTMLInputElement>(id).disabled=!!instrument;
-    el('upload-label').hidden=!!instrument;render();say(instrument?'Edit markers, then Apply. Referenced slices and locked hits are protected.':a.name+' loaded. Set the region and bar count, then Detect slices.');
+    el('upload-label').hidden=!!instrument;el('preset-label').hidden=!!instrument;
+    if(!instrument)el<HTMLSelectElement>('preset-select').value='custom';
+    render();say(instrument?'Edit markers, then Apply. Referenced slices and locked hits are protected.':a.name+' loaded. Set the region and bar count, then Detect slices.');
   }
+  async function loadPreset(presetId:string){
+    const preset=getBreakPreset(presetId);if(!preset)return;
+    const token=++loadToken;loading=true;cancel();stop();render();say('Loading '+preset.name+'…');
+    try{
+      const a=await getBreakPresetAsset(preset.id,options.assets);
+      if(token!==loadToken||!dialog.open)return;
+      asset=a;editing=undefined;region=[0,preset.totalFrames];serial=120;
+      cuts=preset.sliceMarkers.slice(0,-1).map((frame,i)=>({frame,id:'slice-'+serial++,note:i,manual:true}));
+      past=[];future=[];selected=0;
+      input('start').value='0';input('end').value=String(region[1]/a.sampleRate);
+      input('bars').value=String(preset.bars);input('zoom').value='1';input('scroll').value='0';
+      input('fade').value=String(preset.defaultFadeMs);
+      for(const id of ['start','end','region'])el<HTMLInputElement>(id).disabled=false;
+      el('upload-label').hidden=false;el('preset-label').hidden=false;el<HTMLSelectElement>('preset-select').value=preset.id;
+      render();say(preset.name+' loaded with '+cuts.length+' curated slices. Compare Original and Reconstructed, or click Create instrument & pattern.');
+    }catch(error){if(token===loadToken)say((error as Error).message);}
+    finally{if(token===loadToken){loading=false;render();}}
+  }
+  el<HTMLSelectElement>('preset-select').onchange=()=>{
+    const val=el<HTMLSelectElement>('preset-select').value;
+    if(val==='custom')input('file').click();
+    else void loadPreset(val);
+  };
   input('file').onchange=async()=>{const file=input('file').files?.[0];if(!file)return;const token=++loadToken;loading=true;cancel();render();say('Decoding WAV locally…');try{
     if(file.size>50*1024*1024)throw Error('Choose a WAV up to 50 MB.');const bytes=await file.arrayBuffer(),info=validateWav(bytes);
     // Decode at source rate so frame coordinates and dry reconstruction remain exact.
     const offline=new OfflineAudioContext(info.channels,1,info.sampleRate),buffer=await offline.decodeAudioData(bytes);if(token!==loadToken||!dialog.open)return;
+    el<HTMLSelectElement>('preset-select').value='custom';
     initialize({id:crypto.randomUUID(),name:file.name,sampleRate:buffer.sampleRate,channels:Array.from({length:buffer.numberOfChannels},(_,i)=>buffer.getChannelData(i))});
   }catch(error){if(token===loadToken)say((error as Error).message);}finally{if(token===loadToken){loading=false;render();}}input('file').value='';};
   button('region').onclick=guard(()=>{if(!asset)return;const start=Math.round(Number(input('start').value)*asset.sampleRate),end=Math.round(Number(input('end').value)*asset.sampleRate);if(!Number.isFinite(start)||!Number.isFinite(end)||start<0||end>asset.channels[0]!.length||start>=end)throw Error('Choose a valid region inside the recording.');cancel();stop();region=[start,end];cuts=[{frame:start,id:'slice-'+serial++,note:0,manual:true}];past=[];future=[];render();say('Region updated; markers reset for this region.');});
@@ -120,5 +163,6 @@ export function setupBreakPanel(options:{settings:()=>Settings;assets:Map<string
   button('close').onclick=()=>dialog.close();dialog.onclose=()=>{loadToken++;loading=false;cancel();stop();opener?.focus();};
   dialog.addEventListener('keydown',e=>e.stopPropagation());new ResizeObserver(draw).observe(canvas);
   document.addEventListener('visibilitychange',()=>{if(document.hidden)stop();});
-  return {open:(instrument?:SliceInstrument)=>{opener=document.activeElement as HTMLElement;options.stop();if(instrument){const a=options.assets.get(instrument.assetId);if(!a)throw Error('Missing instrument audio.');initialize(a,instrument);input('bars').value=String(options.settings().bars);}else if(editing){asset=undefined;editing=undefined;cuts=[];el('upload-label').hidden=false;render();}dialog.showModal();render();if(instrument)input('marker').focus();else input('file').focus();}};
+  return {open:(instrument?:SliceInstrument)=>{opener=document.activeElement as HTMLElement;options.stop();if(instrument){const a=options.assets.get(instrument.assetId);if(!a)throw Error('Missing instrument audio.');initialize(a,instrument);input('bars').value=String(options.settings().bars);el('preset-label').hidden=true;}else{el('preset-label').hidden=false;el<HTMLSelectElement>('preset-select').value='think-142x';void loadPreset('think-142x');}dialog.showModal();render();if(instrument)input('marker').focus();else el('preset-select').focus();}};
 }
+

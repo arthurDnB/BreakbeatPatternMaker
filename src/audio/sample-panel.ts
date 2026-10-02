@@ -2,7 +2,9 @@ import {gridMarkers,transientMarkers,moveMarker} from './chop.js';
 import {validateWav,encodeWav} from './wav.js';
 import {downloadBytes} from './render.js';
 import type {Role} from '../core/model.js';
-export function setupSamplePanel(stopPattern:()=>void, sendSlice:(role:Role, id:string, name:string, rate:number, channels:Float32Array[])=>void){
+import type {AudioAsset} from './slices.js';
+import {getBreakPreset,getBreakPresetAsset} from './break-presets.js';
+export function setupSamplePanel(stopPattern:()=>void, sendSlice:(role:Role, id:string, name:string, rate:number, channels:Float32Array[])=>void, assets?:Map<string,AudioAsset>){
   const el=<T extends HTMLElement>(id:string)=>document.getElementById(id) as T;
   const button=(id:string)=>el<HTMLButtonElement>(id);
   const seek=el<HTMLInputElement>('sample-seek'),canvas=el<HTMLCanvasElement>('waveform');
@@ -64,13 +66,35 @@ export function setupSamplePanel(stopPattern:()=>void, sendSlice:(role:Role, id:
       message('Ready to chop. Autochop detects attacks or divides an equal grid; audition and adjust slices before arranging.');draw();
     }catch(e){if(token===request)message((e as Error).message+' Your previous sample is kept.');}
   }
-  el<HTMLInputElement>('sample-file').onchange=e=>{const input=e.target as HTMLInputElement;const file=input.files?.[0];if(file)void load(file);input.value='';};
+  async function loadPreset(presetId:string){
+    const preset=getBreakPreset(presetId);if(!preset)return;
+    const token=++request;message('Loading '+preset.name+'…');
+    try{
+      const a=await getBreakPresetAsset(preset.id,assets??new Map());
+      context??=new AudioContext();
+      const decoded=context.createBuffer(a.channels.length,a.channels[0]!.length,a.sampleRate);
+      a.channels.forEach((c,i)=>decoded.copyToChannel(new Float32Array(c),i));
+      if(token!==request)return;
+      stopPattern();stop(true);buffer=decoded;assetId=a.id;filename=preset.name;peaks.length=0;markers=[...preset.sliceMarkers];selected=0;past=[];future=[];field.disabled=false;renderSlices();
+      for(let c=0;c<buffer.numberOfChannels;c++){
+        const data=buffer.getChannelData(c),values:number[]=[],bins=Math.min(1600,data.length);
+        for(let bin=0;bin<bins;bin++){let min=1,max=-1;for(let i=Math.floor(bin*data.length/bins);i<Math.floor((bin+1)*data.length/bins);i++){min=Math.min(min,data[i]!);max=Math.max(max,data[i]!);}values.push(max,min);}peaks.push(values);
+      }
+      seek.max=String(buffer.duration);seek.disabled=false;
+      for(const id of ['sample-play','sample-stop','sample-remove','sample-export'])button(id).disabled=false;
+      el('sample-meta').textContent=`${preset.name} · ${buffer.duration.toFixed(2)} s · ${buffer.sampleRate.toLocaleString()} Hz · ${preset.bars} bars · ${preset.bpm} BPM`;
+      message(`${preset.name} loaded with ${markers.length-1} slices. Audition slices, send to kit, or create tracker groove.`);draw();
+    }catch(e){if(token===request)message((e as Error).message);}
+  }
+  const presetSelect=document.getElementById('sample-preset-select') as HTMLSelectElement|null;
+  if(presetSelect)presetSelect.onchange=()=>{const val=presetSelect.value;if(val)void loadPreset(val);};
+  el<HTMLInputElement>('sample-file').onchange=e=>{if(presetSelect)presetSelect.value='';const input=e.target as HTMLInputElement;const file=input.files?.[0];if(file)void load(file);input.value='';};
   const drop=el('sample-drop');drop.ondragover=e=>{e.preventDefault();drop.classList.add('dragging');};drop.ondragleave=()=>drop.classList.remove('dragging');
-  drop.ondrop=e=>{e.preventDefault();drop.classList.remove('dragging');const file=e.dataTransfer?.files[0];if(file)void load(file);};
+  drop.ondrop=e=>{e.preventDefault();drop.classList.remove('dragging');if(presetSelect)presetSelect.value='';const file=e.dataTransfer?.files[0];if(file)void load(file);};
   button('sample-play').onclick=()=>{play().catch(e=>message(String(e)));};button('sample-stop').onclick=()=>stop(true);
   el<HTMLInputElement>('sample-loop').onchange=()=>{if(source&&sliceEnd===undefined)source.loop=el<HTMLInputElement>('sample-loop').checked;};
   seek.oninput=()=>{const resume=!!source;const value=Number(seek.value);stop();offset=value;draw();if(resume)void play();};
-  button('sample-remove').onclick=()=>{request++;stop(true);buffer=undefined;markers=[];past=[];future=[];selected=0;field.disabled=true;renderSlices();filename='';peaks.length=0;seek.disabled=true;seek.value='0';el('sample-time').textContent='0.00 / 0.00 s';el('sample-meta').textContent='No sample loaded';for(const id of ['sample-play','sample-stop','sample-remove','sample-export'])button(id).disabled=true;message('Import a mono or stereo WAV. Audio stays on this device.');draw();};
+  button('sample-remove').onclick=()=>{request++;stop(true);buffer=undefined;markers=[];past=[];future=[];selected=0;field.disabled=true;renderSlices();filename='';peaks.length=0;seek.disabled=true;seek.value='0';el('sample-time').textContent='0.00 / 0.00 s';el('sample-meta').textContent='No sample loaded';if(presetSelect)presetSelect.value='';for(const id of ['sample-play','sample-stop','sample-remove','sample-export'])button(id).disabled=true;message('Import a mono or stereo WAV or select a preset. Audio stays on this device.');draw();};
   button('sample-export').onclick=()=>{if(buffer)downloadBytes(encodeWav(Array.from({length:buffer.numberOfChannels},(_,i)=>buffer!.getChannelData(i)),buffer.sampleRate),filename.replace(/\.wav$/i,'')+'-audition.wav');};
   function renderSlices(){
     const list=el('slice-list');list.replaceChildren();

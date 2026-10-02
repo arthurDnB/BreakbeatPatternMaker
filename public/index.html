@@ -310,21 +310,23 @@
 <section class="daw-tray-bottom" id="tray-bottom" aria-label="Beat generator, waveform slicer, and effects rack">
   <!-- Global Hardware Transport Bar -->
   <div class="transport daw-transport" id="transport" aria-label="Playback and navigation">
-    <div class="toolbar-group nav-shortcuts">
-      <button id="undo" disabled>Undo</button>
-      <button id="redo" disabled>Redo</button>
-      <button id="show-sounds">Sounds</button>
-      <button id="show-arrangement">Arrangement</button>
-    </div>
+    <div class="transport-left" id="transport-left">
+      <div class="toolbar-group nav-shortcuts">
+        <button id="undo" disabled>Undo</button>
+        <button id="redo" disabled>Redo</button>
+        <button id="show-sounds">Sounds</button>
+        <button id="show-arrangement">Arrangement</button>
+      </div>
 
-    <!-- Quick Layer Generation Toolbar (Fixed beside Play) -->
-    <div class="transport-triggers" id="transport-triggers" aria-label="Quick Layer Generators">
-      <span class="generator-label">TRIGGER LAYER:</span>
-      <button id="generate" class="accent gen-trigger-btn btn-beat" title="Generate or replace the drum beat; preserve bass, melody, piano and user tracks">⚡ BEAT</button>
-      <button id="generate-bass" class="gen-trigger-btn btn-bass" title="Generate or replace the bassline only">⚡ BASS</button>
-      <button id="generate-melody" class="gen-trigger-btn btn-melody" title="Generate or replace the lead melody only">⚡ MELODY</button>
-      <button id="generate-piano" class="gen-trigger-btn btn-piano" title="Generate lush genre-aware piano chords only">⚡ PIANO CHORDS</button>
-      <button id="regenerate" class="gen-tool-btn btn-variation" title="Generate a related variation">⟳ VARIATION</button>
+      <!-- Quick Layer Generation Toolbar (Fixed beside Play) -->
+      <div class="transport-triggers" id="transport-triggers" aria-label="Quick Layer Generators">
+        <span class="generator-label">TRIGGER LAYER:</span>
+        <button id="generate" class="accent gen-trigger-btn btn-beat" title="Generate or replace the drum beat; preserve bass, melody, piano and user tracks">⚡ BEAT</button>
+        <button id="generate-bass" class="gen-trigger-btn btn-bass" title="Generate or replace the bassline only">⚡ BASS</button>
+        <button id="generate-melody" class="gen-trigger-btn btn-melody" title="Generate or replace the lead melody only">⚡ MELODY</button>
+        <button id="generate-piano" class="gen-trigger-btn btn-piano" title="Generate lush genre-aware piano chords only">⚡ PIANO</button>
+        <button id="regenerate" class="gen-tool-btn btn-variation" title="Generate a related variation">⟳ VARIATION</button>
+      </div>
     </div>
 
     <div class="transport-center">
@@ -517,7 +519,26 @@
     </section>
     <!-- Chopper retained for future use; hidden on initial load for smoke test compliance -->
     <section hidden id="sample-drop" class="sample-panel" aria-label="Sample import and audition">
-      <div class="grid-heading"><h2>Break sample</h2><label>Import WAV<input id="sample-file" type="file" accept=".wav,audio/wav"></label></div>
+      <div class="grid-heading">
+        <h2>Break sample</h2>
+        <div class="sample-preset-wrap">
+          <label>Break preset
+            <select id="sample-preset-select">
+              <option value="" selected>Load curated preset…</option>
+              <optgroup label="Authentic Classic Break">
+                <option value="think-142x">Think Break (1.42x Classic) · 1 Bar · 153 BPM</option>
+              </optgroup>
+              <optgroup label="Acoustic Break Recreations">
+                <option value="amen-classic">Amen Break · 2 Bars · 165 BPM · 16 Slices</option>
+                <option value="apache-bongo">Apache Break · 2 Bars · 165 BPM · 12 Slices</option>
+                <option value="funky-drummer">Funky Drummer · 2 Bars · 100 BPM · 16 Slices</option>
+                <option value="hot-pants">Hot Pants · 2 Bars · 110 BPM · 12 Slices</option>
+              </optgroup>
+            </select>
+          </label>
+        </div>
+        <label>Import WAV<input id="sample-file" type="file" accept=".wav,audio/wav"></label>
+      </div>
       <p id="sample-meta">No sample loaded</p>
       <p>Drop a WAV here, or choose a file. Up to 50 MB / 2 minutes. Autochop proposes editable slices. Double-click the waveform to add a marker; drag a marker to move it.</p>
       <canvas id="waveform" role="img" aria-label="Imported sample waveform"></canvas>

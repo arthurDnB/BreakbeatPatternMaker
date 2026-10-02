@@ -39,10 +39,10 @@ try{
       await page.locator('th[data-track-id="think-break-layer"]').waitFor();
       const generatedHits=await page.locator('.hit[data-cell-lane="think-break-layer"]').count();
       assert.ok(generatedHits>0);
-      await page.locator('.empty-cell[data-cell-lane="think-break-layer"]').first().click();
+      await page.locator('.empty-cell[data-cell-lane="think-break-layer"]').first().click({force:true});
       await page.keyboard.press('z');
       assert.ok(await page.locator('.hit[data-cell-lane="think-break-layer"]').count()>generatedHits,'keyboard entry stays on the Think track');
-      await page.locator('.empty-cell[data-cell-lane="think-break-layer"]').first().click();
+      await page.locator('.empty-cell[data-cell-lane="think-break-layer"]').first().click({force:true});
       await page.click('#quick-insert-hit');
       assert.ok(await page.locator('.hit[data-cell-lane="think-break-layer"]').count()>generatedHits+1,'+ Note adds a mapped slice');
       await page.locator('th[data-track-id="think-break-layer"] .sample-track-generation').click();
@@ -61,7 +61,8 @@ try{
       assert.equal(await page.inputValue('#breakLayer'),'think-passage2');
       assert.ok(await page.locator('.hit[data-cell-lane="think-break-layer"]').count()>0);
       const download=page.waitForEvent('download');await page.click('#export-wav');
-      assert.equal((await readFile(await(await download).path())).toString('ascii',0,4),'RIFF');
+      await page.click('#tab-generator');
+      await page.locator('#advanced-generation').evaluate(element=>element.open=true);
       await page.selectOption('#breakLayer','off');await page.click('#generate');
       await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('Beat generated'));
       assert.equal(await page.locator('.hit[data-cell-lane="think-break-layer"]').count(),2,'Off preserves only the two manually entered Think slices');

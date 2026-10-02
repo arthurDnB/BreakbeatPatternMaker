@@ -665,7 +665,7 @@ const samplePanel=setupSamplePanel(stop, (role, id, name, rate, channels) => {
   kitPanel.mix[role].choice = 'upload';
   kitPanel.restore(kitPanel.mix);
   scheduleSave();
-});
+}, assets);
 const breakPanel=setupBreakPanel({settings,assets,stop,create:next=>{
   stop();samplePanel.stop();let index=0;
   if(arrangementMutation('Import break',b=>{index=addPatternSlot(b,next.sliceInstruments![0]!.name.slice(0,32),new Editor(next).state);})){activateSlot(index);renderBank();scheduleSave();status('Break imported into a new pattern. Notes select slices; pitch is independent. The track mixer affects playback level.');}

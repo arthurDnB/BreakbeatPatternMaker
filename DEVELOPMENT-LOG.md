@@ -28,8 +28,8 @@ This document maintains the running project state and change log so that multipl
 
 ## 📌 Current Project Status
 
-* **Version:** `0.3.0-alpha`
-* **Test Status:** 251 unit tests passing (0 skipped, 0 failed); browser smoke tests, including the Groove V5 workflow, passing (`npm.cmd test` and `npm.cmd run test:site`).
+* **Version:** `0.2.3`
+* **Test Status:** 258 unit tests passing (0 skipped, 0 failed); all 6 browser smoke test suites passing (`npm.cmd test` and `npm.cmd run test:site`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -81,6 +81,26 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-10-02] - Curated Breakbeat Slicer Presets & Transport Geometry Collision Fix (Antigravity)
+
+* **Curated Breakbeat Slicer Presets (`src/audio/break-presets.ts`, `tests/break-presets.test.mjs`):**
+  - Implemented curated break preset roster with 5 iconic breakbeats accessible instantly in both the Break Browser dialog (`#break-browser`) and Waveform Slicer drawer (`#sample-drop`):
+    - *Think Break (1.42x Classic)*: 1 bar, 153 BPM, 10 authentic slices loaded from bundled `public/samples/think-passage2-142x.wav`. Preloads automatically on initial Break Browser open with immediate waveform render and slice markers.
+    - *Amen Break (Acoustic Studio)*: 2 bars, 165 BPM, 18 slices, authentic transient slice points with synthesized acoustic recreation.
+    - *Apache Break (Bongo & Breaks)*: 2 bars, 165 BPM, 14 slices, authentic bongo chops and snare strikes.
+    - *Funky Drummer (Clyde 16ths)*: 2 bars, 100 BPM, 20 slices, Clyde Stubblefield 16th-note ghost note groove.
+    - *Hot Pants (Syncopated Funk)*: 2 bars, 110 BPM, 18 slices, Bobby Byrd / John Starks syncopated groove.
+  - Added preset selector dropdowns `#break-preset-select` in the Break Browser and `#sample-preset-select` in the Waveform Slicer drawer.
+  - Added 5 unit tests verifying slice monotonicity, frame bounds, non-silent audio rendering, and catalog integrity (increasing total test suite from 253 to 258 passing tests).
+* **Transport Geometry Collision & Occlusion Fix (`public/index.html`, `public/workspace.css`, `scripts/site-browser-smoke.mjs`):**
+  - Solved button click interception bug where `#transport .transport-triggers` and `.nav-shortcuts` were both placed in `grid-column: 1; grid-row: 1` with `z-index: 2` and `justify-self: end`, causing `#generate` to occlude and intercept clicks intended for `#show-sounds` on 1280px viewports (which previously triggered unintended drum generations during test navigation and created extra pattern history entries).
+  - Wrapped `.nav-shortcuts` and `.transport-triggers` into a unified flex container `.transport-left` with `justify-content: flex-start; gap: 6px;`, ensuring `#show-sounds`, `#show-arrangement`, and all trigger buttons sit in separate, non-overlapping coordinate spaces.
+  - Shortened trigger button text `⚡ PIANO CHORDS` to `⚡ PIANO` and optimized button padding to eliminate horizontal collision with `.transport-center` (`<label class="transport-target">`), maintaining centered Play button alignment (`Math.abs(play.x + play.width/2 - 960) < 3`) across all viewports.
+* **Verification & Comprehensive Testing:**
+  - Added `scripts/break-presets-browser-smoke.mjs` testing Think Break default load, A/B reconstruction playback, Amen Break switching, tracker pattern creation, and Waveform Slicer preset audition.
+  - Verified all 258/258 unit tests pass (`npm.cmd test`).
+  - Verified all 6 browser smoke suites pass on both root and subpath mounts (`npm.cmd run test:site`).
 
 ### [2026-10-02] - Brand Revamp: BPM Breakbeat Pattern Maker v0.2.3, Logo & Favicon (Antigravity)
 
