@@ -177,6 +177,27 @@ This document maintains the running project state and change log so that multipl
 * Strengthened `tests/groove-v5-genres.test.mjs` so every pilot must add non-anchor detail above medium Complexity for two seeds. Updated the Dubstep Exact Hits capacity expectation in `tests/exact-hits.test.mjs` and `scripts/groove-v5-browser-smoke.mjs` from 20 to 22 to match the expanded profile vocabulary.
 * Verification: `npm.cmd test` passed 251/251; `npm.cmd run test:site` passed root/subpath, sound browser, break transcription and Groove V5 browser checks. Listening-based authenticity and cross-seed quality evaluation remain open; these structural checks do not establish a release-quality musical result.
 
+### [2026-10-02] - Beat Generator 4-Card Hardware Rack, Void Elimination, & DSP Consolidation (Antigravity)
+
+* **Beat Generator Hardware Rack Redesign (`#controls`):**
+  - Restructured `#controls` and `.re-track-generator-console` in `public/index.html` and `public/workspace.css` into a high-density 4-card horizontal hardware rack (`.gen-console-grid-4col`) featuring:
+    - **Card 01 (Engine & Kit):** Engine selector, Drum Kit picker, and primary instrument controls.
+    - **Card 02 (Rhythm & Tempo):** Genre selector, Tempo BPM/tap controls, and Bars dropdown.
+    - **Card 03 (Key & Harmony):** Musical scale, root key, and melodic baseline parameters.
+    - **Card 04 (Groove Matrix):** Retractable Groove Matrix details rack (`<details id="advanced-generation">`) with complexity, swing, and micro-timing options.
+  - Slashed generator vertical footprint by ~300px (from ~450px down to ~140px–160px), freeing substantial vertical space for the tracker grid to display 16–25+ rows in standard viewports without vertical starvation.
+* **Elimination of Generator Black Void & Trigger Bar Strip:**
+  - Enforced `flex-direction: column !important;` on `#controls` and `.re-track-generator-console`. Previously, `pnlGen.style.display = 'flex'` split `#controls` into a 2-column flex row that forced trigger buttons (`⚡ BEAT`, `⚡ BASS`, etc.) into an isolated right-hand column with a massive black void underneath.
+  - Relocated trigger buttons into a dedicated full-width hardware strip (`.gen-trigger-toolbar`) anchored along the bottom of the generator console with grouped generation triggers on the left (`⚡ BEAT`, `⚡ BASS`, `⚡ MELODY`, `⚡ PIANO CHORDS`) and secondary workflow controls on the right (`⟳ VARIATION`, `↺ RESTORE DEFAULTS`).
+* **Relocation & Consolidation of Master DSP & Vinyl Texture:**
+  - Consolidated loose `<details id="master-dsp-rack">` and `<details id="vinyl-texture-rack">` out of general page flow and neatly integrated them inside the dedicated `🎛 DSP FX Chain` tab (`#re-track-dsp-panel`) under `.dsp-aux-racks`.
+  - The Generator tab (`#tab-generator`) now contains 0 DSP controls, eliminating UI clutter and properly categorizing audio effects into the DSP chain tab.
+  - Adjusted bottom drawer max-height to 200px for the generator and 380px for the DSP chain panel.
+* **100% Backward Compatibility & Smoke Test Modernization:**
+  - Preserved all 42 DOM element IDs, name attributes, inputs, and button listeners.
+  - Updated `scripts/site-browser-smoke.mjs` to switch to `#tab-fx-chain` when inspecting master DSP and vinyl texture racks, returning to `#tab-generator` for beat/genre workflows.
+* **Verification:** `npm.cmd test` passed all 253 unit tests with 0 failures; `npm.cmd run test:site` passed all full static site browser smoke tests across root `/` and `/breakbeat-pattern-maker/` mounts.
+
 ### [2026-10-02] - Groove V5 Exact-Hit Capacity and Required Browser QA (Codex)
 
 * Added a reusable V5 capacity calculation in `src/core/exact-hits.ts` using the same dense genre vocabulary as Exact Hits. The generator's maximum and the UI's offered range now agree; the default two-bar Dubstep target changes from impossible 32 to feasible 20 when Exact is selected, without adding generic V4 notes or altering Auto mode.
