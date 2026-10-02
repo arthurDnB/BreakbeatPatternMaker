@@ -139,7 +139,7 @@ main.daw-chassis {
   .daw-tray-bottom {
     flex-shrink: 0;
     margin: 3px 0 0 0;
-    max-height: 230px;
+    max-height: 380px;
     display: flex;
     flex-direction: column;
   }
@@ -1224,8 +1224,12 @@ input[type=range]::-webkit-slider-thumb:hover {
 /* Center Stage */
 .daw-stage-center {
   min-width: 0;
-  display: flex;
-  flex-direction: column;
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
 }
 
 /* Right Tray (Context Panel) */
@@ -1330,10 +1334,11 @@ input[type=range]::-webkit-slider-thumb:hover {
 
 .daw-tray-bottom .tray-body {
   padding: 3px 8px 3px;
-  max-height: 180px;
+  max-height: 220px;
   overflow-y: auto;
 }
-.daw-tray-bottom:has(.quick-fx-panel:not([hidden])) .tray-body {
+.daw-tray-bottom:has(.quick-fx-panel:not([hidden])) .tray-body,
+.daw-tray-bottom:has(.re-track-dsp-panel.is-active) .tray-body {
   max-height: 310px;
 }
 .daw-tray-bottom #controls.daw-controls {
@@ -1728,6 +1733,13 @@ input[type=range]::-webkit-slider-thumb:hover {
   border-radius: 8px;
   padding: 4px 8px !important;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
 }
 
 .workspace .grid-heading {
@@ -1993,9 +2005,10 @@ input[type=range]::-webkit-slider-thumb:hover {
   border-radius: 6px;
   overflow: auto;
   margin-top: 5px !important;
-  height: calc(100dvh - 425px);
-  min-height: 260px;
-  max-height: 850px;
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  min-height: 280px !important;
+  max-height: none !important;
 }
 
 #grid::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -4003,13 +4016,22 @@ tr.playing-row td { background:#0b1c18; }
 
 /* Bottom Tray Stompbox Modular Rack */
 .re-track-dsp-panel {
-  display: flex;
+  display: none !important;
   flex-direction: column;
   width: 100%;
   background: #080d15;
   border: 1px solid #172233;
   border-radius: 8px;
   overflow: hidden;
+  box-sizing: border-box;
+}
+
+.re-track-dsp-panel.is-active {
+  display: flex !important;
+}
+
+.re-track-dsp-panel[hidden] {
+  display: none !important;
 }
 
 .dsp-chain-header {
@@ -5200,13 +5222,18 @@ main.daw-chassis {
   box-shadow: 0 -2px 8px rgba(0, 245, 212, 0.15);
 }
 
-/* 4. Modern Cyberpunk Beat Generator Console */
+/* 4. Modern Cyberpunk Beat Generator Console (Compact 2-Column Hardware Synth Rack) */
 .re-track-generator-console {
   background: #060b09 !important;
   border: 1px solid #162420 !important;
   border-radius: 6px !important;
-  padding: 8px 10px !important;
-  margin: 4px 0 !important;
+  padding: 6px 10px !important;
+  margin: 2px 0 !important;
+  box-sizing: border-box !important;
+}
+
+.re-track-generator-console[hidden] {
+  display: none !important;
 }
 
 .gen-console-grid {
@@ -5225,14 +5252,34 @@ main.daw-chassis {
   }
 }
 
+.gen-console-grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .gen-console-grid-2col {
+    grid-template-columns: 1fr;
+  }
+}
+
+.gen-col-left,
+.gen-col-right {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
 .gen-card {
   background: #08100e;
   border: 1px solid #182a25;
   border-radius: 6px;
-  padding: 8px 10px;
+  padding: 6px 8px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   transition: border-color 0.15s ease;
 }
 .gen-card:hover {
@@ -5430,7 +5477,7 @@ main.daw-chassis {
 }
 
 .gen-advanced-details {
-  margin-top: 8px;
+  margin-top: 0;
   background: #08100e;
   border: 1px solid #182a25;
   border-radius: 6px;
@@ -5438,10 +5485,10 @@ main.daw-chassis {
 }
 .gen-advanced-details summary {
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 700;
   color: #9fe3d5;
-  padding: 6px 10px;
+  padding: 5px 8px;
   cursor: pointer;
   background: #0a1412;
   border-bottom: 1px solid #162420;
@@ -5514,9 +5561,9 @@ main.daw-chassis {
 .gen-trigger-toolbar {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 8px;
-  padding: 6px 8px;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 4px 8px;
   background: #070d0b;
   border: 1px solid #162521;
   border-radius: 6px;
@@ -5525,12 +5572,12 @@ main.daw-chassis {
 
 .gen-trigger-btn {
   font-family: var(--font-mono) !important;
-  font-size: 11px !important;
+  font-size: 10.5px !important;
   font-weight: 800 !important;
   letter-spacing: 0.04em !important;
-  padding: 5px 14px !important;
-  min-height: 30px !important;
-  height: 30px !important;
+  padding: 4px 12px !important;
+  min-height: 28px !important;
+  height: 28px !important;
   border-radius: 4px !important;
   cursor: pointer !important;
   display: inline-flex !important;

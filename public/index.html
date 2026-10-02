@@ -495,234 +495,244 @@
       <p id="sample-status" role="status">Import a mono or stereo WAV. Audio stays on this device. Samples are session-only; refreshing clears them.</p>
     </section>
 
-    <!-- Beat Generation Control Strip -->
+    <!-- Beat Generation Control Strip (Modern Compact 2-Column Console) -->
     <section id="controls" class="daw-controls re-track-generator-console" aria-label="Generation controls">
-      <div class="gen-console-grid">
-        <!-- Module 1: Engine & Kit Deck -->
-        <div class="gen-card gen-card-engine">
-          <div class="gen-card-header">
-            <span class="gen-card-tag badge-cyan">01</span>
-            <span class="gen-card-title">ENGINE &amp; KIT CORE</span>
-          </div>
-          <div class="gen-card-body">
-            <div class="gen-field">
-              <label for="genre">Genre</label>
-              <select id="genre" class="gen-select"></select>
-              <small id="genre-description" class="gen-desc-hint"></small>
+      <div class="gen-console-grid gen-console-grid-2col">
+        <!-- Column 1: Core Rhythm & Sound Engine -->
+        <div class="gen-col-left">
+          <!-- Module 1: Engine & Kit Deck -->
+          <div class="gen-card gen-card-engine">
+            <div class="gen-card-header">
+              <span class="gen-card-tag badge-cyan">01</span>
+              <span class="gen-card-title">ENGINE &amp; KIT CORE</span>
             </div>
-            <div class="gen-field">
-              <label for="generator-kit-select">Drum Kit</label>
-              <select id="generator-kit-select" class="gen-select"><option value="custom">Custom Kit</option></select>
-              <small id="generator-kit-desc" class="gen-desc-hint">Kit sounds</small>
-            </div>
-            <div class="gen-row-2col">
-              <div class="gen-field">
-                <label for="bars">Bars</label>
-                <select id="bars" class="gen-select"><option>1</option><option selected>2</option><option>3</option><option>4</option></select>
-              </div>
-              <div class="gen-field">
-                <label for="algorithm">Engine</label>
-                <select id="algorithm" class="gen-select" title="Groove v4 develops genre phrases with independent Complexity and Spicy controls. Saved patterns keep their recorded engine.">
-                  <option value="groove-v5">Groove v5 (preview)</option>
-                  <option value="groove-v4" selected>Groove v4</option>
-                  <option value="groove-v3">Groove v3</option>
-                  <option value="groove-v2">Groove v2</option>
-                  <option value="legacy-v1">Legacy v1 (older seeds)</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Module 2: Rhythm Dynamics Deck -->
-        <div class="gen-card gen-card-dynamics">
-          <div class="gen-card-header">
-            <span class="gen-card-tag badge-amber">02</span>
-            <span class="gen-card-title">RHYTHM DYNAMICS &amp; TEMPO</span>
-          </div>
-          <div class="gen-card-body">
-            <div class="tempo-control gen-tempo-module">
-              <div class="gen-slider-header">
-                <label for="bpm-slider">Tempo</label>
-                <div class="gen-exact-bpm-wrap">
-                  <input aria-label="Exact BPM" id="bpm" type="number" min="32" max="999" step=".1" value="165" class="gen-num-input">
-                  <span class="gen-unit-lbl">BPM</span>
-                </div>
-              </div>
-              <input id="bpm-slider" aria-label="BPM slider" type="range" min="32" max="300" step=".1" value="165" class="gen-range-slider">
-              <div id="presets" class="presets gen-bpm-presets"></div>
-            </div>
-
-            <div class="gen-slider-block">
-              <div class="gen-slider-header">
-                <label for="complexity">Complexity <small>(Simple → Detailed)</small></label>
-                <output id="complexity-value" for="complexity" class="gen-val-badge badge-cyan">45%</output>
-              </div>
-              <input id="complexity" aria-label="Generation complexity" type="range" min="0" max="1" step=".01" value=".45" class="gen-range-slider slider-cyan">
-            </div>
-
-            <div class="gen-slider-block">
-              <div class="gen-slider-header">
-                <label for="spicy">Spicy <small>(Rolls &amp; Variation)</small></label>
-                <output id="spicy-value" for="spicy" class="gen-val-badge badge-amber">0%</output>
-              </div>
-              <input id="spicy" aria-label="Generation spice" type="range" min="0" max="1" step=".01" value="0" class="gen-range-slider slider-amber">
-            </div>
-          </div>
-        </div>
-
-        <!-- Module 3: Harmony & Scales Deck -->
-        <div class="gen-card gen-card-harmony">
-          <div class="gen-card-header">
-            <span class="gen-card-tag badge-purple">03</span>
-            <span class="gen-card-title">KEY &amp; HARMONY MAPPING</span>
-          </div>
-          <div class="gen-card-body">
-            <div class="composition-controls">
-              <input id="generationMode" type="hidden" value="drums"><input id="melodyPart" type="hidden" value="bassline">
-              <div id="melody-options" class="melody-options gen-harmony-stack">
-                <div class="gen-row-2col">
-                  <div class="gen-field">
-                    <label for="melodyKey">Root Key</label>
-                    <select id="melodyKey" class="gen-select"><option value="0">C</option><option value="1">C♯ / D♭</option><option value="2">D</option><option value="3">D♯ / E♭</option><option value="4">E</option><option value="5">F</option><option value="6">F♯ / G♭</option><option value="7">G</option><option value="8">G♯ / A♭</option><option value="9">A</option><option value="10">A♯ / B♭</option><option value="11">B</option></select>
-                  </div>
-                  <div class="gen-field">
-                    <label for="melodyScale">Musical Scale</label>
-                    <select id="melodyScale" class="gen-select"><option value="major">Major</option><option value="natural-minor" selected>Natural Minor</option><option value="harmonic-minor">Harmonic Minor</option><option value="melodic-minor">Melodic Minor</option><option value="dorian">Dorian</option><option value="phrygian">Phrygian</option><option value="lydian">Lydian</option><option value="mixolydian">Mixolydian</option><option value="locrian">Locrian</option><option value="major-pentatonic">Major Pentatonic</option><option value="minor-pentatonic">Minor Pentatonic</option><option value="blues">Blues</option><option value="whole-tone">Whole Tone</option><option value="diminished">Diminished</option><option value="double-harmonic">Double Harmonic</option><option value="hirajoshi">Hirajoshi</option></select>
-                  </div>
+            <div class="gen-card-body">
+              <div class="gen-row-2col">
+                <div class="gen-field">
+                  <label for="genre">Genre</label>
+                  <select id="genre" class="gen-select"></select>
+                  <small id="genre-description" class="gen-desc-hint"></small>
                 </div>
                 <div class="gen-field">
-                  <label for="harmonyStyle">Chord Progression Style</label>
-                  <select id="harmonyStyle" class="gen-select"><option value="jazz" selected>Jazz (Functional ii–V motions &amp; chromatic tensions)</option><option value="neo-soul">Neo-Soul (Smooth 7ths &amp; gospel colors)</option><option value="modal">Modal / Quartal (Open modern stacks)</option><option value="genre">Genre Diatonic (Native bass roots)</option></select>
+                  <label for="generator-kit-select">Drum Kit</label>
+                  <select id="generator-kit-select" class="gen-select"><option value="custom">Custom Kit</option></select>
+                  <small id="generator-kit-desc" class="gen-desc-hint">Kit sounds</small>
+                </div>
+              </div>
+              <div class="gen-row-2col">
+                <div class="gen-field">
+                  <label for="bars">Bars</label>
+                  <select id="bars" class="gen-select"><option>1</option><option selected>2</option><option>3</option><option>4</option></select>
+                </div>
+                <div class="gen-field">
+                  <label for="algorithm">Engine</label>
+                  <select id="algorithm" class="gen-select" title="Groove v4 develops genre phrases with independent Complexity and Spicy controls. Saved patterns keep their recorded engine.">
+                    <option value="groove-v5">Groove v5 (preview)</option>
+                    <option value="groove-v4" selected>Groove v4</option>
+                    <option value="groove-v3">Groove v3</option>
+                    <option value="groove-v2">Groove v2</option>
+                    <option value="legacy-v1">Legacy v1 (older seeds)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Module 2: Rhythm Dynamics Deck -->
+          <div class="gen-card gen-card-dynamics">
+            <div class="gen-card-header">
+              <span class="gen-card-tag badge-amber">02</span>
+              <span class="gen-card-title">RHYTHM DYNAMICS &amp; TEMPO</span>
+            </div>
+            <div class="gen-card-body">
+              <div class="tempo-control gen-tempo-module">
+                <div class="gen-slider-header">
+                  <label for="bpm-slider">Tempo</label>
+                  <div class="gen-exact-bpm-wrap">
+                    <input aria-label="Exact BPM" id="bpm" type="number" min="32" max="999" step=".1" value="165" class="gen-num-input">
+                    <span class="gen-unit-lbl">BPM</span>
+                  </div>
+                </div>
+                <input id="bpm-slider" aria-label="BPM slider" type="range" min="32" max="300" step=".1" value="165" class="gen-range-slider">
+                <div id="presets" class="presets gen-bpm-presets"></div>
+              </div>
+
+              <div class="gen-row-2col">
+                <div class="gen-slider-block">
+                  <div class="gen-slider-header">
+                    <label for="complexity">Complexity <small>(Simple → Detailed)</small></label>
+                    <output id="complexity-value" for="complexity" class="gen-val-badge badge-cyan">45%</output>
+                  </div>
+                  <input id="complexity" aria-label="Generation complexity" type="range" min="0" max="1" step=".01" value=".45" class="gen-range-slider slider-cyan">
+                </div>
+
+                <div class="gen-slider-block">
+                  <div class="gen-slider-header">
+                    <label for="spicy">Spicy <small>(Rolls &amp; Variation)</small></label>
+                    <output id="spicy-value" for="spicy" class="gen-val-badge badge-amber">0%</output>
+                  </div>
+                  <input id="spicy" aria-label="Generation spice" type="range" min="0" max="1" step=".01" value="0" class="gen-range-slider slider-amber">
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Module 4: Advanced Groove Matrix -->
-      <details id="advanced-generation" class="gen-advanced-details"><summary><svg class="tool-icon"><use href="#icon-sliders"/></svg> Advanced Groove Matrix &amp; Densities</summary>
-        <div class="advanced gen-advanced-grid">
-          <div class="gen-field">
-            <label for="breakStyle">Break Rhythm</label>
-            <select id="breakStyle" class="gen-select"><option value="genre">Genre default</option></select>
-            <small id="break-description" class="gen-desc-hint">Use selected genre's timing profile.</small>
-          </div>
-          <div class="gen-field">
-            <label for="breakLayer">Break Layer</label>
-            <select id="breakLayer" class="gen-select" title="Add chopped Think Passage 2 slices on a separate track"><option value="off" selected>Off</option><option value="think-passage2">Think Passage 2 · chopped</option></select>
-            <small class="gen-desc-hint">Sliced audio layer alongside kit.</small>
-          </div>
-          <div class="gen-field">
-            <label for="resolution">Grid Resolution</label>
-            <select id="resolution" class="gen-select"><option value="8">1/8</option><option value="16" selected>1/16</option><option value="32">1/32</option><option value="64">1/64</option></select>
-          </div>
-          <input id="variation" type="hidden" value="0">
-          <label id="phrase-length-field" hidden>Phrase<select id="phraseLength" class="gen-select" title="Generate a section of a longer musical phrase"><option value="0">This pattern</option><option value="4">4 bars</option><option value="8">8 bars</option><option value="16">16 bars</option></select></label>
-          <label id="phrase-offset-field" hidden>Starting bar<select id="phraseOffset" class="gen-select"></select></label>
-
-          <div class="exact-hits-control gen-exact-hits-module">
-            <div class="gen-slider-header">
-              <label for="hit-target-slider">Exact Drum Hits</label>
-              <div class="gen-exact-hits-tools">
-                <select id="hit-target-mode" aria-label="Exact hit count mode" class="gen-mini-select"><option value="auto">Auto</option><option value="exact">Exact</option></select>
-                <output id="hit-target-value" for="hit-target-slider" class="gen-val-badge badge-cyan">32</output>
-                <input id="hit-target-number" type="number" min="0" max="128" step="1" value="32" aria-label="Exact drum hit count" class="gen-mini-num-input">
+        <!-- Column 2: Harmony & Matrix -->
+        <div class="gen-col-right">
+          <!-- Module 3: Harmony & Scales Deck -->
+          <div class="gen-card gen-card-harmony">
+            <div class="gen-card-header">
+              <span class="gen-card-tag badge-purple">03</span>
+              <span class="gen-card-title">KEY &amp; HARMONY MAPPING</span>
+            </div>
+            <div class="gen-card-body">
+              <div class="composition-controls">
+                <input id="generationMode" type="hidden" value="drums"><input id="melodyPart" type="hidden" value="bassline">
+                <div id="melody-options" class="melody-options gen-harmony-stack">
+                  <div class="gen-row-2col">
+                    <div class="gen-field">
+                      <label for="melodyKey">Root Key</label>
+                      <select id="melodyKey" class="gen-select"><option value="0">C</option><option value="1">C♯ / D♭</option><option value="2">D</option><option value="3">D♯ / E♭</option><option value="4">E</option><option value="5">F</option><option value="6">F♯ / G♭</option><option value="7">G</option><option value="8">G♯ / A♭</option><option value="9">A</option><option value="10">A♯ / B♭</option><option value="11">B</option></select>
+                    </div>
+                    <div class="gen-field">
+                      <label for="melodyScale">Musical Scale</label>
+                      <select id="melodyScale" class="gen-select"><option value="major">Major</option><option value="natural-minor" selected>Natural Minor</option><option value="harmonic-minor">Harmonic Minor</option><option value="melodic-minor">Melodic Minor</option><option value="dorian">Dorian</option><option value="phrygian">Phrygian</option><option value="lydian">Lydian</option><option value="mixolydian">Mixolydian</option><option value="locrian">Locrian</option><option value="major-pentatonic">Major Pentatonic</option><option value="minor-pentatonic">Minor Pentatonic</option><option value="blues">Blues</option><option value="whole-tone">Whole Tone</option><option value="diminished">Diminished</option><option value="double-harmonic">Double Harmonic</option><option value="hirajoshi">Hirajoshi</option></select>
+                    </div>
+                  </div>
+                  <div class="gen-field">
+                    <label for="harmonyStyle">Chord Progression Style</label>
+                    <select id="harmonyStyle" class="gen-select"><option value="jazz" selected>Jazz (Functional ii–V motions &amp; chromatic tensions)</option><option value="neo-soul">Neo-Soul (Smooth 7ths &amp; gospel colors)</option><option value="modal">Modal / Quartal (Open modern stacks)</option><option value="genre">Genre Diatonic (Native bass roots)</option></select>
+                  </div>
+                </div>
               </div>
             </div>
-            <input id="hit-target-slider" type="range" min="0" max="128" step="1" value="32" aria-label="Exact drum hits" class="gen-range-slider slider-cyan">
-            <small id="hit-target-help" class="gen-desc-hint">Tracker notes across drum tracks. Ratchets count once.</small>
           </div>
 
-          <div class="gen-field">
-            <label for="seed">Pattern Random Seed</label>
-            <input id="seed" type="text" value="break-042" maxlength="80" class="gen-text-input">
-          </div>
-
-          <div class="gen-slider-block">
-            <div class="gen-slider-header">
-              <label for="syncopation">Syncopation</label>
-              <output id="syncopation-val" class="gen-val-badge badge-cyan">0.40</output>
-            </div>
-            <input id="syncopation" aria-label="Generation syncopation" type="range" min="0" max="1" step=".05" value=".4" class="gen-range-slider slider-cyan" oninput="document.getElementById('syncopation-val').textContent=parseFloat(this.value).toFixed(2)">
-          </div>
-
-          <div class="gen-slider-block">
-            <div class="gen-slider-header">
-              <label for="swing">Swing Ratio <small>(.50 = straight; .60 = swung)</small></label>
-              <output id="swing-val" class="gen-val-badge badge-cyan">0.50</output>
-            </div>
-            <input id="swing" aria-label="Generation swing ratio" type="range" min=".5" max=".67" step=".01" value=".50" class="gen-range-slider slider-cyan" oninput="document.getElementById('swing-val').textContent=parseFloat(this.value).toFixed(2)">
-          </div>
-
-          <div class="gen-slider-block">
-            <div class="gen-slider-header">
-              <label for="humanizeMs">Humanize Timing</label>
-              <output id="humanizeMs-val" class="gen-val-badge badge-amber">0 ms</output>
-            </div>
-            <input id="humanizeMs" aria-label="Generation humanization in milliseconds" type="range" min="0" max="10" step=".5" value="0" class="gen-range-slider slider-amber" oninput="document.getElementById('humanizeMs-val').textContent=this.value + ' ms'">
-          </div>
-
-          <div class="gen-slider-block">
-            <div class="gen-slider-header">
-              <label for="ghostAmount">Ghost Note Density</label>
-              <output id="ghostAmount-val" class="gen-val-badge badge-purple">0.35</output>
-            </div>
-            <input id="ghostAmount" aria-label="Generation ghost note amount" type="range" min="0" max="1" step=".05" value=".35" class="gen-range-slider slider-purple" oninput="document.getElementById('ghostAmount-val').textContent=parseFloat(this.value).toFixed(2)">
-          </div>
-
-          <div class="gen-field">
-            <label for="patternStructure">Structure &amp; Fills</label>
-            <select id="patternStructure" class="gen-select">
-              <option value="auto" selected>Auto-Fills (Probability-based)</option>
-              <option value="groove">Standard Groove (No fills)</option>
-              <option value="fill">Beat + Fill Drop</option>
-              <option value="roll">Beat + Snare Roll</option>
-              <option value="build">100% Snare Roll Build-up</option>
-            </select>
-          </div>
-
-          <div class="gen-slider-block">
-            <div class="gen-slider-header">
-              <label for="fillAmount">Fill Probability</label>
-              <output id="fillAmount-val" class="gen-val-badge badge-cyan">0.40</output>
-            </div>
-            <input id="fillAmount" aria-label="Generation fill amount" type="range" min="0" max="1" step=".05" value=".4" class="gen-range-slider slider-cyan" oninput="document.getElementById('fillAmount-val').textContent=parseFloat(this.value).toFixed(2)">
-          </div>
-
-          <fieldset id="lane-density-controls" class="lane-density-controls gen-density-module"><legend>Individual Instrument Densities</legend>
-            <div class="gen-slider-block">
-              <div class="gen-slider-header">
-                <label for="kick-density">Kick</label>
-                <output id="kick-density-value" for="kick-density" class="gen-val-badge">100%</output>
+          <!-- Module 4: Advanced Groove Matrix -->
+          <details id="advanced-generation" class="gen-advanced-details"><summary><svg class="tool-icon"><use href="#icon-sliders"/></svg> Advanced Groove Matrix &amp; Densities</summary>
+            <div class="advanced gen-advanced-grid">
+              <div class="gen-field">
+                <label for="breakStyle">Break Rhythm</label>
+                <select id="breakStyle" class="gen-select"><option value="genre">Genre default</option></select>
+                <small id="break-description" class="gen-desc-hint">Use selected genre's timing profile.</small>
               </div>
-              <input id="kick-density" type="range" min="0" max="2" step=".05" value="1" class="gen-range-slider">
-            </div>
-            <div class="gen-slider-block">
-              <div class="gen-slider-header">
-                <label for="snare-density">Snare</label>
-                <output id="snare-density-value" for="snare-density" class="gen-val-badge">100%</output>
+              <div class="gen-field">
+                <label for="breakLayer">Break Layer</label>
+                <select id="breakLayer" class="gen-select" title="Add chopped Think Passage 2 slices on a separate track"><option value="off" selected>Off</option><option value="think-passage2">Think Passage 2 · chopped</option></select>
+                <small class="gen-desc-hint">Sliced audio layer alongside kit.</small>
               </div>
-              <input id="snare-density" type="range" min="0" max="2" step=".05" value="1" class="gen-range-slider">
-            </div>
-            <div class="gen-slider-block">
-              <div class="gen-slider-header">
-                <label for="hat-density">Hi-Hat</label>
-                <output id="hat-density-value" for="hat-density" class="gen-val-badge">100%</output>
+              <div class="gen-field">
+                <label for="resolution">Grid Resolution</label>
+                <select id="resolution" class="gen-select"><option value="8">1/8</option><option value="16" selected>1/16</option><option value="32">1/32</option><option value="64">1/64</option></select>
               </div>
-              <input id="hat-density" type="range" min="0" max="2" step=".05" value="1" class="gen-range-slider">
-            </div>
-            <div class="gen-slider-block">
-              <div class="gen-slider-header">
-                <label for="percussion-density">Percussion</label>
-                <output id="percussion-density-value" for="percussion-density" class="gen-val-badge">100%</output>
+              <input id="variation" type="hidden" value="0">
+              <label id="phrase-length-field" hidden>Phrase<select id="phraseLength" class="gen-select" title="Generate a section of a longer musical phrase"><option value="0">This pattern</option><option value="4">4 bars</option><option value="8">8 bars</option><option value="16">16 bars</option></select></label>
+              <label id="phrase-offset-field" hidden>Starting bar<select id="phraseOffset" class="gen-select"></select></label>
+
+              <div class="exact-hits-control gen-exact-hits-module">
+                <div class="gen-slider-header">
+                  <label for="hit-target-slider">Exact Drum Hits</label>
+                  <div class="gen-exact-hits-tools">
+                    <select id="hit-target-mode" aria-label="Exact hit count mode" class="gen-mini-select"><option value="auto">Auto</option><option value="exact">Exact</option></select>
+                    <output id="hit-target-value" for="hit-target-slider" class="gen-val-badge badge-cyan">32</output>
+                    <input id="hit-target-number" type="number" min="0" max="128" step="1" value="32" aria-label="Exact drum hit count" class="gen-mini-num-input">
+                  </div>
+                </div>
+                <input id="hit-target-slider" type="range" min="0" max="128" step="1" value="32" aria-label="Exact drum hits" class="gen-range-slider slider-cyan">
+                <small id="hit-target-help" class="gen-desc-hint">Tracker notes across drum tracks. Ratchets count once.</small>
               </div>
-              <input id="percussion-density" type="range" min="0" max="2" step=".05" value="1" class="gen-range-slider">
+
+              <div class="gen-field">
+                <label for="seed">Pattern Random Seed</label>
+                <input id="seed" type="text" value="break-042" maxlength="80" class="gen-text-input">
+              </div>
+
+              <div class="gen-slider-block">
+                <div class="gen-slider-header">
+                  <label for="syncopation">Syncopation</label>
+                  <output id="syncopation-val" class="gen-val-badge badge-cyan">0.40</output>
+                </div>
+                <input id="syncopation" aria-label="Generation syncopation" type="range" min="0" max="1" step=".05" value=".4" class="gen-range-slider slider-cyan" oninput="document.getElementById('syncopation-val').textContent=parseFloat(this.value).toFixed(2)">
+              </div>
+
+              <div class="gen-slider-block">
+                <div class="gen-slider-header">
+                  <label for="swing">Swing Ratio <small>(.50 = straight; .60 = swung)</small></label>
+                  <output id="swing-val" class="gen-val-badge badge-cyan">0.50</output>
+                </div>
+                <input id="swing" aria-label="Generation swing ratio" type="range" min=".5" max=".67" step=".01" value=".50" class="gen-range-slider slider-cyan" oninput="document.getElementById('swing-val').textContent=parseFloat(this.value).toFixed(2)">
+              </div>
+
+              <div class="gen-slider-block">
+                <div class="gen-slider-header">
+                  <label for="humanizeMs">Humanize Timing</label>
+                  <output id="humanizeMs-val" class="gen-val-badge badge-amber">0 ms</output>
+                </div>
+                <input id="humanizeMs" aria-label="Generation humanization in milliseconds" type="range" min="0" max="10" step=".5" value="0" class="gen-range-slider slider-amber" oninput="document.getElementById('humanizeMs-val').textContent=this.value + ' ms'">
+              </div>
+
+              <div class="gen-slider-block">
+                <div class="gen-slider-header">
+                  <label for="ghostAmount">Ghost Note Density</label>
+                  <output id="ghostAmount-val" class="gen-val-badge badge-purple">0.35</output>
+                </div>
+                <input id="ghostAmount" aria-label="Generation ghost note amount" type="range" min="0" max="1" step=".05" value=".35" class="gen-range-slider slider-purple" oninput="document.getElementById('ghostAmount-val').textContent=parseFloat(this.value).toFixed(2)">
+              </div>
+
+              <div class="gen-field">
+                <label for="patternStructure">Structure &amp; Fills</label>
+                <select id="patternStructure" class="gen-select">
+                  <option value="auto" selected>Auto-Fills (Probability-based)</option>
+                  <option value="groove">Standard Groove (No fills)</option>
+                  <option value="fill">Beat + Fill Drop</option>
+                  <option value="roll">Beat + Snare Roll</option>
+                  <option value="build">100% Snare Roll Build-up</option>
+                </select>
+              </div>
+
+              <div class="gen-slider-block">
+                <div class="gen-slider-header">
+                  <label for="fillAmount">Fill Probability</label>
+                  <output id="fillAmount-val" class="gen-val-badge badge-cyan">0.40</output>
+                </div>
+                <input id="fillAmount" aria-label="Generation fill amount" type="range" min="0" max="1" step=".05" value=".4" class="gen-range-slider slider-cyan" oninput="document.getElementById('fillAmount-val').textContent=parseFloat(this.value).toFixed(2)">
+              </div>
+
+              <fieldset id="lane-density-controls" class="lane-density-controls gen-density-module"><legend>Individual Instrument Densities</legend>
+                <div class="gen-slider-block">
+                  <div class="gen-slider-header">
+                    <label for="kick-density">Kick</label>
+                    <output id="kick-density-value" for="kick-density" class="gen-val-badge">100%</output>
+                  </div>
+                  <input id="kick-density" type="range" min="0" max="2" step=".05" value="1" class="gen-range-slider">
+                </div>
+                <div class="gen-slider-block">
+                  <div class="gen-slider-header">
+                    <label for="snare-density">Snare</label>
+                    <output id="snare-density-value" for="snare-density" class="gen-val-badge">100%</output>
+                  </div>
+                  <input id="snare-density" type="range" min="0" max="2" step=".05" value="1" class="gen-range-slider">
+                </div>
+                <div class="gen-slider-block">
+                  <div class="gen-slider-header">
+                    <label for="hat-density">Hi-Hat</label>
+                    <output id="hat-density-value" for="hat-density" class="gen-val-badge">100%</output>
+                  </div>
+                  <input id="hat-density" type="range" min="0" max="2" step=".05" value="1" class="gen-range-slider">
+                </div>
+                <div class="gen-slider-block">
+                  <div class="gen-slider-header">
+                    <label for="percussion-density">Percussion</label>
+                    <output id="percussion-density-value" for="percussion-density" class="gen-val-badge">100%</output>
+                  </div>
+                  <input id="percussion-density" type="range" min="0" max="2" step=".05" value="1" class="gen-range-slider">
+                </div>
+              </fieldset>
             </div>
-          </fieldset>
+          </details>
         </div>
-      </details>
+      </div>
 
       <!-- Module 5: Generator Trigger Deck -->
       <div class="generation-toolbar layer-generators gen-trigger-toolbar" aria-label="Generate pattern layers">

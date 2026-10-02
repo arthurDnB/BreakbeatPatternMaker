@@ -2123,40 +2123,72 @@ function initBottomRack(){
     tabFx.setAttribute('aria-selected', String(tabId==='fx'));
 
     if(tabId==='fx-chain'){
-      if(pnlFxChain){ pnlFxChain.hidden = false; pnlFxChain.style.display = ''; }
+      if(pnlFxChain){
+        pnlFxChain.hidden = false;
+        pnlFxChain.style.display = 'flex';
+        pnlFxChain.classList.add('is-active');
+      }
       pnlGen.style.display = 'none';
       pnlGen.hidden = true;
+      pnlGen.classList.remove('is-active');
       pnlSli.hidden = true;
       pnlSli.style.display = 'none';
-      pnlFx.hidden = !masterRack.open;
-      pnlFx.style.display = masterRack.open?'':'none';
+      pnlSli.classList.remove('is-active');
+      if(pnlFx){
+        pnlFx.hidden = !masterRack.open;
+        pnlFx.style.display = masterRack.open?'':'none';
+      }
+      syncDspControls();
+      syncReTrackRotaryDials();
       status('Bottom rack: Modular DSP FX Chain active.');
     }else if(tabId==='generator'){
-      if(pnlFxChain){ pnlFxChain.hidden = true; pnlFxChain.style.display = 'none'; }
-      pnlGen.style.display = '';
+      if(pnlFxChain){
+        pnlFxChain.hidden = true;
+        pnlFxChain.style.display = 'none';
+        pnlFxChain.classList.remove('is-active');
+      }
+      pnlGen.style.display = 'flex';
       pnlGen.hidden = false;
+      pnlGen.classList.add('is-active');
       pnlSli.hidden = true;
       pnlSli.style.display = 'none';
-      pnlFx.hidden = !masterRack.open;
-      pnlFx.style.display = masterRack.open?'':'none';
+      pnlSli.classList.remove('is-active');
+      if(pnlFx){
+        pnlFx.hidden = true;
+        pnlFx.style.display = 'none';
+      }
       status('Bottom rack: Beat Generator active.');
     }else if(tabId==='slicer'){
-      if(pnlFxChain){ pnlFxChain.hidden = true; pnlFxChain.style.display = 'none'; }
+      if(pnlFxChain){
+        pnlFxChain.hidden = true;
+        pnlFxChain.style.display = 'none';
+        pnlFxChain.classList.remove('is-active');
+      }
       pnlGen.style.display = 'none';
       pnlGen.hidden = true;
+      pnlGen.classList.remove('is-active');
       pnlSli.hidden = false;
       pnlSli.removeAttribute('hidden');
       pnlSli.style.display = '';
-      pnlFx.hidden = true;
-      pnlFx.style.display = 'none';
+      pnlSli.classList.add('is-active');
+      if(pnlFx){
+        pnlFx.hidden = true;
+        pnlFx.style.display = 'none';
+      }
       window.dispatchEvent(new Event('resize'));
       status('Bottom rack: Waveform Slicer active.');
     }else if(tabId==='fx'){
-      if(pnlFxChain){ pnlFxChain.hidden = true; pnlFxChain.style.display = 'none'; }
+      if(pnlFxChain){
+        pnlFxChain.hidden = true;
+        pnlFxChain.style.display = 'none';
+        pnlFxChain.classList.remove('is-active');
+      }
       pnlGen.style.display = 'none';
       pnlGen.hidden = true;
+      pnlGen.classList.remove('is-active');
       pnlSli.hidden = true;
       pnlSli.style.display = 'none';
+      pnlSli.classList.remove('is-active');
       pnlFx.hidden = false;
       pnlFx.removeAttribute('hidden');
       pnlFx.style.display = '';
@@ -2196,6 +2228,7 @@ function initBottomRack(){
   initReTrackRotaryDials();
   initReTrackStompboxes();
   initReTrackDspPresets();
+  switchBottomTab('generator');
 
   function resetDsp(){
     const sel = document.getElementById('dsp-role-select') as HTMLSelectElement | null;

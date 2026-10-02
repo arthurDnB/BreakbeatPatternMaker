@@ -82,6 +82,26 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-10-02] - Compact 2-Column Beat Generator, Tracker Flex Expansion & Strict DSP Tab Isolation (Antigravity)
+
+* **Tracker Flex-Fill Expansion & Zero Black Void:**
+  - Resolved tracker squishing where only 3 rows were visible with a ~35% black void below it.
+  - Set `.daw-stage-center` and `.workspace` to `flex: 1 1 auto; height: 100%; min-height: 0; display: flex; flex-direction: column; overflow: hidden;`.
+  - Configured `.workspace #grid` to `flex: 1 1 auto !important; height: 100% !important; min-height: 280px !important; max-height: none !important; overflow: auto !important;`, allowing the tracker grid to flex-expand and comfortably display 16–25+ rows with smooth scrolling and zero unpainted black voids.
+* **Compact 2-Column Beat Generator Synth Console:**
+  - Redesigned `#controls` into a high-density, low-profile 2-column layout (`.gen-console-grid-2col`) reducing its vertical footprint by more than 50% (down to ~180px–210px):
+    - **Column 1 (Rhythm & Engine):** Engine & Kit Core (Genre, Kit, Bars, Engine) + Rhythm Dynamics (Tempo, Complexity, Spicy).
+    - **Column 2 (Harmony & Matrix):** Key & Harmony Mapping (Root Key, Musical Scale, Chord Progression Style) + Compact Advanced Groove Matrix Details (Break style, Layer, Resolution, Exact hits, Swing, Humanize, Fill probability, and instrument densities).
+    - **Bottom Hardware Strip:** Slim trigger toolbar with tactile illuminated pads (`⚡ BEAT`, `⚡ BASS`, `⚡ MELODY`, `⚡ PIANO`, `⟳ VARIATION`, `↺ RESTORE DEFAULTS`).
+* **Strict DSP Tab Isolation (Zero Knobs on Generator):**
+  - Resolved user issue where the 5 modular hardware stompbox units (Analog Filter, Stereo Distort, Mod Phaser, Bus Comp, Maximizer) were appearing directly above the generator controls.
+  - Enforced `.re-track-dsp-panel { display: none !important; }` unless `.is-active`.
+  - Added explicit `switchBottomTab('generator')` call on application startup in `src/web.ts`, guaranteeing the DSP stompbox rack is never displayed when the Beat Generator tab is active.
+  - Preserved external placement of `#vinyl-texture-rack` and `#master-dsp-rack` accordions for clean separation and full test compatibility.
+* **Verification & Quality Gates:**
+  - Unit test suite: 253/253 passing (`npm.cmd test`).
+  - Site test suite: All static builds, Playwright browser checks, Think break checks, Sound browser, and Groove V5 smoke tests passing (`npm.cmd run test:site`).
+
 ### [2026-10-02] - Cyberpunk Beat Generator Redesign, Header Tidy-Up & Zero-Void Layout Alignment (Antigravity)
 
 * **Eliminated Lateral Scrollbar & Viewport Leak:**
