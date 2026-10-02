@@ -60,7 +60,7 @@ The project file limit is 384 MB, decoded audio is limited to 256 MB. Pending so
 
 Play pattern and Export pattern WAV share one renderer. WAV is stereo 44.1 kHz / 16-bit PCM and includes at least 0.6 seconds of release tails. Muted lanes are excluded; note volume, lane level and tuning are applied. Overloaded mixes are attenuated to avoid clipping. Pattern playback repeats at the bar boundary with overlapping release tails; WAV exports one phrase with its final tails. Pitch repitches audio; there is no independent time-stretching.
 
-Pattern JSON is an inspection/sharing format, not a complete project save. Use `.bbproject` to retain audio. MP3, additional codecs and velocity-layered kits remain future work.
+Pattern JSON is an inspection/sharing format, not a complete project save. Use `.bbproject` to retain audio. Additional codecs remain future work.
 
 ## Checks
 
@@ -69,6 +69,8 @@ Pattern JSON is an inspection/sharing format, not a complete project save. Use `
 ## Effects, reverse and simplified generation
 
 Instrument Audition is now Preview. Preview uses the same renderer as the pattern and WAV export, at full note velocity and with instrument mute bypassed. Each card has Reverse instrument and a collapsible Effects panel: high-pass (0 = off), low-pass (20000 = off), drive, and delay time/feedback/mix. Processing order: reverse/repitch the sample, shape each hit, mix the lane, high-pass, low-pass, drive, delay. Filters are gentle one-pole filters. Bypass effects disables the lane's filtering, drive and delay while retaining sample shaping, tuning, level and reverse. Delay feedback is capped at .75, mix at .6, and added tails at 8 seconds; final tails may be tapered. Pattern playback repeats at the bar boundary while letting prior release/delay tails finish; WAV exports one phrase with its final tails.
+
+The **Acoustic Break** kit uses three velocity layers for its kick and snare. Select that kit, then adjust a tracker hit's **Vol** value: quiet hits use softer recordings, ordinary hits use body hits, and strong hits use accents. The transition is blended near 45% and 80% velocity. A manually chosen hit sound, source-specific sample trim, or uploaded lane sound uses its own sample instead. Hat and percussion remain single-sample instruments. Save a `.bbproject` to carry the layered samples with the song.
 
 ### Repitch and sample shaping
 

@@ -70,7 +70,7 @@ This document maintains the running project state and change log so that multipl
 * [x] **Break Transcription (Preview):** Local automatic slicing, mapped slice instruments, original-timing reconstruction, marker review and project v4. See `docs/BREAK-TRANSCRIPTION.md`.
 * [ ] **Break Transcription Production Gate:** One listener verified onset labels for eight two-second excerpts. Longer excerpts, a second independent annotator, additional unrelated breaks and full-loop listening remain before any industry-standard claim.
 * [x] **MP3 export:** Pattern and full-song audio can be encoded at 192 kbps from the same render as WAV. MP3 may contain encoder padding at loop boundaries; WAV remains the exact-loop export.
-* [ ] **Future Audio Roadmap:** Velocity-layered drum kits.
+* [x] **Velocity-layered drum kit (Acoustic Break):** Kick and snare use three bundled sample layers with narrow velocity crossfades. Other kits, uploads, explicit hit samples, and older projects keep their established sound.
 * [x] **Sound Library Browser:** Shared searchable and filterable audition/selection for lanes and tracker hits, with browser-local Favorites and Recently used sounds.
 * [x] **Optional Melody Generation:** Drum, drum + melody, and melody modes with genre-aware bassline/lead synth motifs, key/scale choice, layer preservation, locks and Undo.
 * [x] **Configurable drum lanes:** The four built-in sample lanes can be renamed, hidden, and assigned beat-generator roles independently of their sounds; see `docs/DRUM-LANES.md`.
@@ -81,6 +81,14 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-10-02] - Acoustic Break Velocity-Layered Drum Kit (Codex)
+
+* Added optional soft, medium, and accent sample references to kit presets and saved kit slots. Acoustic Break now uses three bundled kick recordings and three snare recordings; the very quiet soft snare is level compensated after the existing library preparation. The preset loads all layer audio before switching the kit.
+* `src/audio/drum-kit.ts` selects layers from the saved hit velocity before the lane fader, blending over narrow ranges around 0.45 and 0.80. It keeps the original hit velocity, mixer settings, pitch, articulation, choke grouping, and one user-added sound layer. Explicit hit samples, mapped slices, source-specific trims, uploads, and single-sample kits retain their previous behavior.
+* `src/audio/voice-v3.ts` respects render-only gain for the compensated layer without changing the persisted hit gain. `src/audio/project.ts` embeds and validates the additional audio so old projects open unchanged and layered projects reopen with the same sound.
+* Added focused velocity unit tests and a browser smoke check for preset loading, WAV export, project audio, and manual-sound fallback. Updated `README.md` with the Vol control workflow and refreshed the production module URL in `public/index.html`.
+* Verification: `npm.cmd test` passed 266/266 unit tests; `npm.cmd run test:site` passed all browser suites, including root and repository-subpath sample loading, layered-kit project roundtrip, and WAV export. The earlier subpath 404s were caused by rebuilding `site/` while a smoke server was serving it; the isolated final run passed.
 
 ### [2026-10-02] - Curated Breakbeat Slicer Presets & Transport Geometry Collision Fix (Antigravity)
 

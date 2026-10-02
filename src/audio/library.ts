@@ -2085,6 +2085,8 @@ export interface KitPreset {
   slots: Record<'kick'|'snare'|'hat'|'percussion', string>;
   levels?: Partial<Record<'kick'|'snare'|'hat'|'percussion', number>>;
   decays?: Partial<Record<'kick'|'snare'|'hat'|'percussion', number>>;
+  velocityLayers?: Partial<Record<'kick'|'snare'|'hat'|'percussion', {soft:string;medium:string;accent:string}>>;
+  velocityLayerLevels?: Partial<Record<'kick'|'snare'|'hat'|'percussion', Partial<Record<'soft'|'medium'|'accent',number>>>>;
 }
 
 export const KIT_PRESETS: KitPreset[] = [
@@ -2133,7 +2135,7 @@ export const KIT_PRESETS: KitPreset[] = [
   {
     id: 'acoustic-break',
     name: '⚡ Jungle & Breakbeat (Piccolo Snare & Ride)',
-    description: 'Punchy 24" kick, crisp 12x5 piccolo jungle snare, tight hat, 22" vintage ride cymbal',
+    description: 'Velocity-layered acoustic kicks and snares for ghost notes, body hits, and accents; tight hat and vintage ride.',
     slots: {
       kick: 'acoustic-kick-punch',
       snare: 'acoustic-snare-piccolo',
@@ -2142,6 +2144,11 @@ export const KIT_PRESETS: KitPreset[] = [
     },
     levels: {snare: 0.80, percussion: 0.65},
     decays: {snare: 0.85, percussion: 0.70},
+    velocityLayers: {
+      kick: {soft:'acoustic-kick-muted',medium:'acoustic-kick-clean',accent:'acoustic-kick-punch'},
+      snare: {soft:'acoustic-snare-soft',medium:'acoustic-snare-piccolo',accent:'acoustic-snare-crack'},
+    },
+    velocityLayerLevels: {snare:{soft:3.2}},
   },
   {
     id: 'lofi-soul',

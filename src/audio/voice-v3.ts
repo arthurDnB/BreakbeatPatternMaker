@@ -100,7 +100,7 @@ export function applyV3Chokes(voices:RenderVoice[],rate:number,loopDuration?:num
 export function renderV3Voice(v:RenderVoice,bus:Float32Array[],rate:number):void {
   const offset=Math.round(v.start*rate),pan=v.hit.pan;
   const gains=v.channels.length===1?[Math.cos((pan+1)*Math.PI/4),Math.sin((pan+1)*Math.PI/4)]:[pan>0?1-pan:1,pan<0?1+pan:1];
-  const level=v.hit.gain*(v.hit.phaseInvert?-1:1)*(v.repeatGain??1)*(v.hit.slice?(v.channels.length===1?Math.SQRT2:1):.65);
+  const level=(v.hit.renderGain??v.hit.gain)*(v.hit.phaseInvert?-1:1)*(v.repeatGain??1)*(v.hit.slice?(v.channels.length===1?Math.SQRT2:1):.65);
   const fade=Math.max(1,Math.min(Math.round(rate*.002),Math.floor(v.length/2)));
   const shape=sampleShaper(v.hit,rate);
   let phase=v.sourceOffset??0;

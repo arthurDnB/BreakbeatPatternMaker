@@ -20,7 +20,7 @@ export function needsVinylMigration(raw:unknown){
 }
 export function makeProject(editor:EditorState,draft:Settings,kit:KitState,assets:Map<string,AudioAsset>,bank?:Bank,vinylTexture:VinylTexture=DEFAULT_VINYL_TEXTURE):Project{
   const patterns=[editor.pattern,...(bank?.slots.flatMap(s=>[...(s.editor?[s.editor.pattern]:[]),...(s.patternHistory?.map(h=>h.editor.pattern)??[])])??[])];
-  const ids=new Set(patterns.flatMap(p=>[...(p.sliceInstruments??[]).map(i=>i.assetId),...(p.userTracks??[]).flatMap(t=>isSynthTrack(t)?t.instrument.sample?[t.instrument.sample.assetId]:[]:[t.sample.assetId]),...p.events.flatMap(h=>h.slice?[h.slice.assetId]:[])]));for(const r of ROLES){if(kit[r].assetId)ids.add(kit[r].assetId!);if(kit[r].uploadId)ids.add(kit[r].uploadId!);if(kit[r].layer)ids.add(kit[r].layer.slice.assetId);}
+  const ids=new Set(patterns.flatMap(p=>[...(p.sliceInstruments??[]).map(i=>i.assetId),...(p.userTracks??[]).flatMap(t=>isSynthTrack(t)?t.instrument.sample?[t.instrument.sample.assetId]:[]:[t.sample.assetId]),...p.events.flatMap(h=>h.slice?[h.slice.assetId]:[])]));for(const r of ROLES){if(kit[r].assetId)ids.add(kit[r].assetId!);if(kit[r].uploadId)ids.add(kit[r].uploadId!);if(kit[r].layer)ids.add(kit[r].layer.slice.assetId);if(kit[r].velocityLayers)for(const layer of Object.values(kit[r].velocityLayers))ids.add(layer.slice.assetId);}
   const v3=['groove-v3','groove-v4','groove-v5'].includes(draft.algorithm??'')||patterns.some(p=>['groove-v3','groove-v4','groove-v5'].includes(p.settings.algorithm??'')||p.events.some(h=>h.articulation||h.effect));
   if([...ids].some(legacyId)||Object.values(kit).some(s=>legacyId(s.choice)))throw Error('Old vinyl instrument must be migrated before saving.');
   const piano=patterns.some(p=>p.userTracks?.some(track=>isSynthTrack(track)&&track.instrument.preset==='piano'));
@@ -73,6 +73,16 @@ export function readProject(raw:unknown,replacement?:AudioAsset){
   }
   for(const role of ROLES){const s=p.kit[role];if(!s||typeof s.choice!=='string'||typeof s.include!=='boolean'||typeof s.mute!=='boolean'||!Number.isFinite(s.level)||s.level<0||s.level>1||!Number.isInteger(s.tune)||s.tune< -24||s.tune>24)throw Error('Invalid instrument settings.');if(s.solo!==undefined&&typeof s.solo!=='boolean')throw Error('Invalid instrument settings.');if(s.reverse!==undefined&&typeof s.reverse!=='boolean')throw Error('Invalid instrument reverse.');if(s.decay!==undefined&&(!Number.isFinite(s.decay)||s.decay<.02||s.decay>1))throw Error('Invalid instrument decay.');if(s.playbackRate!==undefined&&(!Number.isFinite(s.playbackRate)||s.playbackRate<.5||s.playbackRate>2))throw Error('Invalid instrument speed.');if(s.speedMode!==undefined&&!['repitch','stretch'].includes(s.speedMode))throw Error('Invalid instrument speed mode.');if(s.lowpassHz!==undefined&&(!Number.isFinite(s.lowpassHz)||s.lowpassHz<200||s.lowpassHz>20000))throw Error('Invalid instrument low-pass.');if(s.attackMs!==undefined&&(!Number.isFinite(s.attackMs)||s.attackMs<0||s.attackMs>50))throw Error('Invalid instrument attack.');if(s.sourceBpm!==undefined&&(!Number.isFinite(s.sourceBpm)||s.sourceBpm<40||s.sourceBpm>300))throw Error('Invalid source BPM.');if(s.followBpm!==undefined&&typeof s.followBpm!=='boolean'||s.followBpm&&!s.sourceBpm)throw Error('Invalid instrument BPM follow.');if(s.effects!==undefined)validateEffects(s.effects);if(!['synth','upload',...LIBRARY.filter(e=>e.role===role&&!isVinylTexture(e.id)).map(e=>e.id)].includes(s.choice))throw Error('Unknown instrument choice.');if(s.choice!=='synth'&&!s.assetId)throw Error('Instrument has no audio.');if(s.choice==='upload'&&s.assetId!==s.uploadId)throw Error('Upload mapping mismatch.');for(const id of [s.assetId,s.uploadId])if(id!==undefined){const a=assets.get(id);if(!a)throw Error('Missing instrument audio.');if(a.channels[0]!.length/a.sampleRate>20)throw Error('Single-hit audio exceeds twenty seconds.');}}
   for(const role of ROLES){
+    const velocityLayers=p.kit[role].velocityLayers;
+    if(velocityLayers){
+      if(p.kit[role].choice==='synth'||p.kit[role].choice==='upload'||Object.keys(velocityLayers).sort().join(',')!=='accent,medium,soft')throw Error('Invalid velocity layers.');
+      for(const band of ['soft','medium','accent'] as const){
+        const layer=velocityLayers[band];
+        if(!layer||!Number.isFinite(layer.level)||layer.level<=0||layer.level>4||!LIBRARY.some(item=>item.id===layer.choice&&item.role===role&&!isVinylTexture(item.id))||layer.slice?.assetId!=='library-'+layer.choice)throw Error('Invalid velocity layer sound.');
+        const asset=assets.get(layer.slice.assetId);
+        if(!asset||layer.slice.sampleRate!==asset.sampleRate||layer.slice.startFrame!==0||layer.slice.endFrame!==asset.channels[0]!.length||asset.channels[0]!.length/asset.sampleRate>20)throw Error('Missing velocity layer audio.');
+      }
+    }
     const layer=p.kit[role].layer;
     if(layer){
       if(typeof layer.choice!=='string'||!Number.isFinite(layer.level)||layer.level<0||layer.level>1||!Number.isFinite(layer.offsetMs)||layer.offsetMs< -10||layer.offsetMs>10||typeof layer.phaseInvert!=='boolean')throw Error('Invalid instrument layer.');

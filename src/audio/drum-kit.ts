@@ -11,8 +11,23 @@ import {assessLayerMono} from './audio-quality.js';
 export type DrumKit=Partial<Record<Role,SliceRef>>;
 export type SampleShape={decay?:number;playbackRate?:number;speedMode?:'repitch'|'stretch';lowpassHz?:number;attackMs?:number;sourceBpm?:number;followBpm?:boolean};
 export type KitLayer={choice:string;slice:SliceRef;level:number;offsetMs:number;phaseInvert:boolean};
-export type KitSlot={choice:string;uploadId?:string;assetId?:string;include:boolean;mute:boolean;solo?:boolean;level:number;tune:number;reverse?:boolean;layer?:KitLayer;effects?:Effects;sampleProfiles?:Record<string,SampleShape>} & SampleShape;
+export type VelocityBand='soft'|'medium'|'accent';
+export type VelocityLayer={choice:string;slice:SliceRef;level:number};
+export type VelocityLayers=Record<VelocityBand,VelocityLayer>;
+export type KitSlot={choice:string;uploadId?:string;assetId?:string;include:boolean;mute:boolean;solo?:boolean;level:number;tune:number;reverse?:boolean;layer?:KitLayer;velocityLayers?:VelocityLayers;effects?:Effects;sampleProfiles?:Record<string,SampleShape>} & SampleShape;
 export type KitState=Record<Role,KitSlot>;
+const VELOCITY_BLEND_RADIUS=.04;
+export function velocityLayerMix(velocity:number):{band:VelocityBand;weight:number}[]{
+  const blend=(lower:VelocityBand,upper:VelocityBand,threshold:number)=>{
+    const upperWeight=Math.max(0,Math.min(1,(velocity-threshold+VELOCITY_BLEND_RADIUS)/(2*VELOCITY_BLEND_RADIUS)));
+    return [{band:lower,weight:1-upperWeight},{band:upper,weight:upperWeight}].filter(part=>part.weight>0);
+  };
+  if(velocity<=.45-VELOCITY_BLEND_RADIUS)return [{band:'soft',weight:1}];
+  if(velocity<.45+VELOCITY_BLEND_RADIUS)return blend('soft','medium',.45);
+  if(velocity<=.80-VELOCITY_BLEND_RADIUS)return [{band:'medium',weight:1}];
+  if(velocity<.80+VELOCITY_BLEND_RADIUS)return blend('medium','accent',.80);
+  return [{band:'accent',weight:1}];
+}
 const SHAPE_KEYS=['decay','playbackRate','speedMode','lowpassHz','attackMs','sourceBpm'] as const;
 const sampleKey=(slot:KitSlot)=>slot.assetId??'synth';
 function rememberShape(slot:KitSlot){const shape:SampleShape={};for(const key of SHAPE_KEYS)if(slot[key]!==undefined)(shape as Record<string,unknown>)[key]=slot[key];if(slot.followBpm!==undefined)shape.followBpm=slot.followBpm;(slot.sampleProfiles??={})[sampleKey(slot)]=shape;}
@@ -68,8 +83,17 @@ export function withDrumKit(pattern:Pattern,kit:DrumKit,mix?:KitState):Pattern{
         result.decay=slotDecay;
       }
     }
+    const velocityLayers=mix?.[hit.role].velocityLayers;
+    // A manually chosen slice or trim is tied to its source recording and must
+    // never be swapped for a preset sample with different boundaries.
+    const velocityVoices=velocityLayers&&!userTrack&&!hit.slice&&!hit.mapped&&!hit.sampleTrim
+      ?velocityLayerMix(hit.gain).map(({band,weight},index)=>({
+        ...result,id:index===0?hit.id:`velocity-${band}-${hit.id}`,layerOf:index===0?hit.layerOf:hit.id,
+        slice:{...velocityLayers[band].slice},gain:result.gain*weight,
+        renderGain:(result.renderGain??result.gain)*weight*velocityLayers[band].level,
+      })):[result];
     const layer=mix?.[hit.role].layer;
-    if(userTrack||!layer||layer.level===0||hit.mapped)return [result];
+    if(userTrack||!layer||layer.level===0||hit.mapped)return velocityVoices;
     let hash=2166136261;
     for(let i=0;i<hit.id.length;i++)hash=Math.imul(hash^hit.id.charCodeAt(i),16777619);
     const layerId=`layer-${hit.id.slice(0,58)}-${(hash>>>0).toString(16)}`;
@@ -77,7 +101,7 @@ export function withDrumKit(pattern:Pattern,kit:DrumKit,mix?:KitState):Pattern{
     const secondary={...result,id:layerId,layerOf:hit.id,slice:{...layer.slice},sampleTrim:undefined,sourceKind:'oneShot' as const,
       gain:Math.min(1,result.gain*layer.level),phaseInvert:layer.phaseInvert,
       offsetTick:Math.max(-960,Math.min(960,result.offsetTick+tickShift)),reason:'Layer: '+layer.slice.label};
-    return [result,secondary];
+    return [...velocityVoices,secondary];
   })};
 }
 export function setupDrumKit(assets:Map<string,AudioAsset>,changed:(refreshTracker?:boolean)=>void,audition:(role:Role)=>Promise<void>,getBpm:()=>number,browse?:(role:Role,opener:HTMLElement)=>void,recordUsed?:(id:string)=>void){
@@ -237,7 +261,7 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:(refreshTrack
       badge.textContent=slot.mute?'Muted':slot.solo?'Solo':effects.bypass?'FX bypassed':active.length?'FX on':'Dry';badge.classList.toggle('active',!slot.mute&&!effects.bypass&&active.length>0);badge.title=slot.mute?'Muted in playback and export':summary.textContent;
       shapeSummary.textContent='Pitch & sample shape'+(slot.tune?' · '+(slot.tune>0?'+':'')+slot.tune+' st':'')+(slot.followBpm?' · BPM follow':(slot.playbackRate??1)!==1?' · '+(slot.playbackRate??1).toFixed(2)+'×':'')+(slot.speedMode==='stretch'?' · Pitch preserved':'')+((slot.decay??1)<1?' · Decay '+Math.round((slot.decay??1)*100)+'%':'')+(slot.reverse?' · Reverse':'');
       card.classList.toggle('audio-muted',slot.mute);card.classList.toggle('audio-soloed',!!slot.solo);card.classList.toggle('generation-off',!slot.include);
-      info.textContent=(asset?asset.name:'Synthesized '+role)+' · '+Math.round(slot.level*100)+'%'+((slot.decay??1)<1?' · Decay '+Math.round((slot.decay??1)*100)+'%':'')+(slot.reverse?' · Reverse':'')+(slot.solo?' · Solo':'')+(slot.mute?' · Muted':'');
+      info.textContent=(asset?asset.name:'Synthesized '+role)+(slot.velocityLayers?' · 3 velocity layers':'')+' · '+Math.round(slot.level*100)+'%'+((slot.decay??1)<1?' · Decay '+Math.round((slot.decay??1)*100)+'%':'')+(slot.reverse?' · Reverse':'')+(slot.solo?' · Solo':'')+(slot.mute?' · Muted':'');
     };
     refreshers.push(update);cancellers.push(()=>{token++;loading=false;});update();
     include.i.onchange=()=>{mix[role].include=include.i.checked;update();changed();};
@@ -261,7 +285,7 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:(refreshTrack
         else if(value!=='synth'){
           context??=new AudioContext();const a=await ensureLibraryAudio(value,role,assets,context);id=a.id;
         }
-        if(request!==token)return;rememberShape(mix[role]);mix[role].choice=value;mix[role].assetId=id;recallShape(mix[role]);update();recordUsed?.(value);changed();
+        if(request!==token)return;rememberShape(mix[role]);mix[role].choice=value;mix[role].assetId=id;delete mix[role].velocityLayers;recallShape(mix[role]);update();recordUsed?.(value);changed();
       }catch(e){if(request===token){update();const msg=e instanceof TypeError&&e.message.includes('fetch')?'Server unreachable. Ensure local server is running.':String(e);info.textContent=msg+' Previous sound kept.';}}finally{pending--;if(request===token){loading=false;play.disabled=false;upload.disabled=false;card.setAttribute('aria-busy','false');}}
     };
     file.onchange=async()=>{
@@ -269,14 +293,14 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:(refreshTrack
       try{
         if(next.size>20*1024*1024)throw Error('Choose a hit under 20 MB.');
         const a=await decode(await next.arrayBuffer(),next.name,crypto.randomUUID());if(request!==token)return;assets.set(a.id,a);
-        rememberShape(mix[role]);mix[role].uploadId=a.id;mix[role].assetId=a.id;mix[role].choice='upload';recallShape(mix[role]);
+        rememberShape(mix[role]);mix[role].uploadId=a.id;mix[role].assetId=a.id;mix[role].choice='upload';delete mix[role].velocityLayers;recallShape(mix[role]);
         if(mix[role].layer?.choice==='upload')mix[role].layer!.slice={assetId:a.id,startFrame:0,endFrame:a.channels[0]!.length,sampleRate:a.sampleRate,label:a.name};
         update();changed();
       }catch(e){if(request===token){update();info.textContent=String(e)+' Previous instrument kept.';}}finally{pending--;if(request===token){loading=false;play.disabled=false;upload.disabled=false;card.setAttribute('aria-busy','false');}}
     };
     play.onclick=()=>{void audition(role).catch(e=>info.textContent=String(e));};
     openSlicer.onclick=()=>{const tab=document.getElementById('tab-slicer') as HTMLButtonElement|null;const panel=card.closest('details.track-instrument-panel');if(panel)(panel as HTMLDetailsElement).open=false;if(tab){tab.hidden=false;tab.parentElement?.classList.add('slicer-revealed');tab.click();document.getElementById('tray-bottom')?.scrollIntoView({behavior:'smooth',block:'start'});}};
-    clear.onclick=()=>{token++;loading=false;const slot=mix[role];rememberShape(slot);slot.uploadId=undefined;if(slot.choice==='upload'){slot.choice='synth';slot.assetId=undefined;recallShape(slot);}if(slot.layer?.choice==='upload')delete slot.layer;update();changed();};
+    clear.onclick=()=>{token++;loading=false;const slot=mix[role];rememberShape(slot);slot.uploadId=undefined;if(slot.choice==='upload'){slot.choice='synth';slot.assetId=undefined;delete slot.velocityLayers;recallShape(slot);}if(slot.layer?.choice==='upload')delete slot.layer;update();changed();};
     loaders.set(role, async(soundId:string)=>{choice.value=soundId;await choice.onchange!(new Event('change'));});
   }
   return {
@@ -286,11 +310,31 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:(refreshTrack
     applyPreset: async(presetId:string)=>{
       const preset=KIT_PRESETS.find(p=>p.id===presetId);
       if(!preset) return;
+      const layerAssets=new Map<string,AudioAsset>();
+      if(preset.velocityLayers){
+        context??=new AudioContext();
+        for(const role of ROLES)for(const id of new Set([
+          preset.slots[role],...Object.values(preset.velocityLayers[role]??{}),
+        ])){
+          if(id==='synth')continue;
+          if(!LIBRARY.some(sound=>sound.id===id&&sound.role===role))throw Error('Layered kit references an unknown sound.');
+          layerAssets.set(id,await ensureLibraryAudio(id,role,assets,context));
+        }
+      }
       for(const r of ROLES){
         if(preset.levels?.[r]!==undefined)mix[r].level=preset.levels[r]!;
         const load=loaders.get(r);if(load)await load(preset.slots[r]);
+        if(mix[r].choice!==preset.slots[r])throw Error('Could not load the '+r+' sound in this kit.');
+        const layerIds=preset.velocityLayers?.[r];
+        if(layerIds){
+          mix[r].velocityLayers=Object.fromEntries((['soft','medium','accent'] as const).map(band=>{
+            const choice=layerIds[band],asset=layerAssets.get(choice)!;
+            return [band,{choice,level:preset.velocityLayerLevels?.[r]?.[band]??1,slice:{assetId:asset.id,startFrame:0,endFrame:asset.channels[0]!.length,sampleRate:asset.sampleRate,label:asset.name}}];
+          })) as VelocityLayers;
+        }
         if(preset.decays?.[r]!==undefined){mix[r].decay=preset.decays[r]!;rememberShape(mix[r]);}
       }
+      refreshers.forEach(f=>f());changed();
     }
   };
 }

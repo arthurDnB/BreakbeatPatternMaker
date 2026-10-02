@@ -75,7 +75,7 @@ export interface Hit {
   generatedDrumRole?:Role;
   /** Pitched note on a synth track. Sample hits use pitch as relative semitones instead. */
   synthNote?:{note:number;durationTicks:number};
-  /** Render-only track fader gain; saved notes keep their original velocity. */
+  /** Render-only fader or velocity-layer gain; saved notes keep their original velocity. */
   renderGain?:number;
   mapped?:{instrumentId:string; note:number};
   effect?:EffectCommand;
