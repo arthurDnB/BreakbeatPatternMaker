@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="bpm-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#071a15"/>
+      <stop offset="100%" stop-color="#020806"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="7" fill="url(#bpm-grad)" stroke="#00f5d4" stroke-width="1.5"/>
+  <!-- Dynamic breakbeat transient rhythm peaks -->
+  <path d="M6 21V13M11 21V7M16 21V15M21 21V9M26 21V14" stroke="#00f5d4" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="11" cy="7" r="1.4" fill="#ffd166"/>
+  <circle cx="21" cy="9" r="1.4" fill="#38bdf8"/>
+  <!-- Glowing Monogram BPM -->
+  <text x="16" y="28.5" font-family="system-ui, -apple-system, sans-serif" font-size="6" font-weight="900" fill="#00f5d4" text-anchor="middle" letter-spacing="0.4">BPM</text>
+</svg>

@@ -4975,6 +4975,36 @@ main.daw-chassis {
   color: #fff;
 }
 
+.bpm-brand-titles {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.bpm-logo-primary {
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  font-weight: 900;
+  letter-spacing: 0.8px;
+  color: #00f5d4;
+  text-shadow: 0 0 10px rgba(0, 245, 212, 0.45);
+}
+
+.bpm-logo-subtitle {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  color: #e2e8f0;
+  white-space: nowrap;
+}
+
+.bpm-logo-svg {
+  display: inline-block;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 6px rgba(0, 245, 212, 0.35));
+}
+
 .re-track-ver-badge {
   font-family: var(--font-mono);
   font-size: 9px;
@@ -5843,7 +5873,7 @@ main.daw-chassis {
 .dsp-dock .dsp-aux-racks { padding:7px; }
 @media(max-width:1500px) { #transport .tray-session-hud { display:none !important; } }
 @media(max-width:1350px) { #transport .transport-triggers .generator-label { display:none !important; } }
-@media(max-width:1150px) { #transport .transport-triggers .btn-variation { display:none !important; } }
+@media(max-width:1150px) { #transport .transport-triggers .btn-variation { display:none !important; } .bpm-logo-subtitle { display:none !important; } }
 @media(max-width:1250px) { .studio-layout .dsp-dock:not([hidden]) { position:fixed; z-index:80; } }
 @media(max-width:800px) {
   .studio-layout { display:flex !important; flex:0 0 auto !important; flex-direction:column !important; order:2; width:100%; min-height:0 !important; height:auto !important; overflow:visible !important; }

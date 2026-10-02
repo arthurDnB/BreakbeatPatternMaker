@@ -17,7 +17,7 @@ async function module(path){const name=inside(path);if(files.has(name))return;if
 await module(resolve(root,'dist/web.js'));
 await module(resolve(root,'dist/audio/break-analysis-worker.js'));
 for(const name of ['public/mp3-worker.js','public/vendor/lamejs.js','public/vendor/LAMEJS-LICENSE.txt','public/vendor/LGPL-3.0.txt','public/vendor/README.md'])files.set(name,await readFile(resolve(root,name)));
-for(const name of ['public/style.css','public/workspace.css','README.md','public/samples/credits.html','public/samples/catalog.json','public/samples/VCSL-LICENSE.txt','public/samples/TR808-LICENSE.txt','public/samples/STARGATE-LICENSE.txt'])files.set(name,await readFile(resolve(root,name)));
+for(const name of ['public/favicon.svg','public/style.css','public/workspace.css','README.md','public/samples/credits.html','public/samples/catalog.json','public/samples/VCSL-LICENSE.txt','public/samples/TR808-LICENSE.txt','public/samples/STARGATE-LICENSE.txt'])files.set(name,await readFile(resolve(root,name)));
 files.set('index.html',await readFile(resolve(root,'public/index.html')));files.set('.nojekyll','');
 const catalog=JSON.parse(await readFile(resolve(root,'public/samples/catalog.json'),'utf8'));
 for(const sound of catalog){if(!['CC0-1.0','CC-BY-4.0'].includes(sound.license)||sound.license==='CC-BY-4.0'&&(!sound.author||!sound.source||!sound.changes||sound.licenseUrl!=='https://creativecommons.org/licenses/by/4.0/')||!/^\/public\/samples\/[a-z0-9-]+\.wav$/.test(sound.path))throw Error('Unapproved sample '+sound.id);const name=sound.path.slice(1),bytes=await readFile(resolve(root,name));if(createHash('sha256').update(bytes).digest('hex')!==sound.sha256)throw Error('Sample hash mismatch: '+sound.id);files.set(name,bytes);}

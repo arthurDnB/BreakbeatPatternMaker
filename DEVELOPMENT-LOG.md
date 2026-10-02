@@ -82,6 +82,25 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-10-02] - Brand Revamp: BPM Breakbeat Pattern Maker v0.2.3, Logo & Favicon (Antigravity)
+
+* **Updated Application Brand Name to "BPM Breakbeat Pattern Maker":**
+  - Updated global page title to `BPM Breakbeat Pattern Maker` in `public/index.html`.
+  - Updated header brand title to prominent bold cyan lettermark `BPM` with elegant tracked descriptor `BREAKBEAT PATTERN MAKER`.
+  - Updated application version to `0.2.3` across `package.json` and the top header badge (`v0.2.3`).
+* **Designed New Audio Rhythm Transient Logo Mark:**
+  - Created a modern geometric vector logo mark (`.bpm-logo-svg`) featuring cyber-audio breakbeat transient spikes, neon cyan borders (`#00f5d4`), and amber/azure accent pips.
+  - Styled with text-shadow glow and seamless alignment with top menubar.
+  - Added responsive scaling to hide the subtitle on screens below 1150px while keeping the iconic `BPM v0.2.3` brand visible.
+* **Designed & Deployed SVG Favicon:**
+  - Created `public/favicon.svg` with dark gradient rounded chassis, transient rhythm peaks, and crisp glowing `BPM` monogram.
+  - Added `<link rel="icon" type="image/svg+xml" href="./public/favicon.svg">` in `public/index.html`.
+  - Added asset copying in `scripts/build-site.mjs` ensuring `favicon.svg` is packaged for production deployments.
+* **Verification & Quality Gates:**
+  - All 253 unit tests passed (`npm.cmd test`).
+  - Site build passed with 449 static assets (`npm.cmd run build:site`).
+  - Workstation layout smoke tests passed (`scripts/workstation-layout-smoke.mjs`).
+
 ### [2026-10-02] - Fixed Transport Generator Triggers & Dedicated Parameter Drawer (Antigravity)
 
 * **Relocated Layer Generators to Persistent Bottom Transport Bar:**
