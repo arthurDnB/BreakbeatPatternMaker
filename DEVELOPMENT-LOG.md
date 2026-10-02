@@ -82,6 +82,34 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-10-02] - Cyberpunk Beat Generator Redesign, Header Tidy-Up & Zero-Void Layout Alignment (Antigravity)
+
+* **Eliminated Lateral Scrollbar & Viewport Leak:**
+  - Enforced `overflow-x: hidden !important; max-width: 100vw; box-sizing: border-box;` on `html, body, main.daw-chassis`.
+  - Resolved flexible wrapping issues in `.re-track-project-bar`, `.re-track-top-bar`, and `.tray-rack-tabs`, ensuring elements never force lateral overflow on any viewport width down to mobile (320px).
+* **Tidied Top Global Header:**
+  - Restructured `.app-header.tracker-header.re-track-header` into a clean, compact 2-row layout with zero dead space under the logo:
+    - **Row 1:** RE-TRACK v4.2 brand logo with animated neon bars, application menu (`FILE EDIT VIEW TRACK SONG OPTIONS HELP`), 5 view tabs, and a compact project action strip with streamlined export controls.
+    - **Row 2:** Transport controls (`▶ SONG`, `▷ PAT`, `■`, `● REC`), HUD badges (`BPM`, `LPB`, `TPL`, `OCT`), stereo peak meter, and live telemetry pills.
+  - Set `align-items: center; min-height: 28px; max-height: 32px;` on `.re-track-top-bar` to eliminate the vertical stretching and blank black gap previously under the logo.
+* **Separated DSP Stompbox Rack from Beat Generator:**
+  - Removed `.tray-rack-tabs` suppression in `public/workspace.css` so bottom tray tabs (`Beat Generator` and `DSP FX Chain`) are cleanly exposed.
+  - Ensured `#tab-generator` is active on initial load, showing only `#controls` (the Beat Generator) while cleanly hiding `#re-track-dsp-panel` (`display: none;`).
+  - Switching to `#tab-fx-chain` displays the modular stompbox rack and conceals the generator, completely isolating the DSP section so knobs never crowd each other.
+* **Modernized Beat Generator into Cyberpunk Hardware Synth Console:**
+  - Redesigned `#controls` into 5 sleek modular cards with neon color accents matching the RE-TRACK v4.2 aesthetic:
+    - **01: Engine & Kit Core:** Genre selection, drum kit selector, bars count, and groove engine picker.
+    - **02: Rhythm Dynamics & Tempo:** Tactile BPM input with genre preset pills, glowing cyan Complexity slider, and glowing amber Spicy slider.
+    - **03: Key & Harmony Mapping:** Root Key, Musical Scale, and Chord Progression Style with purple neon badges.
+    - **04: Advanced Groove Matrix & Densities:** Collapsible groove matrix containing break rhythm, think slices, grid resolution, exact hit targets, seed, and per-instrument density sliders.
+    - **05: Hardware Trigger Console:** Backlit illuminated hardware trigger pads (`⚡ BEAT`, `⚡ BASS`, `⚡ MELODY`, `⚡ PIANO CHORDS`, `⟳ VARIATION`, `↺ RESTORE DEFAULTS`).
+  - Preserved all 42 functional DOM IDs and event bindings for 100% backward compatibility and test stability.
+* **Eliminated Blank Spaces on Left (#tray-left) and Bottom (#grid):**
+  - Updated responsive rules to enforce single-screen viewport lock: `.studio-layout` expands flexibly (`flex: 1 1 auto`), `#tray-left .tray-body` fills height without dead space, and `#grid` expands to 100% height (`flex: 1 1 auto; height: 100% !important;`), eliminating the large black void previously clamped below the Renoise tracker.
+* **Verification & Quality Gates:**
+  - All 253 unit tests passed (`npm.cmd test`).
+  - Full site build and Playwright smoke tests passed on root and subpath mounts (`npm.cmd run test:site`).
+
 ### [2026-10-02] - Modular DSP FX Chain Presets & True Audio Processing (Antigravity)
 
 * **Curated DSP FX Chain Presets:**
