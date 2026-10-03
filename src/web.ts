@@ -2490,20 +2490,28 @@ initWorkspaceDock();
 initBottomRack();
 initReTrackStudio();
 
-let prevBottomTabBeforeTutorial: 'generator'|'slicer'|'fx' = 'generator';
-
 const tutorial = new TutorialController({
-  onOpenGeneratorTray: () => {
-    prevBottomTabBeforeTutorial = getActiveBottomTab();
-    setBottomTrayState(false);
-    switchBottomRackTab('generator');
+  onPrepareGeneratorTray: () => {
+    const bottomTray = document.getElementById('tray-bottom');
+    const wasCollapsed = bottomTray ? bottomTray.classList.contains('tray-bottom-collapsed') : true;
+    const wasTab = getActiveBottomTab();
+    if (wasCollapsed) {
+      setBottomTrayState(false);
+    }
+    if (wasTab !== 'generator') {
+      switchBottomRackTab('generator');
+    }
+    return {
+      collapsed: wasCollapsed,
+      activeTab: wasTab
+    };
   },
-  onRestoreGeneratorTray: (openedByTutorial: boolean) => {
-    if (openedByTutorial) {
+  onRestoreGeneratorTray: (state) => {
+    if (state.collapsed) {
       setBottomTrayState(true);
-      if (prevBottomTabBeforeTutorial !== 'generator') {
-        switchBottomRackTab(prevBottomTabBeforeTutorial);
-      }
+    }
+    if (state.activeTab !== 'generator') {
+      switchBottomRackTab(state.activeTab);
     }
   }
 });

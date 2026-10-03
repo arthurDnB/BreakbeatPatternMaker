@@ -82,6 +82,14 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-10-03] - Fix Tutorial Tray-State and Tab Restoration Edge Case (Antigravity)
+- Fixed an edge case where starting the tutorial with the bottom tray already open on another tab (e.g., DSP or Waveform Slicer) failed to expose the Generator controls for step 1 (`src/ui/tutorial.ts`, `src/web.ts`).
+- Updated `TutorialController` to record the exact starting bottom tray state (`collapsed: boolean` and `activeTab: 'generator' | 'slicer' | 'fx'`).
+- Step 1 now guarantees that the bottom tray is opened and the Generator tab is selected regardless of initial state.
+- Upon tutorial termination (whether via `Done`, `Skip`, or `Escape`), the recorded bottom tray collapsed/open state and selected tab are restored exactly without mutating project data or triggering generation/playback.
+- Extended `scripts/tutorial-browser-smoke.mjs` with comprehensive test coverage for starting with the tray collapsed, open on DSP (`fx`), and open on Slicer, asserting that step 1 always selects Generator and that `Done`, `Skip`, and `Escape` all faithfully return the UI to the starting tab and tray state.
+- Verification: `npm.cmd test` passed 283/283 unit tests; `npm.cmd run test:site` passed all 12 browser smoke test suites on both root and GitHub Pages subpath mounts.
+
 ### [2026-10-03] - First-Run Guided Spotlight Tutorial & Replay Mode (Antigravity)
 - Added an interactive 5-step guided spotlight tutorial (`src/ui/tutorial.ts`, `public/index.html`, `public/workspace.css`, `src/web.ts`) for first-time visitors:
   1. Generator settings (`#controls`) — automatically expands the bottom drawer and switches to the Generator tab if collapsed, and restores the previous drawer/tab state on exit.

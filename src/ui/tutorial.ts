@@ -8,10 +8,17 @@ export interface TutorialStep {
   targetSelector: string;
 }
 
+export interface TutorialTrayState {
+  collapsed: boolean;
+  activeTab: 'generator' | 'slicer' | 'fx';
+}
+
 export interface TutorialOptions {
   storageKey?: string;
+  onPrepareGeneratorTray?: () => TutorialTrayState;
+  onRestoreGeneratorTray?: (state: TutorialTrayState) => void;
+  // Backward compatibility aliases if any callers use the old signature
   onOpenGeneratorTray?: () => void;
-  onRestoreGeneratorTray?: (openedByTutorial: boolean) => void;
 }
 
 export const TUTORIAL_STEPS: TutorialStep[] = [
@@ -62,19 +69,21 @@ export class TutorialController {
 
   private currentStepIndex = 0;
   private active = false;
-  private openedTrayForTutorial = false;
+  private savedTrayState: TutorialTrayState | null = null;
   private returnFocusElement: HTMLElement | null = null;
   private boundReposition: () => void;
   private boundKeydown: (e: KeyboardEvent) => void;
 
   private storageKey: string;
+  private onPrepareGeneratorTray?: () => TutorialTrayState;
+  private onRestoreGeneratorTray?: (state: TutorialTrayState) => void;
   private onOpenGeneratorTray?: () => void;
-  private onRestoreGeneratorTray?: (openedByTutorial: boolean) => void;
 
   constructor(options: TutorialOptions = {}) {
     this.storageKey = options.storageKey ?? 'bpm_tutorial_dismissed';
-    this.onOpenGeneratorTray = options.onOpenGeneratorTray;
+    this.onPrepareGeneratorTray = options.onPrepareGeneratorTray;
     this.onRestoreGeneratorTray = options.onRestoreGeneratorTray;
+    this.onOpenGeneratorTray = options.onOpenGeneratorTray;
 
     this.overlay = document.getElementById('tutorial-overlay')!;
     this.spotlight = document.getElementById('tutorial-spotlight')!;
@@ -145,14 +154,19 @@ export class TutorialController {
       this.tutorialTriggerBtn.setAttribute('aria-expanded', 'true');
     }
 
-    // Check if bottom tray needs to be opened for generator-settings step
-    const bottomTray = document.getElementById('tray-bottom');
-    const wasCollapsed = bottomTray ? bottomTray.classList.contains('tray-bottom-collapsed') : true;
-    if (wasCollapsed && this.onOpenGeneratorTray) {
-      this.openedTrayForTutorial = true;
-      this.onOpenGeneratorTray();
+    // Always prepare bottom tray for tutorial: save previous state and switch to generator
+    if (this.onPrepareGeneratorTray) {
+      this.savedTrayState = this.onPrepareGeneratorTray();
     } else {
-      this.openedTrayForTutorial = false;
+      const bottomTray = document.getElementById('tray-bottom');
+      const wasCollapsed = bottomTray ? bottomTray.classList.contains('tray-bottom-collapsed') : true;
+      this.savedTrayState = {
+        collapsed: wasCollapsed,
+        activeTab: 'generator'
+      };
+      if (wasCollapsed && this.onOpenGeneratorTray) {
+        this.onOpenGeneratorTray();
+      }
     }
 
     this.overlay.hidden = false;
@@ -171,12 +185,15 @@ export class TutorialController {
     const step = TUTORIAL_STEPS[index];
     if (!step) return;
 
-    // If returning to step 0 and bottom tray is collapsed, ensure it opens
+    // If returning to step 0, ensure generator tab and open tray are active
     if (index === 0) {
-      const bottomTray = document.getElementById('tray-bottom');
-      if (bottomTray?.classList.contains('tray-bottom-collapsed') && this.onOpenGeneratorTray) {
-        this.openedTrayForTutorial = true;
-        this.onOpenGeneratorTray();
+      if (this.onPrepareGeneratorTray) {
+        this.onPrepareGeneratorTray();
+      } else {
+        const bottomTray = document.getElementById('tray-bottom');
+        if (bottomTray?.classList.contains('tray-bottom-collapsed') && this.onOpenGeneratorTray) {
+          this.onOpenGeneratorTray();
+        }
       }
     }
 
@@ -241,11 +258,11 @@ export class TutorialController {
     window.removeEventListener('scroll', this.boundReposition, true);
     document.removeEventListener('keydown', this.boundKeydown);
 
-    // Restore workspace tray if it was opened by the tutorial
-    if (this.onRestoreGeneratorTray) {
-      this.onRestoreGeneratorTray(this.openedTrayForTutorial);
+    // Restore workspace tray state if saved
+    if (this.savedTrayState && this.onRestoreGeneratorTray) {
+      this.onRestoreGeneratorTray(this.savedTrayState);
     }
-    this.openedTrayForTutorial = false;
+    this.savedTrayState = null;
 
     // Restore keyboard focus
     if (this.returnFocusElement && this.returnFocusElement.isConnected) {

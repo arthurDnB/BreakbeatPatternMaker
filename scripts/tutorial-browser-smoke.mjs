@@ -245,6 +245,170 @@ try {
     await context.close();
   }
 
+  // Test 5: Edge cases: Tray starting Collapsed, Open on DSP, and Open on Slicer
+  // Across each state, verify Step 1 always selects Generator and opens tray,
+  // and Done, Skip, and Escape each restore the original collapsed/open state and selected tab.
+  {
+    const context = await browser.newContext({viewport: {width: 1920, height: 1080}});
+    const page = await context.newPage();
+
+    // Disable first-run auto-open to control starting states cleanly via replay button
+    await page.addInitScript(() => localStorage.setItem('bpm_tutorial_dismissed', '1'));
+    await page.goto(url);
+    await page.locator('#grid .hit').first().waitFor();
+
+    const overlay = page.locator('#tutorial-overlay');
+    const tutorialBtn = page.locator('#tutorial-btn');
+    const bottomTray = page.locator('#tray-bottom');
+    const tabGen = page.locator('#tab-generator');
+    const tabSli = page.locator('#tab-slicer');
+    const tabFx = page.locator('#tab-fx');
+
+    const getTrayCollapsed = async () => bottomTray.evaluate(el => el.classList.contains('tray-bottom-collapsed'));
+    const getActiveTab = async () => {
+      if (await tabSli.evaluate(el => el.classList.contains('active'))) return 'slicer';
+      if (await tabFx.evaluate(el => el.classList.contains('active'))) return 'fx';
+      return 'generator';
+    };
+
+    // Helper to finish tutorial via Done (advance to step 5 then next)
+    const completeTutorial = async () => {
+      for (let i = 0; i < 4; i++) {
+        await page.click('#tutorial-next');
+      }
+      assert.equal(await page.locator('#tutorial-next').textContent(), 'Done');
+      await page.click('#tutorial-next');
+      assert.equal(await overlay.isVisible(), false);
+    };
+
+    // Helper to dismiss via Skip
+    const skipTutorial = async () => {
+      await page.click('#tutorial-skip');
+      assert.equal(await overlay.isVisible(), false);
+    };
+
+    // Helper to dismiss via Escape
+    const escapeTutorial = async () => {
+      await page.keyboard.press('Escape');
+      assert.equal(await overlay.isVisible(), false);
+    };
+
+    // --- SCENARIO A: Starting state = Collapsed tray ---
+    // A.1: Collapsed -> Start -> Generator visible -> Complete (Done) -> Collapsed restored
+    await page.evaluate(() => {
+      const b = document.getElementById('tray-bottom');
+      if (b && !b.classList.contains('tray-bottom-collapsed')) {
+        document.getElementById('toggle-tray-bottom')?.click();
+      }
+    });
+    assert.equal(await getTrayCollapsed(), true, 'Precondition: tray should be collapsed');
+
+    await tutorialBtn.click();
+    assert.equal(await overlay.isVisible(), true);
+    assert.equal(await getTrayCollapsed(), false, 'Tray must be opened for tutorial');
+    assert.equal(await getActiveTab(), 'generator', 'Generator tab must be active');
+    await completeTutorial();
+    assert.equal(await getTrayCollapsed(), true, 'Tray should be restored to collapsed after Done');
+
+    // A.2: Collapsed -> Start -> Skip -> Collapsed restored
+    await tutorialBtn.click();
+    assert.equal(await getTrayCollapsed(), false);
+    assert.equal(await getActiveTab(), 'generator');
+    await skipTutorial();
+    assert.equal(await getTrayCollapsed(), true, 'Tray should be restored to collapsed after Skip');
+
+    // A.3: Collapsed -> Start -> Escape -> Collapsed restored
+    await tutorialBtn.click();
+    assert.equal(await getTrayCollapsed(), false);
+    assert.equal(await getActiveTab(), 'generator');
+    await escapeTutorial();
+    assert.equal(await getTrayCollapsed(), true, 'Tray should be restored to collapsed after Escape');
+
+    // --- SCENARIO B: Starting state = Open on DSP (fx) tab ---
+    const setOpenOnTab = async (tabName) => {
+      await page.evaluate((targetTab) => {
+        const b = document.getElementById('tray-bottom');
+        if (b && b.classList.contains('tray-bottom-collapsed')) {
+          document.getElementById('toggle-tray-bottom')?.click();
+        }
+        if (targetTab === 'fx') document.getElementById('tab-fx')?.click();
+        else if (targetTab === 'slicer') document.getElementById('tab-slicer')?.click();
+        else document.getElementById('tab-generator')?.click();
+      }, tabName);
+    };
+
+    // B.1: Open on DSP -> Start -> Generator visible -> Complete (Done) -> Open on DSP restored
+    await setOpenOnTab('fx');
+    assert.equal(await getTrayCollapsed(), false, 'Precondition: tray open');
+    assert.equal(await getActiveTab(), 'fx', 'Precondition: active tab is fx');
+
+    await tutorialBtn.click();
+    assert.equal(await overlay.isVisible(), true);
+    assert.equal(await getTrayCollapsed(), false, 'Tray remains open');
+    assert.equal(await getActiveTab(), 'generator', 'Generator tab must be active during step 1');
+    assert.equal(await page.locator('#controls').isVisible(), true, 'Controls must be visible');
+    await completeTutorial();
+    assert.equal(await getTrayCollapsed(), false, 'Tray should remain open after Done');
+    assert.equal(await getActiveTab(), 'fx', 'DSP (fx) tab should be restored after Done');
+
+    // B.2: Open on DSP -> Start -> Skip -> Open on DSP restored
+    await setOpenOnTab('fx');
+    assert.equal(await getActiveTab(), 'fx');
+    await tutorialBtn.click();
+    assert.equal(await getActiveTab(), 'generator');
+    await skipTutorial();
+    assert.equal(await getTrayCollapsed(), false);
+    assert.equal(await getActiveTab(), 'fx', 'DSP tab restored after Skip');
+
+    // B.3: Open on DSP -> Start -> Escape -> Open on DSP restored
+    await setOpenOnTab('fx');
+    assert.equal(await getActiveTab(), 'fx');
+    await tutorialBtn.click();
+    assert.equal(await getActiveTab(), 'generator');
+    await escapeTutorial();
+    assert.equal(await getTrayCollapsed(), false);
+    assert.equal(await getActiveTab(), 'fx', 'DSP tab restored after Escape');
+
+    // --- SCENARIO C: Starting state = Open on Slicer tab ---
+    // C.1: Open on Slicer -> Start -> Generator visible -> Complete (Done) -> Open on Slicer restored
+    await setOpenOnTab('slicer');
+    assert.equal(await getTrayCollapsed(), false, 'Precondition: tray open');
+    assert.equal(await getActiveTab(), 'slicer', 'Precondition: active tab is slicer');
+
+    await tutorialBtn.click();
+    assert.equal(await overlay.isVisible(), true);
+    assert.equal(await getTrayCollapsed(), false, 'Tray remains open');
+    assert.equal(await getActiveTab(), 'generator', 'Generator tab must be active during step 1');
+    assert.equal(await page.locator('#controls').isVisible(), true, 'Controls must be visible');
+    await completeTutorial();
+    assert.equal(await getTrayCollapsed(), false, 'Tray should remain open after Done');
+    assert.equal(await getActiveTab(), 'slicer', 'Slicer tab should be restored after Done');
+
+    // C.2: Open on Slicer -> Start -> Skip -> Open on Slicer restored
+    await setOpenOnTab('slicer');
+    assert.equal(await getActiveTab(), 'slicer');
+    await tutorialBtn.click();
+    assert.equal(await getActiveTab(), 'generator');
+    await skipTutorial();
+    assert.equal(await getTrayCollapsed(), false);
+    assert.equal(await getActiveTab(), 'slicer', 'Slicer tab restored after Skip');
+
+    // C.3: Open on Slicer -> Start -> Escape -> Open on Slicer restored
+    await setOpenOnTab('slicer');
+    assert.equal(await getActiveTab(), 'slicer');
+    await tutorialBtn.click();
+    assert.equal(await getActiveTab(), 'generator');
+    await escapeTutorial();
+    assert.equal(await getTrayCollapsed(), false);
+    assert.equal(await getActiveTab(), 'slicer', 'Slicer tab restored after Escape');
+
+    // Final non-destructive assertions
+    assert.equal(await page.locator('#play').evaluate(el => el.classList.contains('is-playing')), false);
+    assert.equal(await page.locator('#undo').isDisabled(), true);
+
+    await context.close();
+  }
+
   console.log('Guided spotlight tutorial smoke tests passed successfully!');
 } finally {
   await browser.close();
