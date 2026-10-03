@@ -29,7 +29,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.2.3`
-* **Test Status:** 274 unit tests passing (0 skipped, 0 failed); all deployment site smoke checks passing (`npm.cmd test` and `npm.cmd run test:site`).
+* **Test Status:** 275 unit tests passing (0 skipped, 0 failed); all deployment site smoke checks passing (`npm.cmd test` and `npm.cmd run test:site`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -59,7 +59,7 @@ This document maintains the running project state and change log so that multipl
   - Hi-hat choke groups closing open hats across tracker steps and arrangement loop boundaries.
   - Isolated deterministic random streams (`v3Chance`, `v3Pick`) and Strudel-inspired Euclidean rhythmic distribution.
 * [x] **Groove V4 (Complete):** Typed, profile-driven composition for all 38 genres with separate Complexity layers and Spicy gestures; V1–V3 remain selectable for existing projects. See `docs/GROOVE-V4.md` for tuning guidance.
-* [x] **Groove V5 Pilot Engine & 8 Genre Profiles (Complete):** Opt-in engine pilot with authentic phrase planning, monotone Complexity layering, distinct anchor motifs, and full UI/browser integration for Jungle, Liquid DnB, Boom Bap, Trap, Two Step Garage, Dubstep, Breakcore, and AmenScience.
+* [x] **Groove V5 Engine (Default) & 8 Pilot Genre Profiles:** New workspaces use V5. Eight genres have dedicated pilot profiles; other genres use the V5 baseline mapped from established V4 profiles. V2–V4 remain selectable, and saved patterns keep their recorded engine.
 * [x] **Arrangement editing history:** Undo/redo for sequence, slot, repeat and song-tempo changes with context-aware shortcuts.
 * [x] **Named song sections:** Optional per-step section labels are preserved in project data, shown in the arranger and transport, and included in history.
 * [x] **Visual song timeline:** Colored section blocks, playhead following, insertion gaps, drag reorder and pattern selection with arrangement undo/redo.
@@ -81,6 +81,12 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-10-03] - Make Groove V5 the Default Engine (Codex)
+- Set the generator engine selector and `genreDefaults()` to Groove V5 so fresh workspaces and new projects use it automatically. V2, V3 and V4 remain selectable; opening an existing project preserves its stored engine.
+- Updated engine smoke checks and added coverage that all supported genre defaults choose V5. Updated the roadmap wording to distinguish eight dedicated V5 pilot profiles from genres using V5's V4-derived baseline profiles.
+- Adjusted the Think break browser smoke to collapse the generator tray before testing tracker cell entry, preventing the tray overlay from intercepting clicks.
+- Verification: `npm.cmd test` passed 275 tests; `npm.cmd run test:site` passed all site smoke checks at root and subpath; `node scripts/groove-v4-browser-smoke.mjs` verified the V5 default, V4 fallback, project save and WAV export.
 
 ### [2026-10-03] - Lush Piano Controls and Modular Synth Patch Rack (Codex)
 - Added Lushness, Tension and Density controls to piano generation in `src/core/piano.ts`, `src/core/model.ts`, `src/core/settings.ts`, `src/web.ts`, and `public/index.html`. They shape voicing spread and motion, harmonic color, and comping/voice density while preserving seeded output, locks, and saved generator settings.

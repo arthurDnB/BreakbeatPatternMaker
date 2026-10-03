@@ -25,7 +25,8 @@ try{
  page.on('pageerror',error=>errors.push(error.message));
  await page.goto(`http://127.0.0.1:${server.address().port}/`);
  await page.locator('#grid .hit').first().waitFor();
- assert.equal(await page.inputValue('#algorithm'),'groove-v4');
+ assert.equal(await page.inputValue('#algorithm'),'groove-v5','new workspaces default to V5');
+ await page.click('#tab-generator');
  await page.locator('#advanced-generation>summary').click();
  assert.equal(await page.inputValue('#hat-density'),'1');
  await page.locator('#hat-density').fill('2');
@@ -33,6 +34,7 @@ try{
  await page.selectOption('#algorithm','groove-v3');
  assert.equal(await page.locator('#hat-density').isDisabled(),true);
  await page.selectOption('#algorithm','groove-v4');
+ assert.equal(await page.inputValue('#algorithm'),'groove-v4');
  assert.equal(await page.locator('#hat-density').isDisabled(),false);
  await page.selectOption('#genre','amenscience');
  assert.equal(await page.inputValue('#hat-density'),'1','Genre defaults should restore neutral density');
@@ -64,6 +66,6 @@ try{
  const bytes=await readFile(await wav.path());
  assert.equal(bytes.toString('ascii',0,4),'RIFF');
  assert.deepEqual(errors,[]);
- console.log('Groove V4 browser: default engine, generation, project save and WAV export passed.');
+ console.log('Groove engine browser: V5 default, V4 selection, generation, project save and WAV export passed.');
  await context.close();
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}

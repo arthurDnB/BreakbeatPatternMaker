@@ -11,6 +11,10 @@ import {defaultKitState,withDrumKit} from '../dist/audio/drum-kit.js';
 import {renderPerformance} from '../dist/audio/performance.js';
 
 const config=(genre='jungle',overrides={})=>({...genreDefaults(genre),algorithm:'groove-v5',seed:'v5-contract',bars:2,complexity:.7,spicy:.5,...overrides});
+
+test('new genre defaults select Groove V5',()=>{
+ for(const genre of Object.keys(PROFILES))assert.equal(genreDefaults(genre).algorithm,'groove-v5',genre);
+});
 const fixture={
  genre:'jungle',
  anchors:[{id:'spine-a',bars:1,notes:[{bar:0,step:0,role:'kick',gain:.9},{bar:0,step:8,role:'snare',gain:.9}]}],
