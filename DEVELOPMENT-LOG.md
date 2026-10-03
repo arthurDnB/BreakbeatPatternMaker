@@ -82,6 +82,12 @@ This document maintains the running project state and change log so that multipl
 
 ## Ã°Å¸â€œÂ Change Log
 
+### [2026-10-04] - Compact Generator Knobs and Context Help (Codex with subagents)
+- **Generator layout (`public/index.html`, `public/workspace.css`):** Rebalanced the three main cards so Complexity, Spicy, and Reverse Notes share a compact row, while Lushness, Tension, and Piano Density fill the lower harmony card. The advanced groove controls use a denser responsive grid, and the default resizable generator drawer opens tall enough to show the main knobs on desktop.
+- **Control behavior (`src/ui/generator-knobs.ts`, `src/web.ts`):** Converted all continuous generator ranges into small rotary controls while retaining the original input IDs and value/event flow for generation and project persistence. Dials support vertical or horizontal drag, Shift for fine adjustment, keyboard arrows/Page/Home/End, accessible values, and viewport-aware explanations on hover or focus. Programmatic setting changes refresh their indicators.
+- **Browser regression (`scripts/generator-knobs-browser-smoke.mjs`, `package.json`):** Added checks for aligned rows, visible and clamped help, keyboard and pointer input, original value synchronization, and narrow-screen overflow. Visual QA covered 1920px, 1280px, and 390px viewports.
+- **Verification:** `npm.cmd test` passed (293 tests); `npm.cmd run test:site` passed, including the new generator knob smoke suite.
+
 ### [2026-10-03] - Piano Instrument for Generated Lead (Codex)
 - **Generated Lead default (`src/core/editor.ts`):** New generated Lead tracks now use the sampled piano preset instead of the pluck preset. Existing generated Lead tracks still using the stock pluck preset switch to piano on their next regeneration; a user's explicitly chosen instrument is retained.
 - **Regression coverage (`tests/melody-generation.test.mjs`, `tests/piano-generation.test.mjs`):** Updated project roundtrip expectations and checked the Lead defaults to piano while retaining a user-selected pluck across regeneration.

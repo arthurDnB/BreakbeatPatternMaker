@@ -33,6 +33,7 @@ import {Editor,emptySelection,locked,selectedIds,type EditorState,type TrackerCl
 import {defaultEffects,type Effects,EFFECT_PRESETS,type EffectPreset} from './audio/effects.js';
 import {ArrangementHistory} from './core/arrangement-history.js';
 import {createRotaryKnob} from './ui/rotary-knob.js';
+import {mountGeneratorKnobs,syncGeneratorKnobs} from './ui/generator-knobs.js';
 import {openSynthPatchEditor} from './ui/synth-patch-editor.js';
 import {TutorialController} from './ui/tutorial.js';
 import {renderVerticalSongMap, updateVerticalSongMapPlayback} from './ui/vertical-song-map.js';
@@ -40,6 +41,8 @@ import {renderVerticalSongMap, updateVerticalSongMapPlayback} from './ui/vertica
 
 const el=<T extends HTMLElement>(id:string)=>document.getElementById(id) as T;
 const input=(id:string)=>el<HTMLInputElement>(id);
+const generatorControls=el<HTMLElement>('controls');
+mountGeneratorKnobs(generatorControls);
 // Dock secondary tracker actions in a compact menu without changing their IDs or handlers.
 const trackerBar=document.querySelector<HTMLElement>('.tracker-live-bar')!;
 const selectionMenu=document.createElement('details');selectionMenu.id='tracker-selection-menu';
@@ -1181,6 +1184,7 @@ function syncSliders(){
   const reverseProbability=Math.round(Number(input('reverseProbability').value)*100)+'%';
   el('reverseProbability-value').textContent=reverseProbability;
   input('reverseProbability').setAttribute('aria-valuetext',reverseProbability+' chance for generated sample hits to play backwards');
+  syncGeneratorKnobs(generatorControls);
   syncHud();
 }
 let v5ExactCapacityCache:{key:string;value:number}|undefined;
@@ -1201,6 +1205,7 @@ function syncHitTargetControl(){
   input('hit-target-mode').disabled=!supportsExact;
   input('hit-target-number').disabled=!supportsExact||!exact;input('hit-target-slider').disabled=!supportsExact||!exact;
   el('hit-target-help').textContent=!supportsExact?'Exact hits requires Groove v4 or v5.':exact?`${value} tracker notes across ${bars} ${bars===1?'bar':'bars'}; ratchets count once.${v5Capacity===undefined?'':` Current V5 profile supports up to ${v5Capacity}.`}`:'Auto uses the selected genre’s natural density.';
+  syncGeneratorKnobs(generatorControls);
 }
 function breakDescription(){
   const key=input('breakStyle').value as BreakStyle;
@@ -1218,6 +1223,7 @@ function syncStructureControls(){
  }
  input('fillAmount').disabled=hasStructure&&structure!=='auto';
  input('fillAmount').title=hasStructure&&structure!=='auto'?'Fill probability is used only by Auto-Fills.':'';
+ syncGeneratorKnobs(generatorControls);
 }
 input('patternStructure').addEventListener('change',syncStructureControls);
 input('tracker-bars').addEventListener('change',()=>{const value=Number(input('tracker-bars').value) as 1|2|3|4,previous=pattern.settings.bars,shortening=value<previous;edit(()=>editor.setBars(value),shortening?'Tracker shortened; notes outside the new length were removed.':'Tracker pattern length changed.');if(pattern.settings.bars===previous)input('tracker-bars').value=String(previous);});

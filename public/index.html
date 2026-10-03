@@ -669,7 +669,7 @@
               <div id="presets" class="presets gen-bpm-presets"></div>
             </div>
 
-            <div class="gen-row-2col">
+            <div class="gen-row-2col gen-dynamics-knob-row">
               <div class="gen-slider-block">
                 <div class="gen-slider-header">
                   <label for="complexity">Complexity <small>(Simple → Detailed)</small></label>
@@ -707,7 +707,7 @@
             <div class="composition-controls">
               <input id="generationMode" type="hidden" value="drums"><input id="melodyPart" type="hidden" value="bassline">
               <div id="melody-options" class="melody-options gen-harmony-stack">
-                <div class="gen-row-2col">
+                <div class="gen-row-2col gen-harmony-key-row">
                   <div class="gen-field">
                     <label for="melodyKey">Root Key</label>
                     <select id="melodyKey" class="gen-select"><option value="0">C</option><option value="1">C♯ / D♭</option><option value="2">D</option><option value="3">D♯ / E♭</option><option value="4">E</option><option value="5">F</option><option value="6">F♯ / G♭</option><option value="7">G</option><option value="8">G♯ / A♭</option><option value="9">A</option><option value="10">A♯ / B♭</option><option value="11">B</option></select>
@@ -739,7 +739,7 @@
                     <label for="harmonyStyle">Harmony Flavor / Voicing</label>
                   <select id="harmonyStyle" class="gen-select"><option value="jazz" selected>Jazz (Functional ii–V motions &amp; chromatic tensions)</option><option value="neo-soul">Neo-Soul (Smooth 7ths &amp; gospel colors)</option><option value="modal">Modal / Quartal (Open modern stacks)</option><option value="genre">Genre Diatonic (Native bass roots)</option></select>
                 </div>
-                <div class="piano-expression-controls" aria-label="Piano chord shaping">
+                <div class="piano-expression-controls gen-harmony-knob-row" aria-label="Piano chord shaping">
                   <div class="gen-slider-block"><div class="gen-slider-header"><label for="pianoLushness">Lushness</label><output id="pianoLushness-value">65%</output></div><input id="pianoLushness" type="range" min="0" max="1" step="0.01" value="0.65" title="Open voicings and smoother movement between chords"></div>
                   <div class="gen-slider-block"><div class="gen-slider-header"><label for="pianoTension">Tension</label><output id="pianoTension-value">35%</output></div><input id="pianoTension" type="range" min="0" max="1" step="0.01" value="0.35" title="Diatonic color to altered jazz extensions"></div>
                   <div class="gen-slider-block"><div class="gen-slider-header"><label for="pianoDensity">Density</label><output id="pianoDensity-value">45%</output></div><input id="pianoDensity" type="range" min="0" max="1" step="0.01" value="0.45" title="Chord voices and lighter comping answers"></div>
