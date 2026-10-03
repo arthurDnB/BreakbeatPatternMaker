@@ -31,6 +31,8 @@ export interface Settings {
   patternStructure?: 'groove'|'auto'|'fill'|'roll'|'build';
   /** Omitted in older projects: drum generation only. */
   generationMode?:GenerationMode; melodyPart?:MelodyPart; melodyKey?:number; melodyScale?:MelodyScale; harmonyStyle?:HarmonyStyle;
+  chordProgression?:'auto'|'I-V-vi-IV'|'vi-IV-I-V'|'I-vi-IV-V'|'ii-V-I'|'iii-VI-ii-V'|'minor-i-VI-III-VII'|'custom';
+  customChordProgression?:string;
   /** Piano-only composition controls. Omitted settings retain the earlier piano recipe. */
   pianoLushness?:number; pianoTension?:number; pianoDensity?:number;
 }

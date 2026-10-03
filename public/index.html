@@ -656,7 +656,25 @@
                   </div>
                 </div>
                 <div class="gen-field">
-                  <label for="harmonyStyle">Chord Progression Style</label>
+                    <label for="chordProgression">Chord Progression</label>
+                    <select id="chordProgression" class="gen-select">
+                      <option value="auto" selected>Auto (Genre / Style)</option>
+                      <option value="I-V-vi-IV">I-V-vi-IV</option>
+                      <option value="vi-IV-I-V">vi-IV-I-V</option>
+                      <option value="I-vi-IV-V">I-vi-IV-V</option>
+                      <option value="ii-V-I">ii-V-I</option>
+                      <option value="iii-VI-ii-V">iii-VI-ii-V</option>
+                      <option value="minor-i-VI-III-VII">minor i-VI-III-VII</option>
+                      <option value="custom">Custom...</option>
+                    </select>
+                  </div>
+                  <div class="gen-field" id="customChordProgressionContainer" style="display: none;">
+                    <label for="customChordProgression">Custom Progression (Roman Numerals)</label>
+                    <input type="text" id="customChordProgression" class="gen-text-input" placeholder="e.g. Imaj9 V7 vi7 IVmaj9">
+                    <div id="customChordProgressionError" style="color: #ff5555; font-size: 12px; margin-top: 4px; display: none;"></div>
+                  </div>
+                  <div class="gen-field">
+                    <label for="harmonyStyle">Harmony Flavor / Voicing</label>
                   <select id="harmonyStyle" class="gen-select"><option value="jazz" selected>Jazz (Functional ii–V motions &amp; chromatic tensions)</option><option value="neo-soul">Neo-Soul (Smooth 7ths &amp; gospel colors)</option><option value="modal">Modal / Quartal (Open modern stacks)</option><option value="genre">Genre Diatonic (Native bass roots)</option></select>
                 </div>
                 <div class="piano-expression-controls" aria-label="Piano chord shaping">

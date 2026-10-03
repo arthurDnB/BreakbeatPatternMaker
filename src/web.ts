@@ -247,6 +247,8 @@ function settings(){
   s.melodyKey=Number(input('melodyKey').value);
   s.melodyScale=input('melodyScale').value as MelodyScale;
   s.harmonyStyle=input('harmonyStyle').value as NonNullable<Settings['harmonyStyle']>;
+  s.chordProgression=input('chordProgression').value as any;
+  if (s.chordProgression === 'custom') s.customChordProgression=input('customChordProgression').value.trim();
   s.pianoLushness=Number(input('pianoLushness').value);s.pianoTension=Number(input('pianoTension').value);s.pianoDensity=Number(input('pianoDensity').value);
   s.algorithm=input('algorithm').value as NonNullable<Pattern['settings']['algorithm']>;s.variation=Number(input('variation').value);
   if(['groove-v3','groove-v4','groove-v5'].includes(s.algorithm??'')&&Number(input('phraseLength').value)){s.phraseLength=Number(input('phraseLength').value) as 4|8|16;s.phraseOffset=Number(input('phraseOffset').value);}
@@ -701,6 +703,9 @@ function syncControls(){
   input('hit-target-number').value=String(s.hitTarget??32);
   input('hit-target-slider').value=String(s.hitTarget??32);
   input('generationMode').value=s.generationMode??'drums';input('melodyPart').value=s.melodyPart??'bassline';input('melodyKey').value=String(s.melodyKey??0);input('melodyScale').value=s.melodyScale??'natural-minor';input('harmonyStyle').value=s.harmonyStyle??'jazz';
+    input('chordProgression').value=s.chordProgression??'auto';
+    input('customChordProgression').value=s.customChordProgression??'';
+    el('customChordProgressionContainer').style.display=input('chordProgression').value==='custom'?'block':'none';
   input('pianoLushness').value=String(s.pianoLushness??.65);input('pianoTension').value=String(s.pianoTension??.35);input('pianoDensity').value=String(s.pianoDensity??.45);
   for(const role of ROLES)input(`${role}-density`).value=String(s.laneDensity?.[role]??1);
   input('patternStructure').value=s.patternStructure??'auto';
@@ -1250,6 +1255,11 @@ input('hit-target-slider').addEventListener('input',()=>{input('hit-target-numbe
 input('hit-target-number').addEventListener('change',()=>{syncHitTargetControl();dirty();});
 input('bars').addEventListener('change',syncHitTargetControl);
 input('generationMode').addEventListener('change',syncModeControls);
+  input('chordProgression').addEventListener('change',()=>{
+    el('customChordProgressionContainer').style.display=input('chordProgression').value==='custom'?'block':'none';
+    dirty();
+  });
+  input('customChordProgression').addEventListener('input',dirty);
 input('phraseLength').addEventListener('change',()=>syncPhraseControls());
 
 el('breakStyle').onchange=()=>{breakDescription();dirty();};
