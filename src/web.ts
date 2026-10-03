@@ -25,6 +25,7 @@ import {defaults,genreDefaults,PROFILES} from './core/profiles.js';
 import {generate,validateSettings} from './core/generate.js';
 import {maximumV5ExactHits} from './core/exact-hits.js';
 import {compile,serialize} from './core/compile.js';
+import {parseRomanProgression} from './core/harmony.js';
 import {drumLane} from './core/drum-lanes.js';
 import {ROLES,hex,noteName,isSynthTrack,type Hit,type Role,type Genre,type BreakStyle,type Pattern,type Transfer,type EffectCommand,type Settings,type UserTrack,type SynthTrack,type SynthInstrument,type GenerationMode,type MelodyPart,type MelodyScale} from './core/model.js';
 import {SYNTH_PRESETS} from './audio/synth-instrument.js';
@@ -705,7 +706,8 @@ function syncControls(){
   input('generationMode').value=s.generationMode??'drums';input('melodyPart').value=s.melodyPart??'bassline';input('melodyKey').value=String(s.melodyKey??0);input('melodyScale').value=s.melodyScale??'natural-minor';input('harmonyStyle').value=s.harmonyStyle??'jazz';
     input('chordProgression').value=s.chordProgression??'auto';
     input('customChordProgression').value=s.customChordProgression??'';
-    el('customChordProgressionContainer').style.display=input('chordProgression').value==='custom'?'block':'none';
+          el('customChordProgressionContainer').style.display=input('chordProgression').value==='custom'?'block':'none';
+      validateCustomProgressionUI();
   input('pianoLushness').value=String(s.pianoLushness??.65);input('pianoTension').value=String(s.pianoTension??.35);input('pianoDensity').value=String(s.pianoDensity??.45);
   for(const role of ROLES)input(`${role}-density`).value=String(s.laneDensity?.[role]??1);
   input('patternStructure').value=s.patternStructure??'auto';
@@ -1256,10 +1258,35 @@ input('hit-target-number').addEventListener('change',()=>{syncHitTargetControl()
 input('bars').addEventListener('change',syncHitTargetControl);
 input('generationMode').addEventListener('change',syncModeControls);
   input('chordProgression').addEventListener('change',()=>{
-    el('customChordProgressionContainer').style.display=input('chordProgression').value==='custom'?'block':'none';
+          el('customChordProgressionContainer').style.display=input('chordProgression').value==='custom'?'block':'none';
+      validateCustomProgressionUI();
     dirty();
   });
-  input('customChordProgression').addEventListener('input',dirty);
+      function validateCustomProgressionUI() {
+    const val = input('customChordProgression').value.trim();
+    const errorEl = document.getElementById('customChordProgressionError');
+    if (errorEl) {
+      if (val === '') {
+        errorEl.style.display = 'none';
+        input('customChordProgression').style.borderColor = '';
+      } else {
+        try {
+          parseRomanProgression(val);
+          errorEl.style.display = 'none';
+          errorEl.textContent = '';
+          input('customChordProgression').style.borderColor = '';
+        } catch(e) {
+          errorEl.style.display = 'block';
+          errorEl.textContent = (e as Error).message;
+          input('customChordProgression').style.borderColor = '#ff5555';
+        }
+      }
+    }
+  }
+  input('customChordProgression').addEventListener('input', () => {
+    validateCustomProgressionUI();
+    dirty();
+  });
 input('phraseLength').addEventListener('change',()=>syncPhraseControls());
 
 el('breakStyle').onchange=()=>{breakDescription();dirty();};

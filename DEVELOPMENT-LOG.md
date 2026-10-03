@@ -4,7 +4,7 @@ This document maintains the running project state and change log so that multipl
 
 ---
 
-## ðŸ¤– Rules for AI Assistants Working on this Repo
+## Ã°Å¸Â¤â€“ Rules for AI Assistants Working on this Repo
 
 1. **Check for latest changes before editing:**
    * Always check `git status` and pull if connected to remote:
@@ -26,44 +26,44 @@ This document maintains the running project state and change log so that multipl
 
 ---
 
-## ðŸ“Œ Current Project Status
+## Ã°Å¸â€œÅ’ Current Project Status
 
 * **Version:** `0.2.3`
 * **Test Status:** 283 unit tests passing (0 skipped, 0 failed); all deployment site smoke checks passing (`npm.cmd test` and `npm.cmd run test:site`).
 * **Live Deployment:** Hosted on GitHub Pages at:
-  ðŸ‘‰ [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
+  Ã°Å¸â€˜â€° [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
 * **Repository:** [https://github.com/arthurDnB/BreakbeatPatternMaker](https://github.com/arthurDnB/BreakbeatPatternMaker)
 
 ---
 
-## ðŸ—ºï¸ Roadmap & Next Tasks (from `PROJECT-SCOPE.md` & `UI-UX-REDESIGN-PLAN.md`)
+## Ã°Å¸â€”ÂºÃ¯Â¸Â Roadmap & Next Tasks (from `PROJECT-SCOPE.md` & `UI-UX-REDESIGN-PLAN.md`)
 
 * [x] **Phase 1 (Complete):** Tracker-first workspace layout, sticky transport, contextual inspector, pattern bank tabs.
 * [x] **Phase 2 (Complete):** Editing clarity, pending draft state, pitch slider gesture undo grouping, hit articulation (ratchets & gates).
 * [x] **Phase 3 (Complete):** Simplified sound selection, 32 CC0 bundled sample catalog, compact routing/effects indicators.
-* [x] **Milestone 1 (Complete):** Unlimited dynamic pattern bank engine (`+ New`, `â§‰ Dup`, `âœ• Delete`).
+* [x] **Milestone 1 (Complete):** Unlimited dynamic pattern bank engine (`+ New`, `Ã¢Â§â€° Dup`, `Ã¢Å“â€¢ Delete`).
 * [x] **Milestone 2 (Complete):** Renoise 3-tray retractable layout shell with persistable left/right/bottom drawers.
 * [x] **Milestone 4 (Complete):** Tracker track mixer strips with Solo (S) switches, inline volume faders, and peak meters.
 * [x] **Milestone 5 (Complete):** Waveform Slicer & Scramble/Mutate DSP Rack in bottom tray with instant breakbeat chopping.
 * [x] **Phase 4 (Complete):** Unified song arrangement & transport awareness, song tempo migration v1->v2, full song WAV export.
 * [x] **Groove v2 Engine & 38 Genres (Complete):**
-  - Staged rhythm engine: main motif â†’ groove timing â†’ supporting hits â†’ phrase responses â†’ genre-aware fills.
+  - Staged rhythm engine: main motif Ã¢â€ â€™ groove timing Ã¢â€ â€™ supporting hits Ã¢â€ â€™ phrase responses Ã¢â€ â€™ genre-aware fills.
   - 38 distinct genre profiles grouped into 6 musical families (`Jungle & DnB`, `Hip-Hop & Downtempo`, `Garage`, `Dub & Bass`, `Breaks & Rave`, `Experimental`).
   - Instrument-specific microtimings (laid-back snares, swung hats, solid kicks).
   - Musical variation preserving seed and recurring motifs; backward-compatible legacy-v1 seed reproduction.
 * [x] **Audio Engine 3 (Groove v3) (Complete):**
-  - 5-stage generation pipeline: Protected Anchor Spine â†’ Selective Groove & Micro-timing Map â†’ Subgenre Layers & Melodic/Euclidean Support â†’ Phrase-Local Spicy Articulation Rack â†’ Turnaround Cadences.
+  - 5-stage generation pipeline: Protected Anchor Spine Ã¢â€ â€™ Selective Groove & Micro-timing Map Ã¢â€ â€™ Subgenre Layers & Melodic/Euclidean Support Ã¢â€ â€™ Phrase-Local Spicy Articulation Rack Ã¢â€ â€™ Turnaround Cadences.
   - Expressive musical bursts (2, 3, 4, 6 repeats) with explicit tick durations, rising/falling velocity curves, pitch glide intervals (+7, +12, -2, -5), and micro-chops.
-  - Fixed fast-tempo drum clicks: one-shot sample preservation ensures acoustic kicks/snares retain body and punch at 170â€“220+ BPM without abrupt row cutoffs.
+  - Fixed fast-tempo drum clicks: one-shot sample preservation ensures acoustic kicks/snares retain body and punch at 170Ã¢â‚¬â€œ220+ BPM without abrupt row cutoffs.
   - Hi-hat choke groups closing open hats across tracker steps and arrangement loop boundaries.
   - Isolated deterministic random streams (`v3Chance`, `v3Pick`) and Strudel-inspired Euclidean rhythmic distribution.
-* [x] **Groove V4 (Complete):** Typed, profile-driven composition for all 38 genres with separate Complexity layers and Spicy gestures; V1â€“V3 remain selectable for existing projects. See `docs/GROOVE-V4.md` for tuning guidance.
-* [x] **Groove V5 Engine (Default) & 8 Pilot Genre Profiles:** New workspaces use V5. Eight pilot genres plus a reference-informed Atmospheric Breakcore profile have dedicated overrides; other genres use the V5 baseline mapped from established V4 profiles. V2â€“V4 remain selectable, and saved patterns keep their recorded engine.
+* [x] **Groove V4 (Complete):** Typed, profile-driven composition for all 38 genres with separate Complexity layers and Spicy gestures; V1Ã¢â‚¬â€œV3 remain selectable for existing projects. See `docs/GROOVE-V4.md` for tuning guidance.
+* [x] **Groove V5 Engine (Default) & 8 Pilot Genre Profiles:** New workspaces use V5. Eight pilot genres plus a reference-informed Atmospheric Breakcore profile have dedicated overrides; other genres use the V5 baseline mapped from established V4 profiles. V2Ã¢â‚¬â€œV4 remain selectable, and saved patterns keep their recorded engine.
 * [x] **Arrangement editing history:** Undo/redo for sequence, slot, repeat and song-tempo changes with context-aware shortcuts.
 * [x] **Named song sections:** Optional per-step section labels are preserved in project data, shown in the arranger and transport, and included in history.
 * [x] **Visual song timeline:** Colored section blocks, playhead following, insertion gaps, drag reorder and pattern selection with arrangement undo/redo.
-* [x] **Quick Start guide:** First-run Generate â†’ Preview â†’ Edit â†’ Export orientation, with persistent dismiss/reopen controls.
+* [x] **Quick Start guide:** First-run Generate Ã¢â€ â€™ Preview Ã¢â€ â€™ Edit Ã¢â€ â€™ Export orientation, with persistent dismiss/reopen controls.
 * [x] **Recent patterns:** Per-slot snapshots of the last 12 generated, varied or mutated beats, with restore, project persistence and Undo recovery.
 * [x] **A/B pattern comparison:** Capture current or recent beats as A and B, preview either with the current kit, and keep a winner with Undo support.
 * [x] **Vinyl Texture Rack (Complete):** Nine bundled textures have a user-controlled background playback layer, independent of genre, with loop crossfades and WAV/project support.
@@ -80,7 +80,7 @@ This document maintains the running project state and change log so that multipl
 
 ---
 
-## ðŸ“ Change Log
+## Ã°Å¸â€œÂ Change Log
 
 ### [2026-10-03] - Piano Instrument for Generated Lead (Codex)
 - **Generated Lead default (`src/core/editor.ts`):** New generated Lead tracks now use the sampled piano preset instead of the pluck preset. Existing generated Lead tracks still using the stock pluck preset switch to piano on their next regeneration; a user's explicitly chosen instrument is retained.
@@ -97,7 +97,7 @@ This document maintains the running project state and change log so that multipl
 
 ### [2026-10-03] - First-Run Guided Spotlight Tutorial & Replay Mode (Antigravity)
 - Added an interactive 5-step guided spotlight tutorial (`src/ui/tutorial.ts`, `public/index.html`, `public/workspace.css`, `src/web.ts`) for first-time visitors:
-  1. Generator settings (`#controls`) â€” automatically expands the bottom drawer and switches to the Generator tab if collapsed, and restores the previous drawer/tab state on exit.
+  1. Generator settings (`#controls`) Ã¢â‚¬â€ automatically expands the bottom drawer and switches to the Generator tab if collapsed, and restores the previous drawer/tab state on exit.
   2. Choosing a layer to generate (`#transport-triggers`).
   3. Playback (`#play`).
   4. Tracker editing (`#grid`).
@@ -110,7 +110,7 @@ This document maintains the running project state and change log so that multipl
 
 ### [2026-10-03] - Atmospheric Breakcore Cross-Reference A/B (Codex)
 - Arthur chose the 14/16/13/13-note opening and 18/23/24/21-note development. Added an optional upper phrase bound to V5 layers in `src/core/groove-v5-contract.ts` and `src/core/groove-v5.ts`, and used it for Atmospheric Breakcore's opening snare cuts and kick pickups. This keeps those details out of a long phrase's final turnaround while retaining the response of a two-bar loop. At the fixed study settings, both regenerated WAVs are byte-identical to the versions Arthur liked.
-- Compared existing local analyses of the supplied Cichy, Fatal Youth, and AgonyOST recordings. Their changing full-mix transient activity suggests testing rhythmic contrast, but cannot identify drum hits. `scripts/atmospheric-breakcore-audition.mjs` now offers those local references and a response-weighted **candidate** for bars 5â€“8. The candidate is for listening only; it does not change the app's approved profile or bundle any reference audio.
+- Compared existing local analyses of the supplied Cichy, Fatal Youth, and AgonyOST recordings. Their changing full-mix transient activity suggests testing rhythmic contrast, but cannot identify drum hits. `scripts/atmospheric-breakcore-audition.mjs` now offers those local references and a response-weighted **candidate** for bars 5Ã¢â‚¬â€œ8. The candidate is for listening only; it does not change the app's approved profile or bundle any reference audio.
 - Added a fixed-seed regression check to `tests/atmospheric-breakcore-v5.test.mjs` for the approved eight-bar contour and invalid phrase bounds. Local source notes are in `test-results/atmospheric-breakcore-references/STUDY.md` (ignored, not deployed).
 - Verification: `npm.cmd test` passed 283/283; `npm.cmd run test:site` passed root/subpath and all remaining browser smoke suites.
 
@@ -135,7 +135,7 @@ This document maintains the running project state and change log so that multipl
 ### [2026-10-03] - Dense Tracker Playback Responsiveness (Codex)
 - Virtualized tracker rows in `src/web.ts` and `public/workspace.css`, keeping a small mounted window around the viewport while preserving cell editing, selection, drag, keyboard navigation, stacked chord rows and follow-playhead behavior. Indexed notes, hits and sources for row rendering, and updated pattern/song playhead paths to avoid repeated full-pattern scans.
 - Deferred workspace preference writes during playback, removed meter layout forcing, and cached the oscilloscope backdrop. Audio rendering and visible tracker controls remain unchanged.
-- Added `scripts/tracker-performance-benchmark.mjs` and `scripts/tracker-virtualization-smoke.mjs`; adapted navigation smoke assertions for virtualized rows and added the new smoke to `package.json`. In the 512-row dense fixture, mounted rows fell from 512 to about 22 and grid elements from about 36,255 to 3,391; observed tracker render time fell from about 2.9â€“3.0 s to 0.14â€“0.37 s. Follow-playhead scrolling remains the main source of occasional UI long tasks, so this does not claim perfect frame pacing.
+- Added `scripts/tracker-performance-benchmark.mjs` and `scripts/tracker-virtualization-smoke.mjs`; adapted navigation smoke assertions for virtualized rows and added the new smoke to `package.json`. In the 512-row dense fixture, mounted rows fell from 512 to about 22 and grid elements from about 36,255 to 3,391; observed tracker render time fell from about 2.9Ã¢â‚¬â€œ3.0 s to 0.14Ã¢â‚¬â€œ0.37 s. Follow-playhead scrolling remains the main source of occasional UI long tasks, so this does not claim perfect frame pacing.
 - Verification: `npm.cmd test` passed 275/275; standalone virtualization smoke passed; `npm.cmd run test:site` passed all browser smoke checks at root and subpath.
 
 ### [2026-10-03] - Make Groove V5 the Default Engine (Codex)
@@ -161,7 +161,7 @@ This document maintains the running project state and change log so that multipl
 - Verification: `npm.cmd test` passed 266 tests; `npm.cmd run test:site` passed all browser checks, including both site URL prefixes.
 
 ### [2026-10-03] - Instrument Panel Horizontal Control Layout (Codex)
-- Reorganized the drum laneâ€™s level, pitch, speed, tone, attack, and decay knobs into a three-column grid; grouped speed mode and BPM matching tools into a separate compact options area.
+- Reorganized the drum laneÃ¢â‚¬â„¢s level, pitch, speed, tone, attack, and decay knobs into a three-column grid; grouped speed mode and BPM matching tools into a separate compact options area.
 - Arranged second-layer controls side by side and kept effects and synth parameters in responsive horizontal grids, reducing panel height while preserving editable numeric fields and labels.
 - Expanded `scripts/instrument-panel-smoke.mjs` to assert the three-column sample and FX layouts in addition to stable scrolling, pinned Preview, no tracker jump, and correct sound selection.
 - Verification: `npm.cmd test` passed 266 tests; `npm.cmd run test:site` passed all deployment browser checks at root and repository subpath.
@@ -196,7 +196,7 @@ This document maintains the running project state and change log so that multipl
 * **Transport Geometry Collision & Occlusion Fix (`public/index.html`, `public/workspace.css`, `scripts/site-browser-smoke.mjs`):**
   - Solved button click interception bug where `#transport .transport-triggers` and `.nav-shortcuts` were both placed in `grid-column: 1; grid-row: 1` with `z-index: 2` and `justify-self: end`, causing `#generate` to occlude and intercept clicks intended for `#show-sounds` on 1280px viewports (which previously triggered unintended drum generations during test navigation and created extra pattern history entries).
   - Wrapped `.nav-shortcuts` and `.transport-triggers` into a unified flex container `.transport-left` with `justify-content: flex-start; gap: 6px;`, ensuring `#show-sounds`, `#show-arrangement`, and all trigger buttons sit in separate, non-overlapping coordinate spaces.
-  - Shortened trigger button text `âš¡ PIANO CHORDS` to `âš¡ PIANO` and optimized button padding to eliminate horizontal collision with `.transport-center` (`<label class="transport-target">`), maintaining centered Play button alignment (`Math.abs(play.x + play.width/2 - 960) < 3`) across all viewports.
+  - Shortened trigger button text `Ã¢Å¡Â¡ PIANO CHORDS` to `Ã¢Å¡Â¡ PIANO` and optimized button padding to eliminate horizontal collision with `.transport-center` (`<label class="transport-target">`), maintaining centered Play button alignment (`Math.abs(play.x + play.width/2 - 960) < 3`) across all viewports.
 * **Verification & Comprehensive Testing:**
   - Added `scripts/break-presets-browser-smoke.mjs` testing Think Break default load, A/B reconstruction playback, Amen Break switching, tracker pattern creation, and Waveform Slicer preset audition.
   - Verified all 258/258 unit tests pass (`npm.cmd test`).
@@ -224,7 +224,7 @@ This document maintains the running project state and change log so that multipl
 ### [2026-10-02] - Fixed Transport Generator Triggers & Dedicated Parameter Drawer (Antigravity)
 
 * **Relocated Layer Generators to Persistent Bottom Transport Bar:**
-  - Moved the Beat Generator trigger actions (`TRIGGER LAYER: [âš¡ BEAT] [âš¡ BASS] [âš¡ MELODY] [âš¡ PIANO CHORDS] [âŸ³ VARIATION]`) from `#controls` directly into the fixed bottom transport bar (`#transport .transport-triggers`).
+  - Moved the Beat Generator trigger actions (`TRIGGER LAYER: [Ã¢Å¡Â¡ BEAT] [Ã¢Å¡Â¡ BASS] [Ã¢Å¡Â¡ MELODY] [Ã¢Å¡Â¡ PIANO CHORDS] [Ã¢Å¸Â³ VARIATION]`) from `#controls` directly into the fixed bottom transport bar (`#transport .transport-triggers`).
   - Positioned them in `grid-column: 1` (`justify-self: end; margin-right: 12px;`) immediately adjacent to the centered Play button (`#play`), utilizing previously vacant space between navigation shortcuts and the master Play control.
   - Triggers are permanently visible and clickable 100% of the time, allowing users to instantly generate drum beats, basslines, melodies, piano chords, and variations without opening the drawer.
 * **Dedicated Parameter Tweaking in Expandable Generator Drawer:**
@@ -241,10 +241,10 @@ This document maintains the running project state and change log so that multipl
 ### [2026-10-02] - Tracker-First DAW Workstation UI Revamp, Centered Fixed Transport & Right DSP Inspector Dock (Antigravity)
 
 * **Tracker-First Flex Expansion & Zero Dead Space:**
-  - Solved tracker squishing by giving `#grid` full flexible vertical space (`flex: 1 1 auto !important; height: 100% !important; min-height: 520px !important;`), allowing standard viewports to comfortably display 16â€“25+ rows without cramped scrollbars.
+  - Solved tracker squishing by giving `#grid` full flexible vertical space (`flex: 1 1 auto !important; height: 100% !important; min-height: 520px !important;`), allowing standard viewports to comfortably display 16Ã¢â‚¬â€œ25+ rows without cramped scrollbars.
   - Resolved the empty gray panel below the Pattern Bank in `#tray-left` by matching heights, removing redundant dead-space containers, and ensuring flush borders.
 * **Collapsed Beat Generator Drawer on Startup:**
-  - Configured Beat Generator (`#tray-bottom`) to initialize closed on application startup (`setTrayBottom(true)` with `is-collapsed` and `â–¸ GENERATOR` toggle badge), granting 100% initial stage height to the pattern grid and instrument rack.
+  - Configured Beat Generator (`#tray-bottom`) to initialize closed on application startup (`setTrayBottom(true)` with `is-collapsed` and `Ã¢â€“Â¸ GENERATOR` toggle badge), granting 100% initial stage height to the pattern grid and instrument rack.
   - Can be toggled open on demand as a hardware drawer without displacing or resizing the transport controls.
 * **Persistent Bottom Transport Bar with Immobile Centered Play Button:**
   - Relocated `#transport` out of `#tray-bottom` into a persistent fixed dock at the bottom edge of the DAW (`main.daw-chassis`).
@@ -270,12 +270,12 @@ This document maintains the running project state and change log so that multipl
 * **Tracker Flex-Fill Expansion & Zero Black Void:**
   - Resolved tracker squishing where only 3 rows were visible with a ~35% black void below it.
   - Set `.daw-stage-center` and `.workspace` to `flex: 1 1 auto; height: 100%; min-height: 0; display: flex; flex-direction: column; overflow: hidden;`.
-  - Configured `.workspace #grid` to `flex: 1 1 auto !important; height: 100% !important; min-height: 280px !important; max-height: none !important; overflow: auto !important;`, allowing the tracker grid to flex-expand and comfortably display 16â€“25+ rows with smooth scrolling and zero unpainted black voids.
+  - Configured `.workspace #grid` to `flex: 1 1 auto !important; height: 100% !important; min-height: 280px !important; max-height: none !important; overflow: auto !important;`, allowing the tracker grid to flex-expand and comfortably display 16Ã¢â‚¬â€œ25+ rows with smooth scrolling and zero unpainted black voids.
 * **Compact 2-Column Beat Generator Synth Console:**
-  - Redesigned `#controls` into a high-density, low-profile 2-column layout (`.gen-console-grid-2col`) reducing its vertical footprint by more than 50% (down to ~180pxâ€“210px):
+  - Redesigned `#controls` into a high-density, low-profile 2-column layout (`.gen-console-grid-2col`) reducing its vertical footprint by more than 50% (down to ~180pxÃ¢â‚¬â€œ210px):
     - **Column 1 (Rhythm & Engine):** Engine & Kit Core (Genre, Kit, Bars, Engine) + Rhythm Dynamics (Tempo, Complexity, Spicy).
     - **Column 2 (Harmony & Matrix):** Key & Harmony Mapping (Root Key, Musical Scale, Chord Progression Style) + Compact Advanced Groove Matrix Details (Break style, Layer, Resolution, Exact hits, Swing, Humanize, Fill probability, and instrument densities).
-    - **Bottom Hardware Strip:** Slim trigger toolbar with tactile illuminated pads (`âš¡ BEAT`, `âš¡ BASS`, `âš¡ MELODY`, `âš¡ PIANO`, `âŸ³ VARIATION`, `â†º RESTORE DEFAULTS`).
+    - **Bottom Hardware Strip:** Slim trigger toolbar with tactile illuminated pads (`Ã¢Å¡Â¡ BEAT`, `Ã¢Å¡Â¡ BASS`, `Ã¢Å¡Â¡ MELODY`, `Ã¢Å¡Â¡ PIANO`, `Ã¢Å¸Â³ VARIATION`, `Ã¢â€ Âº RESTORE DEFAULTS`).
 * **Strict DSP Tab Isolation (Zero Knobs on Generator):**
   - Resolved user issue where the 5 modular hardware stompbox units (Analog Filter, Stereo Distort, Mod Phaser, Bus Comp, Maximizer) were appearing directly above the generator controls.
   - Enforced `.re-track-dsp-panel { display: none !important; }` unless `.is-active`.
@@ -293,7 +293,7 @@ This document maintains the running project state and change log so that multipl
 * **Tidied Top Global Header:**
   - Restructured `.app-header.tracker-header.re-track-header` into a clean, compact 2-row layout with zero dead space under the logo:
     - **Row 1:** RE-TRACK v4.2 brand logo with animated neon bars, application menu (`FILE EDIT VIEW TRACK SONG OPTIONS HELP`), 5 view tabs, and a compact project action strip with streamlined export controls.
-    - **Row 2:** Transport controls (`â–¶ SONG`, `â–· PAT`, `â– `, `â— REC`), HUD badges (`BPM`, `LPB`, `TPL`, `OCT`), stereo peak meter, and live telemetry pills.
+    - **Row 2:** Transport controls (`Ã¢â€“Â¶ SONG`, `Ã¢â€“Â· PAT`, `Ã¢â€“Â `, `Ã¢â€”Â REC`), HUD badges (`BPM`, `LPB`, `TPL`, `OCT`), stereo peak meter, and live telemetry pills.
   - Set `align-items: center; min-height: 28px; max-height: 32px;` on `.re-track-top-bar` to eliminate the vertical stretching and blank black gap previously under the logo.
 * **Separated DSP Stompbox Rack from Beat Generator:**
   - Removed `.tray-rack-tabs` suppression in `public/workspace.css` so bottom tray tabs (`Beat Generator` and `DSP FX Chain`) are cleanly exposed.
@@ -305,7 +305,7 @@ This document maintains the running project state and change log so that multipl
     - **02: Rhythm Dynamics & Tempo:** Tactile BPM input with genre preset pills, glowing cyan Complexity slider, and glowing amber Spicy slider.
     - **03: Key & Harmony Mapping:** Root Key, Musical Scale, and Chord Progression Style with purple neon badges.
     - **04: Advanced Groove Matrix & Densities:** Collapsible groove matrix containing break rhythm, think slices, grid resolution, exact hit targets, seed, and per-instrument density sliders.
-    - **05: Hardware Trigger Console:** Backlit illuminated hardware trigger pads (`âš¡ BEAT`, `âš¡ BASS`, `âš¡ MELODY`, `âš¡ PIANO CHORDS`, `âŸ³ VARIATION`, `â†º RESTORE DEFAULTS`).
+    - **05: Hardware Trigger Console:** Backlit illuminated hardware trigger pads (`Ã¢Å¡Â¡ BEAT`, `Ã¢Å¡Â¡ BASS`, `Ã¢Å¡Â¡ MELODY`, `Ã¢Å¡Â¡ PIANO CHORDS`, `Ã¢Å¸Â³ VARIATION`, `Ã¢â€ Âº RESTORE DEFAULTS`).
   - Preserved all 42 functional DOM IDs and event bindings for 100% backward compatibility and test stability.
 * **Eliminated Blank Spaces on Left (#tray-left) and Bottom (#grid):**
   - Updated responsive rules to enforce single-screen viewport lock: `.studio-layout` expands flexibly (`flex: 1 1 auto`), `#tray-left .tray-body` fills height without dead space, and `#grid` expands to 100% height (`flex: 1 1 auto; height: 100% !important;`), eliminating the large black void previously clamped below the Renoise tracker.
@@ -319,7 +319,7 @@ This document maintains the running project state and change log so that multipl
   - Exported typed `EffectPreset` interface and `EFFECT_PRESETS` catalog with 8 curated sound design presets (`Amen Slammer`, `Reese Saturator`, `Liquid Air & Space`, `Lo-Fi Tape Crunch`, `Dub Space Echo`, `Crisp VCA Bus Glue`, `Sub-Bass Cleaner`, `Clean Bypass`) in `src/audio/effects.ts`.
   - Added `getEffectPreset(id)` lookup helper with full unit test coverage in `tests/effects.test.mjs`.
 * **Interactive Presets UI Modal:**
-  - Added `#dsp-presets-dialog` modal dialog in `public/index.html` opened via the `â‰¡ PRESETS` button.
+  - Added `#dsp-presets-dialog` modal dialog in `public/index.html` opened via the `Ã¢â€°Â¡ PRESETS` button.
   - Features real-time category filtering (`All`, `DnB & Jungle`, `Distortion & Dirt`, `Spatial & Space`, `Dynamics & Polish`, `Utility`, `Custom`).
   - Added custom preset persistence allowing users to save their current stompbox settings to `localStorage` under `bpm_custom_dsp_presets`, load, and delete them on demand.
 * **DSP Routing Selector:**
@@ -338,16 +338,16 @@ This document maintains the running project state and change log so that multipl
 
 * **Workstation Studio Layout Overhaul:**
   - Upgraded global application layout to match the professional cyberpunk tracker DAW aesthetic of **RE-TRACK v4.2**:
-    - **Header & Hardware Transport:** Added `RE-TRACK v4.2` logo, DAW menu bar (`FILE EDIT VIEW TRACK SONG OPTIONS HELP`), real-time telemetry pills (`â— DSP: 14%`, `48.0 kHz / 64 spl`, `RAM: 1.8 GB`), hardware mode buttons (`â–¶ SONG`, `â–· PAT`, `â– `, `â— REC`), glowing HUD badges (`BPM 174.00`, `LPB 04`, `TPL 12`, `OCT 04`), and animated stereo peak meter with numerical readout.
+    - **Header & Hardware Transport:** Added `RE-TRACK v4.2` logo, DAW menu bar (`FILE EDIT VIEW TRACK SONG OPTIONS HELP`), real-time telemetry pills (`Ã¢â€”Â DSP: 14%`, `48.0 kHz / 64 spl`, `RAM: 1.8 GB`), hardware mode buttons (`Ã¢â€“Â¶ SONG`, `Ã¢â€“Â· PAT`, `Ã¢â€“Â `, `Ã¢â€”Â REC`), glowing HUD badges (`BPM 174.00`, `LPB 04`, `TPL 12`, `OCT 04`), and animated stereo peak meter with numerical readout.
     - **Three-Column Grid Architecture:**
       - **Left Column:** Matrix Sequencer displaying pattern bank and arrangement sequences with high-contrast active block highlighting and controls.
       - **Center Column:** Renoise-style cyber-tracker grid with hex row numbering (`00`..`1F`), glowing cyan cursor line, and responsive inspector tools.
       - **Right Column (Sample Rack & Wave Preview):** Added `#tray-right` containing interactive sample slot cards (`#sample-rack-list`) with metadata badges (`[ONE-SHOT]`, `[BEAT-SYNC]`, `[ACTIVE]`, memory sizes), and real-time oscilloscope canvas (`#re-track-wave-canvas`).
     - **Bottom Modular Rack (Tabbed):**
       - Created `#re-track-dsp-panel` housing 5 hardware stompbox units: `01: ANALOG FILTER` (Moog Ladder), `02: STEREO DISTORT` (Tube), `03: MOD PHASER` (8-Pole), `04: BUS COMP` (VCA with Gain Reduction meter), `05: MAXIMIZER` (Peak).
-      - Added interactive SVG Rotary Dials (`.rotary-dial`) with 270Â° radial LED arcs, numeric readouts, and pointer drag/wheel interaction two-way bound to the master audio DSP engine (`#dsp-hp`, `#dsp-res`, `#dsp-drive`, `#dsp-lp`, `#dsp-wet`, `#dsp-delay`, `#dsp-feedback`, `#dsp-mix`, `#dsp-punch`).
+      - Added interactive SVG Rotary Dials (`.rotary-dial`) with 270Ã‚Â° radial LED arcs, numeric readouts, and pointer drag/wheel interaction two-way bound to the master audio DSP engine (`#dsp-hp`, `#dsp-res`, `#dsp-drive`, `#dsp-lp`, `#dsp-wet`, `#dsp-delay`, `#dsp-feedback`, `#dsp-mix`, `#dsp-punch`).
       - Added tab switcher between `[DSP FX CHAIN]` and `[BEAT GENERATOR]`.
-    - **Footer Status Strip:** Added hardware status telemetry (`â— AUDIO ENGINE: ONLINE`, CoreMIDI status, song position counter, active instrument badge, and hex cursor coordinate `0x00`).
+    - **Footer Status Strip:** Added hardware status telemetry (`Ã¢â€”Â AUDIO ENGINE: ONLINE`, CoreMIDI status, song position counter, active instrument badge, and hex cursor coordinate `0x00`).
 * **Non-Regression & Quality Assurance:**
   - Preserved all existing functional element IDs (`#play`, `#bpm`, `#grid`, `#arranger`, `#quick-fx-panel`, `#undo`, `#redo`, `#master-dsp-rack`, etc.) and CSS contracts (`body` black background, `#play` border-radius 50%, `.workspace > .grid-heading .legend` presence).
   - All 252 unit tests passed (`npm.cmd test`).
@@ -368,12 +368,12 @@ This document maintains the running project state and change log so that multipl
     - **Card 02 (Rhythm & Tempo):** Genre selector, Tempo BPM/tap controls, and Bars dropdown.
     - **Card 03 (Key & Harmony):** Musical scale, root key, and melodic baseline parameters.
     - **Card 04 (Groove Matrix):** Retractable Groove Matrix details rack (`<details id="advanced-generation">`) with complexity, swing, and micro-timing options.
-  - Slashed generator vertical footprint by ~300px (from ~450px down to ~140pxâ€“160px), freeing substantial vertical space for the tracker grid to display 16â€“25+ rows in standard viewports without vertical starvation.
+  - Slashed generator vertical footprint by ~300px (from ~450px down to ~140pxÃ¢â‚¬â€œ160px), freeing substantial vertical space for the tracker grid to display 16Ã¢â‚¬â€œ25+ rows in standard viewports without vertical starvation.
 * **Elimination of Generator Black Void & Trigger Bar Strip:**
-  - Enforced `flex-direction: column !important;` on `#controls` and `.re-track-generator-console`. Previously, `pnlGen.style.display = 'flex'` split `#controls` into a 2-column flex row that forced trigger buttons (`âš¡ BEAT`, `âš¡ BASS`, etc.) into an isolated right-hand column with a massive black void underneath.
-  - Relocated trigger buttons into a dedicated full-width hardware strip (`.gen-trigger-toolbar`) anchored along the bottom of the generator console with grouped generation triggers on the left (`âš¡ BEAT`, `âš¡ BASS`, `âš¡ MELODY`, `âš¡ PIANO CHORDS`) and secondary workflow controls on the right (`âŸ³ VARIATION`, `â†º RESTORE DEFAULTS`).
+  - Enforced `flex-direction: column !important;` on `#controls` and `.re-track-generator-console`. Previously, `pnlGen.style.display = 'flex'` split `#controls` into a 2-column flex row that forced trigger buttons (`Ã¢Å¡Â¡ BEAT`, `Ã¢Å¡Â¡ BASS`, etc.) into an isolated right-hand column with a massive black void underneath.
+  - Relocated trigger buttons into a dedicated full-width hardware strip (`.gen-trigger-toolbar`) anchored along the bottom of the generator console with grouped generation triggers on the left (`Ã¢Å¡Â¡ BEAT`, `Ã¢Å¡Â¡ BASS`, `Ã¢Å¡Â¡ MELODY`, `Ã¢Å¡Â¡ PIANO CHORDS`) and secondary workflow controls on the right (`Ã¢Å¸Â³ VARIATION`, `Ã¢â€ Âº RESTORE DEFAULTS`).
 * **Relocation & Consolidation of Master DSP & Vinyl Texture:**
-  - Consolidated loose `<details id="master-dsp-rack">` and `<details id="vinyl-texture-rack">` out of general page flow and neatly integrated them inside the dedicated `ðŸŽ› DSP FX Chain` tab (`#re-track-dsp-panel`) under `.dsp-aux-racks`.
+  - Consolidated loose `<details id="master-dsp-rack">` and `<details id="vinyl-texture-rack">` out of general page flow and neatly integrated them inside the dedicated `Ã°Å¸Å½â€º DSP FX Chain` tab (`#re-track-dsp-panel`) under `.dsp-aux-racks`.
   - The Generator tab (`#tab-generator`) now contains 0 DSP controls, eliminating UI clutter and properly categorizing audio effects into the DSP chain tab.
   - Adjusted bottom drawer max-height to 200px for the generator and 380px for the DSP chain panel.
 * **100% Backward Compatibility & Smoke Test Modernization:**
@@ -422,15 +422,15 @@ This document maintains the running project state and change log so that multipl
 
 ### [2026-10-01] - Exact Tracker Hit Target for Groove V4 (Codex)
 
-* Added an optional **Hits â†’ Auto / Exact** slider and number field in Advanced Generation. Exact sets the total drum/sample tracker-note count across kit lanes, generated sample tracks and the chopped Think layer; ratchets count as one tracker note and synth notes are outside this budget. Auto preserves previous V4 generation.
+* Added an optional **Hits Ã¢â€ â€™ Auto / Exact** slider and number field in Advanced Generation. Exact sets the total drum/sample tracker-note count across kit lanes, generated sample tracks and the chopped Think layer; ratchets count as one tracker note and synth notes are outside this budget. Auto preserves previous V4 generation.
 * Added a deterministic note-budget stage after routing and lock/manual-note preservation. It selects genre-based candidates while balancing instrument roles and bars, retains protected anchors, and gives a clear error when the target is impossible. Generate and Variation remain single Undo steps; older projects default to Auto.
 * Added focused unit and browser checks for 38 genres, pattern structures, Think slices, locks, manually authored hits, sample/synth tracks, project roundtrip and the control workflow. Kept the unrelated local `package.json` edit and `scripts/sync-chat-to-codex.mjs` outside this change.
 * Verification: `npm.cmd test` passed 225/225; `npm.cmd run test:site` passed root/subpath browser checks; `node scripts/exact-hits-browser-smoke.mjs` passed Generate, Variation and Undo.
 
 ### [2026-10-01] - Opt-In Chopped Think Passage Generator Layer (Codex)
 
-* Added **Break Layer â†’ Think Passage 2 Â· chopped** independently of the existing rhythm preset. Generation places deterministic, genre-guided mapped slices on a dedicated Think Break sample track alongside the current kit; Variation, locked and manual hits, Undo/Redo, save/reopen and the shared Preview/WAV path retain the layer.
-* Added a native-rate loader for the bundled unmodified WAV, a ten-slice onset map plus the user-identified intact â€œuhâ€ phrase, and a direct **Edit Think slices** track control. Slice-map edits survive toggling the layer off and on. The older full-clip kit is clearly labeled as a legacy full-passage retrigger.
+* Added **Break Layer Ã¢â€ â€™ Think Passage 2 Ã‚Â· chopped** independently of the existing rhythm preset. Generation places deterministic, genre-guided mapped slices on a dedicated Think Break sample track alongside the current kit; Variation, locked and manual hits, Undo/Redo, save/reopen and the shared Preview/WAV path retain the layer.
+* Added a native-rate loader for the bundled unmodified WAV, a ten-slice onset map plus the user-identified intact Ã¢â‚¬Å“uhÃ¢â‚¬Â phrase, and a direct **Edit Think slices** track control. Slice-map edits survive toggling the layer off and on. The older full-clip kit is clearly labeled as a legacy full-passage retrigger.
 * Added focused engine/audio/project tests and browser smoke coverage for root and GitHub Pages subpath, including keyboard and + Note entry on the Think track and graceful handling of a failed sample load. The provisional slice-role labels are based on onset and waveform analysis and still require independent listening review; see `docs/THINK-BREAK-LAYER.md`.
 * Verification: `npm.cmd test` passed 221/221; `npm.cmd run test:site` passed root/subpath browser checks, WAV/project roundtrip, sound library and break transcription checks.
 
@@ -462,25 +462,25 @@ This document maintains the running project state and change log so that multipl
 
 ### [2026-10-01] - Restore Think Vocal Chop Onset (Codex)
 
-* Replaced the provisional same-position crop from passage 2 with the full 0.758 s single hit source-matched against the userâ€™s supplied vocal sample. Repitched the complete hit by +6 semitones, retaining its vocal onset rather than using an estimated cut point.
+* Replaced the provisional same-position crop from passage 2 with the full 0.758 s single hit source-matched against the userÃ¢â‚¬â„¢s supplied vocal sample. Repitched the complete hit by +6 semitones, retaining its vocal onset rather than using an estimated cut point.
 * Updated the sample catalog hash and source/change notes, plus sample-quality documentation. Renamed the public WAV to `/public/samples/think-uh-plus6-full-vocal.wav` and updated the library path so browsers/CDNs cannot keep serving the earlier provisional crop.
 * Verification: `npm.cmd test` passed 215/215; `npm.cmd run test:site` built the deployment package successfully (436 files, 345 WAVs), but the Edge browser smoke phase stalled without output and was interrupted. Follow-up unit tests passed 215/215 and `npm.cmd run build:site` packaged the cache-busted asset successfully; live Pages could not be reached from this session.
 
 ### [2026-10-01] - Bundle Think Vocal Chop Instrument (Codex)
 
 * Added the passage 2 Think-style vocal chop repitched exactly +6 semitones as a bundled percussion sample. The user identified it as their original re-performance and asked for attribution under their name; catalog and sample credits list Arthur DnB under CC BY 4.0.
-* Added **Think Vocal Chop Â· +6 st** as a selectable kit preset, so Groove V4 can generate it through its existing percussion rhythm lane. Extended the deployment allowlist to accept attributed CC BY 4.0 records while keeping SHA-256 validation; updated counts and license checks to 345 samples.
+* Added **Think Vocal Chop Ã‚Â· +6 st** as a selectable kit preset, so Groove V4 can generate it through its existing percussion rhythm lane. Extended the deployment allowlist to accept attributed CC BY 4.0 records while keeping SHA-256 validation; updated counts and license checks to 345 samples.
 * Verification: `npm.cmd test` passed 215/215; `npm.cmd run test:site` passed root and Pages subpath, sound browser, and break transcription smoke checks.
 
 ### [2026-10-01] - Passage 2 Think Speed Audition (Codex)
 
-* Based on the user's listening identification of provisional Think passage 2 (2.23â€“4.46 s), added a local, ignored `test-results/think-uh-ab/passage-2-speed.html` A/B sheet. Its 0.75â€“2.25Ã— speed control repitches the full passage or an adjustable cut; 14 matched-level WAV candidates cover seven fixed rates for both the passage and the provisional same-position window. Linked it from the existing source-study page. No source audio is distributed.
+* Based on the user's listening identification of provisional Think passage 2 (2.23Ã¢â‚¬â€œ4.46 s), added a local, ignored `test-results/think-uh-ab/passage-2-speed.html` A/B sheet. Its 0.75Ã¢â‚¬â€œ2.25Ãƒâ€” speed control repitches the full passage or an adjustable cut; 14 matched-level WAV candidates cover seven fixed rates for both the passage and the provisional same-position window. Linked it from the existing source-study page. No source audio is distributed.
 * Updated `docs/THINK-BREAK-SHAPING.md` with the passage selection, the provisional nature of the cut boundaries, and the distinction between browser playback and offline audition renders. The Ciel mix does not establish an exact source or speed.
 * Verification: generated 14 WAVs and checked duration, peak limits and page link; local page JavaScript parses; `npm.cmd test` passed 214/214; `npm.cmd run test:site` passed root and Pages subpath plus sound-browser and break-transcription checks. Preserved unrelated `package.json` and chat-sync script changes.
 
 ### [2026-10-01] - Ciel Beat-Onset Focus for Think Audition (Codex)
 
-* Incorporated the user's screenshot mark near 23.9 s into the local Think audition. Added a focused 23.7â€“24.75 s Ciel excerpt and passage 2/3 repitch comparisons at 1.12Ã— and 1.80Ã—; all 30 audio players loaded in a browser check.
+* Incorporated the user's screenshot mark near 23.9 s into the local Think audition. Added a focused 23.7Ã¢â‚¬â€œ24.75 s Ciel excerpt and passage 2/3 repitch comparisons at 1.12Ãƒâ€” and 1.80Ãƒâ€”; all 30 audio players loaded in a browser check.
 * A constrained correlation search near the marked beat remained weak (maximum absolute value 0.273 in tested candidates), so neither the earlier 27.59 s result nor the dark waveform region establishes the vocal's source or exact onset. Updated `docs/THINK-BREAK-SHAPING.md` with this distinction and the user-supplied Human Synthetics Think-break tutorial as a workflow reference. Exact video processing settings were not independently verified.
 * Verification: `npm.cmd test` passed 214/214; `npm.cmd run test:site` passed root and Pages subpath plus sound-browser and break-transcription checks; the local audition page loaded all 30 audio players without browser errors.
 * The local audition audio remains ignored, and the unrelated `package.json` and chat-sync changes remain untouched.
@@ -489,16 +489,16 @@ This document maintains the running project state and change log so that multipl
 
 * Matched the supplied 0.758-second `thinkbreak_uh.mp3` to `think--all5.wav` at 0.68875 s with 0.9950 native-rate normalized correlation. The exact WAV passage gives a source-preserving starting point for further chops.
 * Built a local, ignored `test-results/think-uh-ab/source-study.html` audition sheet with 24 A/B candidates plus the Ciel reference: five provisional Think passages, matched-position windows, lossless-source cuts, repitch, coloration and exploratory granular renders. A browser check loaded all 25 audio players without page errors.
-* Full-mix correlation weakly prioritized passages 2 and 3 at 1.42Ã— around 27.59 s in Ciel; documented that this does not identify the recording or its production chain. Added `docs/THINK-BREAK-SHAPING.md` with the findings, listening sequence, sources and a conditional DSP integration path. Original audio remains outside Git; no unverified processor was added to the app.
+* Full-mix correlation weakly prioritized passages 2 and 3 at 1.42Ãƒâ€” around 27.59 s in Ciel; documented that this does not identify the recording or its production chain. Added `docs/THINK-BREAK-SHAPING.md` with the findings, listening sequence, sources and a conditional DSP integration path. Original audio remains outside Git; no unverified processor was added to the app.
 * Verification: `npm.cmd test` passed 214/214; `npm.cmd run test:site` passed root and Pages subpath plus sound-browser and break-transcription browser checks. The local audition sheet loaded all 25 audio players without page errors.
 * Preserved unrelated local `package.json` and `scripts/sync-chat-to-codex.mjs` changes.
 
 ### [2026-10-01] - Per-Hit Waveform Cut and Independent Speed/Pitch Shaping (Codex)
 
 * Added a non-destructive sample cut to the hit inspector: waveform markers plus exact millisecond start/end inputs, pending Preview, Apply, Undo/Redo, and project persistence. The shared audio renderer applies the cut before stretching and fades both new edges for 2 ms, so saved pattern/song playback and WAV use the same region.
-* Added a per-hit Repitch/Stretch mode override. Stretch now compensates the duration change from a later pitch shift when the internal stretch ratio is within its 0.5Ã—â€“2Ã— range. Extreme pitch/speed combinations still clamp to that range. The main hit cut does not alter a separate drum layer.
+* Added a per-hit Repitch/Stretch mode override. Stretch now compensates the duration change from a later pitch shift when the internal stretch ratio is within its 0.5Ãƒâ€”Ã¢â‚¬â€œ2Ãƒâ€” range. Extreme pitch/speed combinations still clamp to that range. The main hit cut does not alter a separate drum layer.
 * Fixed the duplicate `edit-target` DOM ID that could overwrite the Edit track selector, and made choosing the lane sound clear an old explicit sample assignment. Documented use and DSP limits in `docs/SAMPLE-SHAPER.md`.
-* Extended the local Think vocal A/B page with trimmed pitch-preserving candidates Kâ€“M. They are audition hypotheses; no match to the Ciel reference is claimed. The local WAVs remain ignored under `test-results/`.
+* Extended the local Think vocal A/B page with trimmed pitch-preserving candidates KÃ¢â‚¬â€œM. They are audition hypotheses; no match to the Ciel reference is claimed. The local WAVs remain ignored under `test-results/`.
 * Verification: `npm.cmd test` passed 214/214, `npm.cmd run test:site` passed root and Pages subpath plus sound-browser and break-transcription browser checks. A focused browser check confirmed trim draft, Preview, Apply and Undo. Pre-existing changes in `package.json` and `scripts/sync-chat-to-codex.mjs` were left untouched.
 
 ### [2026-09-30] - Track-Targeted Beat Editing (Codex)
@@ -550,7 +550,7 @@ This document maintains the running project state and change log so that multipl
 ### [2026-09-29] - Functional Jazz Harmony Styles (Codex)
 
 * Added the persisted Harmony selector with Jazz, Neo-Soul, Modal / Quartal, and Genre diatonic styles. Jazz is the default for new generation settings; existing saved patterns remain unchanged until generated again.
-* Replaced degree-only harmony selection with functional major/minor progression templates. Jazz progressions include iiÃ¸7â€“V7â™­9â€“i9, iiâ€“Vâ€“I movement, extended dominants, and turnarounds; Neo-Soul uses extended smooth changes and Modal uses quartal voicings. Shared bass and lead harmony follows the same root changes.
+* Replaced degree-only harmony selection with functional major/minor progression templates. Jazz progressions include iiÃƒÂ¸7Ã¢â‚¬â€œV7Ã¢â„¢Â­9Ã¢â‚¬â€œi9, iiÃ¢â‚¬â€œVÃ¢â‚¬â€œI movement, extended dominants, and turnarounds; Neo-Soul uses extended smooth changes and Modal uses quartal voicings. Shared bass and lead harmony follows the same root changes.
 * Added automated checks for functional resolution, chromatic tension, deterministic style differences, and browser/project persistence. Updated the local audition generator to compare the jazzy phrase using the procedural tone and the user's uploaded WAV. Stabilized the site smoke workflow by closing overlapping instrument popovers before auditioning Kick. Research reference: [Berklee piano voicings](https://online.berklee.edu/takenote/basic-piano-voicing-techniques/), [reharmonization and chord function](https://online.berklee.edu/takenote/reharmonization-simple-substitution/), and [modal quartal harmony](https://online.berklee.edu/takenote/harmonic-considerations-modal-harmony/). Verification: `npm.cmd test` passed 201/201; `npm.cmd run test:site` passed both URL mounts plus sound-library and break-transcription checks; `node scripts/melody-browser-smoke.mjs` passed.
 
 ### [2026-09-29] - Shared Lush Piano Harmony and CC0 Upright Bank (Codex)
@@ -564,7 +564,7 @@ This document maintains the running project state and change log so that multipl
 - **Layer controls (`public/index.html`, `public/workspace.css`, `src/web.ts`):** Replaced the mode/part dropdown workflow with separate **Beat**, **Bass**, **Melody**, and **Piano chords** actions. Key and scale stay available; each button regenerates only its own lane and retains unrelated generated/user material. Each action keeps one-step editor Undo and locked-note behavior.
 - **Chord composer (`src/core/piano.ts`, `src/core/editor.ts`, `src/core/model.ts`, `src/core/settings.ts`, `src/core/compile.ts`):** Added a deterministic, genre-profiled piano progression/voicing generator, using genre-specific sparse, swung/offbeat, active and dense chord rhythms; chord extensions scale with Complexity and follow the selected key/scale. Generated chords occupy their own reusable **Generated Piano** synth track.
 - **Piano sound (`src/audio/synth-instrument.ts`):** Added a struck-string piano-style procedural voice with inharmonic partials and natural decay, shared by live playback and WAV export. This is a lightweight synthesized piano timbre, not a bundled sampled grand piano; a properly licensed multisample bank remains a sound-quality follow-up.
-- **Project and QA (`src/audio/project.ts`, `tests/piano-generation.test.mjs`, `scripts/melody-browser-smoke.mjs`, `public/index.html`):** Piano instrument tracks save as project version 7 while versions 2â€“6 continue loading. Added scale-safety, deterministic output, genre rhythm, layer preservation, locks, Undo, project roundtrip and render checks; expanded browser smoke to exercise the four layer buttons. Bumped deployment cache keys.
+- **Project and QA (`src/audio/project.ts`, `tests/piano-generation.test.mjs`, `scripts/melody-browser-smoke.mjs`, `public/index.html`):** Piano instrument tracks save as project version 7 while versions 2Ã¢â‚¬â€œ6 continue loading. Added scale-safety, deterministic output, genre rhythm, layer preservation, locks, Undo, project roundtrip and render checks; expanded browser smoke to exercise the four layer buttons. Bumped deployment cache keys.
 - **Verification:** `npm.cmd test` passed 195/195; `npm.cmd run test:site` passed at root and GitHub Pages subpath, including site, sound-library and break-transcription browser checks. `node scripts/melody-browser-smoke.mjs` passed Beat/Bass/Melody/Piano actions, preservation, Undo/Redo, project roundtrip and WAV export.
 
 ### [2026-09-29] - Refresh Melody Engine Browser Cache (Codex)
@@ -586,7 +586,7 @@ This document maintains the running project state and change log so that multipl
 ### [2026-09-29] - Built-in Synth Tracks (Codex)
 - **Track and note model (`src/core/model.ts`, `src/core/compile.ts`, `src/core/editor.ts`):** Added synth tracks alongside existing WAV sample tracks. Pitched notes carry absolute MIDI pitch and musical duration, while tracker selection, copy/move, locks, Undo/Redo, and beat regeneration preserve them. The compiler rejects sample-only commands on synth notes and incompatible cross-type moves.
 - **Shared audio (`src/audio/synth-instrument.ts`, `src/audio/performance.ts`, `src/audio/drum-kit.ts`):** Added Bass, Pluck, and Pad presets with editable waveform, ADSR envelope, and low-pass filter. Preview, song playback, and WAV export render the same deterministic polyphonic voices. Voices are capped at eight per track, repeated timbres are cached, and synth render memory is bounded.
-- **Tracker and projects (`src/web.ts`, `public/index.html`, `public/workspace.css`, `src/audio/project.ts`):** Added **+ Synth Track**, a compact track-header instrument panel, octave-based keyboard note entry, note pitch/length inspector controls, and same-row chord entry. Project schema v6 saves synth tracks without embedding audio, while v2â€“v5 files retain their existing behavior. Updated cache keys for deployment.
+- **Tracker and projects (`src/web.ts`, `public/index.html`, `public/workspace.css`, `src/audio/project.ts`):** Added **+ Synth Track**, a compact track-header instrument panel, octave-based keyboard note entry, note pitch/length inspector controls, and same-row chord entry. Project schema v6 saves synth tracks without embedding audio, while v2Ã¢â‚¬â€œv5 files retain their existing behavior. Updated cache keys for deployment.
 - **Verification (`tests/synth-tracks.test.mjs`, `scripts/synth-browser-smoke.mjs`, `tests/v3-integration.test.mjs`):** Covers synth editing/history, pitch, deterministic output, mute, song arrangements, project roundtrip, browser note/chord entry, regeneration, and WAV export. `npm.cmd test` passed 183/183; `npm.cmd run test:site` passed at root and GitHub Pages subpath; focused synth browser smoke passed. The unrelated `package.json` and chat-sync script changes remain untouched.
 
 ### [2026-09-29] - User-Managed Sample Tracks (Codex)
@@ -621,7 +621,7 @@ This document maintains the running project state and change log so that multipl
 - **Verification:** Focused accessibility Playwright smoke passed.
 
 ### [2026-09-29] - Responsive Layout Coverage (Codex)
-- **Responsive smoke test (`scripts/layout-browser-smoke.mjs`):** Expanded layout checks from two desktop widths to eight viewport sizes spanning 320â€“1920 px. Checks now verify the application shell stays within the viewport without page-level horizontal scrolling, tracker visibility, desktop transport behavior, and mobile hit editing. Tracker channel scrolling remains an intentional internal scroller.
+- **Responsive smoke test (`scripts/layout-browser-smoke.mjs`):** Expanded layout checks from two desktop widths to eight viewport sizes spanning 320Ã¢â‚¬â€œ1920 px. Checks now verify the application shell stays within the viewport without page-level horizontal scrolling, tracker visibility, desktop transport behavior, and mobile hit editing. Tracker channel scrolling remains an intentional internal scroller.
 - **Test maintenance:** Removed obsolete first-180-pixel transport-position expectation and selectors for retired inspector UI; the sticky transport check now tests its visible position after page scrolling.
 - **Verification:** Focused Playwright layout smoke passed at all eight viewport widths.
 
@@ -646,33 +646,33 @@ This document maintains the running project state and change log so that multipl
 - **Cache and verification:** Updated page asset cache keys. `npm.cmd test` passed 177/177; `npm.cmd run test:site` passed at root and the GitHub Pages subpath, including shortcut-dialog button/`?` open and Escape/Done close checks, sound browser and break transcription smoke tests.
 
 ### [2026-09-29] - Pitch-Preserving Playback, Sound Layers, and Audio Quality Checks (Codex)
-- **Sample speed (`src/audio/time-stretch.ts`, `src/audio/drum-kit.ts`, `src/audio/performance.ts`, `src/core/model.ts`, `src/core/compile.ts`):** Added a per-sample Repitch/Preserve pitch choice. The latter uses bounded, deterministic waveform-similarity overlap/add for 0.5Ã—â€“2Ã— speed, shares the same renderer for Preview and WAV, and leaves source PCM intact. The default remains Repitch; saved projects and sample profiles retain the chosen mode.
-- **Layering and mono checks (`src/audio/drum-kit.ts`, `src/audio/audio-quality.ts`, `src/audio/voice-v3.ts`, `src/audio/project.ts`):** Added an optional second catalog/uploaded sound per lane with relative level, Â±10 ms offset, polarity inversion, and a first-100-ms mono-cancellation warning. Layer voices share a trigger for kick/snare/hat choking; projects embed the layer audio and validate its mapping.
-- **Master output (`src/audio/audio-quality.ts`, `src/audio/performance.ts`, `src/web.ts`):** Groove V4 uses linked, linear peak trim against a conservative 0.96 ceiling informed by a 4Ã— interpolated estimate, with the applied trim shown after WAV export. V1â€“V3 retain their published PCM/master behavior. This is not a certified true-peak or loudness mastering stage.
+- **Sample speed (`src/audio/time-stretch.ts`, `src/audio/drum-kit.ts`, `src/audio/performance.ts`, `src/core/model.ts`, `src/core/compile.ts`):** Added a per-sample Repitch/Preserve pitch choice. The latter uses bounded, deterministic waveform-similarity overlap/add for 0.5Ãƒâ€”Ã¢â‚¬â€œ2Ãƒâ€” speed, shares the same renderer for Preview and WAV, and leaves source PCM intact. The default remains Repitch; saved projects and sample profiles retain the chosen mode.
+- **Layering and mono checks (`src/audio/drum-kit.ts`, `src/audio/audio-quality.ts`, `src/audio/voice-v3.ts`, `src/audio/project.ts`):** Added an optional second catalog/uploaded sound per lane with relative level, Ã‚Â±10 ms offset, polarity inversion, and a first-100-ms mono-cancellation warning. Layer voices share a trigger for kick/snare/hat choking; projects embed the layer audio and validate its mapping.
+- **Master output (`src/audio/audio-quality.ts`, `src/audio/performance.ts`, `src/web.ts`):** Groove V4 uses linked, linear peak trim against a conservative 0.96 ceiling informed by a 4Ãƒâ€” interpolated estimate, with the applied trim shown after WAV export. V1Ã¢â‚¬â€œV3 retain their published PCM/master behavior. This is not a certified true-peak or loudness mastering stage.
 - **Verification and limits (`tests/audio-quality.test.mjs`, `scripts/audio-quality-browser-smoke.mjs`, `docs/AUDIO-QUALITY.md`, `PROJECT-SCOPE.md`):** Added tests for duration/pitch, stereo alignment, headroom, mono cancellation, layer timing/choke, save/reopen, deterministic WAV data, and a packaged browser workflow including upload replacement/removal. `npm.cmd test` passed 177/177; `npm.cmd run test:site` passed at root and subpath; the focused audio-quality browser smoke passed. Stretch artifacts on complex percussion remain a listening-review risk.
 
 ### [2026-09-28] - Blind Second-Listener Break Review (Codex)
 - **Independent review path (`scripts/break-review-server.mjs`, `scripts/break-review-state.mjs`, `tools/break-review/`):** Added a separate `--blind` mode on localhost port 4175 with a blank marker draft, no first-review onset values in the state response, reviewer-mode validation, and a distinct second-review export. The original reviewer draft/export remain separate.
-- **Agreement analysis (`scripts/break-review-agreement.mjs`, `scripts/compare-break-reviews.mjs`):** Added source-identity validation and per-recording comparisons at Â±5/10/20 ms, including matched, missed and extra onsets, timing error, precision/recall/F1, micro summaries, and family-macro F1. The output labels these as human agreement rather than detector accuracy.
+- **Agreement analysis (`scripts/break-review-agreement.mjs`, `scripts/compare-break-reviews.mjs`):** Added source-identity validation and per-recording comparisons at Ã‚Â±5/10/20 ms, including matched, missed and extra onsets, timing error, precision/recall/F1, micro summaries, and family-macro F1. The output labels these as human agreement rather than detector accuracy.
 - **Documentation and verification (`docs/VERIFIED-BREAK-BENCHMARK.md`, `tests/break-review.test.mjs`, `scripts/break-review-smoke.mjs`):** Added launch/use/compare steps and tests for empty blind starts, isolated export, report metrics, mismatched sources, autosave, and UI blank state. `npm.cmd test` passed 171/171, local break review browser smoke passed for normal and blind modes, and `npm.cmd run test:site` passed at root and project subpath.
 
 ### [2026-09-28] - Tracker Resolution and LPB Controls (Codex)
-- **In-tracker grid controls (`public/index.html`, `public/workspace.css`, `src/web.ts`):** Added Resolution and Lines Per Beat selectors to the tracker toolbar so users can reduce the visible row density directly after importing a chopped break. Resolution selects 1/8â€“1/64 and sets a matching LPB; LPB can then be tuned independently from 1 to 32.
+- **In-tracker grid controls (`public/index.html`, `public/workspace.css`, `src/web.ts`):** Added Resolution and Lines Per Beat selectors to the tracker toolbar so users can reduce the visible row density directly after importing a chopped break. Resolution selects 1/8Ã¢â‚¬â€œ1/64 and sets a matching LPB; LPB can then be tuned independently from 1 to 32.
 - **Timing and persistence (`src/core/model.ts`, `src/core/compile.ts`, `src/core/settings.ts`, `src/core/editor.ts`, `src/core/bank.ts`, `src/audio/project.ts`):** Persist per-pattern LPB, keep absolute hit ticks intact when changing the grid, and make tracker row-based entry, copy/move, delay, fills and selection validation follow the active LPB. Resolution and LPB edits use normal pattern Undo/Redo. Clipboard paste now checks both settings.
 - **Verification (`tests/editor.test.mjs`, `scripts/tracker-navigation-smoke.mjs`):** Added coverage for undoable row remapping and browser interaction. `npm.cmd test` passed 168/168; tracker navigation browser smoke passed; `npm.cmd run test:site` passed for both root and project subpath, including audio/sample and break-review checks.
 
 ### [2026-09-28] - Listener-Verified Break Benchmark (Codex)
 - **Verified references (`benchmarks/verified-real-breaks.json`, `docs/VERIFIED-BREAK-BENCHMARK.md`):** Validated the user's completed review export against the eight source identities and SHA hashes, then recorded 101 accepted labels (94 interior onsets and seven fixed-start hits) without committing source WAVs or local paths. Reran the provisional and verified reports on the same recordings and detector build.
 - **Scoring correction (`scripts/real-break-metrics.mjs`, `scripts/real-break-benchmark.mjs`, `tests/real-break-benchmark.test.mjs`):** Excluded reference hits within 1 ms of the region start from onset-detector scoring because both slicers create that boundary without detection. Reports now show scored and fixed-start counts separately; the detector and its shipped defaults were not changed.
-- **Result and decision:** The verified references yield family-macro F1 of 0.613 at Â±10 ms for the current defaults, versus 0.360 for the previous detector. Provisional F1 was 0.670; the label set changed while the detector did not. Grouped cross-validation yields 0.625, only 0.013 above the fixed defaults and worse on the Funky Drummer holdout. Keep current detector settings; inspect onset timing and extra cuts in Think and Apache before proposing production changes. Updated `docs/REAL-BREAK-BENCHMARK.md`, `docs/BREAK-TRANSCRIPTION.md`, and `PROJECT-SCOPE.md` to distinguish historical provisional results from the listener-reviewed audit.
+- **Result and decision:** The verified references yield family-macro F1 of 0.613 at Ã‚Â±10 ms for the current defaults, versus 0.360 for the previous detector. Provisional F1 was 0.670; the label set changed while the detector did not. Grouped cross-validation yields 0.625, only 0.013 above the fixed defaults and worse on the Funky Drummer holdout. Keep current detector settings; inspect onset timing and extra cuts in Think and Apache before proposing production changes. Updated `docs/REAL-BREAK-BENCHMARK.md`, `docs/BREAK-TRANSCRIPTION.md`, and `PROJECT-SCOPE.md` to distinguish historical provisional results from the listener-reviewed audit.
 - **Verification:** The repository copy of the verified labels matches the user's export byte-for-byte. `npm.cmd test` passed 167/167 and `npm.cmd run test:site` passed at root and project subpath, including sound-browser and break-transcription smoke checks.
 
-### [2026-09-28] - Extend Waveform Zoom to 128Ã— (Codex)
-- **Waveform zoom (`tools/break-review/app.js`):** Raised the maximum magnification from 32Ã— to 128Ã—.
-- **Verification (`scripts/break-review-smoke.mjs`, `docs/REAL-BREAK-BENCHMARK.md`):** Updated the browser check to zoom to 128Ã—, confirm the control stops at its maximum, and reset to Fit.
+### [2026-09-28] - Extend Waveform Zoom to 128Ãƒâ€” (Codex)
+- **Waveform zoom (`tools/break-review/app.js`):** Raised the maximum magnification from 32Ãƒâ€” to 128Ãƒâ€”.
+- **Verification (`scripts/break-review-smoke.mjs`, `docs/REAL-BREAK-BENCHMARK.md`):** Updated the browser check to zoom to 128Ãƒâ€”, confirm the control stops at its maximum, and reset to Fit.
 
 ### [2026-09-28] - Zoomable Break Review Waveform (Codex)
-- **Waveform inspection (`tools/break-review/index.html`, `tools/break-review/app.js`, `tools/break-review/style.css`):** Added 1Ã—â€“32Ã— zoom by mouse wheel or buttons, pointer-anchored zoom, Fit reset, and a navigator slider for moving through the zoomed view. Waveform samples, marker hit targets, timing grid, cursor, and playhead now use the visible time range; selecting an onset in the list brings it into view.
+- **Waveform inspection (`tools/break-review/index.html`, `tools/break-review/app.js`, `tools/break-review/style.css`):** Added 1Ãƒâ€”Ã¢â‚¬â€œ32Ãƒâ€” zoom by mouse wheel or buttons, pointer-anchored zoom, Fit reset, and a navigator slider for moving through the zoomed view. Waveform samples, marker hit targets, timing grid, cursor, and playhead now use the visible time range; selecting an onset in the list brings it into view.
 - **Verification (`scripts/break-review-smoke.mjs`, `docs/REAL-BREAK-BENCHMARK.md`):** Browser smoke covers button and wheel zoom, navigator movement, Fit reset, playback windows, autosave, reload, and mobile layout.
 
 ### [2026-09-28] - Separate Hit and Context Audition (Codex)
@@ -686,8 +686,8 @@ This document maintains the running project state and change log so that multipl
 
 ### [2026-09-28] - Continuous Break Benchmark and Detector Tuning Audit (Codex)
 - **Real recording references (`benchmarks/real-breaks.json`, `docs/REAL-BREAK-BENCHMARK.md`):** Reviewed onset proposals against waveform/novelty plots for the first two seconds of all eight user-supplied WAVs, covering 152 candidate attacks across Amen, Apache, Funky Drummer and Think families. Stored SHA-256 hashes and onset times without adding the recordings or private local paths to Git. Labels are visually reviewed but still require independent listening confirmation.
-- **Reproducible harness (`scripts/real-break-benchmark.mjs`, `real-break-metrics.mjs`, `real-break-wav.mjs`):** Added PCM16/PCM24 mono/stereo decoding, one-to-one precision/recall/F1 at Â±5/10/20 ms, timing errors and missed/false marker times. A 12-setting sweep uses leave-one-break-family-out validation so Apache and Funky variants cannot leak between tuning and evaluation. Four focused unit tests verify 24-bit decoding, matching, family weighting and reference integrity.
-- **Result and decision:** The current 0.35 sensitivity / 35 ms spacing scores 0.670 family-macro F1 at Â±10 ms; the previous detector scores 0.446, and cross-validated parameter choices score 0.650. The current defaults are the best overall setting in the sweep, so no detector or UI default change was justified. Funky Drummer soft accents and overlapping Apache part 2 attacks remain difficult. Synthetic assembled fixtures remain at 0.933 F1; these figures must not be combined or presented as industry-standard accuracy.
+- **Reproducible harness (`scripts/real-break-benchmark.mjs`, `real-break-metrics.mjs`, `real-break-wav.mjs`):** Added PCM16/PCM24 mono/stereo decoding, one-to-one precision/recall/F1 at Ã‚Â±5/10/20 ms, timing errors and missed/false marker times. A 12-setting sweep uses leave-one-break-family-out validation so Apache and Funky variants cannot leak between tuning and evaluation. Four focused unit tests verify 24-bit decoding, matching, family weighting and reference integrity.
+- **Result and decision:** The current 0.35 sensitivity / 35 ms spacing scores 0.670 family-macro F1 at Ã‚Â±10 ms; the previous detector scores 0.446, and cross-validated parameter choices score 0.650. The current defaults are the best overall setting in the sweep, so no detector or UI default change was justified. Funky Drummer soft accents and overlapping Apache part 2 attacks remain difficult. Synthetic assembled fixtures remain at 0.933 F1; these figures must not be combined or presented as industry-standard accuracy.
 - **Verification and scope:** `npm.cmd test` passed 163/163; `npm.cmd run test:site` passed root/subpath and sound/browser checks; `npm.cmd run audit:breaks` passed. Updated `docs/BREAK-TRANSCRIPTION.md` and `PROJECT-SCOPE.md` to link the real-break report and retain the listening/full-loop quality gate.
 
 ### [2026-09-28] - Automatic Break Transcription Preview (Codex)
@@ -695,10 +695,10 @@ This document maintains the running project state and change log so that multipl
 - **Mapped instruments (src/core/model.ts, slice-instrument.ts, compile.ts, editor.ts, src/audio/slices.ts, src/web.ts):** Pattern-owned stable slice maps with independent mapped notes and pitch. Added keyboard octave selection, individual editing for multiple hits in one row, mapping-aware clipboard/history/locks, and an Edit slices workflow. Notes retain exact measured timing.
 - **Audio and persistence (src/audio/performance.ts, voice-v3.ts, drum-kit.ts, project.ts):** Shared resolution for Preview/song/WAV, source-frame reconstruction, optional loop-edge smoothing, and no automatic drum chokes on mapped slices. Mapped-only playback bypasses automatic master saturation for source fidelity. Version 4 saves all referenced PCM and mapping history while retaining older project support; independent instrument settings survive arrangement playback.
 - **Packaging and verification:** Worker dependencies included explicitly in the static site. Added 9 unit tests and root/subpath browser checks for imports, cancellation, same-row editing, Undo/Redo, save/reopen, WAV and mobile layout. Required suites: `npm.cmd test` (159/159), `npm.cmd run test:site`. Added `npm.cmd run audit:breaks` and `docs/BREAK-TRANSCRIPTION.md`.
-- **Measured quality and limitation:** Dry stereo reconstruction meets <=1e-5 sample-error checks at 22.05/44.1/48 kHz. Assembled licensed one-shot fixtures score mean onset F1 0.933 (0.947 on two held-out fixtures) at Â±10 ms. These are trigger-annotated assembled fixtures; independent human-annotated continuous recordings/listening validation are still required. UI and docs label this a preview, not perfect or industry-standard transcription.
+- **Measured quality and limitation:** Dry stereo reconstruction meets <=1e-5 sample-error checks at 22.05/44.1/48 kHz. Assembled licensed one-shot fixtures score mean onset F1 0.933 (0.947 on two held-out fixtures) at Ã‚Â±10 ms. These are trigger-annotated assembled fixtures; independent human-annotated continuous recordings/listening validation are still required. UI and docs label this a preview, not perfect or industry-standard transcription.
 
 ### [2026-09-28] - Collapsible, Genre-Independent Vinyl Texture Controls (Codex)
-- **Compact control row (public/index.html, public/workspace.css):** Replaced the always-visible full-width controls with a small collapsed â€œVinyl Textureâ€ disclosure. Click the label to show the On/Off, recording, Preview and level controls.
+- **Compact control row (public/index.html, public/workspace.css):** Replaced the always-visible full-width controls with a small collapsed Ã¢â‚¬Å“Vinyl TextureÃ¢â‚¬Â disclosure. Click the label to show the On/Off, recording, Preview and level controls.
 - **Genre behavior (src/web.ts):** Kept the control available for every genre and removed genre-driven activation, deactivation and sound randomization. The ambience setting and selected recording now remain under user control when the genre changes.
 - **Verification (scripts/site-browser-smoke.mjs):** Browser smoke covers collapsed state, all nine recordings, availability in Breakcore and Lo-Fi Hip-Hop, Off-by-default behavior, manual enable and project roundtrip. `npm.cmd test` passed 150/150; `npm.cmd run test:site` passed at root and GitHub Pages subpath.
 
@@ -737,12 +737,12 @@ This document maintains the running project state and change log so that multipl
 - **Audit and verification (`scripts/audit-samples.mjs`, `docs/SAMPLE-QUALITY.md`, `tests/sample-prep.test.mjs`):** Verify all 344 catalog hashes and report signal/provenance metrics. Owner confirmed redistribution clearance for UDNB and Lo-Fi Vol. 2; source metadata gaps remain documented. Added preparation and kit-validity tests. `npm.cmd test` passed 144/144; `npm.cmd run test:site` passed.
 
 ### [2026-09-28] - Live Sample BPM Follow (Codex)
-- **Sample speed (`src/audio/drum-kit.ts`, `src/web.ts`):** Added per-sound Follow BPM with effective Repitch calculated from playback BPM / original break BPM at render time. Pattern and song tempos drive their respective playback and WAV exports; per-hit speed overrides still take priority. The instrument panel shows the current effective rate, warns outside 0.5Ã—â€“2Ã—, and uses the saved manual speed there. Moving the manual Speed slider or pressing Match BPM once exits follow mode; editing original BPM stops already rendered playback so the next Preview uses the new rate.
+- **Sample speed (`src/audio/drum-kit.ts`, `src/web.ts`):** Added per-sound Follow BPM with effective Repitch calculated from playback BPM / original break BPM at render time. Pattern and song tempos drive their respective playback and WAV exports; per-hit speed overrides still take priority. The instrument panel shows the current effective rate, warns outside 0.5Ãƒâ€”Ã¢â‚¬â€œ2Ãƒâ€”, and uses the saved manual speed there. Moving the manual Speed slider or pressing Match BPM once exits follow mode; editing original BPM stops already rendered playback so the next Preview uses the new rate.
 - **Persistence and interface (`src/audio/project.ts`, `public/workspace.css`, `public/index.html`, `README.md`):** Saved Follow BPM in each sound profile, validated imported settings, refreshed the visible rate when tempo or transport target changes, and documented the workflow. Existing projects without this setting remain manual.
 - **Verification (`tests/sample-shaping.test.mjs`, `scripts/sample-shaping-browser-smoke.mjs`):** Added pattern/song tempo, override, range fallback, project roundtrip, and browser interaction checks. `npm.cmd test` passed 141/141; focused browser smoke passed; `npm.cmd run test:site` passed at root and GitHub Pages subpath.
 
 ### [2026-09-27] - Per-Sample Repitch and Tone Shaping (Codex)
-- **Sample controls (`src/audio/drum-kit.ts`, `src/web.ts`, `public/index.html`, `public/workspace.css`):** Added remembered speed, original break BPM, pattern-BPM matching, low-pass tone, attack and decay defaults for each selected sound. Added optional per-hit overrides in the tracker inspector, with Preview and one-step Undo/Redo. The hidden waveform slicer can now be opened from an instrument's â€œChop a breakâ€ action.
+- **Sample controls (`src/audio/drum-kit.ts`, `src/web.ts`, `public/index.html`, `public/workspace.css`):** Added remembered speed, original break BPM, pattern-BPM matching, low-pass tone, attack and decay defaults for each selected sound. Added optional per-hit overrides in the tracker inspector, with Preview and one-step Undo/Redo. The hidden waveform slicer can now be opened from an instrument's Ã¢â‚¬Å“Chop a breakÃ¢â‚¬Â action.
 - **Shared audio and persistence (`src/audio/sample-shaping.ts`, `src/audio/performance.ts`, `src/audio/voice-v3.ts`, `src/audio/project.ts`, `src/core/model.ts`, `src/core/compile.ts`):** Repitch changes playback duration and pitch, while per-voice filtering and envelopes shape both Preview and WAV export. Validated the new fields and kept older projects compatible.
 - **Guidance and tests (`README.md`, `tests/sample-shaping.test.mjs`, `scripts/sample-shaping-browser-smoke.mjs`):** Documented the Think-style chop workflow and added render, project, Undo/Redo and browser checks for the new controls.
 - **Verification:** `npm.cmd test` passed 139/139; `npm.cmd run test:site` passed at root and GitHub Pages subpath; focused sample-shaping browser smoke passed.
@@ -781,14 +781,14 @@ This document maintains the running project state and change log so that multipl
 - **Verification:** Verified 100% green test suite: 126/126 unit tests (`npm.cmd test`) and all 344 samples, WAV export, A/B comparison, project roundtrip, and autosave pass on both root (`/`) and GitHub Pages subpath (`/breakbeat-pattern-maker/`) via `npm.cmd run test:site`.
 
 ### [2026-09-26] - Single-Row Transport & No-Scroll Beat Generator Viewport (Antigravity)
-- **Single-row hardware transport (`public/workspace.css`, `public/index.html`):** Reorganized `#transport` into a single, compact ~44px horizontal row instead of stacked vertical rows. Grouped `Play [Pattern v] [â–¶] Stopped` alongside `[TEMPO 165.0 BPM TAP]` and `[BAR & BEAT 01.1 2 BARS]` horizontally in `.transport-center`. Restyled `#play` to a sleek 38px circular button. Positioned `#transport` natively inside `#tray-bottom` in HTML without runtime DOM shifts.
+- **Single-row hardware transport (`public/workspace.css`, `public/index.html`):** Reorganized `#transport` into a single, compact ~44px horizontal row instead of stacked vertical rows. Grouped `Play [Pattern v] [Ã¢â€“Â¶] Stopped` alongside `[TEMPO 165.0 BPM TAP]` and `[BAR & BEAT 01.1 2 BARS]` horizontally in `.transport-center`. Restyled `#play` to a sleek 38px circular button. Positioned `#transport` natively inside `#tray-bottom` in HTML without runtime DOM shifts.
 - **Beat Generator viewport visibility without scrolling (`public/workspace.css`):** Removed the redundant `.tray-rack-tabs` strip. Adjusted `.workspace #grid` height to `clamp(260px, 34dvh, 380px)` with `min-height: 260px` so the entire Beat Generator (genre, kit, bars, bpm, complexity, spicy sliders, and `Generate` button) fits 100% on-screen simultaneously with the tracker grid on standard laptop and desktop displays without window scrolling ("rolling").
 - **Session HUD legibility (`public/workspace.css`):** Refined `#tray-session-hud` items with crisp vertical alignment and dedicated labels/values for Pattern, Tempo, Kit, and Channels.
 - **Verification:** Verified 100% green test pass across unit tests (126/126) and browser smoke tests (`npm.cmd run test:site` passing all 344 samples on both `/` and `/breakbeat-pattern-maker/`).
 
 ### [2026-09-26] - Tracker Workspace Streamlining, In-Column Hardware Buttons & Responsive Layout (Antigravity)
 - **Responsive chassis & full-width layout (`public/workspace.css`):** Removed rigid `max-width: 1720px;` and centered margin constraints on `main.daw-chassis`, enabling the DAW workspace to fluidly utilize the full width of ultrawide, 1440p, and 1080p displays without empty black side bars.
-- **In-column instrument buttons (`public/workspace.css`):** Styled the per-track `â–¾ Instrument / FX` summary in column headers into prominent, tactile hardware-style toggle buttons with dynamic role-colored glow (Kick: coral, Snare: amber, Hat: teal, Percussion: periwinkle), distinct chevron indicators, and clear open/closed state.
+- **In-column instrument buttons (`public/workspace.css`):** Styled the per-track `Ã¢â€“Â¾ Instrument / FX` summary in column headers into prominent, tactile hardware-style toggle buttons with dynamic role-colored glow (Kick: coral, Snare: amber, Hat: teal, Percussion: periwinkle), distinct chevron indicators, and clear open/closed state.
 - **Streamlined non-intrusive hit editing (`src/web.ts`, `public/index.html`, `public/workspace.css`):** Decoupled cell clicks from auto-expanding the massive `#hit-editor` drawer, preventing disruptive viewport jumping while retaining instant audio auditioning and direct parameter editing. Compacted the inspector into a streamlined drawer with contextual summary badges.
 - **Top header & transport reorganization (`public/index.html`, `public/workspace.css`):** Relocated export controls (`Active pattern`, `Export WAV`, export format) up into the top project header bar where export actions logically belong. Reorganized the bottom transport into a balanced 3-part layout (nav shortcuts, centered 52px round play button & tempo display, and clean live status HUD). Fixed the green box overflow collision between arrangement items and the footer status bar.
 - **Beat rationale & kit grouping (`public/index.html`, `public/workspace.css`, `src/web.ts`):** Grouped `Drum Kit Preset` and `[x] Auto-load kit with genre` together above the grid on the top-left. Completely removed the bulky `Learn this beat` panel and "Listen closer" box from beneath the grid. Repositioned the live beat explanation badge (`#explanation`) to the top-right above the grid as a clean contextual readout.
@@ -827,7 +827,7 @@ This document maintains the running project state and change log so that multipl
 - **Verification (`tests/pattern-history.test.mjs`, `scripts/site-browser-smoke.mjs`):** `npm.cmd test` passes 121/121; `npm.cmd run test:site` passes history restore, project roundtrip and autosave on both root and GitHub Pages subpath builds.
 
 ### [2026-09-25] - First-Run Quick Start Guide (Codex)
-- **Onboarding (`public/index.html`, `public/workspace.css`, `src/web.ts`):** Added a compact four-step Generate â†’ Preview â†’ Edit â†’ Export guide, responsive cards, and a header toggle that remembers visibility in local storage.
+- **Onboarding (`public/index.html`, `public/workspace.css`, `src/web.ts`):** Added a compact four-step Generate Ã¢â€ â€™ Preview Ã¢â€ â€™ Edit Ã¢â€ â€™ Export guide, responsive cards, and a header toggle that remembers visibility in local storage.
 - **Documentation and browser verification (`README.md`, `scripts/site-browser-smoke.mjs`):** Documented the guide and verified it opens, hides, and reopens on both site paths.
 - **Verification:** `npm.cmd test` passes 118/118 and `npm.cmd run test:site` passes on root and GitHub Pages subpath.
 
@@ -855,7 +855,7 @@ This document maintains the running project state and change log so that multipl
   - Implemented non-destructive dry/wet signal blending in `processEffects`: clones input channels when `wet < 1`, applies effects chain, and crossfades linearly `output = dry * (1 - wet) + wetData * wet`. If `wet === 0`, skips DSP entirely for instant dry bypass with zero CPU overhead.
   - Updated `effectTail()` to return 0 when `wet <= 0`.
 - **Instrument Cards & UI (`src/audio/drum-kit.ts`):**
-  - Added `FX Wet / Dry (0â€“1)` slider to the Effects rack of each drum instrument slot.
+  - Added `FX Wet / Dry (0Ã¢â‚¬â€œ1)` slider to the Effects rack of each drum instrument slot.
   - Formatted live readout to display percentage (`100%`, `50%`, `0%`).
   - Added active state indicator badge reflecting wet status (`Drive + 50% Wet`).
 - **Master DSP Strip (`public/index.html`, `src/web.ts`):**
@@ -876,10 +876,10 @@ This document maintains the running project state and change log so that multipl
 - **Categorized & Grouped Sample Selection UI (`src/audio/drum-kit.ts`):**
   - Organized the Sound selector into logical optgroups: *Built-in Synthesizers*, *Lo-Fi Hip-Hop Vol. 2*, *Acoustic & Studio Classics*, *Roland TR-808 Vintage*, and *UDNB Collection (Jungle / DnB)*.
 - **Sample Navigation Stepper Arrows (`src/audio/drum-kit.ts`, `public/style.css`, `public/workspace.css`):**
-  - Added â—€ (Prev) and â–¶ (Next) buttons directly beside the Sound dropdown on every drum slot.
+  - Added Ã¢â€”â‚¬ (Prev) and Ã¢â€“Â¶ (Next) buttons directly beside the Sound dropdown on every drum slot.
   - Clicking arrows cycles to the previous or next sound and triggers instant audible preview auditioning for rapid workflow.
 - **5 Curated Lo-Fi Kit Presets (`src/audio/library.ts`):**
-  - Added `ðŸ“» Lo-Fi Dusty Vinyl (Sub Kick & Crackle)`, `â˜• Chillhop Study Beats (Organic & Clean)`, `ðŸ“¼ Late Night Tape Beats (Saturated Boom Bap)`, `ðŸŽ›ï¸ SP-404 Gritty Lo-Fi (Crunch & Sizzle)`, and `ðŸ›‹ï¸ Mellow Jazzhop & Shaker (Warm & Gentle)`.
+  - Added `Ã°Å¸â€œÂ» Lo-Fi Dusty Vinyl (Sub Kick & Crackle)`, `Ã¢Ëœâ€¢ Chillhop Study Beats (Organic & Clean)`, `Ã°Å¸â€œÂ¼ Late Night Tape Beats (Saturated Boom Bap)`, `Ã°Å¸Å½â€ºÃ¯Â¸Â SP-404 Gritty Lo-Fi (Crunch & Sizzle)`, and `Ã°Å¸â€ºâ€¹Ã¯Â¸Â Mellow Jazzhop & Shaker (Warm & Gentle)`.
   - Mapped default kits for hip-hop and downtempo genre profiles.
 - **Verification:**
   - All 96 unit tests passing (`npm.cmd test`).
@@ -896,8 +896,8 @@ This document maintains the running project state and change log so that multipl
   - Automatically synthesizes and stores the asset into `assets` in `update()` and `choice.onchange`, ensuring seamless audition, pattern playback, arrangement playback, and WAV export.
   - Synchronized `generator-kit-desc` readouts across the Generator strip and Instruments tray.
 - **Preset Upgrades (`src/audio/library.ts`):**
-  - Updated the default `lofi-soul` kit preset (`ðŸ‚ Lo-Fi Hip-Hop (Vinyl Scratch & Soul Snare)`) to default its percussion slot to `synth-scratch`.
-  - Added `ðŸªµ Boom Bap & Soul (Deep 16x7 Snare & 18" Tom)` as an acoustic boom-bap kit option.
+  - Updated the default `lofi-soul` kit preset (`Ã°Å¸Ââ€š Lo-Fi Hip-Hop (Vinyl Scratch & Soul Snare)`) to default its percussion slot to `synth-scratch`.
+  - Added `Ã°Å¸ÂªÂµ Boom Bap & Soul (Deep 16x7 Snare & 18" Tom)` as an acoustic boom-bap kit option.
   - Linked `lofihiphop` in `GENRE_KITS` to automatically load the vinyl scratch kit.
 - **Verification:**
   - `npm.cmd test`: All 96 tests passed.
@@ -982,7 +982,7 @@ This document maintains the running project state and change log so that multipl
 - Added `src/core/groove-v3-development.ts`: genre-specific call/answer/end budgets, supporting hat/ghost/percussion phrases, minimum repeat spacing and phrase-position helpers for all 38 supported styles.
 - Updated v3 generation to admit coordinated support phrases and complete Euclidean support layers; preserve exact musical burst spans; enforce genre repeat/chop limits at maximum Spicy; prioritize endings; normalize repeat-contour energy; keep pitches on chosen intervals. Complexity retains existing rhythmic positions as layers are added.
 - Refined protected Jungle/Drumfunk-family snare motif options and Two-step Garage hats; tightened Jump Up kick motifs. V3 mutation now consults v3 placement rules instead of v2 rules.
-- Added v3-only Advanced **Phrase** (pattern/4/8/16 bars) and **Starting bar** controls, validated and persisted in project/autosave settings. A pattern remains 1â€“4 bars: generate separate sections into bank slots for a longer phrase. Repeated blocks do not regenerate themselves. Updated inspector help to distinguish musical spans from tracker rows.
+- Added v3-only Advanced **Phrase** (pattern/4/8/16 bars) and **Starting bar** controls, validated and persisted in project/autosave settings. A pattern remains 1Ã¢â‚¬â€œ4 bars: generate separate sections into bank slots for a longer phrase. Repeated blocks do not regenerate themselves. Updated inspector help to distinguish musical spans from tracker rows.
 - Bumped v3 generation revision to `0.3.0-groove.2` and browser asset cache keys. Existing saved events remain untouched until an explicit generation/edit; legacy/v2 pattern and PCM compatibility fixtures pass.
 - Added six musicality tests and expanded the v3 browser test for phrase save/import/autosave. `npm.cmd test`: **90/90 passing**. Targeted v3 browser test and deployment smoke checks (root and repository mount, all 233 samples) passed. All 12 browser scripts passed: the first 10 in the full run, then sounds and v3 after correcting a stale pre-existing sound-group assertion (3 groups before UDNB, 4 named groups now). `npm.cmd run test:site` passed at both mounts. Final `npm.cmd test` re-run: 90/90.
 
@@ -1010,13 +1010,13 @@ This document maintains the running project state and change log so that multipl
 
 ### [2026-09-25] - Audio Engine 3 (Groove v3) Architecture, Strudel Primitives, & Expressive Articulation (Codex & Antigravity)
 * **Rationale & Problem Addressed:**
-  - Fast-tempo genres (170â€“220+ BPM like Atmospheric D&B, Jungle, Breakcore) previously suffered from drum hits being truncated at tracker row edges, making one-shots sound clicky or thin.
+  - Fast-tempo genres (170Ã¢â‚¬â€œ220+ BPM like Atmospheric D&B, Jungle, Breakcore) previously suffered from drum hits being truncated at tracker row edges, making one-shots sound clicky or thin.
   - Spicy and Complexity sliders previously produced erratic random placements rather than authentic, musical subgenre expressions.
   - Users requested an elite third-generation rhythm engine (`groove-v3`) incorporating production techniques from Strudel pattern grammar, DOA/Reddit beatmaking archives, and authentic genre break interpretations.
 * **Core Architecture & Engine 3 Implementation:**
   - **`src/core/groove-v3-primitives.ts`:** Implemented isolated deterministic random streams (`v3Chance`, `v3Pick`) so adjusting Complexity/Spicy never perturbs the anchor spine; added rational subdivision ticks and Strudel-style Euclidean spacing (`euclideanSteps`).
   - **`src/core/groove-v3-profiles.ts`:** Calibrated 38 subgenres across 6 families (`jungle`, `hiphop`, `garage`, `dub`, `breaks`, `experimental`) with exact micro-timing pockets (`snareDragMs`, `ghostPushMs`, `hatSwing`, `percussionSwing`), cadence types, and minor-pentatonic melodic percussion runs.
-  - **`src/core/groove-v3.ts`:** Created 5-stage pipeline (Anchors â†’ Groove Map â†’ Layers & Euclidean â†’ Musical Spicy Rack â†’ Turnaround Cadences). Spicy creates structured bursts with musical tick durations, velocity curves, pitch flutter intervals, reverse accents, and micro-chops.
+  - **`src/core/groove-v3.ts`:** Created 5-stage pipeline (Anchors Ã¢â€ â€™ Groove Map Ã¢â€ â€™ Layers & Euclidean Ã¢â€ â€™ Musical Spicy Rack Ã¢â€ â€™ Turnaround Cadences). Spicy creates structured bursts with musical tick durations, velocity curves, pitch flutter intervals, reverse accents, and micro-chops.
   - **`src/audio/voice-v3.ts` & `src/core/articulation.ts`:** Separated `oneShot` hits from `slice` references, allowing kicks and snares to sustain naturally through their acoustic body even at high tempos; added continuous pitch glides, anti-click edge fades, and hi-hat choke groups across loops.
   - **`src/web.ts` & `public/index.html`:** Added `Groove v3` to `#algorithm` select dropdown, added burst duration (`#burst-span-field` / `#edit-burst-span`) and articulation badges (`#hit-expression`) to the hit inspector.
 * **Compatibility, Testing & Deployment:**
@@ -1033,7 +1033,7 @@ This document maintains the running project state and change log so that multipl
   - **Compact `.primary` Console:** Reduced input and select heights to 22px with 11px font; hid verbose multi-line `<small>` descriptions; arranged `Genre`, `Drum Kit`, `Bars`, `BPM`, `Complexity`, `Spicy` into a tight hardware-style console strip.
   - **Dense 9-Column Advanced Generation Grid:** Replaced 3 large rows of 45px inputs with a single sleek 9-column grid for `Break`, `Resolution`, `Engine`, `Seed`, `Syncopation`, `Swing`, `Humanize`, `Ghost`, and `Fill` with 20px input height and responsive breakpoints.
   - **Tracker Viewport Protection:** Enforced `min-height: 240px` on `.studio-layout` and `min-height: 180px` on `.workspace #grid`, while capping `.daw-tray-bottom .tray-body` to `max-height: 180px; overflow-y: auto;`.
-  - **`ðŸŽ¯ Follow` Playhead Button:** Added `#tracker-follow-playhead` to `.tracker-quick-actions` with neon cyan active styling, `f` keyboard shortcut, and auto-scroll synchronization during both pattern and song playback.
+  - **`Ã°Å¸Å½Â¯ Follow` Playhead Button:** Added `#tracker-follow-playhead` to `.tracker-quick-actions` with neon cyan active styling, `f` keyboard shortcut, and auto-scroll synchronization during both pattern and song playback.
 * **Files Modified:**
   - `public/index.html`: Added `#tracker-follow-playhead` button to `.tracker-quick-actions`; added `type="text"` to `#seed`.
   - `public/workspace.css`: Styled `.tracker-follow-btn`, redesigned `#controls`, `.primary`, `#advanced-generation`, `.advanced`, and `.generation-toolbar`, updated tray and grid layout rules.
@@ -1051,7 +1051,7 @@ This document maintains the running project state and change log so that multipl
 * **Balanced Symmetric 6-Item Generator Strip (`public/index.html`, `public/workspace.css`):**
   * Reordered generation controls into logical functional groups: Preset & Kit Configuration (`Genre`, `Drum Kit`, `Bars`) and Realtime Groove Tweaks (`BPM`, `Complexity`, `Spicy`).
   * On wide displays ($\ge 1101\text{px}$), all 6 controls fit on a single sleek line with zero wrapping.
-  * On standard/medium displays ($\le 1100\text{px}$), controls neatly form a balanced 3-column Ã— 2-row grid, completely eliminating the broken 4-column overflow and orphaned second-row blank spaces.
+  * On standard/medium displays ($\le 1100\text{px}$), controls neatly form a balanced 3-column Ãƒâ€” 2-row grid, completely eliminating the broken 4-column overflow and orphaned second-row blank spaces.
 * **Left Tray Session HUD & Dead Void Elimination (`public/index.html`, `public/workspace.css`, `src/web.ts`):**
   * Added a sleek **Live Status HUD** at the bottom of the Left Tray displaying active pattern name, bar length, tempo, selected drum kit name, channel count, and quick keyboard shortcuts (`Space: Play`, `Z-M: Notes`, `1-9: Vol`).
   * Updated `syncHud()` in `src/web.ts` to automatically refresh side HUD fields alongside transport updates.
@@ -1074,7 +1074,7 @@ This document maintains the running project state and change log so that multipl
   * Added **Drum Kit** preset selector directly into the Beat Generator primary controls (`#generator-kit-select`), syncing bidirectionally with the Inspector's preset selector (`#kit-preset-select`).
   * Ensured `<details id="sounds-panel" open>` is expanded by default in the right tray, so clicking the top **Drum Kit** tab or any track header immediately displays the kit presets and drum cards.
 * **Dedicated UDNB Kit Presets (`src/audio/library.ts`):**
-  * Added `udnb-signature` (*ðŸ”¥ UDNB Signature Drum Kit*) and `udnb-heavy-roller` (*âš¡ UDNB Heavy Roller*) presets with custom levels and decays tailored for heavy Drum & Bass / Jungle production.
+  * Added `udnb-signature` (*Ã°Å¸â€Â¥ UDNB Signature Drum Kit*) and `udnb-heavy-roller` (*Ã¢Å¡Â¡ UDNB Heavy Roller*) presets with custom levels and decays tailored for heavy Drum & Bass / Jungle production.
 * **Build & Test Infrastructure (`tests/workspace.test.mjs`, `scripts/site-browser-smoke.mjs`, `scripts/workspace-browser-smoke.mjs`):**
   * Updated catalog and static site bundle assertions to 233 WAVs.
   * Verified all 233 samples pass SHA-256 integrity, RIFF WAV decoding, Playwright browser UI selection, playback preview, and WAV export.
@@ -1083,7 +1083,7 @@ This document maintains the running project state and change log so that multipl
 
 ### [2026-09-24] - High-Tempo Drum Body Anti-Clicking & Melodic Atmospheric Breakcore Synthesis (Antigravity)
 * **High-Tempo Drum Body & Anti-Clicking (`src/audio/performance.ts`):**
-  * Diagnosed high-tempo click cause: `interval` calculation divided by resolution ($64$). At 180â€“220 BPM with gate applied, one-shot samples were truncated to 5â€“9 ms (smaller than a 60 Hz kick cycle), generating sharp DC offset clicks.
+  * Diagnosed high-tempo click cause: `interval` calculation divided by resolution ($64$). At 180Ã¢â‚¬â€œ220 BPM with gate applied, one-shot samples were truncated to 5Ã¢â‚¬â€œ9 ms (smaller than a 60 Hz kick cycle), generating sharp DC offset clicks.
   * Added `minBody` enforcement for unsliced drum hits ($80\text{ ms}$ for kicks, $65\text{ ms}$ for snares) so hits retain punch, low-end body, and acoustic snap even during fast rolls.
   * Maintained strict manual slice test contract (`!hit.slice`) to preserve micro-edits in `tests/articulation.test.mjs`.
   * Increased audio voice cutoff envelope to 2 ms (`rate * 0.002`) for smooth de-zippering on voice transitions.
@@ -1110,7 +1110,7 @@ This document maintains the running project state and change log so that multipl
 - **Linear Funk Drumming for Drumfunk (`src/core/groove.ts`):**
   - Implemented an acoustic linear drumming filter: suppressed simultaneous kick and ghost snare strikes on the same tick, mirroring live funk drummers and Paradox-style choppage.
 - **UK Garage Upbeat Choking & Open Hats (`src/core/groove.ts`):**
-  - Configured authentic 909-style open hi-hat decay (0.92â€“1.0) on upbeat 8ths (`steps 2, 6, 10, 14`) paired with tight choked 16th taps (0.24â€“0.34 decay) on following subdivisions.
+  - Configured authentic 909-style open hi-hat decay (0.92Ã¢â‚¬â€œ1.0) on upbeat 8ths (`steps 2, 6, 10, 14`) paired with tight choked 16th taps (0.24Ã¢â‚¬â€œ0.34 decay) on following subdivisions.
 - **Breakcore & IDM Pitch Glitches (`src/core/groove.ts`):**
   - Extended Spicy pitch excursion range up to $\pm 12$ semitones (1 full octave) for Breakcore, Atmospheric Breakcore, and IDM.
 - **Verification & Deployment (`public/index.html`):**
@@ -1121,14 +1121,14 @@ This document maintains the running project state and change log so that multipl
 ### [2026-09-24] - A/B Empirical Refinement: Full-Pattern Spicy Rolls & High-Res Complexity Bursts (Antigravity)
 - **A/B Benchmark & Slider Sensitivity (`src/core/groove.ts`, `scratch/ab-test.mjs`):**
   - Conducted empirical A/B benchmark comparing Legacy Engine 1 vs Groove Engine 2 across all genres.
-  - Identified that Engine 2's ratchets were previously trapped to beat 4 with strict `maxBursts` caps ($\le 1-2$), producing 0 rolls at 30%/60% Spicy (vs 7â€“10 in V1 across the entire bar).
-  - Liberated spicy ratchets across the entire pattern on non-anchor hits when `spicy > 0.25`: allocated `patternSpicyBudget = Math.round(spicy * 8)`, scaling from 1â€“2 rolls at 30% up to 11â€“12 rolls at 100% Spicy across all beats.
+  - Identified that Engine 2's ratchets were previously trapped to beat 4 with strict `maxBursts` caps ($\le 1-2$), producing 0 rolls at 30%/60% Spicy (vs 7Ã¢â‚¬â€œ10 in V1 across the entire bar).
+  - Liberated spicy ratchets across the entire pattern on non-anchor hits when `spicy > 0.25`: allocated `patternSpicyBudget = Math.round(spicy * 8)`, scaling from 1Ã¢â‚¬â€œ2 rolls at 30% up to 11Ã¢â‚¬â€œ12 rolls at 100% Spicy across all beats.
 - **High-Resolution Rolling Bursts (`src/core/groove.ts`):**
   - Restored Engine 1's responsive micro-burst behavior: at resolution 32/64 and `complexity > 0.45`, added 32nd-note (`tick += 120`) and 64th-note (`tick += 60`) fast rolling bursts toward phrase turnarounds.
   - Dynamic range ratio in Jungle jumped from 1.30x (V1) to 1.90x (V2), scaling from 29 hits up to 55 hits.
 - **Variation & Motif Freshness Verified:**
   - Empirical variation distance: Jungle = 28.8% (vs 20.9% in V1), Breaks = 32.3% (vs 19.0% in V1).
-  - Motif diversity over 20 seeds jumped from 2â€“3 unique patterns in V1 to 12â€“16 unique patterns in V2.
+  - Motif diversity over 20 seeds jumped from 2Ã¢â‚¬â€œ3 unique patterns in V1 to 12Ã¢â‚¬â€œ16 unique patterns in V2.
 - **Test Suite & Cache-Busting (`tests/groove.test.mjs`, `public/index.html`):**
   - Updated burst test assertion in `tests/groove.test.mjs` to permit pattern-wide rolls on non-anchor hits while enforcing strict backbeat anchor preservation.
   - Bumped cache busters in `public/index.html` to `?v=0.2.0-full-groove`.
@@ -1137,21 +1137,21 @@ This document maintains the running project state and change log so that multipl
 ### [2026-09-24] - Human Feel, Breakbeat Snare Anticipations & Deep Motif Library (Antigravity)
 - **Breakbeat Snare Syncopations & Drags (`src/core/groove.ts`):**
   - Added syncopated snare anticipations on step 11 (the "and" of 3, Think/Amen break feel) and double-tap response snares on step 14 when complexity > 0.25.
-  - Implemented 3-tier ghost snare dynamics: subtle whisper ghosts (0.16â€“0.22), connecting groove taps (0.26â€“0.34), and punchy lead-in drags/flams (0.42â€“0.52) right before backbeats.
+  - Implemented 3-tier ghost snare dynamics: subtle whisper ghosts (0.16Ã¢â‚¬â€œ0.22), connecting groove taps (0.26Ã¢â‚¬â€œ0.34), and punchy lead-in drags/flams (0.42Ã¢â‚¬â€œ0.52) right before backbeats.
 - **Hi-Hat Articulation & Decay Modulation (`src/core/groove.ts`):**
-  - Dynamic `hit.decay` modulation: accent hats on quarters ring open (0.85â€“1.0 decay) while offbeat 16th subdivisions are tightly choked (0.26â€“0.44 decay), eliminating robotic machine-gun sizzle.
+  - Dynamic `hit.decay` modulation: accent hats on quarters ring open (0.85Ã¢â‚¬â€œ1.0 decay) while offbeat 16th subdivisions are tightly choked (0.26Ã¢â‚¬â€œ0.44 decay), eliminating robotic machine-gun sizzle.
   - Added subtle velocity arcs building momentum toward phrase turnarounds.
 - **Intentional Pocket Microtiming (`src/core/groove.ts`):**
   - Baked in authentic pocket microtiming: syncopated offbeat kicks push forward (-3ms), backbeat snares lay back with genre-specific lag (+1 to +9ms), and lead-in ghost snares drag slightly (+2.5ms).
 - **Expanded Curated Kick Motifs (`src/core/groove-profiles.ts`):**
-  - Expanded kick motifs pool across all 38 genres to 5â€“7 distinct, authentic rhythmic templates (polyrhythmic 3-3-2, syncopated 2-step, broken double-kick, sub-kick pickups) so Variation continuously yields fresh musical patterns.
+  - Expanded kick motifs pool across all 38 genres to 5Ã¢â‚¬â€œ7 distinct, authentic rhythmic templates (polyrhythmic 3-3-2, syncopated 2-step, broken double-kick, sub-kick pickups) so Variation continuously yields fresh musical patterns.
 - **Cache-Busting & Test Verification (`public/index.html`):**
   - Bumped version cache buster to `?v=0.2.0-groove-pocket`.
   - 66/66 unit tests passing (`npm.cmd test`).
   - Static site packaging verified (`npm.cmd run test:site`).
 
 ### [2026-09-24] - Engine Sensitivity, Spicy Dynamics & Creative Variation (Antigravity)
-- **Spicy ðŸŒ¶ï¸ Slider Dynamics (`src/core/groove.ts`, `src/core/groove-profiles.ts`):**
+- **Spicy Ã°Å¸Å’Â¶Ã¯Â¸Â Slider Dynamics (`src/core/groove.ts`, `src/core/groove-profiles.ts`):**
   - Expanded ratchets pool to allow 2, 3, 4, 6, and 8 subdivisions when Spicy > 75% on beat 4, respecting genre `maxRatchet` and `maxBursts`.
   - Removed `maxBursts: 0` constraints so every genre audibly reacts to the Spicy slider.
   - Enabled full-pattern reverse ornaments (`hit.reverse = true`) and pitch rolls (`hit.pitch` from -7 to +7 st) on hats, ghost snares, and percussions as soon as Spicy > 0.
@@ -1168,7 +1168,7 @@ This document maintains the running project state and change log so that multipl
 
 ### [2026-09-24] - Groove v2 Engine & 38 Curated Genres (Codex & Antigravity)
 - **Staged Rhythm & Groove Engine (`src/core/groove.ts`, `src/core/groove-profiles.ts`):**
-  - Implemented `Groove v2` staged generation: core motif â†’ microtiming & groove offsets â†’ phrase response answers â†’ genre fills â†’ bounded ratchets/bursts.
+  - Implemented `Groove v2` staged generation: core motif Ã¢â€ â€™ microtiming & groove offsets Ã¢â€ â€™ phrase response answers Ã¢â€ â€™ genre fills Ã¢â€ â€™ bounded ratchets/bursts.
   - Added instrument-specific groove timing (`grooveTiming`): relaxed laid-back snares, adjustable hat swing, anchor jitter limits, and response pickups.
   - Curated phrase endings (`grooveFill`) across 8 fill styles: `soft`, `funk`, `jungle`, `hats`, `dub`, `garage`, `broken`, `rave`.
 - **Expanded to 38 Genre Profiles (`src/core/new-genres.ts`, `src/core/profiles.ts`, `src/core/model.ts`):**
@@ -1194,7 +1194,7 @@ This document maintains the running project state and change log so that multipl
 ### [2026-09-24] - Phase 4: Unified Song Arrangement & Transport (Codex)
 - **Sync:** Read `AGENTS.md`, pulled `origin main` (already current), reviewed this log and `PROJECT-SCOPE.md`; baseline 55/55 tests passed.
 - **Transport & arranger (`src/web.ts`, `public/index.html`, `public/workspace.css`):** Added explicit Pattern/Song playback selection and Active pattern/Full song WAV target. Song playback follows the playing slot, repeat and tracker row, scrolls the internal panels, and clears indicators on stop/target change. Blocks show bar ranges, draggable headings, drop feedback and keyboard/touch reorder controls with focus retention. Song export uses the existing shared sequence renderer with continuous effects and final tails; pattern Loop/Tail export remains available.
-- **Song model & migration (`src/core/bank.ts`, `src/audio/project.ts`):** Independent validated `bank.songBpm` (32â€“999), initialized from the first pattern; switching patterns or editing generator tempo leaves it unchanged. TAP follows transport target. Project schema v2 reads legacy v1 files/autosaves by deriving tempo from their saved active pattern, without mutating input or altering per-pattern data. Added pure timeline/position/reordering helpers. Existing 64-step, 16-repeat and 170-second limits retained.
+- **Song model & migration (`src/core/bank.ts`, `src/audio/project.ts`):** Independent validated `bank.songBpm` (32Ã¢â‚¬â€œ999), initialized from the first pattern; switching patterns or editing generator tempo leaves it unchanged. TAP follows transport target. Project schema v2 reads legacy v1 files/autosaves by deriving tempo from their saved active pattern, without mutating input or altering per-pattern data. Added pure timeline/position/reordering helpers. Existing 64-step, 16-repeat and 170-second limits retained.
 - **Tests (`tests/bank.test.mjs`, `scripts/song-browser-smoke.mjs`, `package.json`):** Three new unit tests cover migration/invalid tempos, mixed lengths/resolutions/repeats/tails, and reorder invariants. New browser regression verifies tracker follow, exact WAV bytes against the renderer, export targets, drag/buttons, saved tempo, locks and mobile layout; included in `test:browser`.
 - **Docs (`README.md`, `PROJECT-SCOPE.md`):** Updated song workflow, schema migration and current scope. New v2 projects require the updated app; old v1 projects remain supported.
 - **Verification:** 58/58 unit tests (`npm.cmd test`); song, bank and layout browser smoke tests; `npm.cmd run test:site` at root and repository subpath with all 45 licensed WAVs. No browser errors; no horizontal overflow at mobile width. `git diff --check` passed.
@@ -1230,11 +1230,11 @@ This document maintains the running project state and change log so that multipl
   - Fully integrated with undo/redo history (`this.commit(next, 'Scramble break')`).
 - **Tactile Hardware Action Strip (`public/index.html`, `public/workspace.css`, `src/web.ts`):**
   - Added dedicated hardware action buttons in the bottom rack header:
-    - `[ðŸŽ² SCRAMBLE]`: Instant Amen / Think break chopping and slice permutation.
-    - `[ðŸ§¬ MUTATE]`: Quick subtle mutation of velocities, microtimings, and ghost notes.
-    - `[âš¡ VARIATION]`: One-click regeneration from current seed and genre.
+    - `[Ã°Å¸Å½Â² SCRAMBLE]`: Instant Amen / Think break chopping and slice permutation.
+    - `[Ã°Å¸Â§Â¬ MUTATE]`: Quick subtle mutation of velocities, microtimings, and ghost notes.
+    - `[Ã¢Å¡Â¡ VARIATION]`: One-click regeneration from current seed and genre.
 - **Bottom Rack View Switcher & Waveform Slicer (`public/index.html`, `src/web.ts`, `public/workspace.css`):**
-  - Added seamless rack tabs: `[ðŸŽ›ï¸ Beat Generator]`, `[ðŸŒŠ Waveform Slicer]`, and `[âš¡ Master DSP]`.
+  - Added seamless rack tabs: `[Ã°Å¸Å½â€ºÃ¯Â¸Â Beat Generator]`, `[Ã°Å¸Å’Å  Waveform Slicer]`, and `[Ã¢Å¡Â¡ Master DSP]`.
   - Kept `#sample-drop` hidden on initial page load to guarantee 100% compliance with Playwright smoke tests, while enabling clean toggle to full interactive waveform canvas when selected.
 - **Master DSP Strip (`public/index.html`, `src/web.ts`, `public/workspace.css`):**
   - Added unified Master DSP control panel with Target Track selector (`All Tracks`, `Kick`, `Snare`, `Hat`, `Percussion`).
@@ -1265,8 +1265,8 @@ This document maintains the running project state and change log so that multipl
   - Implemented `deletePatternSlot(bank, indexToDelete)` with automatic active index and sequence step remapping, protecting the last remaining pattern.
   - Added `slotLabel(i)` for flexible naming: preserves `'A'`, `'B'`, `'C'`, `'Fill'` for the first 4 slots and uses `'P5'`, `'P6'`, etc. for subsequent slots.
   - Updated `validateBank` to permit dynamic slot arrays (1 to 256 patterns) while keeping strict integrity checks on active slots, names, and sequence references.
-  - Added Pattern Bank quick action toolbar: `+ New` button and `â§‰ Dup` button in `.pattern-bank .grid-heading`.
-  - Added delete button `âœ•` on pattern cards when more than 1 pattern exists.
+  - Added Pattern Bank quick action toolbar: `+ New` button and `Ã¢Â§â€° Dup` button in `.pattern-bank .grid-heading`.
+  - Added delete button `Ã¢Å“â€¢` on pattern cards when more than 1 pattern exists.
 - **Verification:**
   - 53/53 unit tests passing (+1 comprehensive new unit test for dynamic bank operations).
   - All Playwright browser smoke tests passing (layout, bank, effects, site deployment).
@@ -1274,10 +1274,10 @@ This document maintains the running project state and change log so that multipl
 ### [2026-09-24] - Milestone 2: Retractable 3-Tray Renoise UI Shell Architecture (Antigravity)
 - **Retractable 3-Tray Layout (`public/index.html`, `public/workspace.css`, `src/web.ts`):**
   - Implemented the 3-drawer console architecture matching the user wireframe (`media_1790236169104.jpg`) and Renoise mockup (`media_1790236156111.png`):
-    - **Left Tray (`#tray-left`):** Pattern Bank and Song Arrangement with toggle button `[â—€]`/`[â–¶]` and slim vertical collapsed rail.
+    - **Left Tray (`#tray-left`):** Pattern Bank and Song Arrangement with toggle button `[Ã¢â€”â‚¬]`/`[Ã¢â€“Â¶]` and slim vertical collapsed rail.
     - **Center Stage (`#stage-center`):** Renoise Tracker Grid (`.workspace`, `#grid`) with the in-place tracker live bar. Automatically expands to fill 100% of the screen width when side trays collapse!
-    - **Right Tray (`#tray-right`):** Context Inspector and Instrument Rack with toggle button `[â–¶]`/`[â—€]` and slim vertical collapsed rail.
-    - **Bottom Tray (`#tray-bottom`):** Beat Generation Control Strip & Rack (`#controls`, `#sample-drop`, `#status`) with toggle button `[â–¼]`/`[â–²]` and slim horizontal collapsed bar.
+    - **Right Tray (`#tray-right`):** Context Inspector and Instrument Rack with toggle button `[Ã¢â€“Â¶]`/`[Ã¢â€”â‚¬]` and slim vertical collapsed rail.
+    - **Bottom Tray (`#tray-bottom`):** Beat Generation Control Strip & Rack (`#controls`, `#sample-drop`, `#status`) with toggle button `[Ã¢â€“Â¼]`/`[Ã¢â€“Â²]` and slim horizontal collapsed bar.
   - Added smooth CSS transitions (`0.22s cubic-bezier(0.16, 1, 0.3, 1)`) and layout state persistence to `localStorage` (`bpm_tray_left`, `bpm_tray_right`, `bpm_tray_bottom`).
   - Added keyboard shortcuts: `Alt+1` toggles Patterns Tray, `Alt+2` toggles Bottom Generator Tray, `Alt+3` toggles Instruments Tray.
   - Linked top workstation tabs (`Tracker`, `Drum Kit`, `Arrangement`) and lane header settings buttons to expand the appropriate drawer automatically.
@@ -1310,12 +1310,12 @@ This document maintains the running project state and change log so that multipl
 - **In-Place Tracker Note Insertion (`src/web.ts`, `public/workspace.css`):**
   - Implemented authentic tracker note entry: clicking empty cells directly positions the cursor and auditions the instrument without popup modal windows; double-clicking enters a note immediately.
   - Added two-octave keyboard mapping (`Z..M` lower octave, `Q..U` upper octave), instant velocity mapping (`1..9`), semitone transposing (`+`/`-`), and quick cut (`Delete`/`Backspace`).
-  - Added `.tracker-live-bar` toolbar with step advance selection (`1`, `2`, `4`, `0`), quick hit entry, delete, ghost toggle, roll ratchets (`Ã—2`, `Ã—4`), and pitch transposition.
+  - Added `.tracker-live-bar` toolbar with step advance selection (`1`, `2`, `4`, `0`), quick hit entry, delete, ghost toggle, roll ratchets (`Ãƒâ€”2`, `Ãƒâ€”4`), and pitch transposition.
   - Rendered Renoise-style obsidian tracker grid with high-contrast colored track headers, beat-row highlighting, and a 2px glowing cyan cursor box.
 - **Instruments Panel & Button Layout Fixes (`public/workspace.css`, `public/index.html`):**
   - Fixed drum slots in the context panel from cramped 4-column layout into a spacious single-column channel strip layout with role-colored left borders and proper padding.
   - Completely hid the raw browser file input (`Choose File No file chosen`) in favor of styled buttons.
-  - Fixed `Export WAV â†“` button text overflow by adding `white-space: nowrap !important`, flex centering, and proper padding.
+  - Fixed `Export WAV Ã¢â€ â€œ` button text overflow by adding `white-space: nowrap !important`, flex centering, and proper padding.
   - Ensured all 52 unit tests and modern layout browser smoke tests pass cleanly.
 
 ### [2026-09-24] - Punchy Sample Assignments, Master Bus Glue & Audio Quality (Antigravity)
@@ -1346,7 +1346,7 @@ This document maintains the running project state and change log so that multipl
   - Added genre-to-kit mapping (`GENRE_KITS`) that automatically selects the appropriate kit when switching genres or restoring defaults.
   - Added `#kit-preset-select` dropdown in the Instruments drawer for 1-click full-kit selection, and `#auto-kit` checkbox to enable/disable auto-switching.
   - Retained full customization: modifying any individual slot displays *Custom Kit* and preserves custom WAV uploads and projects.
-- **"Spicy" ðŸŒ¶ï¸ Articulation Slider (`src/core/model.ts`, `src/core/generate.ts`, `src/web.ts`):**
+- **"Spicy" Ã°Å¸Å’Â¶Ã¯Â¸Â Articulation Slider (`src/core/model.ts`, `src/core/generate.ts`, `src/web.ts`):**
   - Added `spicy` (0 to 1) setting to rhythm generator for breakcore/IDM ratchets (up to 8x), tight gates, offbeat reverse hits, and micro-pitch shifting.
   - Non-anchor hits are spiced while preserving core downbeats and snares.
   - Added Spicy slider control with live visual status badge (Off, Mild, Spicy, Chaos).
@@ -1354,7 +1354,7 @@ This document maintains the running project state and change log so that multipl
   - Overhauled pattern area to eliminate "iframe box" feel, introducing a sleek dark DAW chassis with custom scrollbars.
   - Added DAW channel strip track headers with genre/role color accents (Kick Red, Snare Blue, Hat Yellow, Perc Green).
   - Added channel-strip header mute toggles (`M`) that mute/unmute lanes directly from the tracker grid.
-  - Added bar start dividing lines (`.bar-start`), beat lines (`.beat`), and tracker dot notation for empty cells (`Â·Â·Â· Â·Â· Â·Â· Â·Â·`).
+  - Added bar start dividing lines (`.bar-start`), beat lines (`.beat`), and tracker dot notation for empty cells (`Ã‚Â·Ã‚Â·Ã‚Â· Ã‚Â·Ã‚Â· Ã‚Â·Ã‚Â· Ã‚Â·Ã‚Â·`).
 - **Verification:**
   - 52/52 unit tests passing (`npm.cmd test`).
   - Playwright site smoke tests passing on both root `/` and subpath `/breakbeat-pattern-maker/` (`npm.cmd run test:site`).
