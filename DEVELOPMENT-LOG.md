@@ -87,6 +87,23 @@ This document maintains the running project state and change log so that multipl
 - **Regression coverage (`tests/melody-generation.test.mjs`, `tests/piano-generation.test.mjs`):** Updated project roundtrip expectations and checked the Lead defaults to piano while retaining a user-selected pluck across regeneration.
 - **Verification:** `npm.cmd test` passed (283 tests); `npm.cmd run test:site` passed, including root and subpath smoke coverage.
 
+### [2026-10-04] - Vertical Song Map & Section Grouping in Left Tray (Antigravity)
+- Redesigned the left tray as a vertical song-structure map inspired by the visual arrangement design (`src/ui/vertical-song-map.ts`, `public/index.html`, `public/workspace.css`, `src/web.ts`, `src/core/bank.ts`):
+  - Made Vertical Song Map the primary left tray view with a segmented tab switcher (`🗺 Song Map`, `🎹 Patterns`, `🕒 History`).
+  - Added vertical bar ruler track on the left of clips with live playhead indicator (`[ ▶ bar ]`) synchronized during arrangement playback.
+  - Grouped arrangement clips into section cards (`Intro`, `Drop`, `Break`, `Build`, `Outro`, etc.) with color-coded badges, bar counts, inline editable section titles, and + Clip / Remove Section actions.
+  - Clip cards display pattern name, bar range, duration, repeat badges with `-`/`+` adjustment, and action bar (`Move up`, `Move down`, `⎘ Dup`, `Remove`).
+  - Drag-and-drop reordering for clips with visual drop indicators.
+  - Clicking any arrangement clip selects its pattern in the center tracker stage.
+  - Added empty state with clear call-to-action (`+ Add First Pattern`) when no arrangement exists.
+  - Kept Pattern Bank slots and Recent Patterns / A/B compare accessible in compact collapsible drawers.
+  - Maintained complete backward compatibility with whole-pattern arrangement data model (`Bank`, `bank.sequence`, `ArrangementHistory`), arrangement playback, and full song WAV export.
+- Tests & Verification:
+  - Added unit test suite `tests/song-map.test.mjs` verifying section classification, grouping logic with bar ranges, clip duplication, and undo/redo history for arrangement actions.
+  - Updated `scripts/bank-browser-smoke.mjs` and `scripts/song-browser-smoke.mjs` with direct-child title span and button order alignment.
+  - Unit tests: `npm.cmd test` passed all 287/287 tests (0 failed).
+  - Site browser tests: `npm.cmd run test:site` passed all 12 test suites across desktop and mobile.
+
 ### [2026-10-03] - Fix Tutorial Tray-State and Tab Restoration Edge Case (Antigravity)
 - Fixed an edge case where starting the tutorial with the bottom tray already open on another tab (e.g., DSP or Waveform Slicer) failed to expose the Generator controls for step 1 (`src/ui/tutorial.ts`, `src/web.ts`).
 - Updated `TutorialController` to record the exact starting bottom tray state (`collapsed: boolean` and `activeTab: 'generator' | 'slicer' | 'fx'`).

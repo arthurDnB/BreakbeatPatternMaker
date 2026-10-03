@@ -113,51 +113,105 @@
 <!-- Studio Views Container (3-Tray Renoise Workstation) -->
 <div class="studio-layout" id="studio-layout">
   <!-- 1. LEFT TRAY: PATTERNS & SEQUENCER (Retractable) -->
-  <aside class="daw-tray daw-tray-left" id="tray-left" aria-label="Pattern sequencer tray">
-    <div class="tray-header">
-      <span class="tray-title"><span class="tray-dot"></span> PATTERNS</span>
-      <button id="toggle-tray-left" class="tray-toggle-btn" title="Toggle Patterns Tray (Alt+1)" aria-label="Toggle Patterns Tray" type="button">◀</button>
-    </div>
-    <div class="tray-collapsed-rail" id="rail-tray-left" title="Click to expand Patterns tray">
-      <button class="rail-expand-btn" aria-label="Expand Patterns Tray" type="button">▶</button>
-      <span class="rail-label">PATTERNS</span>
-    </div>
-    <div class="tray-body">
-      <section class="pattern-bank" aria-label="Pattern bank and arrangement">
-        <div class="grid-heading"><h2>Pattern bank</h2><span id="bank-status" role="status"></span><span class="bank-history-actions"><button id="arr-undo" class="bank-tool-btn" disabled title="Nothing to undo">↩</button><button id="arr-redo" class="bank-tool-btn" disabled title="Nothing to redo">↪</button></span></div>
-        <div id="bank-slots" class="bank-slots"></div>
-      </section>
-
-      <details id="pattern-history-panel"><summary>Recent patterns <span id="pattern-history-count"></span></summary>
-        <p class="history-help">Restore an earlier beat, or set two beats as A and B to compare them. The current beat stays available through Undo.</p>
-        <div id="pattern-history-list"></div>
-        <div id="pattern-compare" class="pattern-compare" aria-label="A/B pattern comparison">
-          <strong>A/B compare</strong>
-          <p id="compare-status" role="status">Set A and B from the beats above.</p>
-          <div class="compare-actions">
-            <button id="compare-preview-a" type="button" disabled>Preview A</button>
-            <button id="compare-preview-b" type="button" disabled>Preview B</button>
-            <button id="compare-keep-a" type="button" disabled>Keep A</button>
-            <button id="compare-keep-b" type="button" disabled>Keep B</button>
-            <button id="compare-clear" type="button" disabled>Clear</button>
-          </div>
+      <aside class="daw-tray daw-tray-left" id="tray-left" aria-label="Song map and pattern sequencer tray">
+      <div class="tray-header">
+        <span class="tray-title"><span class="tray-dot"></span> SONG MAP</span>
+        <div class="tray-header-actions">
+          <button id="arr-undo" class="bank-tool-btn" disabled title="Undo arrangement change (Ctrl+Z)" type="button">↶</button>
+          <button id="arr-redo" class="bank-tool-btn" disabled title="Redo arrangement change (Ctrl+Y)" type="button">↷</button>
+          <button id="toggle-tray-left" class="tray-toggle-btn" title="Toggle Song Map Tray (Alt+1)" aria-label="Toggle Patterns Tray" type="button">◀</button>
         </div>
-      </details>
+      </div>
+      <div class="tray-collapsed-rail" id="rail-tray-left" title="Click to expand Song Map tray">
+        <button class="rail-expand-btn" aria-label="Expand Patterns Tray" type="button">▶</button>
+        <span class="rail-label">SONG MAP</span>
+      </div>
 
-      <details id="arranger"><summary>Song arrangement</summary>
-        <label class="song-tempo">Song tempo <input id="song-bpm" type="number" min="32" max="999" step="0.1" value="165"> BPM</label>
-        <p class="song-help">Select a pattern in the timeline, drag blocks into gaps, or use Move buttons below. Song tempo is independent.</p>
-        <p id="song-position" role="status">Song stopped</p>
-        <div class="timeline-heading"><strong>Song timeline</strong><span>Drag blocks into a gap · + inserts selected pattern</span></div>
-        <div id="song-timeline" class="song-timeline" aria-label="Song arrangement timeline"></div>
-        <div id="timeline-legend" class="timeline-legend" aria-label="Section colors"></div>
-        <p id="sequence-empty" class="arrangement-empty" role="status" hidden>Your song has no patterns yet. Choose a pattern below, then select <strong>Add pattern</strong> to start the arrangement.</p>
-        <div id="sequence"></div><div class="actions"><select id="append-slot" aria-label="Pattern to append"></select><button id="append-step">Add pattern</button><button id="play-arrangement">Play arrangement</button><button id="export-arrangement">Export arrangement WAV</button></div><p id="arrangement-info" role="status" aria-live="polite"></p>
-      </details>
+      <!-- Segmented Tray View Switcher -->
+      <div class="tray-view-switcher" role="tablist" aria-label="Left tray views">
+        <button type="button" id="tab-tray-map" class="tray-tab-btn is-active" role="tab" aria-selected="true" title="Vertical Song Map">🗺 Song Map</button>
+        <button type="button" id="tab-tray-bank" class="tray-tab-btn" role="tab" aria-selected="false" title="Pattern Bank Slots">🎹 Patterns</button>
+        <button type="button" id="tab-tray-history" class="tray-tab-btn" role="tab" aria-selected="false" title="Recent Patterns & Compare">🕒 History</button>
+      </div>
 
+      <div class="tray-body">
+        <!-- 1. PRIMARY VIEW: VERTICAL SONG MAP -->
+        <section class="song-map-section" id="song-map-section" aria-label="Song structure map">
+          <div class="song-map-toolbar">
+            <div class="song-map-metrics">
+              <span id="song-map-bars-total" class="song-stat-badge">0 bars</span>
+              <span id="song-map-duration-total" class="song-stat-badge">0.0s</span>
+              <label class="song-tempo-inline" title="Song tempo (independent of pattern tempos)">
+                <span>BPM</span>
+                <input id="song-bpm" type="number" min="32" max="999" step="0.1" value="165">
+              </label>
+            </div>
+            <div class="song-map-transport-row">
+              <button id="play-arrangement" class="song-map-btn-play" type="button">Play arrangement</button>
+              <button id="export-arrangement" class="song-map-btn-export" type="button">Export arrangement WAV</button>
+            </div>
+            <div class="song-map-add-row">
+              <select id="append-slot" class="song-map-slot-select" aria-label="Pattern to append"></select>
+              <button id="append-step" class="song-map-btn-add" type="button">Add pattern</button>
+            </div>
+            <p id="song-position" role="status">Song stopped</p>
+          </div>
 
-    </div>
-  </aside>
+          <!-- Vertical Song Map Host (Where .sequence-step clips are rendered) -->
+          <div id="sequence" class="vertical-song-map" aria-label="Song arrangement structure map"></div>
+
+          <!-- Empty State -->
+          <div id="sequence-empty" class="arrangement-empty song-map-empty" role="status" hidden>
+            <div class="empty-icon">🗺</div>
+            <strong>Your song has no patterns yet</strong>
+            <p>Choose a pattern above, then select <strong>Add pattern</strong> to start the arrangement.</p>
+            <button id="empty-add-btn" class="song-map-empty-add-btn" type="button">+ Add First Pattern</button>
+          </div>
+
+          <p id="arrangement-info" role="status" aria-live="polite"></p>
+        </section>
+
+        <!-- 2. PATTERN BANK (Compact collapsible drawer) -->
+        <details id="pattern-bank-drawer" class="tray-drawer-panel" open>
+          <summary class="tray-drawer-summary">
+            <span class="drawer-title"><span class="drawer-arrow">▾</span> PATTERN BANK</span>
+            <span id="bank-status" role="status"></span>
+          </summary>
+          <div class="pattern-bank" aria-label="Pattern bank slots">
+            <div id="bank-slots" class="bank-slots"></div>
+          </div>
+        </details>
+
+        <!-- 3. RECENT PATTERNS (Collapsible drawer) -->
+        <details id="pattern-history-panel" class="tray-drawer-panel">
+          <summary class="tray-drawer-summary">
+            <span class="drawer-title"><span class="drawer-arrow">▾</span> RECENT PATTERNS <span id="pattern-history-count"></span></span>
+          </summary>
+          <p class="history-help">Restore an earlier beat, or set two beats as A and B to compare them. The current beat stays available through Undo.</p>
+          <div id="pattern-history-list"></div>
+          <div id="pattern-compare" class="pattern-compare" aria-label="A/B pattern comparison">
+            <strong>A/B compare</strong>
+            <p id="compare-status" role="status">Set A and B from the beats above.</p>
+            <div class="compare-actions">
+              <button id="compare-preview-a" type="button" disabled>Preview A</button>
+              <button id="compare-preview-b" type="button" disabled>Preview B</button>
+              <button id="compare-keep-a" type="button" disabled>Keep A</button>
+              <button id="compare-keep-b" type="button" disabled>Keep B</button>
+              <button id="compare-clear" type="button" disabled>Clear</button>
+            </div>
+          </div>
+        </details>
+
+        <!-- 4. HORIZONTAL TIMELINE / ARRANGER (Collapsible drawer for tests & alternate view) -->
+        <details id="arranger" class="tray-drawer-panel">
+          <summary class="tray-drawer-summary"><span class="drawer-title"><span class="drawer-arrow">▾</span> HORIZONTAL TIMELINE</span></summary>
+          <p class="song-help">Select a pattern in the timeline, drag blocks into gaps, or use Move buttons below. Song tempo is independent.</p>
+          <div class="timeline-heading"><strong>Song timeline</strong><span>Drag blocks into a gap · + inserts selected pattern</span></div>
+          <div id="song-timeline" class="song-timeline" aria-label="Song arrangement timeline"></div>
+          <div id="timeline-legend" class="timeline-legend" aria-label="Section colors"></div>
+        </details>
+      </div>
+    </aside>
   <div id="resize-left" class="panel-splitter" role="separator" aria-label="Resize pattern bank" aria-orientation="vertical" tabindex="0"></div>
 
   <!-- 2. CENTER STAGE: RENOISE TRACKER WORKSPACE -->

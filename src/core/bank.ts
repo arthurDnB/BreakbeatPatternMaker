@@ -183,3 +183,25 @@ export function insertSequenceStep(bank: Bank, before: number, slot: number) {
   if (!Number.isInteger(before) || before < 0 || before > bank.sequence.length || bank.sequence.length >= 64 || !Number.isInteger(slot) || !bank.slots[slot]?.editor) throw Error('Invalid arrangement insertion.');
   bank.sequence.splice(before, 0, {slot, repeats: 1});
 }
+
+export function duplicateSequenceStep(bank: Bank, stepIndex: number): number {
+  if (bank.sequence.length >= 64 || !Number.isInteger(stepIndex) || stepIndex < 0 || stepIndex >= bank.sequence.length) {
+    throw Error('Invalid arrangement step to duplicate.');
+  }
+  const orig = bank.sequence[stepIndex]!;
+  const newIndex = stepIndex + 1;
+  bank.sequence.splice(newIndex, 0, { slot: orig.slot, repeats: orig.repeats, ...(orig.section ? { section: orig.section } : {}) });
+  return newIndex;
+}
+
+export function sectionKind(section: string | undefined): 'intro' | 'build' | 'drop' | 'break' | 'fill' | 'outro' | 'other' | 'unlabeled' {
+  const name = section?.trim().toLowerCase() ?? '';
+  if (!name) return 'unlabeled';
+  if (/intro|opening/.test(name)) return 'intro';
+  if (/build|ris/.test(name)) return 'build';
+  if (/drop|chorus|hook/.test(name)) return 'drop';
+  if (/break/.test(name)) return 'break';
+  if (/fill|turnaround|transition/.test(name)) return 'fill';
+  if (/outro|ending/.test(name)) return 'outro';
+  return 'other';
+}

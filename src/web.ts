@@ -35,6 +35,7 @@ import {ArrangementHistory} from './core/arrangement-history.js';
 import {createRotaryKnob} from './ui/rotary-knob.js';
 import {openSynthPatchEditor} from './ui/synth-patch-editor.js';
 import {TutorialController} from './ui/tutorial.js';
+import {renderVerticalSongMap, updateVerticalSongMapPlayback} from './ui/vertical-song-map.js';
 
 
 const el=<T extends HTMLElement>(id:string)=>document.getElementById(id) as T;
@@ -728,6 +729,7 @@ function stop(){
   if(timer)clearInterval(timer);timer=undefined;
   for(const source of playingSources){try{source.stop();}catch{}source.disconnect();}playingSources.clear();
   mode=undefined;comparisonPlaying=undefined;pendingSlot=undefined;el('transport-state').textContent='Stopped';el('play-arrangement').textContent='Play arrangement';el('bank-status').textContent='';document.querySelectorAll('.playing-step').forEach(e=>e.classList.remove('playing-step'));
+  updateVerticalSongMapPlayback(el('sequence'), undefined, undefined);
   playToken++;setPlayButton(false);el('song-position').textContent='Song stopped';document.querySelector('.playing-row')?.classList.remove('playing-row');
   if(workspaceSavePending){workspaceSavePending=false;scheduleWorkspaceSave();}
   resetHud();renderComparisonControls();
@@ -940,20 +942,117 @@ function renderBank(){if(!bank)return;const host=el('bank-slots');host.replaceCh
   if(bank!.slots.length>1){const del=document.createElement('button');del.className='slot-del-btn';del.textContent='✕';del.title='Delete '+slot.name;del.setAttribute('aria-label','Delete '+slot.name);del.onclick=(e)=>{e.stopPropagation();stop();if(arrangementMutation('Delete pattern',b=>deletePatternSlot(b,i))){comparison=undefined;bank=arrangementHistory!.bank;selectedArrangementStep=undefined;activateSlot(bank.active);renderBank();scheduleSave();status('Deleted pattern.');}};card.append(del);}
   host.append(card);});
  renderPatternHistory();input('song-bpm').value=String(bank.songBpm);syncHud();
- let firstBar=1;
- const seq=el('sequence');seq.replaceChildren();bank.sequence.forEach((step,i)=>{const row=document.createElement('div');row.className='sequence-step';row.dataset.step=String(i);row.classList.toggle('selected-step',selectedArrangementStep===i);const title=document.createElement('span');title.textContent=String(i+1)+'. '+bank!.slots[step.slot]!.name;row.append(title);
- const barCount=bank!.slots[step.slot]!.editor!.pattern.settings.bars*step.repeats;
- const range=document.createElement('small');range.className='sequence-range';range.textContent='Bars '+firstBar+'–'+(firstBar+barCount-1);firstBar+=barCount;row.append(range);
- const section=document.createElement('input');section.type='text';section.maxLength=32;section.placeholder='Section (optional)';section.value=step.section??'';section.setAttribute('aria-label','Section name for step '+(i+1));section.onchange=()=>{const value=section.value.trim();if(arrangementMutation('Name arrangement section',b=>{if(value)b.sequence[i]!.section=value;else delete b.sequence[i]!.section;})){renderBank();scheduleSave();}};row.append(section);
- title.draggable=true;title.title='Drag this heading to reorder the song';row.setAttribute('aria-label','Step '+(i+1)+': '+(step.section?step.section+' · ':'')+bank!.slots[step.slot]!.name+', '+range.textContent);
- row.ondragstart=e=>{if((e.target as HTMLElement).closest('input,button')){e.preventDefault();return;}draggedStep=i;e.dataTransfer?.setData('text/plain',String(i));if(e.dataTransfer)e.dataTransfer.effectAllowed='move';};
- row.ondragover=e=>{if(draggedStep!==undefined){e.preventDefault();row.classList.add('drop-target');}};
- row.ondragleave=()=>row.classList.remove('drop-target');
- row.ondragend=()=>{draggedStep=undefined;document.querySelectorAll('.drop-target').forEach(e=>e.classList.remove('drop-target'));};
- row.ondrop=e=>{e.preventDefault();if(draggedStep===undefined)return;stop();const from=draggedStep;draggedStep=undefined;if(arrangementMutation('Reorder arrangement',b=>moveSequenceStep(b,from,i))){selectedArrangementStep=undefined;renderBank();scheduleSave();}};
- const label=document.createElement('label');label.textContent='Repeats ';const count=document.createElement('input');count.type='number';count.min='1';count.max='16';count.value=String(step.repeats);count.setAttribute('aria-label','Repeats for step '+(i+1));count.onchange=()=>{const v=Number(count.value);if(!Number.isInteger(v)||v<1||v>16){count.value=String(step.repeats);return;}stop();if(arrangementMutation('Change repeats',b=>{b.sequence[i]!.repeats=v;})){renderBank();scheduleSave();}};label.append(count);row.append(label);
- for(const [text,delta] of [['Move up',-1],['Move down',1],['Remove',0]] as const){const b=document.createElement('button');b.textContent=text;b.disabled=delta!==0&&(i+delta<0||i+delta>=bank!.sequence.length);b.onclick=()=>{stop();const changed=arrangementMutation(delta===0?'Remove arrangement step':'Reorder arrangement',next=>delta===0?next.sequence.splice(i,1):moveSequenceStep(next,i,i+delta));if(changed){selectedArrangementStep=undefined;renderBank();scheduleSave();const focusStep=Math.min(delta===0?i:i+delta,bank!.sequence.length-1);el('sequence').querySelector<HTMLElement>('[data-step="'+focusStep+'"] button:not(:disabled)')?.focus();}};row.append(b);}seq.append(row);});
- el('sequence-empty').hidden=bank.sequence.length>0;
+ const seq = el('sequence');
+  renderVerticalSongMap(seq, bank, selectedArrangementStep, {
+    onSelectStep: (step, slot) => {
+      stop();
+      selectedArrangementStep = step;
+      activateSlot(slot);
+      el('grid').scrollTop = 0;
+      renderBank();
+      status('Selected ' + bank!.slots[slot]!.name + ' at step ' + (step + 1) + '.');
+    },
+    onRenameSection: (stepIndices, newName) => {
+      if (arrangementMutation('Name arrangement section', b => {
+        for (const idx of stepIndices) {
+          if (newName) b.sequence[idx]!.section = newName;
+          else delete b.sequence[idx]!.section;
+        }
+      })) {
+        renderBank();
+        scheduleSave();
+      }
+    },
+    onAddClipToSection: (beforeStep, slot, sectionName) => {
+      if (bank!.sequence.length >= 64) return;
+      stop();
+      if (arrangementMutation('Add clip to section', b => {
+        b.sequence.splice(beforeStep, 0, { slot, repeats: 1, ...(sectionName ? { section: sectionName } : {}) });
+      })) {
+        selectedArrangementStep = beforeStep;
+        renderBank();
+        scheduleSave();
+      }
+    },
+    onRemoveSection: (stepIndices) => {
+      stop();
+      if (arrangementMutation('Remove section', b => {
+        const sorted = [...stepIndices].sort((a, b) => b - a);
+        for (const idx of sorted) b.sequence.splice(idx, 1);
+      })) {
+        selectedArrangementStep = undefined;
+        renderBank();
+        scheduleSave();
+      }
+    },
+    onDuplicateStep: (step) => {
+      if (bank!.sequence.length >= 64) return;
+      stop();
+      if (arrangementMutation('Duplicate arrangement clip', b => {
+        const orig = b.sequence[step]!;
+        b.sequence.splice(step + 1, 0, { slot: orig.slot, repeats: orig.repeats, ...(orig.section ? { section: orig.section } : {}) });
+      })) {
+        selectedArrangementStep = step + 1;
+        renderBank();
+        scheduleSave();
+      }
+    },
+    onChangeRepeats: (step, repeats) => {
+      stop();
+      if (arrangementMutation('Change repeats', b => {
+        b.sequence[step]!.repeats = repeats;
+      })) {
+        renderBank();
+        scheduleSave();
+      }
+    },
+    onMoveStep: (step, delta) => {
+      stop();
+      const nextIdx = step + delta;
+      if (arrangementMutation('Reorder arrangement', b => moveSequenceStep(b, step, nextIdx))) {
+        selectedArrangementStep = nextIdx;
+        renderBank();
+        scheduleSave();
+        const focusStep = Math.min(nextIdx, bank!.sequence.length - 1);
+        el('sequence').querySelector<HTMLElement>('[data-step="' + focusStep + '"] button:not(:disabled)')?.focus();
+      }
+    },
+    onRemoveStep: (step) => {
+      stop();
+      if (arrangementMutation('Remove arrangement step', b => {
+        b.sequence.splice(step, 1);
+      })) {
+        selectedArrangementStep = undefined;
+        renderBank();
+        scheduleSave();
+        const focusStep = Math.min(step, bank!.sequence.length - 1);
+        el('sequence').querySelector<HTMLElement>('[data-step="' + focusStep + '"] button:not(:disabled)')?.focus();
+      }
+    },
+    onReorderStep: (from, to) => {
+      stop();
+      if (arrangementMutation('Reorder arrangement', b => moveSequenceStep(b, from, to))) {
+        selectedArrangementStep = to;
+        renderBank();
+        scheduleSave();
+      }
+    },
+    onAddFirstPattern: () => {
+      stop();
+      if (arrangementMutation('Append to arrangement', b => insertSequenceStep(b, 0, b.active))) {
+        selectedArrangementStep = 0;
+        renderBank();
+        scheduleSave();
+      }
+    }
+  });
+  el('sequence-empty').hidden = bank.sequence.length > 0;
+  const barsTotal = bank.sequence.reduce((n, s) => n + bank!.slots[s.slot]!.editor!.pattern.settings.bars * s.repeats, 0);
+  const durTotal = barsTotal ? (barsTotal * 240 / bank.songBpm) : 0;
+  const barsTotalEl = document.getElementById('song-map-bars-total');
+  if (barsTotalEl) barsTotalEl.textContent = barsTotal + ' bars';
+  const durTotalEl = document.getElementById('song-map-duration-total');
+  if (durTotalEl) durTotalEl.textContent = durTotal.toFixed(1) + 's';
  const select=el<HTMLSelectElement>('append-slot'),value=select.value;select.replaceChildren();bank.slots.forEach((s,i)=>{if(s.editor){const o=document.createElement('option');o.value=String(i);o.textContent=s.name;select.append(o);}});if(Array.from(select.options).some(o=>o.value===value))select.value=value;
  renderSongTimeline();
  const bars=bank.sequence.reduce((n,s)=>n+bank!.slots[s.slot]!.editor!.pattern.settings.bars*s.repeats,0);el('arrangement-info').textContent=bars?bars+' bars - '+(bars*240/bank.songBpm).toFixed(1)+' seconds - '+bank.songBpm+' BPM · max 170s':'No song arranged yet. Add a pattern to enable playback and export.';input('play-arrangement').disabled=!bars;input('export-arrangement').disabled=!bars;input('append-step').disabled=bank.sequence.length>=64;const undo=input('arr-undo'),redo=input('arr-redo');if(arrangementHistory&&undo&&redo){undo.disabled=!arrangementHistory.undoLabel;redo.disabled=!arrangementHistory.redoLabel;undo.title=arrangementHistory.undoLabel?`Undo ${arrangementHistory.undoLabel}`:'Nothing to undo';redo.title=arrangementHistory.redoLabel?`Redo ${arrangementHistory.redoLabel}`:'Nothing to redo';undo.setAttribute('aria-label',arrangementHistory.undoLabel?`Undo ${arrangementHistory.undoLabel}`:'Nothing to undo');redo.setAttribute('aria-label',arrangementHistory.redoLabel?`Redo ${arrangementHistory.redoLabel}`:'Nothing to redo');}
@@ -997,6 +1096,10 @@ async function playArrangement(){
    if(key!==lastPosition){
     lastPosition=key;
     if(lastStep!==position.step){document.querySelectorAll('.playing-step').forEach(e=>e.classList.remove('playing-step'));document.querySelector('#sequence [data-step="'+position.step+'"]')?.classList.add('playing-step');document.querySelector('#song-timeline [data-timeline-step="'+position.step+'"]')?.classList.add('playing-step');lastStep=position.step;}
+     const blocks = songBlocks(bank!);
+     const currentBlock = blocks[position.step];
+     const currentBar = currentBlock ? (currentBlock.startBar + position.repeat * (bank!.slots[position.slot]!.editor!.pattern.settings.bars) + Math.floor(position.row / (transfer.timing.lines / bank!.slots[position.slot]!.editor!.pattern.settings.bars))) : undefined;
+     updateVerticalSongMapPlayback(el('sequence'), position.step, currentBar);
     const timelineBlock=document.querySelector<HTMLElement>('#song-timeline [data-timeline-step="'+position.step+'"]');
     if(followPlayhead){revealTimelineBlock(timelineBlock);const tray=document.querySelector<HTMLElement>('#tray-left .tray-body');if(tray)revealPlaybackItem(tray,document.querySelector('#sequence .playing-step'));}
     el('transport-state').textContent='Song · Step '+(position.step+1)+' / '+bank!.sequence.length;
@@ -3184,7 +3287,53 @@ function syncReTrackStatusStrip() {
   }
 }
 
+
+function initLeftTraySongMapTabs() {
+  const tabMap = document.getElementById('tab-tray-map');
+  const tabBank = document.getElementById('tab-tray-bank');
+  const tabHistory = document.getElementById('tab-tray-history');
+  const drawerBank = document.getElementById('pattern-bank-drawer') as HTMLDetailsElement | null;
+  const drawerHistory = document.getElementById('pattern-history-panel') as HTMLDetailsElement | null;
+  const songMapSec = document.getElementById('song-map-section');
+
+  function setTrayTab(tab: 'map' | 'bank' | 'history') {
+    tabMap?.classList.toggle('is-active', tab === 'map');
+    tabMap?.setAttribute('aria-selected', String(tab === 'map'));
+    tabBank?.classList.toggle('is-active', tab === 'bank');
+    tabBank?.setAttribute('aria-selected', String(tab === 'bank'));
+    tabHistory?.classList.toggle('is-active', tab === 'history');
+    tabHistory?.setAttribute('aria-selected', String(tab === 'history'));
+
+    if (tab === 'map') {
+      songMapSec?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else if (tab === 'bank') {
+      if (drawerBank) drawerBank.open = true;
+      drawerBank?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else if (tab === 'history') {
+      if (drawerHistory) drawerHistory.open = true;
+      drawerHistory?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  if (tabMap) tabMap.onclick = () => setTrayTab('map');
+  if (tabBank) tabBank.onclick = () => setTrayTab('bank');
+  if (tabHistory) tabHistory.onclick = () => setTrayTab('history');
+
+  const emptyAddBtn = document.getElementById('empty-add-btn');
+  if (emptyAddBtn) {
+    emptyAddBtn.onclick = () => {
+      stop();
+      if (arrangementMutation('Append to arrangement', b => insertSequenceStep(b, 0, b.active))) {
+        selectedArrangementStep = 0;
+        renderBank();
+        scheduleSave();
+      }
+    };
+  }
+}
+
 function initReTrackStudio() {
+  initLeftTraySongMapTabs();
   initReTrackTopTransport();
   initReTrackOscilloscope();
   initReTrackDspPresets();

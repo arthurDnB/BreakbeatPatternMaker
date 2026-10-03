@@ -21,6 +21,7 @@ const browser=await chromium.launch({headless:true,channel:process.env.BROWSER_C
 try {
  const page=await browser.newPage({viewport:{width:1440,height:1000},acceptDownloads:true});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.addInitScript(() => localStorage.setItem('bpm_tutorial_dismissed', '1'));
  await page.goto(process.env.APP_URL??'http://127.0.0.1:4173');
  await page.waitForFunction(()=>document.querySelector('#save-status').textContent==='Saved locally');
  await page.setInputFiles('#project-open',{name:'song.bbproject',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(project))});

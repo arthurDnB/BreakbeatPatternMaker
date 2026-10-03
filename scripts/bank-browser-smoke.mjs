@@ -1,6 +1,6 @@
 import {chromium} from 'playwright';import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';
 const browser=await chromium.launch({headless:true,channel:process.env.BROWSER_CHANNEL??'msedge'});
-try{const page=await browser.newPage({viewport:{width:1280,height:1000},acceptDownloads:true}),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('http://127.0.0.1:4173');await page.locator('#slot-0').waitFor();
+try{const page=await browser.newPage({viewport:{width:1280,height:1000},acceptDownloads:true}),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.addInitScript(() => localStorage.setItem('bpm_tutorial_dismissed', '1'));await page.goto('http://127.0.0.1:4173');await page.locator('#slot-0').waitFor();
  const dl=async id=>{const p=page.waitForEvent('download');await page.click(id);return readFile(await(await p).path());};
  const a=await dl('#export-wav');await page.click('#slot-1');await page.click('#regenerate');const b=await dl('#export-wav');assert.notDeepEqual(a,b);await page.click('#slot-0');assert.deepEqual(a,await dl('#export-wav'));await page.click('#slot-1');assert.deepEqual(b,await dl('#export-wav'));
  await page.click('#arranger > summary');await page.selectOption('#append-slot','1');await page.click('#append-step');assert.equal(await page.locator('.sequence-step').count(),2);const wav=await dl('#export-arrangement');assert.ok(wav.length>a.length*2);
