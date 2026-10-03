@@ -29,7 +29,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.2.3`
-* **Test Status:** 281 unit tests passing (0 skipped, 0 failed); all deployment site smoke checks passing (`npm.cmd test` and `npm.cmd run test:site`).
+* **Test Status:** 282 unit tests passing (0 skipped, 0 failed); all deployment site smoke checks passing (`npm.cmd test` and `npm.cmd run test:site`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -81,6 +81,12 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-10-03] - Atmospheric Breakcore Opening Rolls (Codex)
+- Used Arthur's second listening export: the layered-kit four-bar opening was the best so far, but too close to a basic two-step. Preserved its kick/snare anchors and kit, and added a few Complexity-gated snare cuts, hat chops, and response kick pickups in `src/core/groove-v5-profiles.ts`.
+- Added optional `rollRepeats` to V5 layer notes, validated it in `src/core/groove-v5.ts`, and applied authored rolls only after the full phrase has been placed so repeats are bounded by following notes and the bar end. A roll remains one tracker hit for Exact Hits and editing. Two-bar patterns now admit phrase detail in their response bar rather than filling both bars from the start; profiles without phrase gates remain unchanged.
+- Preserved the listener's preferred prior opening WAV locally and updated `scripts/atmospheric-breakcore-audition.mjs` to show it next to the new render. At the fixed study seed and four-bar opening, tracker notes rose from 49 to 56, including four short snare rolls. Added checks for bounded repeats, Complexity admission, anchor stability, two-bar phrase shape, and invalid profile data.
+- Verification: `npm.cmd test` passed 282/282; `npm.cmd run test:site` passed all root and subpath browser checks. The original song and exported listener notes remain local and outside Git.
 
 ### [2026-10-03] - Atmospheric Breakcore Listener Refinement (Codex)
 - Used Arthur's exported listening notes: the reference has heavy hits and a snare run meeting a kick at the end; the first dedicated development was better but still too light, and its cowbell kit did not fit. Added late-phrase snare drags and broken hats in `src/core/groove-v5-profiles.ts`, then paired the ending snare run and kick at the same step. Spicy gestures for this genre no longer move the paired onset. At the fixed A/B seed, later-phrase tracker notes rose from 68 to 82.

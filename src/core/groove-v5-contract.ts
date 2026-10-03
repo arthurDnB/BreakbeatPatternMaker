@@ -13,6 +13,8 @@ export interface V5AnchorMotif {
 }
 export interface V5LayerNote {
   step:number;gain:number;ghost?:boolean;pan?:number;
+  /** Optional short authored roll on this note; still one tracker hit. */
+  rollRepeats?:2|3|4;
   /** Stable admission chance, independent of Complexity. */
   probability?:number;
   /** If true, Syncopation gates this optional note. */
@@ -22,7 +24,7 @@ export interface V5Layer {
   id:string;role:Role;
   /** First Complexity setting at which this musical layer is available. */
   minimum:number;
-  /** Optional entry point within a phrase of at least four bars (0–1). */
+  /** Optional entry point within a phrase (0–1); two bars have opening/response. */
   minimumPhraseProgress?:number;
   /** Limit the layer to particular places in a phrase. Omit for every bar. */
   on?:readonly V5BarFunction[];
@@ -55,7 +57,7 @@ export interface V5Profile {
   cadences:readonly V5Cadence[];
   timing:Readonly<Record<Role,V5Timing>>;
   spice:V5Spice;
-  /** Hold expressive gestures until this point in phrases of at least four bars. */
+  /** Hold expressive gestures until this point in the phrase. */
   spiceMinimumPhraseProgress?:number;
   /** How readily the closing bar receives an automatic cadence. */
   responseWeight:number;

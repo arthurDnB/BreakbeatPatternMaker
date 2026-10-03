@@ -39,7 +39,7 @@ export function validateV5Profile(profile:V5Profile,genre:Settings['genre']):voi
  }
  const checkNotes=(notes:readonly V5LayerNote[])=>{
   if(!notes.length||notes.length>64)throw Error('Invalid Groove V5 layer notes.');
-  for(const note of notes){if(!step(note.step))throw Error('Invalid Groove V5 step.');bounded(note.gain,0,1,'Groove V5 gain');if(note.pan!==undefined)bounded(note.pan,-1,1,'Groove V5 pan');if(note.probability!==undefined)bounded(note.probability,0,1,'Groove V5 probability');}
+  for(const note of notes){if(!step(note.step))throw Error('Invalid Groove V5 step.');bounded(note.gain,0,1,'Groove V5 gain');if(note.pan!==undefined)bounded(note.pan,-1,1,'Groove V5 pan');if(note.probability!==undefined)bounded(note.probability,0,1,'Groove V5 probability');if(note.rollRepeats!==undefined&&![2,3,4].includes(note.rollRepeats))throw Error('Invalid Groove V5 authored roll.');}
  };
  for(const layer of profile.layers){identity(layer.id);if(!ROLES.includes(layer.role))throw Error('Invalid Groove V5 role.');bounded(layer.minimum,0,1,'Groove V5 layer minimum');if(layer.minimumPhraseProgress!==undefined)bounded(layer.minimumPhraseProgress,0,1,'Groove V5 phrase progress');if(layer.on?.some(value=>!['opening','continuation','response','turnaround'].includes(value)))throw Error('Invalid Groove V5 bar function.');checkNotes(layer.notes);}
  for(const cadence of profile.cadences){identity(cadence.id);if(!ROLES.includes(cadence.role))throw Error('Invalid Groove V5 cadence role.');bounded(cadence.minimum,0,1,'Groove V5 cadence minimum');checkNotes(cadence.notes);}
@@ -131,7 +131,9 @@ function layers(c:State):void {
 }
 function phraseProgressReached(c:State,bar:V5BarPlan,minimum=0):boolean {
  const length=c.s.phraseLength??c.s.bars;
- return length<4||bar.phrasePosition/Math.max(1,length-1)>=minimum;
+ // A two-bar pattern is still a phrase: admit later detail in its response
+ // bar rather than filling both bars with the whole vocabulary at once.
+ return length===1||bar.phrasePosition/(length-1)>=minimum;
 }
 function cadences(c:State,forced=false):void {
  const s=c.s;
@@ -162,6 +164,16 @@ function articulate(c:State,item:Hit,kind:'roll'|'chop',amount:number):boolean {
  item.articulation={durationTicks:Math.floor(limit),mode:kind==='chop'?'chop':'gate',repeats,
   ...(item.role==='hat'?{chokeGroup:'hat' as const}:{})};
  item.ratchets=count;item.gate=.86;return true;
+}
+function authoredRolls(c:State):void {
+ for(const bar of c.plan.bars)for(const layer of c.profile.layers)for(const note of layer.notes){
+  if(!note.rollRepeats)continue;
+  const tick=Math.round(bar.bar*BAR+note.step*STEP);
+  const item=c.events.get(`${layer.role}:${tick}`);
+  if(!item?.reason.startsWith(`${layer.id} places`))continue;
+  const amount=note.rollRepeats===2?.2:note.rollRepeats===3?.6:1;
+  if(articulate(c,item,'roll',amount))item.reason+=' An authored short roll breaks the pulse.';
+ }
 }
 function resolvingRoll(c:State,build:boolean):void {
  const role=enabled(c.s,'snare')?'snare':c.profile.cadences.find(value=>enabled(c.s,value.role))?.role;
@@ -221,6 +233,7 @@ export function generateGrooveV5(settings:Settings,profile:V5Profile=v5ProfileFo
   for(const [key,item] of c.events)if(!item.anchor&&onset(item)>=start)c.events.delete(key);
   if(structure==='fill')cadences(c,true);else resolvingRoll(c,structure==='build');
  }
+ authoredRolls(c);
  spice(c);
  const events=[...c.events.values()].sort(order);
  if(s.breakStyle&&s.breakStyle!=='genre')for(const item of events)item.reason=BREAKS[s.breakStyle].name+' rhythm interpretation: '+item.reason;

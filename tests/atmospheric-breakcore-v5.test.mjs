@@ -81,6 +81,32 @@ test('high-complexity ending resolves the snare run with a simultaneous kick',()
   'Fill Amount zero must remove the closing cadence');
 });
 
+test('higher Complexity adds bounded authored rolls to the opening without changing its kick/snare spine',()=>{
+ const profile=v5ProfileFor(genre);
+ const low=generateGrooveV5(config({phraseLength:8,phraseOffset:0,complexity:.3,spicy:0,fillAmount:0}),profile);
+ const high=generateGrooveV5(config({phraseLength:8,phraseOffset:0,complexity:.85,spicy:0,fillAmount:0}),profile);
+ const anchors=pattern=>pattern.events.filter(hit=>hit.anchor).map(identity);
+ assert.deepEqual(anchors(high),anchors(low));
+ assert.ok(!low.events.some(hit=>hit.ratchets>1));
+ const rolls=high.events.filter(hit=>hit.ratchets>1);
+ assert.ok(rolls.some(hit=>hit.role==='snare'&&barOf(hit)<4));
+ assert.ok(rolls.length<=8,'opening should not become a constant stream of rolls');
+ for(const hit of rolls){
+  assert.ok([2,3,4].includes(hit.ratchets));
+  assert.equal(hit.articulation?.repeats?.length,hit.ratchets);
+  assert.ok(hit.articulation.durationTicks>0&&hit.articulation.durationTicks<=480);
+ }
+ const invalid=structuredClone(profile);
+ invalid.layers.find(layer=>layer.id==='atmospheric-opening-snare-cuts').notes[0].rollRepeats=5;
+ assert.throws(()=>validateV5Profile(invalid,genre),/authored roll/);
+
+ const short=generateGrooveV5(config({bars:2,phraseLength:undefined,complexity:.85,
+  spicy:0,fillAmount:0}),profile);
+ const counts=[0,1].map(bar=>short.events.filter(hit=>barOf(hit)===bar).length);
+ assert.ok(counts[0]<counts[1],'a two-bar pattern should move from a simpler opening to a broken response');
+ assert.ok(short.events.some(hit=>barOf(hit)===1&&hit.role==='snare'&&hit.ratchets>1));
+});
+
 test('the genre kit replaces the cowbell with layered break drums',()=>{
  assert.equal(genreDefaults(genre).bpm,170);
  const kit=KIT_PRESETS.find(item=>item.id===GENRE_KITS[genre]);
