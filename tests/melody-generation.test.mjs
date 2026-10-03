@@ -147,7 +147,7 @@ test('melody-only projects round-trip and render through the shared WAV path',()
  const restored=readProject(project).project;
  assert.equal(restored.draft.generationMode,'melody');
  assert.equal(restored.editor.pattern.settings.melodyScale,'dorian');
- assert.equal(generated(restored.editor.pattern,'lead').instrument.preset,'pluck');
+ assert.equal(generated(restored.editor.pattern,'lead').instrument.preset,'piano');
  const audio=renderPerformance(withDrumKit(restored.editor.pattern,{},defaultKitState()),new Map(),8000,{},{loop:true});
  const wav=encodeWav(audio.channels,audio.sampleRate);
  assert.equal(new TextDecoder().decode(new Uint8Array(wav).slice(0,4)),'RIFF');

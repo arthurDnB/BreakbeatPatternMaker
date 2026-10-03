@@ -82,6 +82,11 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-10-03] - Piano Instrument for Generated Lead (Codex)
+- **Generated Lead default (`src/core/editor.ts`):** New generated Lead tracks now use the sampled piano preset instead of the pluck preset. Existing generated Lead tracks still using the stock pluck preset switch to piano on their next regeneration; a user's explicitly chosen instrument is retained.
+- **Regression coverage (`tests/melody-generation.test.mjs`, `tests/piano-generation.test.mjs`):** Updated project roundtrip expectations and checked the Lead defaults to piano while retaining a user-selected pluck across regeneration.
+- **Verification:** `npm.cmd test` passed (283 tests); `npm.cmd run test:site` passed, including root and subpath smoke coverage.
+
 ### [2026-10-03] - Fix Tutorial Tray-State and Tab Restoration Edge Case (Antigravity)
 - Fixed an edge case where starting the tutorial with the bottom tray already open on another tab (e.g., DSP or Waveform Slicer) failed to expose the Generator controls for step 1 (`src/ui/tutorial.ts`, `src/web.ts`).
 - Updated `TutorialController` to record the exact starting bottom tray state (`collapsed: boolean` and `activeTab: 'generator' | 'slicer' | 'fx'`).

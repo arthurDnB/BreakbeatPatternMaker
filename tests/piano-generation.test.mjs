@@ -138,6 +138,13 @@ test('individual layer generation preserves others, locks, undo, and track reuse
  const bass=structuredClone(events(editor.state.pattern,'bassline'));
  editor.generateComposition({...s,generationMode:'melody',melodyPart:'lead'},'Generate Melody');
  const lead=structuredClone(events(editor.state.pattern,'lead'));
+ const leadTrack=editor.state.pattern.userTracks.find(track=>track.generatedPart==='lead');
+ assert.equal(leadTrack.instrument.preset,'piano','the main generated melody should use the piano instrument');
+ editor.setSynthInstrument(leadTrack.id,structuredClone(SYNTH_PRESETS.pluck));
+ editor.generateComposition({...s,generationMode:'melody',melodyPart:'lead',variation:1},'Regenerate Melody');
+ assert.equal(editor.state.pattern.userTracks.find(track=>track.generatedPart==='lead').instrument.preset,'pluck',
+  'regenerating the lead must retain an instrument the user selected');
+ editor.undo();
  editor.generateComposition({...s,generationMode:'melody',melodyPart:'piano'},'Generate Piano');
  const piano=events(editor.state.pattern,'piano');assert.ok(piano.length>0);
  assert.deepEqual(events(editor.state.pattern,'bassline'),bass);assert.deepEqual(events(editor.state.pattern,'lead'),lead);
