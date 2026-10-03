@@ -771,7 +771,14 @@ export const V5_PROFILE_OVERRIDES:Partial<Record<Genre,V5Profile>>={
     {step:14,gain:.49,probability:.7,syncopated:true}]},
    {id:'atmospheric-fractured-snare',role:'snare',minimum:.62,minimumPhraseProgress:.57,notes:[
     {step:6.5,gain:.23,ghost:true,probability:.8},
-    {step:15.5,gain:.25,ghost:true,probability:.8}]},
+    {step:9.5,gain:.25,ghost:true,probability:.8}]},
+   {id:'atmospheric-snare-drag',role:'snare',minimum:.7,minimumPhraseProgress:.43,notes:[
+    {step:7.5,gain:.27,ghost:true,probability:.76},
+    {step:10.5,gain:.25,ghost:true,probability:.76}]},
+   {id:'atmospheric-broken-hat-answer',role:'hat',minimum:.7,minimumPhraseProgress:.43,notes:[
+    {step:2.5,gain:.18,probability:.72,syncopated:true},
+    {step:6.5,gain:.19,probability:.72,syncopated:true},
+    {step:10.5,gain:.18,probability:.72,syncopated:true}]},
    {id:'atmospheric-high-chops',role:'hat',minimum:.78,minimumPhraseProgress:.57,notes:[
     {step:3.5,gain:.16,probability:.7,syncopated:true},
     {step:7.5,gain:.17,probability:.7,syncopated:true},
@@ -783,15 +790,17 @@ export const V5_PROFILE_OVERRIDES:Partial<Record<Genre,V5Profile>>={
   ],
   cadences:[
    {id:'atmospheric-snare-lift',role:'snare',minimum:.35,notes:[
-    {step:11,gain:.27,ghost:true},{step:13,gain:.36,ghost:true},
-    {step:14.5,gain:.43},{step:15.5,gain:.54}]}
+    {step:12.5,gain:.27,ghost:true},{step:13.5,gain:.4},
+    {step:14.5,gain:.61},{step:15.5,gain:.86}]},
+   {id:'atmospheric-kick-with-final-snare',role:'kick',minimum:.62,notes:[
+    {step:15.5,gain:.93}]}
   ],
   timing:{
    kick:{swing:0,dragMs:0},snare:{swing:.5,dragMs:1},
    hat:{swing:.64,dragMs:0},percussion:{swing:.5,dragMs:-1}},
-  spice:{gestures:['roll','chop','push','pitch'],roles:['snare','hat','percussion'],
-   maxPerBar:3,maxRepeats:4,minRepeatMs:20,pitchSteps:[0,7,-5,12]},
+  spice:{gestures:['roll','chop','pitch'],roles:['snare','hat','percussion'],
+   maxPerBar:4,maxRepeats:4,minRepeatMs:20,pitchSteps:[0,7,-5,12]},
   spiceMinimumPhraseProgress:.43,
-  responseWeight:.72
+  responseWeight:1
  }
 };

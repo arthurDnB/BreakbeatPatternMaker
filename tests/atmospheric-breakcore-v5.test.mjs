@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {generateGrooveV5,validateV5Profile} from '../dist/core/groove-v5.js';
 import {baselineV5Profile,v5ProfileFor} from '../dist/core/groove-v5-baseline.js';
 import {genreDefaults} from '../dist/core/profiles.js';
+import {GENRE_KITS,KIT_PRESETS,LIBRARY} from '../dist/audio/library.js';
 
 const genre='atmosphericbreakcore';
 const config=(overrides={})=>({
@@ -61,4 +62,34 @@ test('increasing Complexity admits detail monotonically, while other genre profi
  assert.ok(patterns.at(-1).events.length>patterns[0].events.length);
  assert.equal(v5ProfileFor('breakcore').genre,'breakcore');
  assert.ok(v5ProfileFor('breakcore').anchors.every(motif=>motif.id.startsWith('breakcore-')));
+});
+
+test('high-complexity ending resolves the snare run with a simultaneous kick',()=>{
+ const profile=v5ProfileFor(genre),ending=3*3840+15.5*240;
+ for(const seed of ['sr20-opening-study','alternate-break-01']){
+  const settings=config({seed,phraseLength:8,phraseOffset:4,complexity:.85,spicy:1,fillAmount:1});
+  const hits=generateGrooveV5(settings,profile).events;
+  const resolution=hits.filter(hit=>hit.baseTick===ending&&['kick','snare'].includes(hit.role));
+  assert.deepEqual(resolution.map(hit=>hit.role).sort(),['kick','snare']);
+  assert.ok(Math.abs(resolution[0].offsetTick-resolution[1].offsetTick)<8,
+   'the closing kick and snare must still land together after Spicy edits');
+  assert.ok(hits.some(hit=>hit.role==='snare'&&hit.baseTick===3*3840+14.5*240),
+   'the closing pair needs a preceding snare run');
+ }
+ const dry=generateGrooveV5(config({phraseLength:8,phraseOffset:4,fillAmount:0}),profile);
+ assert.ok(!dry.events.some(hit=>hit.reason.includes('cadence-atmospheric-kick-with-final-snare')),
+  'Fill Amount zero must remove the closing cadence');
+});
+
+test('the genre kit replaces the cowbell with layered break drums',()=>{
+ assert.equal(genreDefaults(genre).bpm,170);
+ const kit=KIT_PRESETS.find(item=>item.id===GENRE_KITS[genre]);
+ assert.ok(kit);
+ assert.equal(kit.slots.percussion,'udnb-perc-13');
+ assert.equal(kit.slots.hat,'udnb-hat-11');
+ for(const role of ['kick','snare']){
+  assert.ok(kit.velocityLayers?.[role]);
+  for(const id of Object.values(kit.velocityLayers[role]))
+   assert.ok(LIBRARY.some(sound=>sound.id===id&&sound.role===role),`${role} layer ${id} is missing`);
+ }
 });

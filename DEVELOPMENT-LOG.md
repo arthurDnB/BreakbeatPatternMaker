@@ -29,7 +29,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.2.3`
-* **Test Status:** 279 unit tests passing (0 skipped, 0 failed); all deployment site smoke checks passing (`npm.cmd test` and `npm.cmd run test:site`).
+* **Test Status:** 281 unit tests passing (0 skipped, 0 failed); all deployment site smoke checks passing (`npm.cmd test` and `npm.cmd run test:site`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -81,6 +81,12 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-10-03] - Atmospheric Breakcore Listener Refinement (Codex)
+- Used Arthur's exported listening notes: the reference has heavy hits and a snare run meeting a kick at the end; the first dedicated development was better but still too light, and its cowbell kit did not fit. Added late-phrase snare drags and broken hats in `src/core/groove-v5-profiles.ts`, then paired the ending snare run and kick at the same step. Spicy gestures for this genre no longer move the paired onset. At the fixed A/B seed, later-phrase tracker notes rose from 68 to 82.
+- Reworked the Atmospheric Breakcore preset in `src/audio/library.ts` using the already-curated acoustic kick/snare velocity layers, a UDNB hat, and dry percussion instead of the cowbell; set its new-pattern tempo in `src/core/new-genres.ts` to the listener-reported 170 BPM. Existing saved patterns and manually chosen kits retain their own settings. This is a sound candidate for listener comparison, not a claim to reproduce the reference recording.
+- Extended `scripts/atmospheric-breakcore-audition.mjs` to compare the refined development through the previous and new kits on identical notes, while retaining the prior local development render. Added focused unit checks for the synchronized cadence and kit mapping, and a browser check that the genre loads its three snare velocity layers.
+- Verification: `npm.cmd test` passed 281/281; `npm.cmd run test:site` passed all root and subpath browser suites. Original reference MP3 and listener notes remain local and outside the repository.
 
 ### [2026-10-03] - Atmospheric Breakcore V5 Opening Study and Profile (Codex)
 - Studied the user-supplied Blksmiith SR20DET MP3 locally at the user-reported 170 BPM and 7A. An exploratory low-band phase scan suggested an attack alignment near 0.13 s; the first unshifted four-bar window was substantially quieter than the next. These measurements do not verify the downbeat, classify individual drum hits, or prove that the 1:30 section is a louder drop. Original audio and analysis remain in ignored `test-results/atmospheric-breakcore-references/`.

@@ -64,6 +64,13 @@ try{
   await page.click('#generate');
   assert.equal(await page.locator('#grid .hit').count(),22,'The suggested Dubstep target must generate successfully');
 
+  // Genre defaults must load all layers, not just show the new kit label.
+  await page.locator('#auto-kit').check();
+  await page.selectOption('#genre','atmosphericbreakcore');
+  await page.waitForFunction(()=>document.querySelector('#kit-info-snare')?.textContent?.includes('3 velocity layers'));
+  assert.equal(await page.inputValue('#kit-preset-select'),'atmospheric-breakcore');
+  assert.match(await page.locator('#kit-info-percussion').textContent(),/UDNB Percussion 13/);
+
   assert.deepEqual(errors,[]);
   console.log('Groove V5 browser controls, variation, exact-hit capacity, and undo passed.');
 }finally{

@@ -2289,16 +2289,21 @@ export const KIT_PRESETS: KitPreset[] = [
   },
   {
     id: 'atmospheric-breakcore',
-    name: '🌌 Atmospheric Breakcore (Melodic Chime & Break)',
-    description: 'Punchy 24" kick, piccolo jungle snare, tight hat, tuned 808 cowbell melodic lead',
+    name: '🌌 Atmospheric Breakcore (Layered Break Drums)',
+    description: 'Velocity-layered acoustic kick and snare, tight UDNB hat, and dry break percussion. Ghosts stay soft while backbeats and endings hit harder.',
     slots: {
       kick: 'acoustic-kick-punch',
       snare: 'acoustic-snare-piccolo',
-      hat: 'acoustic-hat-tight',
-      percussion: '808-cowbell',
+      hat: 'udnb-hat-11',
+      percussion: 'udnb-perc-13',
     },
-    levels: {snare: 0.85, percussion: 0.82},
-    decays: {snare: 0.85, percussion: 0.85},
+    levels: {kick: 0.95, snare: 0.92, hat: 0.72, percussion: 0.52},
+    decays: {snare: 0.85, percussion: 0.72},
+    velocityLayers: {
+      kick: {soft:'acoustic-kick-muted',medium:'acoustic-kick-clean',accent:'acoustic-kick-punch'},
+      snare: {soft:'acoustic-snare-soft',medium:'acoustic-snare-piccolo',accent:'acoustic-snare-crack'},
+    },
+    velocityLayerLevels: {snare:{soft:3.2}},
   },
 ];
 
