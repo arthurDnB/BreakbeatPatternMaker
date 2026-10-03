@@ -82,6 +82,11 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-10-03] - Side-by-Side FX and Instrument Knob Grids (Codex)
+- Moved lane FX knobs into an explicit responsive knob grid and applied the same auto-fit grid behavior to drum shaping, layer, and synth controls so narrow popovers do not collapse FX controls into a vertical stack.
+- Expanded `scripts/instrument-panel-smoke.mjs` to verify distinct horizontal FX columns at desktop and narrow viewport widths.
+- Verification: `npm.cmd test` passed 266 tests; `npm.cmd run test:site` passed all browser checks, including both site URL prefixes.
+
 ### [2026-10-03] - Instrument Panel Horizontal Control Layout (Codex)
 - Reorganized the drum lane’s level, pitch, speed, tone, attack, and decay knobs into a three-column grid; grouped speed mode and BPM matching tools into a separate compact options area.
 - Arranged second-layer controls side by side and kept effects and synth parameters in responsive horizontal grids, reducing panel height while preserving editable numeric fields and labels.

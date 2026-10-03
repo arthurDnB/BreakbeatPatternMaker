@@ -290,9 +290,11 @@ function synthInstrumentPanel(track:SynthTrack):HTMLDetailsElement{
   };
   selectControl('Preset',track.instrument.preset,['bass','pluck','pad','piano'],value=>update({...SYNTH_PRESETS[value as keyof typeof SYNTH_PRESETS]}));
   selectControl('Waveform',track.instrument.waveform,['sine','triangle','saw','square'],value=>update({waveform:value as SynthInstrument['waveform']}));
+  const synthKnobs=document.createElement('div');synthKnobs.className='rotary-knob-grid synth-knobs';
   for(const [key,labelText,min,max,step] of [['attack','Attack',.001,2,.001],['decay','Decay',.001,3,.001],['sustain','Sustain',0,1,.01],['release','Release',.01,4,.01],['lowpassHz','Low-pass',100,20000,10]] as const){
-    const knob=createRotaryKnob({id:`synth-${track.id}-${key}`,label:labelText,ariaLabel:`${track.name} ${labelText}`,value:track.instrument[key],min,max,step,scale:key==='lowpassHz'?'log':'linear',format:value=>key==='lowpassHz'?Math.round(value)+' Hz':key==='sustain'?Math.round(value*100)+'%':Math.round(value*1000)/1000+' s',onInput:value=>update({[key]:value},false)});content.append(knob.element);
+    const knob=createRotaryKnob({id:`synth-${track.id}-${key}`,label:labelText,ariaLabel:`${track.name} ${labelText}`,value:track.instrument[key],min,max,step,scale:key==='lowpassHz'?'log':'linear',format:value=>key==='lowpassHz'?Math.round(value)+' Hz':key==='sustain'?Math.round(value*100)+'%':Math.round(value*1000)/1000+' s',onInput:value=>update({[key]:value},false)});synthKnobs.append(knob.element);
   }
+  content.append(synthKnobs);
   if(track.instrument.preset==='piano'){
     const sample=track.instrument.sample,asset=sample?assets.get(sample.assetId):undefined;
     const source=document.createElement('span');source.textContent=asset?`Piano source: ${asset.name}`:track.instrument.sampleBank==='upright-kw'?'Piano source: Upright Piano KW (CC0)':'Piano source: built-in tone';content.append(source);

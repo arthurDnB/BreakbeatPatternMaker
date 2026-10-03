@@ -20,9 +20,12 @@ try{
  assert.equal(bounds.position,'fixed');assert.ok(bounds.top>=0);assert.ok(bounds.bottom<=430,`panel extends below viewport: ${JSON.stringify(bounds)}`);assert.ok(bounds.scrollHeight>bounds.clientHeight,'panel content should remain internally scrollable');
  const content=panel.locator('.instrument-panel-content'),preview=panel.locator('.instrument-preview-footer');
  const sampleColumns=await panel.locator('.sample-shaping-knobs').evaluate(element=>getComputedStyle(element).gridTemplateColumns.split(' ').length);
- const fxColumns=await panel.locator('.effects-panel').evaluate(element=>getComputedStyle(element).gridTemplateColumns.split(' ').length);
+ await panel.locator('.effects-panel').evaluate(element=>{element.open=true;});
+ const fxColumns=await panel.locator('.fx-knobs').evaluate(element=>getComputedStyle(element).gridTemplateColumns.split(' ').length);
  assert.equal(sampleColumns,3,'sample-shaping knobs should use a compact three-column grid');
  assert.equal(fxColumns,3,'FX knobs should use a compact three-column grid');
+ const fxPositions=await panel.locator('.fx-knobs .rotary-knob-control').evaluateAll(elements=>elements.slice(0,3).map(element=>Math.round(element.getBoundingClientRect().x)));
+ assert.ok(new Set(fxPositions).size===3,'FX knobs should occupy separate side-by-side columns');
  await content.evaluate(element=>{element.scrollTop=element.scrollHeight;});
  assert.ok(await content.evaluate(element=>element.scrollTop>0),'panel content did not scroll');
  const previewBottom=await preview.evaluate(element=>element.getBoundingClientRect().bottom);
@@ -36,6 +39,9 @@ try{
  await page.locator('.track-instrument-panel[data-role="kick"] .sound-next-btn').evaluate(element=>element.click());
  await page.waitForFunction(()=>{const info=document.querySelector('#kit-info-kick');return !!info&&!info.textContent?.includes('Loading sound');});
  assert.notEqual(await soundSelect.inputValue(),'acoustic-bass-drum-24-dampened','sound arrow should advance the selected sound');
+ await page.setViewportSize({width:417,height:720});
+ const narrowFxColumns=await panel.locator('.fx-knobs').evaluate(element=>getComputedStyle(element).gridTemplateColumns.split(' ').length);
+ assert.ok(narrowFxColumns>=2,`FX knobs should remain side by side in a narrow panel, got ${narrowFxColumns} column`);
  assert.deepEqual(errors,[]);
  console.log('Instrument panel: stays inside a short viewport and scrolls through all controls.');
 }finally{await browser.close();if(!process.env.APP_URL)await new Promise(resolve=>server.close(resolve));}

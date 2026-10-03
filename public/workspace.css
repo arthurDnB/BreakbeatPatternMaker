@@ -101,6 +101,12 @@
 .synth-instrument-card .instrument-preview-footer { flex:0 0 auto; }
 @media(max-width:520px) { .rotary-knob-grid,.effects-panel,.synth-instrument-card .instrument-panel-content { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 
+/* Every instrument window uses an explicit shared knob grid, including narrow FX popovers. */
+.track-instrument-panel .effects-panel[open] { display:block !important; }
+.rotary-knob-grid { grid-template-columns:repeat(auto-fit,minmax(min(100%,92px),1fr)); }
+.layer-knobs { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.synth-knobs { grid-template-columns:repeat(auto-fit,minmax(min(100%,92px),1fr)); }
+
 *, *::before, *::after {
   box-sizing: border-box;
 }

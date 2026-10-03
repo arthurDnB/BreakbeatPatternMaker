@@ -195,12 +195,13 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:(refreshTrack
     const previewFooter=document.createElement('div');previewFooter.className='instrument-preview-footer';previewFooter.append(play);card.append(previewFooter);root.append(card);
     const fx=document.createElement('details');fx.className='effects-panel';fx.id='effects-'+role;const summary=document.createElement('summary');summary.textContent='Effects';fx.append(summary);
     const bypass=checkbox('fx-bypass-'+role,'Bypass effects');fx.append(bypass.l);
+    const effectGrid=document.createElement('div');effectGrid.className='rotary-knob-grid fx-knobs';fx.append(effectGrid);
     const effectKnobs=new Map<Exclude<keyof Effects,'bypass'>,ReturnType<typeof createRotaryKnob>>();
     for(const [key,name,min,max,step] of [['highpass','High-pass (Hz)',0,2000,10],['lowpass','Low-pass (Hz)',200,20000,100],['resonance','Resonance / Q (0–1)',0,1,.05],['punch','Punch attack (0–1)',0,1,.05],['drive','Drive (0–1)',0,1,.05],['delayMs','Delay time (ms)',30,1000,10],['feedback','Feedback (0–0.75)',0,.75,.05],['mix','Delay mix (0–0.6)',0,.6,.05],['wet','FX Wet / Dry (0–1)',0,1,.05]] as const){
         const scale=key==='highpass'||key==='lowpass'?'log':'linear';
         const format=(value:number)=>key==='highpass'&&value===0?'Off':key==='lowpass'&&value>=20000?'Open':key==='highpass'||key==='lowpass'?Math.round(value)+' Hz':key==='wet'||key==='mix'?Math.round(value*100)+'%':key==='delayMs'?Math.round(value)+' ms':value.toFixed(2);
         const knob=createRotaryKnob({id:'fx-'+key+'-'+role,label:name.replace(/ \([^)]*\)$/,''),ariaLabel:name+' for '+title.textContent,value:key==='wet'?1:0,min,max,step,scale,format,onInput:value=>{const next={...(mix[role].effects??defaultEffects()),[key]:value};try{validateEffects(next);mix[role].effects=next;update();changed(false);}catch(e){info.textContent=String(e);}}});
-        knob.output.id='fx-'+key+'-val-'+role;effectKnobs.set(key,knob);fx.append(knob.element);
+        knob.output.id='fx-'+key+'-val-'+role;effectKnobs.set(key,knob);effectGrid.append(knob.element);
     }
     content.append(fx);reverse.i.onchange=()=>{mix[role].reverse=reverse.i.checked;update();changed(false);};
     speedMode.onchange=()=>{mix[role].speedMode=speedMode.value as 'repitch'|'stretch';rememberShape(mix[role]);update();changed(false);};
