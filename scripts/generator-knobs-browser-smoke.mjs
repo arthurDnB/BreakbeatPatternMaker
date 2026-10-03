@@ -37,11 +37,14 @@ try{
   assert.match(await help.textContent(),/Complexity.*rhythmic detail/i);
   const helpBox=await help.boundingBox();
   assert.ok(helpBox.x>=0&&helpBox.y>=0&&helpBox.x+helpBox.width<=1440&&helpBox.y+helpBox.height<=900,'help should fit the viewport');
+  const valueBox=await page.locator('#complexity-value').boundingBox();
+  assert.ok(helpBox.x+helpBox.width<=valueBox.x||valueBox.x+valueBox.width<=helpBox.x||helpBox.y+helpBox.height<=valueBox.y||valueBox.y+valueBox.height<=helpBox.y,'help must not cover its value');
 
   const before=Number(await page.inputValue('#complexity'));
   await complexity.focus();
   await complexity.press('ArrowUp');
   assert.ok(Number(await page.inputValue('#complexity'))>before,'keyboard should update the original range');
+  assert.equal(await help.isVisible(),false,'help should hide while adjusting by keyboard');
   assert.equal(await complexity.getAttribute('aria-valuenow'),await page.inputValue('#complexity'));
   await complexity.press('Home');
   assert.equal(Number(await page.inputValue('#complexity')),Number(await page.locator('#complexity').getAttribute('min')));
@@ -50,8 +53,10 @@ try{
   const box=await reverse.boundingBox();
   await page.mouse.move(box.x+box.width/2,box.y+box.height/2);
   await page.mouse.down();
+  assert.equal(await page.locator('#gen-knob-help-reverseProbability').isVisible(),false,'help should hide while turning a knob');
   await page.mouse.move(box.x+box.width/2,box.y+box.height/2-80,{steps:5});
   await page.mouse.up();
+  assert.equal(await page.locator('#gen-knob-help-reverseProbability').isVisible(),false,'help should stay hidden until leaving the knob');
   assert.ok(Number(await page.inputValue('#reverseProbability'))>0,'pointer drag should change the original range');
   assert.match(await page.locator('#reverseProbability-value').textContent(),/[1-9]/,'linked value should update');
 

@@ -101,23 +101,36 @@ function enhance(input: HTMLInputElement): void {
   // The generator tray scrolls and clips its children. A fixed tooltip in the
   // body stays visible even for knobs near the tray's edge.
   document.body.append(tooltip);
+  let suppressHelp = false;
   const hideTooltip = () => tooltip.classList.remove('is-visible');
   const showTooltip = () => {
-    if (input.disabled) return;
+    if (input.disabled || suppressHelp) return;
     tooltip.classList.add('is-visible');
     const rect = shell.getBoundingClientRect();
     const width = tooltip.offsetWidth || 240;
     const height = tooltip.offsetHeight || 56;
-    tooltip.style.left = `${Math.max(8, Math.min(window.innerWidth - width - 8, rect.left + rect.width / 2 - width / 2))}px`;
-    tooltip.style.top = `${rect.top > height + 12 ? rect.top - height - 8 : Math.min(window.innerHeight - height - 8, rect.bottom + 8)}px`;
+    // The value is immediately above the dial. Put help beside it where there
+    // is room, then below it on narrow screens so that readout stays visible.
+    const right = rect.right + 10;
+    const left = rect.left - width - 10;
+    const sideTop = Math.max(8, Math.min(window.innerHeight - height - 8, rect.top + rect.height / 2 - height / 2));
+    const readout = shell.closest('.gen-slider-block, .gen-tempo-module')?.querySelector('output, input[type="number"]')?.getBoundingClientRect();
+    const clearOfReadout = (x: number) => !readout || x + width <= readout.left || x >= readout.right || sideTop + height <= readout.top || sideTop >= readout.bottom;
+    const beside = right + width <= window.innerWidth - 8 && clearOfReadout(right) ? right : left >= 8 && clearOfReadout(left) ? left : null;
+    tooltip.style.left = `${beside ?? Math.max(8, Math.min(window.innerWidth - width - 8, rect.left + rect.width / 2 - width / 2))}px`;
+    tooltip.style.top = `${beside === null ? Math.max(8, Math.min(window.innerHeight - height - 8, rect.bottom + 8)) : sideTop}px`;
   };
   shell.addEventListener('pointerenter', showTooltip);
   shell.addEventListener('pointerleave', () => {
-    if (!shell.contains(document.activeElement)) hideTooltip();
+    suppressHelp = false;
+    hideTooltip();
   });
   shell.addEventListener('focusin', showTooltip);
   shell.addEventListener('focusout', () => queueMicrotask(() => {
-    if (!shell.contains(document.activeElement)) hideTooltip();
+    if (!shell.contains(document.activeElement)) {
+      suppressHelp = false;
+      hideTooltip();
+    }
   }));
   window.addEventListener('scroll', hideTooltip, { capture: true, passive: true });
   window.addEventListener('resize', hideTooltip);
@@ -129,6 +142,8 @@ function enhance(input: HTMLInputElement): void {
   shell.addEventListener('pointerdown', (event) => {
     if (input.disabled || event.button !== 0) return;
     event.preventDefault();
+    suppressHelp = true;
+    hideTooltip();
     dial.focus();
     drag = { startX: event.clientX, startY: event.clientY, startValue: Number(input.value), changed: false };
     shell.setPointerCapture(event.pointerId);
@@ -154,6 +169,9 @@ function enhance(input: HTMLInputElement): void {
   shell.addEventListener('lostpointercapture', endDrag);
   dial.addEventListener('keydown', (event) => {
     if (input.disabled) return;
+    if (!['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft', 'PageUp', 'PageDown', 'Home', 'End'].includes(event.key)) return;
+    suppressHelp = true;
+    hideTooltip();
     const min = Number(input.min || 0);
     const max = Number(input.max || 100);
     const step = input.step === 'any' ? (max - min) / 100 : Number(input.step || 1);

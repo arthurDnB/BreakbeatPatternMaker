@@ -82,6 +82,11 @@ This document maintains the running project state and change log so that multipl
 
 ## Ã°Å¸â€œÂ Change Log
 
+### [2026-10-04] - Keep Generator Values Visible While Turning Knobs (Codex)
+- **Tooltip placement and interaction (`src/ui/generator-knobs.ts`):** Position each help box beside the dial only when it clears that knob's value readout; otherwise place it below. Hide help as soon as pointer dragging or keyboard adjustment begins, and show it again on a later hover or focus. This keeps changing values readable.
+- **Browser regression (`scripts/generator-knobs-browser-smoke.mjs`):** Assert that help does not cover the value and disappears during pointer and keyboard changes.
+- **Verification:** `npm.cmd test` and `npm.cmd run test:site` passed.
+
 ### [2026-10-04] - Compact Generator Knobs and Context Help (Codex with subagents)
 - **Generator layout (`public/index.html`, `public/workspace.css`):** Rebalanced the three main cards so Complexity, Spicy, and Reverse Notes share a compact row, while Lushness, Tension, and Piano Density fill the lower harmony card. The advanced groove controls use a denser responsive grid, and the default resizable generator drawer opens tall enough to show the main knobs on desktop.
 - **Control behavior (`src/ui/generator-knobs.ts`, `src/web.ts`):** Converted all continuous generator ranges into small rotary controls while retaining the original input IDs and value/event flow for generation and project persistence. Dials support vertical or horizontal drag, Shift for fine adjustment, keyboard arrows/Page/Home/End, accessible values, and viewport-aware explanations on hover or focus. Programmatic setting changes refresh their indicators.
