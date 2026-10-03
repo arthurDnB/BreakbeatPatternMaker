@@ -23,6 +23,7 @@ try{
     page.on('pageerror',error=>errors.push(error.message));
     page.on('response',response=>{if(response.status()>=400)errors.push(`${response.status()} ${response.url()}`);});
     try{
+      await page.addInitScript(() => localStorage.setItem('bpm_tutorial_dismissed', '1'));
       await page.goto(`http://127.0.0.1:${server.address().port}${prefix}`);
       assert.equal(await page.locator('#tray-bottom').evaluate(element=>element.classList.contains('tray-bottom-collapsed')),true);
       await page.click('#tab-generator');

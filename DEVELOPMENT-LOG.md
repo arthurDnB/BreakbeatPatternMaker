@@ -82,6 +82,19 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-10-03] - First-Run Guided Spotlight Tutorial & Replay Mode (Antigravity)
+- Added an interactive 5-step guided spotlight tutorial (`src/ui/tutorial.ts`, `public/index.html`, `public/workspace.css`, `src/web.ts`) for first-time visitors:
+  1. Generator settings (`#controls`) — automatically expands the bottom drawer and switches to the Generator tab if collapsed, and restores the previous drawer/tab state on exit.
+  2. Choosing a layer to generate (`#transport-triggers`).
+  3. Playback (`#play`).
+  4. Tracker editing (`#grid`).
+  5. Audio export (`.output-group`).
+- Persists dismissal/completion in `localStorage` under `bpm_tutorial_dismissed` so it launches exactly once on first visit. Added `#tutorial-btn` (`? TUTORIAL`) in the project header bar to allow users to replay the tutorial at any time without resetting their session.
+- Non-destructive operation: no pattern generation, playback, tracker editing, or export actions are triggered during or after the tutorial.
+- Accessibility & UX: responsive layout supporting desktop down to mobile (390x844), dynamic resize/scroll tracking for the spotlight and toolbox, focus trapping, Escape key dismissal, and `prefers-reduced-motion` compliance.
+- Verification: added `scripts/tutorial-browser-smoke.mjs` (verifies auto-launch, step navigation, bottom drawer expansion & restoration, persistence, non-destructive behavior, mobile layout, keyboard shortcuts, focus trap, and replay) and integrated it into `test:site`.
+- Test results: `npm.cmd test` passed 283/283 unit tests; `npm.cmd run test:site` passed all 12 browser smoke test suites on both root and GitHub Pages subpath mounts.
+
 ### [2026-10-03] - Atmospheric Breakcore Cross-Reference A/B (Codex)
 - Arthur chose the 14/16/13/13-note opening and 18/23/24/21-note development. Added an optional upper phrase bound to V5 layers in `src/core/groove-v5-contract.ts` and `src/core/groove-v5.ts`, and used it for Atmospheric Breakcore's opening snare cuts and kick pickups. This keeps those details out of a long phrase's final turnaround while retaining the response of a two-bar loop. At the fixed study settings, both regenerated WAVs are byte-identical to the versions Arthur liked.
 - Compared existing local analyses of the supplied Cichy, Fatal Youth, and AgonyOST recordings. Their changing full-mix transient activity suggests testing rhythmic contrast, but cannot identify drum hits. `scripts/atmospheric-breakcore-audition.mjs` now offers those local references and a response-weighted **candidate** for bars 5–8. The candidate is for listening only; it does not change the app's approved profile or bundle any reference audio.

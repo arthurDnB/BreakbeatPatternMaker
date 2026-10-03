@@ -12,6 +12,7 @@ const browser=await chromium.launch({headless:true,channel:process.env.BROWSER_C
 try{
  const page=await browser.newPage({viewport:{width:1360,height:430}}),errors=[];
  page.on('pageerror',error=>errors.push(error.message));
+ await page.addInitScript(() => localStorage.setItem('bpm_tutorial_dismissed', '1'));
  await page.goto(origin);await page.locator('#grid .hit').first().waitFor();await page.waitForFunction(()=>{const details=document.querySelector('.track-instrument-panel[data-role="kick"]');if(!details)return false;if(!details.open){details.open=true;details.dispatchEvent(new Event('toggle'));}return getComputedStyle(details.querySelector('.drum-slot')).display!=='none';});
  const panel=page.locator('.track-instrument-panel[data-role="kick"] .drum-slot');
  await panel.waitFor({state:'visible'});

@@ -20,6 +20,7 @@ try{
   const page=await browser.newPage();
   const errors=[];
   page.on('pageerror',error=>errors.push(error.message));
+  await page.addInitScript(() => localStorage.setItem('bpm_tutorial_dismissed', '1'));
   await page.goto(`http://127.0.0.1:${server.address().port}/`);
   await page.locator('#grid .hit').first().waitFor();
   await page.click('#tab-generator');

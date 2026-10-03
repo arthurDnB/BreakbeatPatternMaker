@@ -16,6 +16,7 @@ const browser=await chromium.launch({headless:true,channel:process.env.BROWSER_C
 try{
  const page=await browser.newPage({viewport:{width:1440,height:900},acceptDownloads:true}),errors=[];
  page.on('pageerror',error=>errors.push(error.message));
+ await page.addInitScript(() => localStorage.setItem('bpm_tutorial_dismissed', '1'));
  await page.goto(`http://127.0.0.1:${server.address().port}/`);await page.locator('#grid .hit').first().waitFor();
  for(const [id,value] of [['pianoLushness','0.8'],['pianoTension','0.2'],['pianoDensity','0.25']]){
   await page.locator(`#${id}`).evaluate((element,next)=>{element.value=next;element.dispatchEvent(new Event('input',{bubbles:true}));},value);

@@ -6051,4 +6051,204 @@ main.daw-chassis {
 .synth-instrument-card .instrument-panel-content>strong,.synth-instrument-card .instrument-panel-content>span { grid-column:1/-1; }
 @media(max-width:520px) { .rotary-knob-grid,.effects-panel,.synth-instrument-card .instrument-panel-content { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 
+/* ==========================================================================
+   Guided Spotlight Tutorial
+   ========================================================================== */
+.tutorial-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  pointer-events: auto;
+}
+
+.tutorial-spotlight {
+  position: fixed;
+  pointer-events: none;
+  box-shadow: 0 0 0 9999px rgba(0, 4, 8, 0.78);
+  border: 2px solid var(--accent-cyan, #00f5d4);
+  border-radius: 6px;
+  z-index: 10001;
+  transition: top 0.2s ease-out, left 0.2s ease-out, width 0.2s ease-out, height 0.2s ease-out;
+}
+
+.tutorial-toolbox {
+  position: fixed;
+  z-index: 10002;
+  width: 340px;
+  max-width: calc(100vw - 24px);
+  background: #0d1520;
+  border: 1px solid #2a3a50;
+  border-top: 2px solid var(--accent-cyan, #00f5d4);
+  border-radius: 8px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(0, 245, 212, 0.15);
+  color: #eaf1fa;
+  font-family: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  transition: top 0.2s ease-out, left 0.2s ease-out;
+  box-sizing: border-box;
+}
+
+.tutorial-toolbox-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tutorial-pill {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: #113437;
+  color: var(--accent-cyan, #00f5d4);
+  border: 1px solid rgba(0, 245, 212, 0.3);
+}
+
+.tutorial-step-count {
+  font-size: 11px;
+  font-weight: 600;
+  color: #7e95b0;
+}
+
+.tutorial-skip-btn {
+  background: transparent;
+  border: none;
+  color: #7e95b0;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+.tutorial-skip-btn:hover {
+  color: #eaf1fa;
+  background: rgba(255, 255, 255, 0.08);
+}
+.tutorial-skip-btn:focus-visible {
+  outline: 2px solid var(--accent-cyan, #00f5d4);
+  outline-offset: 1px;
+}
+
+.tutorial-toolbox-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tutorial-step-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #f1f5fb;
+}
+
+.tutorial-step-desc {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #aebdd0;
+}
+
+.tutorial-toolbox-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid #1a2738;
+}
+
+.tutorial-dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tutorial-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #2a3a50;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.tutorial-dot.is-active {
+  background: var(--accent-cyan, #00f5d4);
+  transform: scale(1.3);
+}
+
+.tutorial-btn {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid #33445b;
+}
+
+.tutorial-btn-prev {
+  background: #151f2d;
+  color: #c5d4e5;
+}
+.tutorial-btn-prev:hover:not(:disabled) {
+  border-color: #4a6385;
+  color: #fff;
+}
+.tutorial-btn-prev:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.tutorial-btn-prev:focus-visible {
+  outline: 2px solid var(--accent-cyan, #00f5d4);
+  outline-offset: 1px;
+}
+
+.tutorial-btn-next {
+  background: var(--accent-cyan, #00f5d4);
+  color: #04120e;
+  border-color: var(--accent-cyan, #00f5d4);
+}
+.tutorial-btn-next:hover {
+  background: #4efce5;
+  border-color: #4efce5;
+}
+.tutorial-btn-next:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 1px;
+}
+
+.tutorial-btn-hdr {
+  font-size: 11px;
+  padding: 3px 8px;
+  border: 1px solid #33445b;
+  border-radius: 4px;
+  background: #151f2d;
+  color: #c5d4e5;
+  white-space: nowrap;
+}
+.tutorial-btn-hdr:hover {
+  border-color: var(--accent-cyan, #00f5d4);
+  color: #fff;
+}
+.tutorial-btn-hdr:focus-visible {
+  outline: 2px solid var(--accent-cyan, #00f5d4);
+  outline-offset: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tutorial-spotlight,
+  .tutorial-toolbox,
+  .tutorial-dot {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+
 

@@ -10,3 +10,4 @@ site/
 # Local sample packs & scratch files
 /LoFi Drum Kit Vol. 2/
 *.py
+.codex-remote-attachments/

@@ -21,6 +21,7 @@ const url=`http://127.0.0.1:${server.address().port}/`;
 const box=async(page,selector)=>page.locator(selector).boundingBox();
 try{
   const page=await browser.newPage({viewport:{width:1920,height:1080}});
+  await page.addInitScript(() => localStorage.setItem('bpm_tutorial_dismissed', '1'));
   await page.goto(url);
   await page.locator('#grid .hit').first().waitFor();
   assert.equal(await page.locator('#tray-bottom').evaluate(el=>el.classList.contains('tray-bottom-collapsed')),true,'Generator starts collapsed');
@@ -61,6 +62,7 @@ try{
   await page.close();
 
   const mobile=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+  await mobile.addInitScript(() => localStorage.setItem('bpm_tutorial_dismissed', '1'));
   await mobile.goto(url);
   await mobile.locator('#grid .hit').first().waitFor();
   const mobilePlay=await box(mobile,'#play');

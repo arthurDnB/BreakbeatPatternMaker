@@ -19,6 +19,7 @@ const browser=await chromium.launch({headless:true,channel:process.env.BROWSER_C
 try{
   const page=await browser.newPage({viewport:{width:1920,height:1080}}),errors=[];
   page.on('pageerror',error=>errors.push(error.message));
+  await page.addInitScript(() => localStorage.setItem('bpm_tutorial_dismissed', '1'));
   await page.goto(`http://127.0.0.1:${server.address().port}/`);
   await page.locator('#grid tbody tr').first().waitFor();
   await page.selectOption('#tracker-bars','4');await page.selectOption('#tracker-lpb','32');

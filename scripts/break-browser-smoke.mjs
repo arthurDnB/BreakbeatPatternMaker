@@ -8,6 +8,7 @@ const rate=44100,pcm=new Float32Array(rate*2);for(const at of [.1,.4,.7,1,1.3,1.
 const wav=Buffer.from(encodeWav([pcm],rate));
 try{for(prefix of ['/','/breakbeat-pattern-maker/']){
  const context=await browser.newContext({viewport:{width:1400,height:950},acceptDownloads:true}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.addInitScript(() => localStorage.setItem('bpm_tutorial_dismissed', '1'));
  await page.goto(`http://127.0.0.1:${server.address().port}${prefix}`);await page.locator('#grid .hit').first().waitFor();
  const oldSummary=await page.locator('#summary').textContent(),oldSongBpm=await page.inputValue('#song-bpm');
  await page.click('#import-break');await page.setInputFiles('#break-file',{name:'Test break.wav',mimeType:'audio/wav',buffer:wav});await page.waitForFunction(()=>!document.querySelector('#break-detect').disabled);

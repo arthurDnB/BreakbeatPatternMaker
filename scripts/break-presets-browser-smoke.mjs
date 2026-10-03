@@ -40,6 +40,7 @@ try {
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
+  await page.addInitScript(() => localStorage.setItem('bpm_tutorial_dismissed', '1'));
 
   await page.goto(`http://127.0.0.1:${server.address().port}${prefix}`);
   await page.locator('#grid .hit').first().waitFor();

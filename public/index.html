@@ -39,6 +39,7 @@
       <label class="open-project hdr-btn" for="project-open">Open<input id="project-open" type="file" accept=".bbproject,application/json"></label>
       <button id="project-new" type="button" class="hdr-btn">New</button>
       <button id="quick-start-toggle" class="quick-start-toggle hdr-btn" type="button" aria-controls="quick-start" aria-expanded="true">Guide</button>
+      <button id="tutorial-btn" class="tutorial-btn-hdr hdr-btn" type="button" aria-haspopup="dialog" aria-expanded="false" title="Take a guided tour of the workstation">Tutorial</button>
       <button id="layout-stack" type="button" class="hdr-btn" aria-pressed="false" title="Stack or unstack workspace panels">Stack</button>
       <button type="button" id="tab-fx-chain" class="hdr-btn dsp-dock-trigger" aria-expanded="false" aria-controls="dsp-dock" title="Open the DSP FX inspector">FX chain</button>
       <div class="output-group">
@@ -952,4 +953,24 @@
   </div>
   <p class="footer-note" hidden>Single-shot tracker · Audio stays local. Save project includes your samples and settings; autosave restores your latest workspace on this browser. WAV includes tails; muted lanes are excluded. Pitch repitches the sound. MP3 export remains planned.</p>
 </footer>
+<!-- Guided Spotlight Tutorial Overlay -->
+<div id="tutorial-overlay" class="tutorial-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="tutorial-step-title" aria-describedby="tutorial-step-desc">
+  <div id="tutorial-spotlight" class="tutorial-spotlight" aria-hidden="true"></div>
+  <div id="tutorial-toolbox" class="tutorial-toolbox" role="document">
+    <div class="tutorial-toolbox-header">
+      <span class="tutorial-pill">TUTORIAL</span>
+      <span id="tutorial-step-count" class="tutorial-step-count">Step 1 of 5</span>
+      <button id="tutorial-skip" class="tutorial-skip-btn" type="button" aria-label="Skip tutorial (Escape)">Skip ✕</button>
+    </div>
+    <div class="tutorial-toolbox-body">
+      <h3 id="tutorial-step-title" class="tutorial-step-title">Generator Settings</h3>
+      <p id="tutorial-step-desc" class="tutorial-step-desc">Choose your genre, tempo (BPM), and pattern length here to shape the groove and sound profile.</p>
+    </div>
+    <div class="tutorial-toolbox-footer">
+      <button id="tutorial-prev" class="tutorial-btn tutorial-btn-prev" type="button" disabled>Back</button>
+      <div id="tutorial-dots" class="tutorial-dots" aria-hidden="true"></div>
+      <button id="tutorial-next" class="tutorial-btn tutorial-btn-next" type="button">Next</button>
+    </div>
+  </div>
+</div>
 </main><script type="module" src="./dist/web.js?v=0.4.33-modular-piano"></script></body></html>

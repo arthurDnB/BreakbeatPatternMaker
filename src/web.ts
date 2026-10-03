@@ -33,6 +33,7 @@ import {defaultEffects,type Effects,EFFECT_PRESETS,type EffectPreset} from './au
 import {ArrangementHistory} from './core/arrangement-history.js';
 import {createRotaryKnob} from './ui/rotary-knob.js';
 import {openSynthPatchEditor} from './ui/synth-patch-editor.js';
+import {TutorialController} from './ui/tutorial.js';
 
 
 const el=<T extends HTMLElement>(id:string)=>document.getElementById(id) as T;
@@ -2095,6 +2096,10 @@ function initSubnavTabs() {
 
 initSubnavTabs();
 
+let setBottomTrayState: (collapsed: boolean) => void = () => {};
+let switchBottomRackTab: (tabId: 'generator'|'slicer'|'fx'|'fx-chain') => void = () => {};
+let getActiveBottomTab: () => 'generator'|'slicer'|'fx' = () => 'generator';
+
 function initWorkspaceTrays() {
   const shell = document.getElementById('studio-layout');
   const bottomTray = document.getElementById('tray-bottom');
@@ -2133,6 +2138,7 @@ function initWorkspaceTrays() {
     }
     try { localStorage.setItem('bpm_tray_bottom', collapsed ? '1' : '0'); } catch {}
   };
+  setBottomTrayState = setTrayBottom;
 
   if (toggleLeft) toggleLeft.onclick = () => setTrayLeft(!shell?.classList.contains('tray-left-collapsed'));
   if (railLeft) railLeft.onclick = () => setTrayLeft(false);
@@ -2287,6 +2293,12 @@ function initBottomRack(){
       status('Bottom rack: Master DSP active.');
     }
   }
+  switchBottomRackTab = switchBottomTab;
+  getActiveBottomTab = () => {
+    if (tabSli?.classList.contains('active')) return 'slicer';
+    if (tabFx?.classList.contains('active')) return 'fx';
+    return 'generator';
+  };
 
   if(tabFxChain) tabFxChain.onclick = () => setDspDock(el('dsp-dock').hidden === true);
   if(tabGen) tabGen.onclick = event => {
@@ -2477,6 +2489,30 @@ initWorkspaceTrays();
 initWorkspaceDock();
 initBottomRack();
 initReTrackStudio();
+
+let prevBottomTabBeforeTutorial: 'generator'|'slicer'|'fx' = 'generator';
+
+const tutorial = new TutorialController({
+  onOpenGeneratorTray: () => {
+    prevBottomTabBeforeTutorial = getActiveBottomTab();
+    setBottomTrayState(false);
+    switchBottomRackTab('generator');
+  },
+  onRestoreGeneratorTray: (openedByTutorial: boolean) => {
+    if (openedByTutorial) {
+      setBottomTrayState(true);
+      if (prevBottomTabBeforeTutorial !== 'generator') {
+        switchBottomRackTab(prevBottomTabBeforeTutorial);
+      }
+    }
+  }
+});
+(window as any).bpmTutorial = tutorial;
+
+// Automatically open once on the first visit, after the app has restored its workspace.
+if (!tutorial.isDismissed()) {
+  tutorial.start(true);
+}
 
 function syncReTrackRotaryDials() {
   document.querySelectorAll<HTMLElement>('.rotary-dial').forEach(dial => {

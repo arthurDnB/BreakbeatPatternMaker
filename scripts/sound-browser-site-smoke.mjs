@@ -15,6 +15,7 @@ const browser=await chromium.launch({headless:true,channel:process.env.BROWSER_C
 try{
   const context=await browser.newContext({viewport:{width:1400,height:950},acceptDownloads:true}),page=await context.newPage(),errors=[];
   page.on('pageerror',e=>errors.push(e.message));
+  await page.addInitScript(() => localStorage.setItem('bpm_tutorial_dismissed', '1'));
   await page.goto(`http://127.0.0.1:${server.address().port}${prefix}`);await page.locator('#grid .hit').first().waitFor();
   await page.locator('.track-instrument-panel[data-role="kick"]>summary').click();
   const before=await page.inputValue('#kit-choice-kick');await page.click('#kit-browse-kick');
