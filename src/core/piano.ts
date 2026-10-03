@@ -1,3 +1,4 @@
+import {patternTicks} from './meter.js';
 import {PPQ,type Hit,type Settings} from './model.js';
 import {harmonyPlan} from './harmony.js';
 import {MELODY_SCALES} from './melody.js';
@@ -109,11 +110,18 @@ export function generatePiano(settings:Settings,trackId='generated-piano',bassPr
     const notes=voiceChord(tonePcs,pc(root),previous,includeRoot,settings.pianoLushness);
     previous=notes.slice(includeRoot?1:0);
     const name=chromatic?`${NAMES[pc(root)]}${change.quality}`:chordName(root,third,seventh,withNine);
+    const usedRows=new Set<number>();
     comping(change,feel,settings).forEach((gesture,gestureIndex)=>{
       const selected=gestureVoices(notes,includeRoot,gesture.voices);
       const human=Math.round((random(settings.seed,`piano:timing:${change.index}:${gestureIndex}`)()*2-1)*settings.humanizeMs*settings.bpm*PPQ/60000);
       const swung=gestureIndex>0?Math.round((settings.swing-.5)*PPQ*.35):0;
-      const offsetTick=Math.max(-gesture.tick,Math.min(PPQ,swung+human));
+      let offsetTick=Math.max(-gesture.tick,Math.min(PPQ,patternTicks(settings)-1-gesture.tick,swung+human));
+      if(settings.timeSignature&&settings.timeSignature!=='4/4'){
+        offsetTick=Math.max(change.startTick-gesture.tick,Math.min(change.endTick-2-gesture.tick,offsetTick));
+        const row=Math.floor(Math.round((gesture.tick+offsetTick)*(settings.lpb??settings.resolution/4)/PPQ*256)/256);
+        if(usedRows.has(row))return;
+        usedRows.add(row);
+      }
       selected.forEach((note,voice)=>out.push({
         id:`piano-${change.index}-${gestureIndex}-${voice}`,role:'percussion',trackId,sourceId:'kit.percussion',baseTick:gesture.tick,offsetTick,
         gain:Math.max(.18,Math.min(.78,(.64-(voice===0&&includeRoot&&gestureIndex===0?.07:0))*gesture.weight*(1-(settings.pianoLushness??0)*.12)+

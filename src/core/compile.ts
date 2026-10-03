@@ -1,3 +1,4 @@
+import {trackerTiming,patternTicks} from './meter.js';
 import {DEFAULT_SOURCES, PPQ, ROLES, bounded, identifier, isSynthTrack, text, type Pattern, type Source, type Transfer} from './model.js';
 import {validateArticulation} from './articulation.js';
 import {validateSynthInstrument} from '../audio/synth-instrument.js';
@@ -11,7 +12,7 @@ export function compile(pattern: Pattern, sources: Source[] = DEFAULT_SOURCES, l
   if(pattern.ppq!==PPQ) throw new Error('Unsupported PPQ.');
   bounded(lpb,1,32,'LPB',true);
   if (!Array.isArray(pattern.events) || pattern.events.length>4096) throw new Error('Too many events.');
-  const lines=pattern.settings.bars*4*lpb;
+  const {lines,numerator,denominator}=trackerTiming(pattern.settings,lpb);
   if(lines>512) throw new Error('This exporter supports at most 512 rows.');
   const sourceMap=new Map<string, Source>();
   const trackMap=new Map((pattern.userTracks??[]).map(track=>[track.id,track]));
@@ -50,7 +51,7 @@ export function compile(pattern: Pattern, sources: Source[] = DEFAULT_SOURCES, l
   text(pattern.engineVersion,'engineVersion',32);
   const out:Transfer={format:'breakbeat-pattern',version:1,engineVersion:pattern.engineVersion,
     name:`${pattern.settings.genre}${pattern.settings.breakStyle&&pattern.settings.breakStyle!=='genre'?' / '+pattern.settings.breakStyle:''} ${pattern.settings.seed}`,genre:pattern.settings.genre,seed:pattern.settings.seed,
-    timing:{bpm:pattern.settings.bpm,lpb,tpl:12,bars:pattern.settings.bars,beatsPerBar:4,lines},
+    timing:{bpm:pattern.settings.bpm,lpb,tpl:12,bars:pattern.settings.bars,beatsPerBar:numerator,...(denominator!==4?{beatUnit:denominator}:{}),lines},
     sources:[],lanes:[],notes:[],warnings:[]};
   const usedSources=new Set<string>(), counts=new Map<string,number>(), columns=new Map<string,number>(), ids=new Set<string>();
   const laneOrder=(lane:string)=>{const standard=ROLES.indexOf(lane as typeof ROLES[number]);if(standard>=0)return standard;const custom=(pattern.userTracks??[]).findIndex(track=>track.id===lane);return ROLES.length+Math.max(0,custom);};
@@ -87,11 +88,11 @@ export function compile(pattern: Pattern, sources: Source[] = DEFAULT_SOURCES, l
     if(hit.generatedDrumRole!==undefined&&(!userTrack||isSynthTrack(userTrack)||!ROLES.includes(hit.generatedDrumRole)))throw Error('Invalid generated sample-track hit.');
     if(isSynthTrack(userTrack)){
       if(!hit.synthNote||hit.slice||hit.mapped||hit.effect||hit.ratchets!==undefined||hit.gate!==undefined||hit.articulation||hit.reverse||hit.playbackRate!==undefined||hit.speedMode!==undefined||hit.stretchRate!==undefined||hit.sampleTrim||hit.pitch!==undefined||hit.ghost)throw Error('Synth tracks require pitched notes without sample or sample FX data.');
-      bounded(hit.synthNote.note,0,119,'synth note',true);bounded(hit.synthNote.durationTicks,1,PPQ*16,'synth note length',true);
+      bounded(hit.synthNote.note,0,119,'synth note',true);bounded(hit.synthNote.durationTicks,1,Math.max(PPQ*16,patternTicks(pattern.settings)),'synth note length',true);
     }else if(hit.synthNote)throw Error('A pitched synth note requires a synth track.');
     const source=sourceMap.get(hit.sourceId);
     if(!source || source.role!==hit.role) throw new Error(`Missing or mismatched source ${hit.sourceId}.`);
-    bounded(hit.baseTick,0,pattern.settings.bars*4*PPQ-1,'baseTick',true);
+    bounded(hit.baseTick,0,patternTicks(pattern.settings)-1,'baseTick',true);
     bounded(hit.offsetTick,-PPQ,PPQ,'offsetTick',true);
     bounded(hit.gain,0,1,'gain'); bounded(hit.pan,-1,1,'pan');
     let position=Math.round((hit.baseTick+hit.offsetTick+(hit.fineOffset??0))*lpb/PPQ*256);

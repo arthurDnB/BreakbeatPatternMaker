@@ -7,14 +7,16 @@ import {compile,serialize} from './core/compile.js';
 import type {Genre,Settings,Source,BreakStyle} from './core/model.js';
 
 async function main() {
-  const {values}=parseArgs({options:{engine:{type:'string'},break:{type:'string'},genre:{type:'string'},seed:{type:'string'},bpm:{type:'string'},bars:{type:'string'},
+  const {values}=parseArgs({options:{meter:{type:'string'},engine:{type:'string'},break:{type:'string'},genre:{type:'string'},seed:{type:'string'},bpm:{type:'string'},bars:{type:'string'},
     resolution:{type:'string'},complexity:{type:'string'},syncopation:{type:'string'},swing:{type:'string'},
     humanize:{type:'string'},ghosts:{type:'string'},fill:{type:'string'},lpb:{type:'string'},
     sources:{type:'string'},out:{type:'string'},help:{type:'boolean'}}});
-  if(values.help){console.log(`Breakbeat Pattern Maker\n\nnode dist/cli.js --genre jungle --seed break-042 --bpm 165 --out exports/jungle.bbpattern\n\nGenres: ${Object.keys(PROFILES).join(', ')}. --bars 1..4 --resolution 8|16|32|64\n--complexity/--syncopation/--ghosts/--fill 0..1 --swing .50..67\n--engine legacy-v1|groove-v2 --humanize 0..10 (ms) --lpb 1..32 --sources mapping.json\nBreak: --break genre|amen|think|apache|funkyDrummer|hotPants. BPM: 32..999. Files are JSON for the Lua importer, not native clipboard data.`);return;}
+  if(values.help){console.log(`Breakbeat Pattern Maker\n\nnode dist/cli.js --genre jungle --seed break-042 --bpm 165 --out exports/jungle.bbpattern\n\nGenres: ${Object.keys(PROFILES).join(', ')}. --bars 1..4 --resolution 8|16|32|64\n--complexity/--syncopation/--ghosts/--fill 0..1 --swing .50..67\n--engine legacy-v1|groove-v2|groove-v3|groove-v4|groove-v5|groove-v5.1 --meter 7/8 --humanize 0..10 (ms) --lpb 1..32 --sources mapping.json\nBreak: --break genre|amen|think|apache|funkyDrummer|hotPants. BPM: 32..999. Files are JSON for the Lua importer, not native clipboard data.`);return;}
   const s=defaults((values.genre??'jungle') as Genre);
   if(values.engine!==undefined)s.algorithm=values.engine as Settings['algorithm'];
   if(values.break!==undefined)s.breakStyle=values.break as BreakStyle;
+  if(values.meter!==undefined)s.timeSignature=values.meter;
+  if(values.lpb!==undefined)s.lpb=Number(values.lpb) as Settings['lpb'];
   if(values.seed!==undefined)s.seed=values.seed;
   for(const [arg,key] of Object.entries({bpm:'bpm',bars:'bars',resolution:'resolution',complexity:'complexity',syncopation:'syncopation',swing:'swing',humanize:'humanizeMs',ghosts:'ghostAmount',fill:'fillAmount'})) {
     const v=values[arg as keyof typeof values];

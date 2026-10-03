@@ -640,6 +640,7 @@
                 <label for="algorithm">Engine</label>
                 <select id="algorithm" class="gen-select" title="Groove V5 is the default genre-aware engine. Saved patterns keep their recorded engine.">
                   <option value="groove-v5" selected>Groove v5</option>
+                  <option value="groove-v5.1">Groove v5.1 · custom meters</option>
                   <option value="groove-v4">Groove v4</option>
                   <option value="groove-v3">Groove v3</option>
                   <option value="groove-v2">Groove v2</option>
@@ -647,6 +648,26 @@
                 </select>
               </div>
             </div>
+            <div class="gen-row-2col">
+              <div class="gen-field">
+                <label for="timeSignature">Time signature</label>
+                <select id="timeSignature" class="gen-select" aria-describedby="meter-help meter-error">
+                  <option value="4/4">4/4 · Standard</option><option value="3/4">3/4 · Triple</option>
+                  <option value="5/4">5/4 · 3+2</option><option value="6/8">6/8 · Compound</option>
+                  <option value="7/4">7/4 · 3+2+2</option><option value="7/8">7/8 · 3+2+2</option>
+                  <option value="custom">Custom…</option>
+                </select>
+                <input id="customTimeSignature" aria-label="Custom time signature" aria-describedby="meter-error" placeholder="11/8" maxlength="8" hidden>
+              </div>
+              <div class="gen-field" id="meter-lpb-field" hidden>
+                <label for="meter-lpb">Tracker LPB</label>
+                <select id="meter-lpb" class="gen-select" aria-describedby="meter-error">
+                  <option value="auto">Follow resolution</option><option>1</option><option>2</option><option>3</option><option>4</option><option>6</option><option>8</option><option>12</option><option>16</option><option>24</option><option>32</option>
+                </select>
+              </div>
+            </div>
+            <small id="meter-help" class="gen-desc-hint">Custom meters require V5.1. BPM and LPB count quarter notes.</small>
+            <small id="meter-error" role="alert" hidden></small>
           </div>
         </div>
 

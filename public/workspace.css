@@ -6558,3 +6558,7 @@ main.daw-chassis {
   #controls .gen-density-module { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
 }
 
+
+/* Meter validation stays beside its control without increasing the tray height. */
+#meter-error { color: #ff7a8c; white-space: normal; line-height: 1.4; }
+#customTimeSignature { width: 100%; box-sizing: border-box; }

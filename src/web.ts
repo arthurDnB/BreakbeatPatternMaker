@@ -1,3 +1,5 @@
+import {PPQ} from './core/model.js';
+import {parseTimeSignature,trackerTiming,patternSeconds,meterPosition} from './core/meter.js';
 import {setRatchets,articulationLabel} from './core/articulation.js';
 import {GROOVES} from './core/groove-profiles.js';
 import {NEW_GENRES} from './core/new-genres.js';
@@ -218,8 +220,7 @@ function updateHudPosition(row: number) {
   const posVal = document.getElementById('hud-pos-val');
   if (posVal && transfer?.timing?.lpb) {
     const position = row / transfer.timing.lpb;
-    const bar = Math.floor(position / 4) + 1;
-    const beat = Math.floor(position % 4) + 1;
+    const {bar,beat}=meterPosition(pattern.settings,position);
     posVal.textContent = `${String(bar).padStart(2, '0')}.${beat}`;
   }
 }
@@ -245,6 +246,27 @@ function getTrackerStep(): number {
   }
   return 1;
 }
+function restoreMeterControls(s:Settings){
+ const sig=s.timeSignature??'4/4',select=el<HTMLSelectElement>('timeSignature');
+ const known=[...select.options].some(option=>option.value===sig);
+ select.value=known?sig:'custom';input('customTimeSignature').value=known?'':sig;
+ input('customTimeSignature').hidden=known;
+ input('meter-lpb').value=s.lpb===undefined?'auto':String(s.lpb);
+}
+function validateMeterUI(){
+ input('customTimeSignature').hidden=input('timeSignature').value!=='custom';
+ el('meter-lpb-field').hidden=input('algorithm').value!=='groove-v5.1';
+ let message='';
+ try{
+  const s=settings(),meter=parseTimeSignature(s.timeSignature);
+  if((meter.numerator!==4||meter.denominator!==4)&&s.algorithm!=='groove-v5.1')throw Error('Choose Groove V5.1 to generate in this meter.');
+  trackerTiming(s);
+ }catch(error){message=(error as Error).message;}
+ el('meter-error').textContent=message;el('meter-error').hidden=!message;
+ input('timeSignature').setAttribute('aria-invalid',String(!!message));
+ input('customTimeSignature').setAttribute('aria-invalid',String(!!message));
+ return !message;
+}
 function settings(){
   const s=defaults(input('genre').value as Genre);
   s.generationMode=input('generationMode').value as GenerationMode;
@@ -255,18 +277,21 @@ function settings(){
   s.chordProgression=input('chordProgression').value as any;
   if (s.chordProgression === 'custom') s.customChordProgression=input('customChordProgression').value.trim();
   s.pianoLushness=Number(input('pianoLushness').value);s.pianoTension=Number(input('pianoTension').value);s.pianoDensity=Number(input('pianoDensity').value);
+  s.timeSignature=input('timeSignature').value==='custom'?input('customTimeSignature').value.trim():input('timeSignature').value;
+  if(s.timeSignature==='4/4')delete s.timeSignature;
   s.algorithm=input('algorithm').value as NonNullable<Pattern['settings']['algorithm']>;s.variation=Number(input('variation').value);
-  if(['groove-v3','groove-v4','groove-v5'].includes(s.algorithm??'')&&Number(input('phraseLength').value)){s.phraseLength=Number(input('phraseLength').value) as 4|8|16;s.phraseOffset=Number(input('phraseOffset').value);}
+  if(['groove-v3','groove-v4','groove-v5','groove-v5.1'].includes(s.algorithm??'')&&Number(input('phraseLength').value)){s.phraseLength=Number(input('phraseLength').value) as 4|8|16;s.phraseOffset=Number(input('phraseOffset').value);}
   s.enabledRoles=ROLES.filter(r=>kitPanel.mix[r].include);
   s.breakStyle=input('breakStyle').value as BreakStyle;
   if(input('breakLayer').value==='think-passage2')s.breakLayer='think-passage2';
   s.seed=input('seed').value;s.bpm=Number(input('bpm').value);s.bars=Number(input('bars').value);
   s.resolution=Number(input('resolution').value) as typeof s.resolution;
   if(pattern?.settings.lpb!==undefined)s.lpb=pattern.settings.lpb;
+  if(s.algorithm==='groove-v5.1'){if(input('meter-lpb').value==='auto')delete s.lpb;else s.lpb=Number(input('meter-lpb').value) as Settings['lpb'];}
   s.spicy=Number(input('spicy').value);
   s.reverseProbability=Number(input('reverseProbability').value);
-  if(['groove-v4','groove-v5'].includes(s.algorithm??'')&&input('hit-target-mode').value==='exact')s.hitTarget=Number(input('hit-target-number').value);
-  if(['groove-v4','groove-v5'].includes(s.algorithm??''))s.laneDensity=Object.fromEntries(ROLES.map(role=>[role,Number(input(`${role}-density`).value)])) as NonNullable<Settings['laneDensity']>;
+  if(['groove-v4','groove-v5','groove-v5.1'].includes(s.algorithm??'')&&input('hit-target-mode').value==='exact')s.hitTarget=Number(input('hit-target-number').value);
+  if(['groove-v4','groove-v5','groove-v5.1'].includes(s.algorithm??''))s.laneDensity=Object.fromEntries(ROLES.map(role=>[role,Number(input(`${role}-density`).value)])) as NonNullable<Settings['laneDensity']>;
   const ps=input('patternStructure').value; if(['groove','auto','fill','roll','build'].includes(ps)) s.patternStructure = ps as any;
   for(const name of ['complexity','syncopation','swing','humanizeMs','ghostAmount','fillAmount'] as const)s[name]=Number(input(name).value);
   return s;
@@ -484,19 +509,21 @@ function render(){
   head.append(header);table.append(head);
   const body=document.createElement('tbody');
   const view=input('view').value;
+  const gridTiming=trackerTiming(pattern.settings);
   const notesByCell=new Map<string,typeof transfer.notes>();
   const hitsById=new Map(pattern.events.map(hit=>[hit.id,hit]));
   const sourcesById=new Map(transfer.sources.map(source=>[source.id,source]));
   for(const note of transfer.notes){const key=`${note.row}:${note.lane}`,notes=notesByCell.get(key)??[];notes.push(note);notesByCell.set(key,notes);}
   const visibleLanes=[...visibleDrumRoles().map(id=>({id,name:drumLane(pattern,id).name,role:id as Role,track:undefined as UserTrack|undefined})),...(pattern.userTracks??[]).map(track=>({id:track.id,name:track.name,role:track.role,track}))];
   const renderRow=(row:number)=>{
-    const isBar=row%(transfer.timing.lpb*4)===0,isBeat=row%transfer.timing.lpb===0;
-    const barNumber=Math.floor(row/(transfer.timing.lpb*4))+1;
+    const timing=gridTiming,isBar=row%timing.rowsPerBar===0,isBeat=(row*PPQ/transfer.timing.lpb)%timing.beatTicks===0;
+    const barNumber=Math.floor(row/timing.rowsPerBar)+1;
     const tr=document.createElement('tr');tr.className=(isBar?'bar-start ':'')+(isBeat?'beat':'');tr.dataset.playRow=String(row);tr.dataset.bar=String(barNumber);
     const range=editor.state.selection.rows;
     if(range&&row>=range[0]&&row<=range[1])tr.classList.add('selected-row');
     const position=row/transfer.timing.lpb;
-    const labels=[String(row).padStart(2,'0'),`${Math.floor(position/4)+1}.${Math.floor(position%4)+1}${position%1?` +${(position%1).toFixed(2)}`:''}`];
+    const meterPos=meterPosition(pattern.settings,position);
+    const labels=[String(row).padStart(2,'0'),`${meterPos.bar}.${meterPos.beat}${meterPos.fraction?` +${meterPos.fraction.toFixed(2)}`:''}`];
     for(const [index,value] of labels.entries()){
       const td=document.createElement('td');
       if(index===0){
@@ -573,7 +600,7 @@ function render(){
     table.style.setProperty('--tracker-columns',`56px 64px ${visibleDrumRoles().map(()=>`minmax(207px,1fr)`).join(' ')} ${(pattern.userTracks??[]).map(()=>`minmax(218px,1fr)`).join(' ')}`);
     const heights=Array.from({length:lines},(_,row)=>{
       let stack=0;for(const lane of visibleLanes)stack=Math.max(stack,notesByCell.get(`${row}:${lane.id}`)?.length??0);
-      return 37.1+(stack?1:0)+Math.max(0,stack-1)*35+(row%transfer.timing.lpb===0?1:0)+(row%(transfer.timing.lpb*4)===0?3:0);
+      return 37.1+(stack?1:0)+Math.max(0,stack-1)*35+((row*PPQ/transfer.timing.lpb)%gridTiming.beatTicks===0?1:0)+(row%gridTiming.rowsPerBar===0?3:0);
     });
     const offsets=new Float64Array(lines+1);
     const rebuildOffsets=()=>{for(let row=0;row<lines;row++)offsets[row+1]=offsets[row]!+heights[row]!;};rebuildOffsets();
@@ -624,7 +651,7 @@ function render(){
   el('synth-octave-label').hidden=!isSynthTrack(pattern.userTracks?.find(track=>track.id===cursorTrackId));
   const synthCount=pattern.events.filter(hit=>!!hit.synthNote).length;
   const hitSummary=pattern.settings.hitTarget!==undefined&&synthCount?`${pattern.events.length-synthCount} drum hits + ${synthCount} synth notes`:`${transfer.notes.length} hits`;
-  el('summary').textContent=`${transfer.timing.bars} bars · ${transfer.timing.lines} rows · LPB ${transfer.timing.lpb} · ${hitSummary} · ${pattern.settings.bpm.toFixed(1)} BPM · ${(pattern.settings.enabledRoles??ROLES).join(' + ')}`;
+  el('summary').textContent=`${transfer.timing.bars} bars${pattern.settings.timeSignature?` · ${pattern.settings.timeSignature}`:""} · ${transfer.timing.lines} rows · LPB ${transfer.timing.lpb} · ${hitSummary} · ${pattern.settings.bpm.toFixed(1)} BPM · ${(pattern.settings.enabledRoles??ROLES).join(' + ')}`;
   el('generation-summary').textContent=(pattern.settings.enabledRoles??ROLES).map(r=>r==='hat'?'Hi-hat':r[0]!.toUpperCase()+r.slice(1)).join(' + ')+' · '+pattern.settings.bars+' bars · '+pattern.settings.bpm.toFixed(1)+' BPM';
   input('export').disabled=false;input('play').disabled=false;input('copy').disabled=false;
   const range=editor.state.selection.rows;
@@ -719,7 +746,8 @@ function syncControls(){
   input('breakLayer').value=s.breakLayer??'off';
   input('phraseLength').value=String(s.phraseLength??0);syncPhraseControls(s.phraseOffset??0);
   input('algorithm').value=s.algorithm??'legacy-v1';input('variation').value=String(s.variation??0);input('reverseProbability').value=String(s.reverseProbability??0);
-  for(const [key,value] of Object.entries(s))if(key!=='enabledRoles'&&key!=='laneDensity'&&key!=='lpb'&&key!=='hitTarget')input(key).value=String(value);
+  for(const [key,value] of Object.entries(s))if(key!=='enabledRoles'&&key!=='laneDensity'&&key!=='lpb'&&key!=='hitTarget'&&key!=='timeSignature')input(key).value=String(value);
+  restoreMeterControls(s);
   input('tracker-bars').value=String(s.bars);input('tracker-resolution').value=String(s.resolution);input('tracker-lpb').value=String(s.lpb??s.resolution/4);
   for(const r of ROLES)kitPanel.mix[r].include=!s.enabledRoles||s.enabledRoles.includes(r);kitPanel.restore(kitPanel.snapshot());
   presets();syncModeControls();syncHitTargetControl();
@@ -741,7 +769,7 @@ function stop(){
 async function buildLayer(layer:'drums'|'bassline'|'lead'|'piano'){
   if(pendingCount()){status('Apply or Revert pending hit edits before generating a new pattern.',true);return;}
   stop();
-  try{const requested=settings();requested.generationMode=layer==='drums'?'drums':'melody';if(layer!=='drums')requested.melodyPart=layer;input('generationMode').value=requested.generationMode;input('melodyPart').value=requested.melodyPart??'bassline';if(layer==='drums'&&!requested.enabledRoles?.length)throw Error('Include at least one drum instrument to generate the beat.');if(layer==='drums'&&requested.breakLayer==='think-passage2')await ensureThinkBreakAudio(assets);const before=editor?structuredClone(editor.state):undefined;let changed=false;if(!editor){editor=new Editor(generate({...requested,generationMode:'drums'}));if(layer!=='drums'||requested.breakLayer==='think-passage2')changed=editor.generateComposition(requested,'Generate Beat');}else changed=editor.generateComposition(requested,`Generate ${layer==='drums'?'Beat':layer==='bassline'?'Bass':layer==='lead'?'Melody':'Piano'}`);if(layer!=='drums'){const track=editor.state.pattern.userTracks?.find(track=>isSynthTrack(track)&&track.generatedPart===layer);if(track){cursorTrackId=track.id;cursorLane=track.role;}}refresh();if(changed&&before)rememberActivePattern(before,`Before Generate ${layer}`);status(`${layer==='drums'?'Beat':layer==='bassline'?'Bassline':layer==='lead'?'Melody':'Piano chords'} generated from seed “${pattern.settings.seed}”. Other layers and locked notes were preserved.${before?' Undo restores the previous pattern.':''}`);}
+  try{if(!validateMeterUI())throw Error(el('meter-error').textContent!);const requested=settings();requested.generationMode=layer==='drums'?'drums':'melody';if(layer!=='drums')requested.melodyPart=layer;input('generationMode').value=requested.generationMode;input('melodyPart').value=requested.melodyPart??'bassline';if(layer==='drums'&&!requested.enabledRoles?.length)throw Error('Include at least one drum instrument to generate the beat.');if(layer==='drums'&&requested.breakLayer==='think-passage2')await ensureThinkBreakAudio(assets);const before=editor?structuredClone(editor.state):undefined;let changed=false;if(!editor){editor=new Editor(generate({...requested,generationMode:'drums'}));if(layer!=='drums'||requested.breakLayer==='think-passage2')changed=editor.generateComposition(requested,'Generate Beat');}else changed=editor.generateComposition(requested,`Generate ${layer==='drums'?'Beat':layer==='bassline'?'Bass':layer==='lead'?'Melody':'Piano'}`);if(layer!=='drums'){const track=editor.state.pattern.userTracks?.find(track=>isSynthTrack(track)&&track.generatedPart===layer);if(track){cursorTrackId=track.id;cursorLane=track.role;}}refresh();if(changed&&before)rememberActivePattern(before,`Before Generate ${layer}`);status(`${layer==='drums'?'Beat':layer==='bassline'?'Bassline':layer==='lead'?'Melody':'Piano chords'} generated from seed “${pattern.settings.seed}”. Other layers and locked notes were preserved.${before?' Undo restores the previous pattern.':''}`);}
   catch(e){status((e as Error).message,true);}
 }
 function build(){void buildLayer('drums');}
@@ -1052,14 +1080,14 @@ function renderBank(){if(!bank)return;const host=el('bank-slots');host.replaceCh
   });
   el('sequence-empty').hidden = bank.sequence.length > 0;
   const barsTotal = bank.sequence.reduce((n, s) => n + bank!.slots[s.slot]!.editor!.pattern.settings.bars * s.repeats, 0);
-  const durTotal = barsTotal ? (barsTotal * 240 / bank.songBpm) : 0;
+  const durTotal = bank.sequence.reduce((sum,step)=>sum+patternSeconds(bank!.slots[step.slot]!.editor!.pattern.settings,bank!.songBpm)*step.repeats,0);
   const barsTotalEl = document.getElementById('song-map-bars-total');
   if (barsTotalEl) barsTotalEl.textContent = barsTotal + ' bars';
   const durTotalEl = document.getElementById('song-map-duration-total');
   if (durTotalEl) durTotalEl.textContent = durTotal.toFixed(1) + 's';
  const select=el<HTMLSelectElement>('append-slot'),value=select.value;select.replaceChildren();bank.slots.forEach((s,i)=>{if(s.editor){const o=document.createElement('option');o.value=String(i);o.textContent=s.name;select.append(o);}});if(Array.from(select.options).some(o=>o.value===value))select.value=value;
  renderSongTimeline();
- const bars=bank.sequence.reduce((n,s)=>n+bank!.slots[s.slot]!.editor!.pattern.settings.bars*s.repeats,0);el('arrangement-info').textContent=bars?bars+' bars - '+(bars*240/bank.songBpm).toFixed(1)+' seconds - '+bank.songBpm+' BPM · max 170s':'No song arranged yet. Add a pattern to enable playback and export.';input('play-arrangement').disabled=!bars;input('export-arrangement').disabled=!bars;input('append-step').disabled=bank.sequence.length>=64;const undo=input('arr-undo'),redo=input('arr-redo');if(arrangementHistory&&undo&&redo){undo.disabled=!arrangementHistory.undoLabel;redo.disabled=!arrangementHistory.redoLabel;undo.title=arrangementHistory.undoLabel?`Undo ${arrangementHistory.undoLabel}`:'Nothing to undo';redo.title=arrangementHistory.redoLabel?`Redo ${arrangementHistory.redoLabel}`:'Nothing to redo';undo.setAttribute('aria-label',arrangementHistory.undoLabel?`Undo ${arrangementHistory.undoLabel}`:'Nothing to undo');redo.setAttribute('aria-label',arrangementHistory.redoLabel?`Redo ${arrangementHistory.redoLabel}`:'Nothing to redo');}
+ const bars=bank.sequence.reduce((n,s)=>n+bank!.slots[s.slot]!.editor!.pattern.settings.bars*s.repeats,0);el('arrangement-info').textContent=bars?bars+' bars - '+bank.sequence.reduce((sum,step)=>sum+patternSeconds(bank!.slots[step.slot]!.editor!.pattern.settings,bank!.songBpm)*step.repeats,0).toFixed(1)+' seconds - '+bank.songBpm+' BPM · max 170s':'No song arranged yet. Add a pattern to enable playback and export.';input('play-arrangement').disabled=!bars;input('export-arrangement').disabled=!bars;input('append-step').disabled=bank.sequence.length>=64;const undo=input('arr-undo'),redo=input('arr-redo');if(arrangementHistory&&undo&&redo){undo.disabled=!arrangementHistory.undoLabel;redo.disabled=!arrangementHistory.redoLabel;undo.title=arrangementHistory.undoLabel?`Undo ${arrangementHistory.undoLabel}`:'Nothing to undo';redo.title=arrangementHistory.redoLabel?`Redo ${arrangementHistory.redoLabel}`:'Nothing to redo';undo.setAttribute('aria-label',arrangementHistory.undoLabel?`Undo ${arrangementHistory.undoLabel}`:'Nothing to undo');redo.setAttribute('aria-label',arrangementHistory.redoLabel?`Redo ${arrangementHistory.redoLabel}`:'Nothing to redo');}
 }
 function arrangementAudio(rate:number){stashSlot();return renderSequence(arrange(bank!).map(p=>withDrumKit(p,drumKit,kitPanel.mix)),assets,rate,effectMap(),readyVinylOptions());}
 el('append-step').onclick=()=>{stop();if(bank!.sequence.length>=64)return;if(arrangementMutation('Append to arrangement',b=>insertSequenceStep(b,b.sequence.length,Number(input('append-slot').value)))){selectedArrangementStep=bank!.sequence.length-1;renderBank();scheduleSave();}};
@@ -1087,8 +1115,8 @@ async function playArrangement(){
   const elapsed=context!.currentTime-start,position=songPosition(timeline,Math.max(0,elapsed));
   if(position){
    if(bank!.active!==position.slot){activateSlot(position.slot);indexPlayback();paintedRow=null;lastPosition='';}
-   const beat=Math.max(0,elapsed)*bank!.songBpm/60;
-   el('hud-pos-val').textContent=String(Math.floor(beat/4)+1).padStart(2,'0')+'.'+(Math.floor(beat%4)+1);
+   const beat=Math.max(0,elapsed-position.start)*bank!.songBpm/60;
+   el('hud-pos-val').textContent=String(meterPosition(pattern.settings,beat).bar).padStart(2,'0')+'.'+meterPosition(pattern.settings,beat).beat;
    const key=position.step+':'+position.repeat+':'+position.row;
    if(key!==lastPosition||!paintedRow?.isConnected){
     paintedRow?.classList.remove('playing-row');
@@ -1177,7 +1205,7 @@ function syncSliders(){
   const spicyEl=document.getElementById('spicy-value');
   if(spicyEl){
     const pct=Math.round(spicyVal*100);
-    const tag=spicyVal>=0.7?(['groove-v3','groove-v4','groove-v5'].includes(input('algorithm').value)?' 🔥 Expressive':' 🔥 Chaos'):spicyVal>=0.35?' 🌶️ Spicy':spicyVal>0?' 🌶️ Mild':' Off';
+    const tag=spicyVal>=0.7?(['groove-v3','groove-v4','groove-v5','groove-v5.1'].includes(input('algorithm').value)?' 🔥 Expressive':' 🔥 Chaos'):spicyVal>=0.35?' 🌶️ Spicy':spicyVal>0?' 🌶️ Mild':' Off';
     spicyEl.textContent=pct+'%'+tag;
     input('spicy').setAttribute('aria-valuetext',spicyEl.textContent);
   }
@@ -1189,9 +1217,10 @@ function syncSliders(){
 }
 let v5ExactCapacityCache:{key:string;value:number}|undefined;
 function syncHitTargetControl(){
-  const bars=Number(input('bars').value)||2,exact=input('hit-target-mode').value==='exact',algorithm=input('algorithm').value,supportsExact=['groove-v4','groove-v5'].includes(algorithm);
+  const bars=Number(input('bars').value)||2,exact=input('hit-target-mode').value==='exact',algorithm=input('algorithm').value,supportsExact=['groove-v4','groove-v5','groove-v5.1'].includes(algorithm);
   let max=bars*64,v5Capacity:number|undefined;
-  if(exact&&algorithm==='groove-v5'&&input('breakLayer').value!=='think-passage2'){
+  try{max=bars*Math.ceil(parseTimeSignature(settings().timeSignature).stepsPerBar)*4;}catch{}
+  if(exact&&['groove-v5','groove-v5.1'].includes(algorithm)&&input('breakLayer').value!=='think-passage2'){
     try{
       const request={...settings(),hitTarget:undefined},key=JSON.stringify(request);
       if(v5ExactCapacityCache?.key!==key)v5ExactCapacityCache={key,value:maximumV5ExactHits(generate(request))};
@@ -1212,8 +1241,8 @@ function breakDescription(){
   el('break-description').textContent=key==='genre'?'Use the selected genre’s rhythm.':BREAKS[key].description+' Genre still controls tempo suggestions, detail and fill intensity.';
 }
 function syncStructureControls(){
- const hasStructure=['groove-v3','groove-v4','groove-v5'].includes(input('algorithm').value),structure=input('patternStructure').value,build=structure==='build'&&input('algorithm').value==='groove-v3';
- const supportsDensity=['groove-v4','groove-v5'].includes(input('algorithm').value);
+ const hasStructure=['groove-v3','groove-v4','groove-v5','groove-v5.1'].includes(input('algorithm').value),structure=input('patternStructure').value,build=structure==='build'&&input('algorithm').value==='groove-v3';
+ const supportsDensity=['groove-v4','groove-v5','groove-v5.1'].includes(input('algorithm').value);
  for(const role of ROLES){input(`${role}-density`).disabled=!supportsDensity;input(`${role}-density`).title=supportsDensity?'Adjust optional hits in this lane. Main kick and snare anchors remain.':'Instrument density requires Groove v4 or Groove v5.';}
  input('patternStructure').disabled=!hasStructure;
  input('patternStructure').title=hasStructure?'Choose groove, ending or full snare build.':'Pattern structure requires Groove v3, Groove v4, or Groove v5.';
@@ -1227,10 +1256,10 @@ function syncStructureControls(){
 }
 input('patternStructure').addEventListener('change',syncStructureControls);
 input('tracker-bars').addEventListener('change',()=>{const value=Number(input('tracker-bars').value) as 1|2|3|4,previous=pattern.settings.bars,shortening=value<previous;edit(()=>editor.setBars(value),shortening?'Tracker shortened; notes outside the new length were removed.':'Tracker pattern length changed.');if(pattern.settings.bars===previous)input('tracker-bars').value=String(previous);});
-input('tracker-resolution').addEventListener('change',()=>{const value=Number(input('tracker-resolution').value) as 8|16|32|64;input('resolution').value=String(value);edit(()=>editor.setResolution(value),'Tracker resolution changed; note timing is preserved.');});
-input('tracker-lpb').addEventListener('change',()=>edit(()=>editor.setLpb(Number(input('tracker-lpb').value) as 1|2|3|4|6|8|12|16|24|32),'Tracker LPB changed; hit timing is preserved.'));
+input('tracker-resolution').addEventListener('change',()=>{const value=Number(input('tracker-resolution').value) as 8|16|32|64;input('resolution').value=String(value);edit(()=>editor.setResolution(value),'Tracker resolution changed; note timing is preserved.');input('tracker-resolution').value=String(pattern.settings.resolution);input('resolution').value=String(pattern.settings.resolution);input('tracker-lpb').value=String(pattern.settings.lpb??pattern.settings.resolution/4);input('meter-lpb').value=pattern.settings.lpb===undefined?'auto':String(pattern.settings.lpb);validateMeterUI();});
+input('tracker-lpb').addEventListener('change',()=>{edit(()=>editor.setLpb(Number(input('tracker-lpb').value) as 1|2|3|4|6|8|12|16|24|32),'Tracker LPB changed; hit timing is preserved.');input('tracker-lpb').value=String(pattern.settings.lpb??pattern.settings.resolution/4);input('meter-lpb').value=pattern.settings.lpb===undefined?'auto':String(pattern.settings.lpb);validateMeterUI();});
 function syncPhraseControls(offset=Number(input('phraseOffset').value)||0){
- const hasStructure=['groove-v3','groove-v4','groove-v5'].includes(input('algorithm').value),length=Number(input('phraseLength').value);
+ const hasStructure=['groove-v3','groove-v4','groove-v5','groove-v5.1'].includes(input('algorithm').value),length=Number(input('phraseLength').value);
  syncStructureControls();
  el('phrase-length-field').hidden=!hasStructure;el('phrase-offset-field').hidden=!hasStructure||!length;
  const select=el<HTMLSelectElement>('phraseOffset');select.replaceChildren();
@@ -1242,6 +1271,7 @@ function presets(){
   breakDescription();
   syncSliders();
   syncModeControls();
+  validateMeterUI();
   const genre=input('genre').value as Genre;
   const isNew=Object.hasOwn(NEW_GENRES,genre);input('algorithm').querySelector<HTMLOptionElement>('[value="legacy-v1"]')!.disabled=isNew;
   if(isNew&&input('algorithm').value==='legacy-v1')input('algorithm').value='groove-v2';
@@ -1365,7 +1395,9 @@ input('reverseProbability').addEventListener('input',syncSliders);
 for(const id of ['syncopation','swing','humanizeMs','ghostAmount','fillAmount'])input(id).addEventListener('input',syncSliders);
 for(const id of ['pianoLushness','pianoTension','pianoDensity'])input(id).addEventListener('input',syncSliders);
 for(const role of ROLES)input(`${role}-density`).addEventListener('input',syncSliders);
-input('algorithm').addEventListener('change',()=>{syncSliders();syncPhraseControls();});
+for(const id of ['timeSignature','customTimeSignature','meter-lpb','bars','resolution'])input(id).addEventListener('change',()=>{validateMeterUI();syncHitTargetControl();dirty();});
+input('customTimeSignature').addEventListener('input',validateMeterUI);
+input('algorithm').addEventListener('change',()=>{syncSliders();syncPhraseControls();validateMeterUI();});
 input('hit-target-mode').addEventListener('change',()=>{syncHitTargetControl();dirty();});
 input('hit-target-slider').addEventListener('input',()=>{input('hit-target-number').value=input('hit-target-slider').value;syncHitTargetControl();dirty();});
 input('hit-target-number').addEventListener('change',()=>{syncHitTargetControl();dirty();});
@@ -1414,7 +1446,7 @@ function restoreGenerationDefaults(resetComposition=false){
  if(resetComposition){input('generationMode').value='drums';input('melodyPart').value='bassline';input('melodyKey').value='0';input('melodyScale').value='natural-minor';input('harmonyStyle').value='jazz';input('pianoLushness').value='0.65';input('pianoTension').value='0.35';input('pianoDensity').value='0.45';}
  for(const role of ROLES)input(`${role}-density`).value='1';
  input('hit-target-mode').value='auto';input('hit-target-number').value=String(Number(input('bars').value)*16);syncHitTargetControl();
- if(['groove-v3','groove-v4','groove-v5'].includes(keepEngine))input('algorithm').value=keepEngine;
+ if(['groove-v3','groove-v4','groove-v5','groove-v5.1'].includes(keepEngine))input('algorithm').value=keepEngine;
  const autoKit=document.getElementById('auto-kit') as HTMLInputElement | null;
  if(autoKit&&autoKit.checked){
    const defaultKitId=GENRE_KITS[genre]||'acoustic-break';
@@ -1622,7 +1654,7 @@ function updateEntry(hit?:Hit){
     const own=hit?.[key];input('edit-'+name+'-override').checked=own!==undefined;
     input('edit-'+name).value=String(own??(key==='playbackRate'?effectiveSampleSpeed(shape,pattern.settings.bpm).rate:shape[key])??fallback);
   }
-  const isV3=['groove-v3','groove-v4','groove-v5'].includes(pattern.settings.algorithm??'');
+  const isV3=['groove-v3','groove-v4','groove-v5','groove-v5.1'].includes(pattern.settings.algorithm??'');
   el('burst-span-field').hidden=!isV3;
   el('articulation-help').textContent=isV3?'Repeats divide the musical Burst span, independent of tracker resolution. Generated natural hits can sustain; Gate deliberately shortens attacks. Pitch and velocity contours are shown above.':'Ratchets divide one tracker row into equal repeats. Gate shortens each attack; 50% leaves half its interval silent. Effects can ring beyond the gate.';
   el('edit-ratchets-label').textContent=isV3?'Repeats in burst':'Ratchets per row';
@@ -1660,7 +1692,7 @@ function entryHit(replace:boolean,pitchOverride?:number){
   if(input('edit-lowpass-override').checked)hit.lowpassHz=Number(input('edit-lowpass').value);
   if(input('edit-attack-override').checked)hit.attackMs=Number(input('edit-attack').value);
   if(input('edit-decay-override').checked)hit.decay=Number(input('edit-decay').value);
-  if(['groove-v3','groove-v4','groove-v5'].includes(pattern.settings.algorithm??'')){
+  if(['groove-v3','groove-v4','groove-v5','groove-v5.1'].includes(pattern.settings.algorithm??'')){
     const duration=Number(input('edit-burst-span').value)||960/transfer.timing.lpb;
     const expression=prior?.articulation?structuredClone(prior.articulation):undefined;
     if(expression||hit.ratchets!>1||hit.gate!==undefined||Number(input('edit-burst-span').value)){
@@ -1675,7 +1707,7 @@ function entryHit(replace:boolean,pitchOverride?:number){
   const oldNote=prior&&transfer.notes.find(n=>n.id===prior.id);
   if(prior&&oldNote?.row===row&&oldNote.delay===delay){hit.baseTick=prior.baseTick;hit.offsetTick=prior.offsetTick;hit.fineOffset=prior.fineOffset;}
   const sound=input('edit-sound').value;
-  if(sound==='slice'){const a=currentAsset();hit.slice=sliceReference(a.asset,a.markers,a.selected);if(['groove-v3','groove-v4','groove-v5'].includes(pattern.settings.algorithm??''))hit.sourceKind='slice';}
+  if(sound==='slice'){const a=currentAsset();hit.slice=sliceReference(a.asset,a.markers,a.selected);if(['groove-v3','groove-v4','groove-v5','groove-v5.1'].includes(pattern.settings.algorithm??''))hit.sourceKind='slice';}
   else if(sound==='demo'&&!track)delete hit.slice;
   else if(sound==='keep'&&prior?.mapped)hit.mapped={...prior.mapped};
   else if(sound==='keep'&&prior?.slice)hit.slice={...prior.slice};
@@ -1691,7 +1723,7 @@ function entryHit(replace:boolean,pitchOverride?:number){
     if(!Number.isFinite(startMs)||!Number.isFinite(endMs)||startMs<0||endMs-startMs<5||endMs>available+.5)throw Error('Trim must fit inside the sample and keep at least 5 ms of audio.');
     hit.sampleTrim={startMs,endMs};
   }
-  if(['groove-v3','groove-v4','groove-v5'].includes(pattern.settings.algorithm??'')){
+  if(['groove-v3','groove-v4','groove-v5','groove-v5.1'].includes(pattern.settings.algorithm??'')){
     if(sound!=='slice'&&sound!=='keep')hit.sourceKind='oneShot';
     if(prior&&oldNote?.volume===volume)hit.gain=prior.gain;
     if(prior&&oldNote?.pan===pan)hit.pan=prior.pan;
@@ -1723,7 +1755,7 @@ function copyTrackerCells(){try{trackerClipboard=editor.copySelection();status(`
 function pasteTrackerCells(){if(!trackerClipboard){status('Copy tracker cells first.',true);return;}const lane=cursorTrackId??cursorLane;edit(()=>editor.pasteCells(trackerClipboard!,rowAnchor,lane),'Pasted tracker cells. Undo restores the previous cells.');focusTrackerCell(rowAnchor,lane);}
 function duplicateTrackerCells(){try{const clip=editor.copySelection(),order=trackerLaneIds(),positions=editor.state.selection.cells?.length?editor.state.selection.cells:editor.state.selection.rows?Array.from({length:editor.state.selection.rows[1]-editor.state.selection.rows[0]+1},(_,i)=>({row:editor.state.selection.rows![0]+i,lane:order[0]!})):transfer.notes.filter(n=>editor.state.selection.ids.includes(n.id)).map(n=>({row:n.row,lane:n.lane}));const row=Math.min(...positions.map(c=>c.row))+clip.height,lane=order[Math.min(...positions.map(c=>order.indexOf(c.lane)))]!;edit(()=>editor.pasteCells(clip,row,lane),'Duplicated tracker cells below the selection.');focusTrackerCell(row,lane);}catch(e){status((e as Error).message,true);}}
 el('tracker-copy').onclick=copyTrackerCells;el('tracker-paste').onclick=pasteTrackerCells;el('tracker-duplicate').onclick=duplicateTrackerCells;
-function trackerJumpRow(key:string,row:number){const last=transfer.timing.lines-1;if(key==='Home')return 0;if(key==='End')return last;const barRows=transfer.timing.lpb*4;if(key==='PageUp')return Math.max(0,row-barRows);if(key==='PageDown')return Math.min(last,row+barRows);return row;}
+function trackerJumpRow(key:string,row:number){const last=transfer.timing.lines-1;if(key==='Home')return 0;if(key==='End')return last;const barRows=trackerTiming(pattern.settings).rowsPerBar;if(key==='PageUp')return Math.max(0,row-barRows);if(key==='PageDown')return Math.min(last,row+barRows);return row;}
 const trackerJumpKeys=['Home','End','PageUp','PageDown'];
 el('grid').addEventListener('keydown', event => {
   if(event.altKey)return;
@@ -1949,12 +1981,12 @@ async function applyProject(raw:unknown){
   editor=new Editor(p.editor.pattern);editor.state=structuredClone(p.editor);rowAnchor=0;
   input('phraseLength').value=String(p.draft.phraseLength??0);syncPhraseControls(p.draft.phraseOffset??0);
   input('reverseProbability').value=String(p.draft.reverseProbability??0);
-  input('algorithm').value=p.draft.algorithm??'legacy-v1';input('variation').value=String(p.draft.variation??0);
+  restoreMeterControls(p.draft);input('algorithm').value=p.draft.algorithm??'legacy-v1';input('variation').value=String(p.draft.variation??0);
   input('generationMode').value=p.draft.generationMode??'drums';input('melodyPart').value=p.draft.melodyPart??'bassline';input('melodyKey').value=String(p.draft.melodyKey??0);input('melodyScale').value=p.draft.melodyScale??'natural-minor';input('harmonyStyle').value=p.draft.harmonyStyle??'jazz';
   input('pianoLushness').value=String(p.draft.pianoLushness??.65);input('pianoTension').value=String(p.draft.pianoTension??.35);input('pianoDensity').value=String(p.draft.pianoDensity??.45);
   input('hit-target-mode').value=p.draft.hitTarget===undefined?'auto':'exact';input('hit-target-number').value=String(p.draft.hitTarget??32);syncHitTargetControl();
   for(const role of ROLES)input(`${role}-density`).value=String(p.draft.laneDensity?.[role]??1);
-  for(const [key,value] of Object.entries(p.draft))if(key!=='enabledRoles'&&key!=='laneDensity'&&key!=='hitTarget')input(key).value=String(value);
+  for(const [key,value] of Object.entries(p.draft))if(key!=='enabledRoles'&&key!=='laneDensity'&&key!=='hitTarget'&&key!=='timeSignature'&&key!=='lpb')input(key).value=String(value);
   presets();refresh();syncVinylGenreAccent();restoreWorkspacePreferences();if(migrated)status('Older project sound updated: scratch and vinyl instrument hits now use Lo-Fi Percussion 02. Vinyl texture moved to background where available.');return true;
 }
 el('project-save').onclick=()=>{try{if(pendingCount())throw Error('Apply or Revert pending hit edits before saving a project backup.');const data=snapshot(),filename='breakbeat-project.bbproject';downloadBytes(new TextEncoder().encode(JSON.stringify(data)).buffer,filename,'application/json');fileFeedback(`Downloaded ${filename} · portable backup with embedded samples, kit, patterns and settings. Local autosave remains active in this browser. Your browser controls the download location.`);status('Portable project backup downloaded.');}catch(e){fileFeedback('Project backup failed: '+String(e),true);status(String(e),true);}};

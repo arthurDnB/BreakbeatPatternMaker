@@ -21,7 +21,7 @@
     "test:transport-layout": "node scripts/transport-layout-smoke.mjs",
     "test:browser:legacy": "node scripts/sample-browser-smoke.mjs && node scripts/tracker-browser-smoke.mjs && node scripts/drum-kit-browser-smoke.mjs",
     "build:site": "npm run build && node scripts/build-site.mjs",
-    "test:site": "npm run build:site && node scripts/tutorial-browser-smoke.mjs && node scripts/workstation-layout-smoke.mjs && node scripts/tracker-virtualization-smoke.mjs && node scripts/velocity-layers-browser-smoke.mjs && node scripts/instrument-panel-smoke.mjs && node scripts/modular-synth-browser-smoke.mjs && node scripts/site-browser-smoke.mjs && node scripts/sound-browser-site-smoke.mjs && node scripts/break-browser-smoke.mjs && node scripts/break-presets-browser-smoke.mjs && node scripts/groove-v5-browser-smoke.mjs && node scripts/generator-knobs-browser-smoke.mjs",
+    "test:site": "npm run build:site && node scripts/tutorial-browser-smoke.mjs && node scripts/workstation-layout-smoke.mjs && node scripts/tracker-virtualization-smoke.mjs && node scripts/velocity-layers-browser-smoke.mjs && node scripts/instrument-panel-smoke.mjs && node scripts/modular-synth-browser-smoke.mjs && node scripts/site-browser-smoke.mjs && node scripts/sound-browser-site-smoke.mjs && node scripts/break-browser-smoke.mjs && node scripts/break-presets-browser-smoke.mjs && node scripts/groove-v5-browser-smoke.mjs && node scripts/generator-knobs-browser-smoke.mjs && node scripts/groove-v51-browser-smoke.mjs",
     "benchmark:tracker": "npm run build:site && node scripts/tracker-performance-benchmark.mjs",
     "test:loop": "npm run build && node scripts/loop-browser-smoke.mjs",
     "test:loop-audit": "npm run build && node scripts/loop-generation-audit.mjs",

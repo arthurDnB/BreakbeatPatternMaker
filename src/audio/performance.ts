@@ -1,3 +1,4 @@
+import {patternSeconds} from '../core/meter.js';
 import {effectTail,processEffects,type Effects} from './effects.js';
 import {ROLES,isSynthTrack,type Role,type Pattern} from '../core/model.js';
 import {compile} from '../core/compile.js';
@@ -28,14 +29,14 @@ export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,
   if(!Number.isInteger(rate)||rate<8000||rate>192000)throw Error('Render sample rate must be 8–192 kHz.');
   patterns.forEach(p=>compile(p));
   patterns=patterns.map(resolvePatternSlices);
-  const duration=patterns.reduce((sum,p)=>sum+p.settings.bars*240/p.settings.bpm,0);
+  const duration=patterns.reduce((sum,p)=>sum+patternSeconds(p.settings),0);
   if(duration>170)throw Error('Arrangement limit is 170 seconds plus effect tails.');
   let position=0;
   const kit=new Map<string,Float32Array>();
   const stretched=new Map<string,Float32Array[]>();
   const synthCache=new Map<string,Float32Array[]>();let synthCacheBytes=0;
   const voices:RenderVoice[]=patterns.flatMap(pattern=>{
-  const origin=position;position+=pattern.settings.bars*240/pattern.settings.bpm;
+  const origin=position;position+=patternSeconds(pattern.settings);
   const secondsPerTick=60/pattern.settings.bpm/960;
   return pattern.events.flatMap((hit):RenderVoice[]=>{
     const synthTrack=hit.trackId?pattern.userTracks?.find(track=>track.id===hit.trackId):undefined;
@@ -99,7 +100,7 @@ export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,
       }
       return effectVoices;
     }
-    if(['groove-v3','groove-v4','groove-v5'].includes(pattern.settings.algorithm??''))return planV3Voices(pattern,hit,channels,sourceRate,from,to,origin,options.loop ? Infinity : position,rate);
+    if(['groove-v3','groove-v4','groove-v5','groove-v5.1'].includes(pattern.settings.algorithm??''))return planV3Voices(pattern,hit,channels,sourceRate,from,to,origin,options.loop ? Infinity : position,rate);
     const count=hit.ratchets??1,interval=240/pattern.settings.bpm/pattern.settings.resolution/count;
     const naturalLength=Math.ceil((to-from)/sourceRate/ratio*rate),decayActive=hit.decay!==undefined&&hit.decay<1;
     const decayMax=decayActive?Math.max(Math.round(rate*.02),Math.round(naturalLength*hit.decay!)):naturalLength;
@@ -201,7 +202,7 @@ export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,
   if(options.vinylTexture)mixVinylTexture(channels,rate,options.vinylTexture.asset,options.vinylTexture.levelDb,!!options.loop);
   // Preserve published V1–V3 PCM exactly. The cleaner linear output guard is
   // available to new Groove V4 work without rewriting older saved exports.
-  if(patterns.some(p=>!['groove-v4','groove-v5'].includes(p.settings.algorithm??''))){
+  if(patterns.some(p=>!['groove-v4','groove-v5','groove-v5.1'].includes(p.settings.algorithm??''))){
     const transparent=patterns.every(p=>p.events.every(h=>h.mapped));
     for(const ch of channels)for(let i=0;i<ch.length;i++){
       const v=ch[i]!,abs=Math.abs(v);

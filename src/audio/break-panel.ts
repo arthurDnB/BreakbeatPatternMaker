@@ -1,3 +1,4 @@
+import {patternTicks} from '../core/meter.js';
 import {noteName,type Pattern,type Settings,type SliceInstrument} from '../core/model.js';
 import {transcribeBreak,type AudioAsset} from './slices.js';
 import {validateWav} from './wav.js';
@@ -74,7 +75,7 @@ export function setupBreakPanel(options:{settings:()=>Settings;assets:Map<string
     cuts.forEach((cut,i)=>{const b=document.createElement('button');b.textContent=noteName(cut.note)+' · '+(i+1);b.setAttribute('aria-pressed',String(selected===i));b.onclick=()=>{selected=i;render();};list.append(b);});
     button('detect').disabled=!asset||!!worker;button('undo').disabled=!past.length;button('redo').disabled=!future.length;button('create').disabled=loading||!asset||!cuts.length||cuts.length>120;
     button('delete').disabled=selected<=0;button('move').disabled=selected<=0;
-    if(asset){input('marker').value=String(cuts[selected]!.frame/asset.sampleRate);el('tempo').textContent=(Number(input('bars').value)*240*asset.sampleRate/(region[1]-region[0])).toFixed(2)+' BPM';}
+    if(asset){input('marker').value=String(cuts[selected]!.frame/asset.sampleRate);el('tempo').textContent=(patternTicks({...options.settings(),bars:Number(input('bars').value)})/960*60*asset.sampleRate/(region[1]-region[0])).toFixed(2)+' BPM';}
     button('create').textContent=editing?'Apply slice changes':'Create instrument & pattern';draw();
   }
   const guard=(fn:()=>void)=>()=>{try{fn();}catch(error){say((error as Error).message);}};

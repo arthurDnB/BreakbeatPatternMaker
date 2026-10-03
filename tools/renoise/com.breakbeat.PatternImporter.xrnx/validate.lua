@@ -20,11 +20,15 @@ function M.decode(input)
   check(p.format=='breakbeat-pattern' and p.version==1,'Unsupported pattern format/version')
   str(p.engineVersion,32,'engine version');str(p.name,120,'name');str(p.seed,80,'seed')
   check(p.genre=='jungle' or p.genre=='dnb' or p.genre=='hiphop' or p.genre=='trap' or p.genre=='rap' or p.genre=='drill' or p.genre=='breakcore' or p.genre=='idm' or p.genre=='hardcore' or p.genre=='experimental' or p.genre=='breaks' or p.genre=='bigbeat' or p.genre=='nuskoolbreaks' or p.genre=='electrobreaks' or p.genre=='breakbeathardcore' or p.genre=='raggajungle' or p.genre=='atmosphericjungle' or p.genre=='footworkjungle' or p.genre=='downtempo' or p.genre=='lofihiphop' or p.genre=='boombap' or p.genre=='mellowbeats' or p.genre=='liquiddnb' or p.genre=='jumpup' or p.genre=='garage' or p.genre=='speedgarage' or p.genre=='twostepgarage' or p.genre=='dub' or p.genre=='psydub' or p.genre=='dubstep' or p.genre=='brostep' or p.genre=='postdubstep' or p.genre=='drumfunk' or p.genre=='amenscience' or p.genre=='atmosphericbreakcore' or p.genre=='triphop' or p.genre=='halftimednb' or p.genre=='neurofunk','Unsupported genre')
-  object(p.timing,'bpm lpb tpl bars beatsPerBar lines','timing')
+  object(p.timing,'bpm lpb tpl bars beatsPerBar lines'..(p.timing.beatUnit~=nil and ' beatUnit' or ''),'timing')
   local t=p.timing
   num(t.bpm,32,999,'BPM');num(t.lpb,1,32,'LPB',true);num(t.tpl,1,16,'TPL',true)
   num(t.bars,1,4,'bars',true);num(t.lines,1,512,'lines',true)
-  check(t.beatsPerBar==4 and t.lines==t.bars*4*t.lpb,'Inconsistent pattern length')
+  num(t.beatsPerBar,1,32,'beats per bar',true)
+  local unit=t.beatUnit or 4
+  check(unit==1 or unit==2 or unit==4 or unit==8 or unit==16 or unit==32,'Invalid beat unit')
+  local bar_rows=t.beatsPerBar*4*t.lpb/unit
+  check(bar_rows==math.floor(bar_rows) and t.lines==t.bars*bar_rows,'Inconsistent pattern length')
   array(p.sources,1,32,'sources');array(p.lanes,1,4,'lanes');array(p.notes,1,4096,'notes');array(p.warnings,0,4096,'warnings')
   for _,warning in ipairs(p.warnings) do str(warning,240,'warning') end
   local roles={kick=true,snare=true,hat=true,percussion=true}

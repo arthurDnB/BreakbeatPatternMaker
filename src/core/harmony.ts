@@ -1,4 +1,5 @@
-import {PPQ,type Settings} from './model.js';
+import {patternTicks} from './meter.js';
+import {type Settings} from './model.js';
 import {melodyProfile} from './melody-profiles.js';
 import {random} from './random.js';
 
@@ -118,7 +119,7 @@ export function harmonyPlan(settings:Settings):HarmonyChange[]{
     }
   }
   
-  const total=settings.bars*4*PPQ;
+  const total=patternTicks(settings);
   // Determine number of chord changes evenly distributed.
   // The original engine maps evenly over settings.bars.
   // If custom or preset progression has fewer/more chords, we distribute them evenly across the whole phrase.

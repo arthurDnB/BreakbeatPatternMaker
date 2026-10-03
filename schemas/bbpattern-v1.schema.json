@@ -19,7 +19,8 @@
         "lpb":{"type":"integer","minimum":1,"maximum":32},
         "tpl":{"type":"integer","minimum":1,"maximum":16},
         "bars":{"type":"integer","minimum":1,"maximum":4},
-        "beatsPerBar":{"const":4},
+        "beatsPerBar":{"type":"integer","minimum":1,"maximum":32},
+        "beatUnit":{"enum":[1,2,4,8,16,32]},
         "lines":{"type":"integer","minimum":1,"maximum":512}
       }
     },

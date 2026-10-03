@@ -1,3 +1,6 @@
+import {barTicks,patternTicks} from './meter.js';
+import {grooveV51Fill} from './groove-v51.js';
+import {v51ProfileFor} from './groove-v51-profiles.js';
 import {resolveSlice} from './slice-instrument.js';
 import {generate} from './generate.js';
 import {grooveFill,grooveTiming} from './groove.js';
@@ -56,7 +59,7 @@ export class Editor {
   undo(){const item=this.past.pop();if(!item)return false;this.future.push({state:copy(this.state),label:item.label});this.state=item.state;return true;}
   redo(){const item=this.future.pop();if(!item)return false;this.past.push({state:copy(this.state),label:item.label});this.state=item.state;return true;}
   setTempo(bpm:number){if(!Number.isFinite(bpm)||bpm<32||bpm>999)throw Error('Tempo must be between 32 and 999 BPM.');const next=copy(this.state);next.pattern.settings.bpm=bpm;next.revision++;return this.commit(next,'Change BPM');}
-  setBars(bars:1|2|3|4){const next=copy(this.state);if(next.pattern.settings.bars===bars)return false;const endTick=bars*4*PPQ;const removed=next.pattern.events.filter(hit=>hit.baseTick+hit.offsetTick>=endTick);if(removed.some(hit=>locked(next,hit)))throw Error('Unlock hits beyond the new pattern length before shortening it.');next.pattern.events=next.pattern.events.filter(hit=>hit.baseTick+hit.offsetTick<endTick);next.pattern.settings.bars=bars;next.revision++;return this.commit(next,'Change pattern length');}
+  setBars(bars:1|2|3|4){const next=copy(this.state);if(next.pattern.settings.bars===bars)return false;const endTick=bars*barTicks(next.pattern.settings);const removed=next.pattern.events.filter(hit=>hit.baseTick+hit.offsetTick>=endTick);if(removed.some(hit=>locked(next,hit)))throw Error('Unlock hits beyond the new pattern length before shortening it.');next.pattern.events=next.pattern.events.filter(hit=>hit.baseTick+hit.offsetTick<endTick);next.pattern.settings.bars=bars;next.revision++;return this.commit(next,'Change pattern length');}
   setResolution(resolution:8|16|32|64){const next=copy(this.state);next.pattern.settings.resolution=resolution;next.pattern.settings.lpb=(resolution/4) as 2|4|8|16;next.revision++;return this.commit(next,'Change tracker resolution');}
   setLpb(lpb:1|2|3|4|6|8|12|16|24|32){const next=copy(this.state);next.pattern.settings.lpb=lpb;next.revision++;return this.commit(next,'Change tracker LPB');}
   setDrumLane(role:Role,patch:Partial<ReturnType<typeof drumLane>>):boolean{
@@ -108,17 +111,38 @@ export class Editor {
   replace(pattern:Pattern,label='Generate',melody?:{part:MelodyPart;track:SynthTrack;notes:Hit[]}){
     const next=copy(this.state),old=next.pattern;
     const hasLocks=next.lockedIds.length>0||next.lockedRoles.length>0;
-    if(hasLocks&&(['bars','bpm','resolution'] as const).some(key=>old.settings[key]!==pattern.settings[key]))throw Error('Unlock hits and drum lanes before changing BPM, bars or resolution.');
-    const kept=old.events.filter(h=>!h.trackId&&(locked(next,h)||pattern.settings.hitTarget!==undefined&&(h.manual||!new RegExp(`^${h.role}-\\d+(?:-roll)?$`).test(h.id))));
+    if(hasLocks&&((['bars','bpm','resolution'] as const).some(key=>old.settings[key]!==pattern.settings[key])||(old.settings.timeSignature??'4/4')!==(pattern.settings.timeSignature??'4/4')))throw Error('Unlock hits and drum lanes before changing BPM, bars, meter or resolution.');
+    const kept=old.events.filter(h=>!h.trackId&&(locked(next,h)||pattern.settings.algorithm==='groove-v5.1'&&h.manual||pattern.settings.hitTarget!==undefined&&(h.manual||!new RegExp(`^${h.role}-\\d+(?:-roll)?$`).test(h.id))));
     if(pattern.settings.hitTarget!==undefined)for(const hit of kept)if(!hit.anchor&&!locked(next,hit))hit.manual=true;
     const regeneratingDrums=pattern.settings.generationMode!=='melody';
     const userHits=old.events.filter(h=>!!h.trackId&&(!regeneratingDrums||!h.generatedDrumRole||locked(next,h)));
     const protectedUserHits=userHits.filter(h=>h.generatedDrumRole&&locked(next,h));
     if(pattern.settings.generationMode!=='melody'&&kept.some(h=>pattern.settings.enabledRoles&&!pattern.settings.enabledRoles.includes(h.role)))throw Error('An excluded instrument has locked hits. Unlock them or include that instrument before generating.');
+    if(pattern.settings.algorithm==='groove-v5.1'&&kept.some(h=>h.baseTick+h.offsetTick>=patternTicks(pattern.settings)))throw Error('Move or remove preserved notes outside the new meter before shortening the pattern.');
     const preservedIds=new Set(kept.map(h=>h.id));
     next.pattern=copy(pattern);
     if(old.drumLanes&&!next.pattern.drumLanes)next.pattern.drumLanes=copy(old.drumLanes);
-    if(old.userTracks?.length){const incoming=next.pattern.userTracks??[];next.pattern.userTracks=[...copy(old.userTracks),...incoming.filter(track=>!old.userTracks!.some(saved=>saved.id===track.id))];const scale=pattern.settings.bars/old.settings.bars;for(const hit of userHits){hit.baseTick=Math.min(pattern.settings.bars*4*PPQ-1,Math.round(hit.baseTick*scale));hit.offsetTick=Math.round(hit.offsetTick*scale);}next.pattern.events=next.pattern.events.filter(h=>!userHits.some(saved=>h.id===saved.id)&&!protectedUserHits.some(held=>h.trackId===held.trackId&&h.baseTick===held.baseTick));next.pattern.events.push(...userHits);}
+    if(old.userTracks?.length){
+      const incoming=next.pattern.userTracks??[];
+      next.pattern.userTracks=[...copy(old.userTracks),...incoming.filter(track=>!old.userTracks!.some(saved=>saved.id===track.id))];
+      const total=patternTicks(pattern.settings),scale=total/patternTicks(old.settings),v51=pattern.settings.algorithm==='groove-v5.1';
+      for(const hit of userHits){
+        const track=old.userTracks.find(track=>track.id===hit.trackId);
+        const generated=track&&(isSynthTrack(track)?!!track.generatedPart:!!track.generatedBreakLayer);
+        if(v51&&(hit.manual||locked(next,hit)||!generated)){
+          if(hit.baseTick+hit.offsetTick>=total)throw Error('Move or remove preserved notes outside the new meter before shortening the pattern.');
+          continue;
+        }
+        hit.baseTick=Math.min(total-1,Math.round(hit.baseTick*scale));
+        hit.offsetTick=Math.round(hit.offsetTick*scale);
+        if(v51){
+          hit.offsetTick=Math.max(-PPQ,-hit.baseTick,Math.min(PPQ,total-1-hit.baseTick,hit.offsetTick));
+          if(hit.synthNote)hit.synthNote.durationTicks=Math.max(1,Math.min(total-hit.baseTick-hit.offsetTick,Math.round(hit.synthNote.durationTicks*scale)));
+        }
+      }
+      next.pattern.events=next.pattern.events.filter(h=>!userHits.some(saved=>h.id===saved.id)&&!protectedUserHits.some(held=>h.trackId===held.trackId&&h.baseTick===held.baseTick));
+      next.pattern.events.push(...userHits);
+    }
     for(const instrument of old.sliceInstruments??[])if(([THINK_BREAK_INSTRUMENT_ID,THINK_VOCAL_INSTRUMENT_ID].includes(instrument.id)||[...kept,...userHits].some(h=>h.mapped?.instrumentId===instrument.id))&&!next.pattern.sliceInstruments?.some(i=>i.id===instrument.id))(next.pattern.sliceInstruments??=[]).push(copy(instrument));
     next.pattern.events=next.pattern.events.filter(h=>!!h.trackId||!next.lockedRoles.includes(h.role)&&!preservedIds.has(h.id)&&!kept.some(k=>k.role===h.role&&k.baseTick===h.baseTick)).concat(kept);
     if(melody){
@@ -143,9 +167,9 @@ export class Editor {
     const mode=settings.generationMode??'drums',old=this.state.pattern;
     const generated=mode==='melody'?undefined:generate(settings);
     const pattern:Pattern=mode==='melody'?{...copy(old),settings:copy(settings),events:copy(old.events.filter(hit=>!hit.trackId))}:addThinkBreakLayer(routeGeneratedDrums(generated!,old),generated!,old);
-    if(mode==='melody'&&settings.bars!==old.settings.bars){
-      const scale=settings.bars/old.settings.bars;
-      for(const hit of pattern.events){hit.baseTick=Math.min(settings.bars*4*PPQ-1,Math.round(hit.baseTick*scale));hit.offsetTick=Math.max(-hit.baseTick,Math.min(PPQ,hit.offsetTick));}
+    if(mode==='melody'&&patternTicks(settings)!==patternTicks(old.settings)){
+      const scale=patternTicks(settings)/patternTicks(old.settings);
+      for(const hit of pattern.events){hit.baseTick=Math.min(patternTicks(settings)-1,Math.round(hit.baseTick*scale));hit.offsetTick=Math.max(-hit.baseTick,Math.min(PPQ,patternTicks(settings)-1-hit.baseTick,hit.offsetTick));}
     }
     if(preserveAnchors&&mode!=='melody'){
       const anchors=old.events.filter(hit=>hit.anchor&&(!hit.trackId||!!hit.generatedDrumRole));
@@ -192,7 +216,7 @@ export class Editor {
   variation(){
     const original=this.state.pattern;
     const algorithm=original.settings.algorithm;
-    return this.generateComposition({...original.settings,algorithm:algorithm==='groove-v5'?'groove-v5':algorithm==='groove-v4'?'groove-v4':algorithm==='groove-v3'?'groove-v3':'groove-v2',variation:(original.settings.variation??0)+1},'Generate variation',true);
+    return this.generateComposition({...original.settings,algorithm:algorithm==='groove-v5.1'?'groove-v5.1':algorithm==='groove-v5'?'groove-v5':algorithm==='groove-v4'?'groove-v4':algorithm==='groove-v3'?'groove-v3':'groove-v2',variation:(original.settings.variation??0)+1},'Generate variation',true);
   }
   write(hit:Hit,replaceId?:string){
     const next=copy(this.state),prior=next.pattern.events.find(h=>h.id===replaceId);
@@ -245,7 +269,7 @@ export class Editor {
       const targetLane=String(target.lane),role=roleForLane(next.pattern,targetLane);if(!role)throw Error('Paste destination track no longer exists.');
       if(!!moved.synthNote!==isSynthTrack(next.pattern.userTracks?.find(t=>t.id===targetLane)))throw Error('Copy synth notes only to synth tracks and sample hits only to sample or drum tracks.');
       moved.role=role;if(ROLES.includes(targetLane as Role))delete moved.trackId;else moved.trackId=targetLane;moved.sourceId='kit.'+role;moved.baseTick+=tickDelta;moved.anchor=false;delete moved.generatedDrumRole;
-      if(moved.baseTick<0||moved.baseTick>=next.pattern.settings.bars*4*PPQ)throw Error('Paste timing would extend beyond the pattern.');
+      if(moved.baseTick<0||moved.baseTick>=patternTicks(next.pattern.settings))throw Error('Paste timing would extend beyond the pattern.');
       next.pattern.events.push(moved);
     }
     next.pattern.events.sort((a,b)=>a.baseTick-b.baseTick||ROLES.indexOf(a.role)-ROLES.indexOf(b.role));
@@ -276,7 +300,7 @@ export class Editor {
     next.pattern.events=next.pattern.events.filter(h=>!overwritten.has(h.id));
     for(const hit of next.pattern.events){if(!moving.has(hit.id))continue;const old=notes.find(n=>n.id===hit.id)!,target=order[order.indexOf(old.lane)+laneShift]!,role=roleForLane(next.pattern,target);if(!role)throw Error('Move destination track no longer exists.');
       if(!!hit.synthNote!==isSynthTrack(next.pattern.userTracks?.find(t=>t.id===target)))throw Error('Move synth notes only to synth tracks and sample hits only to sample or drum tracks.');
-      hit.baseTick+=rowShift*step;hit.role=role;if(ROLES.includes(target as Role))delete hit.trackId;else hit.trackId=target;hit.sourceId='kit.'+hit.role;delete hit.generatedDrumRole;if(!hit.trackId&&!hit.anchor)hit.manual=true;if(hit.baseTick<0||hit.baseTick>=next.pattern.settings.bars*4*PPQ)throw Error('Move timing exceeds the pattern.');}
+      hit.baseTick+=rowShift*step;hit.role=role;if(ROLES.includes(target as Role))delete hit.trackId;else hit.trackId=target;hit.sourceId='kit.'+hit.role;delete hit.generatedDrumRole;if(!hit.trackId&&!hit.anchor)hit.manual=true;if(hit.baseTick<0||hit.baseTick>=patternTicks(next.pattern.settings))throw Error('Move timing exceeds the pattern.');}
     next.pattern.events.sort((a,b)=>a.baseTick-b.baseTick||ROLES.indexOf(a.role)-ROLES.indexOf(b.role));
     next.selection={ids:[...moving.keys()],rows:null,cells:destinations.map(c=>({row:c.row,lane:c.lane}))};next.revision++;
     return this.commit(next,'Move tracker cells');
@@ -322,9 +346,9 @@ export class Editor {
     for(const hit of changedHits){
       const step=rowTicks(next.pattern);
       let target=hit.baseTick+(rng()<.5?-step:step);
-      if(['groove-v2','groove-v3','groove-v4','groove-v5'].includes(next.pattern.settings.algorithm??'')){
-        const rule=GROOVES[next.pattern.settings.genre],origin=Math.floor(hit.baseTick/(4*PPQ))*4*PPQ;
-        const v3=['groove-v3','groove-v4','groove-v5'].includes(next.pattern.settings.algorithm??'')?V3_RULES[next.pattern.settings.genre]:undefined;
+      if(['groove-v2','groove-v3','groove-v4','groove-v5','groove-v5.1'].includes(next.pattern.settings.algorithm??'')){
+        const rule=GROOVES[next.pattern.settings.genre],origin=Math.floor(hit.baseTick/barTicks(next.pattern.settings))*barTicks(next.pattern.settings);
+        const v3=['groove-v3','groove-v4','groove-v5','groove-v5.1'].includes(next.pattern.settings.algorithm??'')?V3_RULES[next.pattern.settings.genre]:undefined;
         const role=beatRole(hit);
         const positions=v3?(role==='kick'?v3.pickups:role==='snare'?v3.ghosts:role==='hat'?[...v3.hats,...v3.hatDetails]:v3.percussion):(role==='kick'?rule.kickExtras:role==='snare'?rule.response:[1,3,5,7,9,11,13,15]);
         const choices=positions.map(n=>origin+(v3?n*240:Math.round(n*240/step)*step)).filter(t=>t!==hit.baseTick&&Math.abs(t-hit.baseTick)<=(v3?480:step*2));
@@ -332,8 +356,8 @@ export class Editor {
       }
       const row=Math.floor(Math.max(0,Math.round((target+hit.offsetTick)/step*256))/256);
       const range=next.selection.rows;
-      if(rng()<.65&&target>=0&&target<next.pattern.settings.bars*PPQ*4&&(!range||(row>=range[0]&&row<=range[1]))&&!next.pattern.events.some(e=>e.id!==hit.id&&hitLane(e)===hitLane(hit)&&e.baseTick===target)){
-        hit.baseTick=target;if(['groove-v2','groove-v3','groove-v4','groove-v5'].includes(next.pattern.settings.algorithm??'')){const laneRole=hit.role;hit.role=beatRole(hit);if(next.pattern.settings.algorithm==='groove-v5')grooveV5Timing(hit,next.pattern.settings,v5ProfileFor(next.pattern.settings.genre));else (next.pattern.settings.algorithm==='groove-v4'?grooveV4Timing:next.pattern.settings.algorithm==='groove-v3'?grooveV3Timing:grooveTiming)(hit,next.pattern.settings);hit.role=laneRole;}if(range)hit.offsetTick=Math.max(range[0]*step-hit.baseTick,Math.min((range[1]+1)*step-1-hit.baseTick,hit.offsetTick));hit.reason='This variation moves an ornament to a neighboring subdivision while retaining the main backbeat.';
+      if(rng()<.65&&target>=0&&target<patternTicks(next.pattern.settings)&&(!range||(row>=range[0]&&row<=range[1]))&&!next.pattern.events.some(e=>e.id!==hit.id&&hitLane(e)===hitLane(hit)&&e.baseTick===target)){
+        hit.baseTick=target;if(['groove-v2','groove-v3','groove-v4','groove-v5','groove-v5.1'].includes(next.pattern.settings.algorithm??'')){const laneRole=hit.role;hit.role=beatRole(hit);if(next.pattern.settings.algorithm==='groove-v5.1')grooveV5Timing(hit,next.pattern.settings,v51ProfileFor(next.pattern.settings.genre));else if(next.pattern.settings.algorithm==='groove-v5')grooveV5Timing(hit,next.pattern.settings,v5ProfileFor(next.pattern.settings.genre));else (next.pattern.settings.algorithm==='groove-v4'?grooveV4Timing:next.pattern.settings.algorithm==='groove-v3'?grooveV3Timing:grooveTiming)(hit,next.pattern.settings);hit.role=laneRole;}if(range)hit.offsetTick=Math.max(range[0]*step-hit.baseTick,Math.min((range[1]+1)*step-1-hit.baseTick,hit.offsetTick));hit.reason='This variation moves an ornament to a neighboring subdivision while retaining the main backbeat.';
       }else{
         hit.gain=Math.round(Math.max(.08,Math.min(hit.ghost?.35:.85,hit.gain+(hit.gain>(hit.ghost?.27:.55)?-.12:.12)))*10000)/10000;
         hit.reason=hit.ghost?'This ghost snare has a revised quiet accent; the main backbeat stays in place.':'This variation changes the accent strength while preserving the rhythm.';
@@ -415,9 +439,9 @@ export class Editor {
     next.revision++;return this.commit(next,scoped?'Scramble selection':'Scramble break');
   }
   private boundGestures(next:EditorState,hits:Hit[],range:[number,number]|null){
-    if(!['groove-v3','groove-v4','groove-v5'].includes(next.pattern.settings.algorithm??''))return;
+    if(!['groove-v3','groove-v4','groove-v5','groove-v5.1'].includes(next.pattern.settings.algorithm??''))return;
     const ticksPerRow=rowTicks(next.pattern);
-    const end=Math.min(next.pattern.settings.bars*4*PPQ,range?(range[1]+1)*ticksPerRow:Infinity);
+    const end=Math.min(patternTicks(next.pattern.settings),range?(range[1]+1)*ticksPerRow:Infinity);
     for(const h of hits){
       if(!h.articulation||h.anchor||locked(next,h))continue;
       const start=h.baseTick+h.offsetTick+(h.fineOffset??0);
@@ -429,9 +453,9 @@ export class Editor {
   fill(targetLane?:string){
     const next=copy(this.state),range=next.selection.rows;
     if(!range)throw Error('Select an ending using row numbers or Select last beat.');
-    if(['groove-v2','groove-v3','groove-v4','groove-v5'].includes(next.pattern.settings.algorithm??'')){
+    if(['groove-v2','groove-v3','groove-v4','groove-v5','groove-v5.1'].includes(next.pattern.settings.algorithm??'')){
       const step=rowTicks(next.pattern),start=range[0]*step,end=(range[1]+1)*step;
-      const raw=(next.pattern.settings.algorithm==='groove-v5'?grooveV5Fill:next.pattern.settings.algorithm==='groove-v4'?grooveV4Fill:next.pattern.settings.algorithm==='groove-v3'?grooveV3Fill:grooveFill)({...next.pattern.settings,variation:next.revision},start,end);
+      const raw=(next.pattern.settings.algorithm==='groove-v5.1'?grooveV51Fill:next.pattern.settings.algorithm==='groove-v5'?grooveV5Fill:next.pattern.settings.algorithm==='groove-v4'?grooveV4Fill:next.pattern.settings.algorithm==='groove-v3'?grooveV3Fill:grooveFill)({...next.pattern.settings,variation:next.revision},start,end);
       const additions=routeGeneratedDrums({...next.pattern,events:raw},next.pattern).events;
       let changed=false;
       for(const hit of additions){

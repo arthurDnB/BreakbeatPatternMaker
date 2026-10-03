@@ -1,3 +1,4 @@
+import {barTicks} from './meter.js';
 import {PPQ,type Hit,type MelodyPart,type MelodyScale,type Settings} from './model.js';
 import {melodyProfile} from './melody-profiles.js';
 import {random} from './random.js';
@@ -22,7 +23,7 @@ export const MELODY_SCALES:Record<MelodyScale,{label:string;intervals:readonly n
   'double-harmonic':{label:'Double Harmonic',intervals:[0,1,4,5,7,8,11]},
   hirajoshi:{label:'Hirajoshi',intervals:[0,2,3,7,8]}
 };
-const BAR=4*PPQ,STEP=PPQ/4;
+
 function chance(s:Settings,part:MelodyPart,stage:string,key:string,variation=true):number{
   return random(s.seed,`melody:${s.genre}:${part}:${stage}:${variation?s.variation??0:0}:${key}`)();
 }
@@ -78,6 +79,7 @@ function breakScaleRun(note:number,recent:readonly number[],key:number,scale:rea
 /** Seeded phrase composition, independent of whichever drum engine is selected. */
 export function generateMelody(settings:Settings,trackId:string):Hit[]{
   validateSettings(settings);
+  const BAR=barTicks(settings),STEP=BAR/16;
   const part=settings.melodyPart==='piano'?'bassline':settings.melodyPart??'bassline',profile=melodyProfile(settings.genre,part);
   const key=settings.melodyKey??0,scale=MELODY_SCALES[settings.melodyScale??'natural-minor'].intervals;
   const contours=profile.contours,harmony=harmonyPlan(settings);
@@ -119,7 +121,7 @@ export function generateMelody(settings:Settings,trackId:string):Hit[]{
       if(!ornament)previous=note;
       const swung=step%2===1?Math.round((settings.swing-.5)*2*STEP*.55):0;
       const humanize=Math.round((chance(settings,part,'timing',`${bar}:${step}`,false)*2-1)*settings.humanizeMs*settings.bpm*PPQ/60000);
-      const offsetTick=Math.max(-baseTick,Math.min(settings.bars*BAR-1-baseTick,swung+humanize));
+      const offsetTick=Math.max(-PPQ,-baseTick,Math.min(PPQ,settings.bars*BAR-1-baseTick,swung+humanize));
       const durationTicks=Math.max(1,Math.min(Math.round(Math.min(nextTick-baseTick,profile.maxBeats*PPQ)*profile.gate),settings.bars*BAR-baseTick));
       const gain=ornament?.42:extra?.58:step===0?.84:.68;
       const phrase=ornament?'phrase pickup':extra?'connecting detail':response?'motif response':'repeated motif';

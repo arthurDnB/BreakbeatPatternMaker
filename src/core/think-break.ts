@@ -1,3 +1,4 @@
+import {barTicks as measureTicks} from './meter.js';
 import {PPQ,isSynthTrack,type Hit,type Pattern,type Role,type SampleTrack,type SliceInstrument} from './model.js';
 import {random} from './random.js';
 import {applyReverseProbability} from './reverse-probability.js';
@@ -51,7 +52,7 @@ export function addThinkBreakLayer(pattern:Pattern,guide:Pattern,old?:Pattern):P
     }).map(slice=>slice.note);
     return [role,choices.length?choices:available];
   }));
-  const settings=pattern.settings,variation=settings.variation??0,barTicks=4*PPQ,events:Hit[]=[];
+  const settings=pattern.settings,variation=settings.variation??0,barTicks=measureTicks(settings),events:Hit[]=[];
   for(let bar=0;bar<settings.bars;bar++){
     const start=bar*barTicks,end=start+barTicks;
     const candidates=guide.events.filter(hit=>!hit.trackId&&hit.baseTick+hit.offsetTick>=start&&hit.baseTick+hit.offsetTick<end)
@@ -74,8 +75,8 @@ export function addThinkBreakLayer(pattern:Pattern,guide:Pattern,old?:Pattern):P
   // Keep the complete user-identified vocal cut intact as a phrase accent.
   const vocalBar=settings.bars-1;
   events.push({id:`think-${id}-uh-${vocalBar}`,role:'percussion',trackId:id,generatedDrumRole:'percussion',sourceId:'kit.percussion',sourceKind:'slice',
-    baseTick:vocalBar*barTicks+2*PPQ,offsetTick:0,gain:.7,pan:0,anchor:false,ghost:false,
-    mapped:{instrumentId:THINK_VOCAL_INSTRUMENT_ID,note:mapped[1]!.slices[0]!.note},articulation:{durationTicks:2*PPQ,mode:'gate'},
+    baseTick:vocalBar*barTicks+Math.min(2*PPQ,barTicks/2),offsetTick:0,gain:.7,pan:0,anchor:false,ghost:false,
+    mapped:{instrumentId:THINK_VOCAL_INSTRUMENT_ID,note:mapped[1]!.slices[0]!.note},articulation:{durationTicks:Math.min(2*PPQ,barTicks/2),mode:'gate'},
     reason:'The intact Think “uh” phrase answers the final backbeat.'});
   applyReverseProbability(events,settings);
   return {...pattern,userTracks:[...(pattern.userTracks??[]),track],sliceInstruments:[...(pattern.sliceInstruments??[]),...mapped],events:[...pattern.events,...events]};

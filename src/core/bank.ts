@@ -1,3 +1,4 @@
+import {patternSeconds} from './meter.js';
 import {compile} from './compile.js';
 import {Editor,type EditorState} from './editor.js';
 import type {Pattern} from './model.js';
@@ -145,7 +146,7 @@ export function songTimeline(bank: Bank) {
   return bank.sequence.flatMap((step, index) => Array.from({length: step.repeats}, (_, repeat) => {
     const pattern = bank.slots[step.slot]!.editor!.pattern;
     const settings = pattern.settings;
-    const duration = settings.bars * 240 / bank.songBpm;
+    const duration = patternSeconds(settings,bank.songBpm);
     const entry = {step: index, slot: step.slot, section: step.section, repeat, start, duration, lines: compile(pattern).timing.lines};
     start += duration;
     return entry;
@@ -158,7 +159,7 @@ export function songBlocks(bank: Bank) {
   let startBar = 1;
   return bank.sequence.map((step, index) => {
     const bars = bank.slots[step.slot]!.editor!.pattern.settings.bars * step.repeats;
-    const duration = bars * 240 / bank.songBpm;
+    const duration = patternSeconds(bank.slots[step.slot]!.editor!.pattern.settings,bank.songBpm)*step.repeats;
     const block = {step: index, slot: step.slot, section: step.section, repeats: step.repeats, start, duration, bars, startBar, endBar: startBar + bars - 1};
     start += duration;
     startBar += bars;

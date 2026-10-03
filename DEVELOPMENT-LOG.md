@@ -29,7 +29,7 @@ This document maintains the running project state and change log so that multipl
 ## Ã°Å¸â€œÅ’ Current Project Status
 
 * **Version:** `0.2.3`
-* **Test Status:** 283 unit tests passing (0 skipped, 0 failed); all deployment site smoke checks passing (`npm.cmd test` and `npm.cmd run test:site`).
+* **Test Status:** 308 unit tests passing (0 skipped, 0 failed); all deployment site smoke checks passing (`npm.cmd test` and `npm.cmd run test:site`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   Ã°Å¸â€˜â€° [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -81,6 +81,15 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## Ã°Å¸â€œÂ Change Log
+
+### [2026-10-04] - Groove V5.1 Custom Meters and DnB Family Profiles (Codex)
+- **Opt-in engine:** Added Groove V5.1 without changing the Groove V5 default or its authored profiles. A captured SHA-256 regression checks identical pre-change V5 output across all genres at 1, 2 and 4 bars.
+- **Shared timing (`src/core/meter.ts`, model/settings/compile, editor, harmony/melody/piano, bank and audio):** Optional per-pattern N/D meter, numerator 1-32 and denominators 1/2/4/8/16/32. Quarter-note BPM/LPB remains consistent. Per-bar fractional grids fail clearly; 512 rows and existing render limits remain enforced. Pattern/song playback, WAV duration, mixed-meter arrangements, break import and projects use the same measure length.
+- **Composition (`groove-v51*.ts`, shared V5 runtime):** Dedicated DnB, Halftime DnB, Neurofunk, Drumfunk and Jump-up profiles; additive 3+2, 3+3 and 3+2+2 meter anchors, adapted detail/fills and named break motifs. Tiny-bar piano comping and long-bar event budgets are bounded. V5.1 retains manual notes and locks, Exact Hits, Think slices, reverse probability and Undo/Redo; generated melodic layers resize safely when meter changes.
+- **Controls (`public/index.html`, `workspace.css`, `src/web.ts`):** Meter presets plus custom fraction input and a V5.1 LPB selector, inline validation, denominator-aware beat/bar labels, virtualized row heights and PageUp/PageDown. Saved drafts and active-pattern meter choices restore on reopen. CLI accepts `--engine groove-v5.1 --meter 7/8 --lpb 4`; transfer schema and legacy Lua validator accept optional denominator metadata.
+- **Research and usage:** `docs/groove-v51-research.md` links original programming material and artist interviews, distinguishes source findings from authored decisions, and explains use and limits. These profiles are ready for listening review; tests do not establish definitive genre authenticity.
+- **Verification:** `npm.cmd test` passed 308/308 tests; `npm.cmd run test:site` passed all 14 site smoke test suites across root and subpath prefixes. Coverage includes odd/tiny/long meters, all genres' melodic paths, 999 BPM offsets, PCM/WAV timing, project/mixed-meter roundtrip, Lua import, and the V5.1 browser workflow.
+- **Coordination:** Integrated and verified by Antigravity per AGENTS.md protocols.
 
 ### [2026-10-04] - Keep Generator Values Visible While Turning Knobs (Codex)
 - **Tooltip placement and interaction (`src/ui/generator-knobs.ts`):** Position each help box beside the dial only when it clears that knob's value readout; otherwise place it below. Hide help as soon as pointer dragging or keyboard adjustment begins, and show it again on a later hover or focus. This keeps changing values readable.

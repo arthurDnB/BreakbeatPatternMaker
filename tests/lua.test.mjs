@@ -35,3 +35,7 @@ test('new genres import and roll back through the Lua host simulator',()=>{
 test('named break presets round trip through the file importer',()=>{
  for(const breakStyle of ['amen','think','apache','funkyDrummer','hotPants'])runLua(generate({...defaults(),breakStyle}));
 });
+
+test('V5.1 odd-meter transfers retain timing through the Lua importer',()=>{
+ for(const timeSignature of ['3/4','5/4','7/8','11/16'])runLua(generate({...defaults(),algorithm:'groove-v5.1',timeSignature,lpb:4}));
+});

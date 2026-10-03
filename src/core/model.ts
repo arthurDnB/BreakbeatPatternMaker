@@ -12,7 +12,8 @@ export type MelodyPart = 'bassline' | 'lead' | 'piano';
 export type MelodyScale = 'major' | 'natural-minor' | 'harmonic-minor' | 'melodic-minor' | 'dorian' | 'phrygian' | 'lydian' | 'mixolydian' | 'locrian' | 'major-pentatonic' | 'minor-pentatonic' | 'blues' | 'whole-tone' | 'diminished' | 'double-harmonic' | 'hirajoshi';
 export type HarmonyStyle='genre'|'jazz'|'neo-soul'|'modal';
 export interface Settings {
-  algorithm?: 'legacy-v1' | 'groove-v2' | 'groove-v3' | 'groove-v4' | 'groove-v5';
+  algorithm?: 'legacy-v1' | 'groove-v2' | 'groove-v3' | 'groove-v4' | 'groove-v5' | 'groove-v5.1';
+  timeSignature?: string;
   variation?: number;
   phraseLength?:4|8|16; phraseOffset?:number; // V3 section position, zero-based bars.
   breakStyle?: BreakStyle;
@@ -118,7 +119,7 @@ export interface Source {
 export interface Transfer {
   format: 'breakbeat-pattern'; version: 1; engineVersion: string;
   name: string; genre: Genre; seed: string;
-  timing: {bpm: number; lpb: number; tpl: number; bars: number; beatsPerBar: 4; lines: number};
+  timing: {bpm: number; lpb: number; tpl: number; bars: number; beatsPerBar: number; beatUnit?: number; lines: number};
   sources: Source[];
   lanes: {id: string; name: string; columns: number}[];
   notes: {id: string; lane: string; source: string; row: number; column: number;

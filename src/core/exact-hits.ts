@@ -1,3 +1,5 @@
+import {barTicks} from './meter.js';
+import {generateGrooveV51} from './groove-v51.js';
 import {PPQ,ROLES,type Hit,type Pattern,type Role} from './model.js';
 import {generateGrooveV4,grooveV4Timing,v4Chance} from './groove-v4.js';
 import {generateGrooveV5,v5Chance} from './groove-v5.js';
@@ -12,7 +14,7 @@ function densePattern(pattern:Pattern){
  const s=pattern.settings;
  const laneDensity=Object.fromEntries(ROLES.map(role=>[role,s.laneDensity?.[role]===0?0:2])) as Record<Role,number>;
  const denseSettings={...s,hitTarget:undefined,complexity:1,ghostAmount:1,fillAmount:1,laneDensity};
- const dense=s.algorithm==='groove-v5'?generateGrooveV5(denseSettings):generateGrooveV4(denseSettings);
+ const dense=s.algorithm==='groove-v5.1'?generateGrooveV51(denseSettings):s.algorithm==='groove-v5'?generateGrooveV5(denseSettings):generateGrooveV4(denseSettings);
  return {source:dense,routed:routeGeneratedDrums(dense,pattern)};
 }
 
@@ -30,7 +32,7 @@ function availableV5Hits(pattern:Pattern,dense:Pattern):Hit[]{
 
 /** Maximum notes V5 can supply from its genre vocabulary with the current settings. */
 export function maximumV5ExactHits(pattern:Pattern):number{
- if(pattern.settings.algorithm!=='groove-v5')throw Error('Groove V5 is required to calculate its exact-hit capacity.');
+ if(!['groove-v5','groove-v5.1'].includes(pattern.settings.algorithm??''))throw Error('Groove V5 is required to calculate its exact-hit capacity.');
  return pattern.events.filter(drum).length+availableV5Hits(pattern,densePattern(pattern).routed).length;
 }
 
@@ -39,7 +41,7 @@ export function balanceExactHits(pattern:Pattern,lockedIds:readonly string[],loc
  const target=pattern.settings.hitTarget;
  if(target===undefined)return;
  const s=pattern.settings,all=pattern.events.filter(drum);
- const v5=s.algorithm==='groove-v5';
+ const v5=['groove-v5','groove-v5.1'].includes(s.algorithm??'');
  const {source:dense,routed:denseRouted}=densePattern(pattern);
  const roleOf=(hit:Hit)=>hit.generatedDrumRole??hit.role;
  const weights=new Map<Role,number>(ROLES.map(role=>[role,Math.max(1,denseRouted.events.filter(hit=>roleOf(hit)===role).length+all.filter(hit=>hit.trackId&&hit.generatedDrumRole===role).length)]));
@@ -50,24 +52,24 @@ export function balanceExactHits(pattern:Pattern,lockedIds:readonly string[],loc
  const importance=(hit:Hit)=>{
   const role=hit.generatedDrumRole??hit.role;
   const base=role==='snare'?2.5:role==='kick'?2:role==='hat'?1.5:1;
-  const beat=position(hit)%(4*PPQ);
+  const beat=position(hit)%barTicks(s);
   return base+hit.gain*2+(beat%PPQ===0?1:0)+(hit.mapped?.instrumentId==='think-passage2-uh'?1.5:0)-(hit.id.startsWith('exact-')?1:0)
    +((v5?v5Chance:v4Chance)(s,'exact-rank',hit.id)*.35);
  };
  const choose=(pool:Hit[],initial:Hit[],count:number):Hit[]=>{
   const chosen:Hit[]=[],remaining=[...pool],roleCounts=new Map<Role,number>(ROLES.map(role=>[role,initial.filter(hit=>roleOf(hit)===role).length]));
-  const barCounts=Array.from({length:s.bars},(_,bar)=>initial.filter(hit=>Math.floor(hit.baseTick/(4*PPQ))===bar).length);
+  const barCounts=Array.from({length:s.bars},(_,bar)=>initial.filter(hit=>Math.floor(hit.baseTick/barTicks(s))===bar).length);
   while(chosen.length<count&&remaining.length){
    let best=-Infinity,index=-1;
    for(let i=0;i<remaining.length;i++){
-    const hit=remaining[i]!,role=roleOf(hit),bar=Math.min(s.bars-1,Math.floor(hit.baseTick/(4*PPQ)));
+    const hit=remaining[i]!,role=roleOf(hit),bar=Math.min(s.bars-1,Math.floor(hit.baseTick/barTicks(s)));
     const roleDeficit=target*weights.get(role)!/totalWeight-roleCounts.get(role)!;
     const barDeficit=target/s.bars-barCounts[bar]!;
     const score=importance(hit)+roleDeficit*1.8+barDeficit*.8;
     if(score>best){best=score;index=i;}
    }
    const [hit]=remaining.splice(index,1);chosen.push(hit!);
-   const role=roleOf(hit!),bar=Math.min(s.bars-1,Math.floor(hit!.baseTick/(4*PPQ)));
+   const role=roleOf(hit!),bar=Math.min(s.bars-1,Math.floor(hit!.baseTick/barTicks(s)));
    roleCounts.set(role,roleCounts.get(role)!+1);barCounts[bar]!++;
   }
   return chosen;

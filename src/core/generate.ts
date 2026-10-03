@@ -1,3 +1,4 @@
+import {generateGrooveV51} from './groove-v51.js';
 import type {Settings} from './model.js';
 import {validateSettings} from './settings.js';
 import {generateLegacy} from './generate-legacy.js';
@@ -12,8 +13,8 @@ export {validateSettings} from './settings.js';
 export function generate(settings:Settings){
  validateSettings(settings);
  let pattern;
- if(settings.algorithm==='groove-v5'){
-  pattern=generateGrooveV5(settings);
+ if(settings.algorithm==='groove-v5'||settings.algorithm==='groove-v5.1'){
+  pattern=settings.algorithm==='groove-v5.1'?generateGrooveV51(settings):generateGrooveV5(settings);
   // A requested Think layer is merged by Editor before its final hit budget.
   if(settings.hitTarget!==undefined&&settings.breakLayer!=='think-passage2')balanceExactHits(pattern,[],[]);
  }else if(settings.algorithm==='groove-v4'){

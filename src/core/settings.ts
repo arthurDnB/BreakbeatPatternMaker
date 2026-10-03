@@ -1,3 +1,4 @@
+import {parseTimeSignature,trackerTiming} from './meter.js';
 import {NEW_GENRES} from './new-genres.js';
 import {ROLES,bounded,text,type Settings} from './model.js';
 import {PROFILES} from './profiles.js';
@@ -8,21 +9,24 @@ export function validateSettings(s: Settings): void {
   if(s.breakStyle!==undefined&&s.breakStyle!=='genre'&&!Object.hasOwn(BREAKS,s.breakStyle)) throw new Error('Unsupported break preset.');
   if(s.breakLayer!==undefined&&!['off','think-passage2'].includes(s.breakLayer))throw Error('Unsupported break layer.');
   if(s.enabledRoles!==undefined&&(!Array.isArray(s.enabledRoles)||s.enabledRoles.some(r=>!ROLES.includes(r))||new Set(s.enabledRoles).size!==s.enabledRoles.length))throw Error('Invalid enabled instruments.');
-  if(s.algorithm!==undefined&&!['legacy-v1','groove-v2','groove-v3','groove-v4','groove-v5'].includes(s.algorithm))throw Error('Unsupported generation engine.');
+  if(s.algorithm!==undefined&&!['legacy-v1','groove-v2','groove-v3','groove-v4','groove-v5','groove-v5.1'].includes(s.algorithm))throw Error('Unsupported generation engine.');
   if(s.algorithm==='legacy-v1'&&Object.hasOwn(NEW_GENRES,s.genre))throw Error('This genre requires Groove v2 or Groove v3.');
   if(s.variation!==undefined)bounded(s.variation,0,1000000,'variation',true);
-  if(s.phraseLength!==undefined&&(![4,8,16].includes(s.phraseLength)||!['groove-v3','groove-v4','groove-v5'].includes(s.algorithm??'')))throw Error('Phrase context requires Groove v3/v4/v5 and 4, 8 or 16 bars.');
+  if(s.phraseLength!==undefined&&(![4,8,16].includes(s.phraseLength)||!['groove-v3','groove-v4','groove-v5','groove-v5.1'].includes(s.algorithm??'')))throw Error('Phrase context requires Groove v3/v4/v5 and 4, 8 or 16 bars.');
   if(s.phraseOffset!==undefined){if(s.phraseLength===undefined)throw Error('Choose a phrase length before its position.');bounded(s.phraseOffset,0,s.phraseLength-1,'phrase position',true);}
+  const meter=parseTimeSignature(s.timeSignature);
+  if((meter.numerator!==4||meter.denominator!==4)&&s.algorithm!=='groove-v5.1')throw Error('Choose Groove V5.1 to use a custom time signature.');
   text(s.seed, 'seed', 80);
   bounded(s.bpm, 32, 999, 'BPM'); bounded(s.bars, 1, 4, 'bars', true);
   if (![8,16,32,64].includes(s.resolution)) throw new Error('Resolution must be 8, 16, 32 or 64.');
   if(s.lpb!==undefined&&!([1,2,3,4,6,8,12,16,24,32] as number[]).includes(s.lpb))throw Error('LPB must be 1, 2, 3, 4, 6, 8, 12, 16, 24 or 32.');
+  trackerTiming(s);
   for (const k of ['complexity','syncopation','ghostAmount','fillAmount'] as const) bounded(s[k],0,1,k);
   if(s.spicy!==undefined) bounded(s.spicy,0,1,'spicy');
   if(s.reverseProbability!==undefined) bounded(s.reverseProbability,0,1,'reverseProbability');
   if(s.hitTarget!==undefined){
-    if(!['groove-v4','groove-v5'].includes(s.algorithm??''))throw Error('Exact hits requires Groove v4 or v5.');
-    bounded(s.hitTarget,0,s.bars*64,'hit target',true);
+    if(!['groove-v4','groove-v5','groove-v5.1'].includes(s.algorithm??''))throw Error('Exact hits requires Groove v4 or v5.');
+    bounded(s.hitTarget,0,s.bars*Math.ceil(meter.stepsPerBar)*4,'hit target',true);
   }
   if(s.laneDensity!==undefined){
     if(!s.laneDensity||typeof s.laneDensity!=='object'||Array.isArray(s.laneDensity)||Object.keys(s.laneDensity).some(role=>!ROLES.includes(role as typeof ROLES[number])))throw Error('Invalid lane density.');

@@ -1,3 +1,4 @@
+import {patternTicks} from '../core/meter.js';
 import {PPQ,type Pattern,type Settings,type SliceRef} from '../core/model.js';
 export interface AudioAsset {id:string;name:string;sampleRate:number;channels:Float32Array[]}
 export function sliceReference(asset:AudioAsset,markers:number[],index:number):SliceRef {
@@ -6,7 +7,7 @@ export function sliceReference(asset:AudioAsset,markers:number[],index:number):S
   return {assetId:asset.id,startFrame,endFrame,sampleRate:asset.sampleRate,label:`${asset.name} / Slice ${index+1}`};
 }
 export function reconstruct(asset:AudioAsset,markers:number[],settings:Settings):Pattern {
-  const duration=asset.channels[0]!.length/asset.sampleRate,bpm=settings.bars*4*60/duration;
+  const duration=asset.channels[0]!.length/asset.sampleRate,bpm=patternTicks(settings)/960*60/duration;
   if(bpm<32||bpm>999)throw Error('Choose a bar count giving 32–999 BPM for this sample. Use a shorter break if needed.');
   return {engineVersion:'0.2.0',ppq:PPQ,settings:{...settings,bpm,swing:.5,humanizeMs:0},events:markers.slice(0,-1).map((frame,i)=>{
     const tick=frame/asset.sampleRate*bpm/60*PPQ;
@@ -15,7 +16,7 @@ export function reconstruct(asset:AudioAsset,markers:number[],settings:Settings)
 }
 export function transcribeBreak(asset:AudioAsset,markers:number[],settings:Settings,loopFadeMs=0):Pattern {
   if(markers.length<2||markers.length>121||markers.some((frame,i)=>!Number.isInteger(frame)||frame<0||frame>asset.channels[0]!.length||i>0&&frame<=markers[i-1]!))throw Error('Choose 1–120 valid slices before creating an instrument.');
-  const start=markers[0]!,end=markers.at(-1)!,bpm=settings.bars*240/((end-start)/asset.sampleRate);
+  const start=markers[0]!,end=markers.at(-1)!,bpm=patternTicks(settings)/960*60/((end-start)/asset.sampleRate);
   if(bpm<32||bpm>999)throw Error('Select the correct region and 1–4 bar count (32–999 BPM).');
   const instrument={id:'break-'+asset.id,name:asset.name.slice(0,100),assetId:asset.id,sampleRate:asset.sampleRate,startFrame:start,endFrame:end,loopFadeMs,
     slices:markers.slice(0,-1).map((frame,i)=>({id:'slice-'+i,note:i,startFrame:frame,endFrame:markers[i+1]!}))};
