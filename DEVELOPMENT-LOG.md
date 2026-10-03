@@ -29,7 +29,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.2.3`
-* **Test Status:** 266 unit tests passing (0 skipped, 0 failed); all deployment site smoke checks passing (`npm.cmd test` and `npm.cmd run test:site`).
+* **Test Status:** 274 unit tests passing (0 skipped, 0 failed); all deployment site smoke checks passing (`npm.cmd test` and `npm.cmd run test:site`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -81,6 +81,17 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-10-03] - Lush Piano Controls and Modular Synth Patch Rack (Codex)
+- Added Lushness, Tension and Density controls to piano generation in `src/core/piano.ts`, `src/core/model.ts`, `src/core/settings.ts`, `src/web.ts`, and `public/index.html`. They shape voicing spread and motion, harmonic color, and comping/voice density while preserving seeded output, locks, and saved generator settings.
+- Added typed modular synth patches and a deterministic shared renderer in `src/audio/modular-synth.ts`, `src/audio/synth-instrument.ts`, and `src/audio/performance.ts`. Oscillators or a piano sample can route through mixers, filters, amplifiers, envelopes, LFO, note velocity, attenuverters, chorus, delay, and reverb. Fixed the filter's high-cutoff response so modulation remains effective; patch rendering keeps stereo sample channels, note gates, velocity, and preview/WAV parity.
+- Added a patch-cable canvas, exact parameter editing, preview, factory patches, and browser-local named presets in `src/ui/synth-patch-editor.ts` and `public/workspace.css`. Active patches persist in project version 9; older projects and unpatched synths retain their previous sound. Documented operation in `docs/MODULAR-SYNTH.md`.
+- Added `tests/modular-synth.test.mjs`, extended piano and melody tests, and added `scripts/modular-synth-browser-smoke.mjs` to the site gate. Verification: `npm.cmd test` passed 274/274; `npm.cmd run test:site` passed all browser smoke checks on root and subpath.
+
+### [2026-10-03] - Phrase-Length Scaling for Piano and Melodic Parts (Codex)
+- Updated `src/core/harmony.ts` so chord changes scale with pattern bars: two-bar patterns now use two changes, while four-bar phrases retain four, giving generated piano/bass more room instead of compressing the same four-chord phrase into half the time.
+- Kept garage chord stabs half a beat off the grid after the harmony spacing change. Added regression checks in `tests/piano-generation.test.mjs` and `tests/melody-generation.test.mjs` for phrase-length density and preservation of four-bar output.
+- The initial site run hit intermittent browser-smoke failures; the standalone rerun and final full `npm.cmd run test:site` passed at both root and subpath. Included in the same verified commit as the modular synth work above.
 
 ### [2026-10-03] - Side-by-Side FX and Instrument Knob Grids (Codex)
 - Moved lane FX knobs into an explicit responsive knob grid and applied the same auto-fit grid behavior to drum shaping, layer, and synth controls so narrow popovers do not collapse FX controls into a vertical stack.

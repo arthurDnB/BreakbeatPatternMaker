@@ -23,19 +23,21 @@ function chordName(root:number,third:number,seventh:number,withNine:boolean):str
 }
 
 /** Enumerate playable inversions and prefer shared tones and short inner-voice movements. */
-function voiceChord(tones:readonly number[],rootPc:number,previous:readonly number[],includeRoot:boolean):number[]{
+function voiceChord(tones:readonly number[],rootPc:number,previous:readonly number[],includeRoot:boolean,lushness?:number):number[]{
   const upper=tones.map(tone=>pitchesFor(tone,57,83));
   const bass=includeRoot?pitchesFor(rootPc,43,57):[];
   let winner:number[]=[],best=Infinity;
   const visit=(index:number,notes:number[])=>{
     if(index<upper.length){for(const note of upper[index]!)visit(index+1,[...notes,note]);return;}
     const sorted=[...notes].sort((a,b)=>a-b);
-    if(sorted.some((note,i)=>i>0&&note-sorted[i-1]!<3))return;
+    const minGap=lushness===undefined?3:3+Math.round(lushness*2);
+    if(sorted.some((note,i)=>i>0&&note-sorted[i-1]!<minGap))return;
     const register=Math.abs(sorted[0]!-62)*.28+Math.abs(sorted[sorted.length-1]!-76)*.24;
     const spacing=sorted.slice(1).reduce((sum,note,i)=>sum+Math.max(0,note-sorted[i]!-12)*2,0);
-    const motion=previous.length?sorted.reduce((sum,note,i)=>sum+Math.abs(note-(previous[Math.min(i,previous.length-1)]??note)),0)*1.5:0;
+    const spread=lushness===undefined?0:Math.abs((sorted[sorted.length-1]!-sorted[0]!)-(12+lushness*10))*1.2;
+    const motion=previous.length?sorted.reduce((sum,note,i)=>sum+Math.abs(note-(previous[Math.min(i,previous.length-1)]??note)),0)*(1.5+(lushness??0)*1.25):0;
     const held=previous.length?sorted.filter(note=>previous.includes(note)).length:0;
-    const score=register+spacing+motion-held*3;
+    const score=register+spacing+spread+motion-held*3;
     if(score<best){best=score;winner=sorted;}
   };
   visit(0,[]);
@@ -48,8 +50,8 @@ function voiceChord(tones:readonly number[],rootPc:number,previous:readonly numb
 /** Phrase-local comping: a clear chord statement, then optional lighter answers.
  * Repeated gestures use the same harmony; they never spill into the next change. */
 function comping(change:{startTick:number;endTick:number;index:number},feel:ChordFeel,settings:Settings):ChordGesture[]{
-  const span=change.endTick-change.startTick,complexity=settings.complexity,spicy=settings.spicy??0;
-  const first=feel==='offbeat'?Math.round(span*.25):feel==='fractured'&&change.index%2?Math.round(span*.125):0;
+  const span=change.endTick-change.startTick,complexity=settings.pianoDensity??settings.complexity,spicy=settings.spicy??0;
+  const first=feel==='offbeat'?Math.min(Math.round(span*.25),Math.round(PPQ*.5)):feel==='fractured'&&change.index%2?Math.round(span*.125):0;
   const answerChance=random(settings.seed,`piano:answer:${settings.variation??0}:${change.index}`)();
   const reply=feel==='sustain'?.66:feel==='pulse'?.54:feel==='offbeat'?.65:feel==='driving'?.47:.58;
   const plan:{fraction:number;weight:number;voices:ChordGesture['voices'];label:string}[]=[{fraction:first/span,weight:1,voices:'full',label:'statement'}];
@@ -89,14 +91,22 @@ export function generatePiano(settings:Settings,trackId='generated-piano',bassPr
     const withNine=settings.complexity>=.3,includeRoot=!bassPresent;
     const intervals:Record<string,number[]>={maj9:[4,11,14,16],m9:[3,10,14,17],m11:[3,10,14,17,19],maj13:[4,11,14,21],dom13:[4,10,14,21],dom7b9:[4,7,10,13],m7b5:[3,6,10,14], 'm6/9':[3,9,14,16],dom7sharp11:[4,10,14,18],quartal:[5,10,15,19]};
     const chromatic=change.quality!=='scale';
-    const tonePcs=[...new Set(chromatic?intervals[change.quality]!.map(interval=>pc(key+scalePitch(0,scale,degree)+interval)): [pc(third),pc(seventh),...(withNine?[pc(ninth)]:[]),...(settings.complexity>=.72?[pc(fifth)]:[])])];
+    let tonePcs=[...new Set(chromatic?intervals[change.quality]!.map(interval=>pc(key+scalePitch(0,scale,degree)+interval)): [pc(third),pc(seventh),...(withNine?[pc(ninth)]:[]),...(settings.complexity>=.72?[pc(fifth)]:[])])];
+    if(settings.pianoTension!==undefined){
+      const color=settings.pianoTension>=.6&&chromatic?tonePcs:[pc(third),pc(seventh),...(settings.pianoTension>=.2?[pc(ninth)]:[]),pc(fifth)];
+      tonePcs=[...new Set(color)];
+    }
     // Short scales can fold an extension onto an existing chord tone.
     const wanted=settings.complexity>=.72?4:withNine?3:2;
     for(let distance=1;tonePcs.length<wanted&&distance<=scale.length+2;distance++){
       const candidate=pc(scalePitch(key,scale,degree+distance));
       if(!tonePcs.includes(candidate)&&(!includeRoot||candidate!==pc(root)))tonePcs.push(candidate);
     }
-    const notes=voiceChord(tonePcs,pc(root),previous,includeRoot);
+    if(settings.pianoDensity!==undefined){
+      const voiceCount=2+Math.round(settings.pianoDensity*2);
+      tonePcs=tonePcs.slice(0,voiceCount);
+    }
+    const notes=voiceChord(tonePcs,pc(root),previous,includeRoot,settings.pianoLushness);
     previous=notes.slice(includeRoot?1:0);
     const name=chromatic?`${NAMES[pc(root)]}${change.quality}`:chordName(root,third,seventh,withNine);
     comping(change,feel,settings).forEach((gesture,gestureIndex)=>{
@@ -106,7 +116,7 @@ export function generatePiano(settings:Settings,trackId='generated-piano',bassPr
       const offsetTick=Math.max(-gesture.tick,Math.min(PPQ,swung+human));
       selected.forEach((note,voice)=>out.push({
         id:`piano-${change.index}-${gestureIndex}-${voice}`,role:'percussion',trackId,sourceId:'kit.percussion',baseTick:gesture.tick,offsetTick,
-        gain:Math.max(.18,Math.min(.78,(.64-(voice===0&&includeRoot&&gestureIndex===0?.07:0))*gesture.weight+
+        gain:Math.max(.18,Math.min(.78,(.64-(voice===0&&includeRoot&&gestureIndex===0?.07:0))*gesture.weight*(1-(settings.pianoLushness??0)*.12)+
           (random(settings.seed,`piano:velocity:${change.index}:${gestureIndex}:${voice}`)()-.5)*.07)),
         pan:voice===0?-.05:voice===selected.length-1?.05:0,anchor:false,ghost:false,
         synthNote:{note,durationTicks:gesture.length},reason:`${name}: ${gesture.label} ${change.index+1}/${changes.length}.`

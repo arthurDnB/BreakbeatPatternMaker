@@ -31,6 +31,8 @@ export interface Settings {
   patternStructure?: 'groove'|'auto'|'fill'|'roll'|'build';
   /** Omitted in older projects: drum generation only. */
   generationMode?:GenerationMode; melodyPart?:MelodyPart; melodyKey?:number; melodyScale?:MelodyScale; harmonyStyle?:HarmonyStyle;
+  /** Piano-only composition controls. Omitted settings retain the earlier piano recipe. */
+  pianoLushness?:number; pianoTension?:number; pianoDensity?:number;
 }
 export interface SliceRef {assetId:string; startFrame:number; endFrame:number; sampleRate:number; label:string}
 export interface SliceInstrument {
@@ -53,7 +55,11 @@ export interface SampleTrack extends TrackBase {
 }
 export type SynthWaveform='sine'|'triangle'|'saw'|'square';
 export type SynthPreset='bass'|'pluck'|'pad'|'piano';
-export interface SynthInstrument {preset:SynthPreset;waveform:SynthWaveform;attack:number;decay:number;sustain:number;release:number;lowpassHz:number;sampleBank?:'upright-kw';sample?:{assetId:string;rootNote:number}}
+export type SynthModuleType='oscillator'|'sample'|'mixer'|'filter'|'amplifier'|'envelope'|'lfo'|'velocity'|'attenuverter'|'chorus'|'delay'|'reverb'|'output';
+export interface SynthModule {id:string;type:SynthModuleType;x:number;y:number;params:Record<string,number|string>}
+export interface SynthCable {from:string;out:string;to:string;input:string;depth:number}
+export interface SynthPatch {version:1;nodes:SynthModule[];cables:SynthCable[]}
+export interface SynthInstrument {preset:SynthPreset;waveform:SynthWaveform;attack:number;decay:number;sustain:number;release:number;lowpassHz:number;sampleBank?:'upright-kw';sample?:{assetId:string;rootNote:number};patch?:SynthPatch}
 export interface SynthTrack extends TrackBase {kind:'synth';instrument:SynthInstrument;generatedPart?:MelodyPart}
 export type UserTrack=SampleTrack|SynthTrack;
 export const isSynthTrack=(track:UserTrack|undefined):track is SynthTrack=>track?.kind==='synth';

@@ -47,6 +47,16 @@ test('complexity adds rhythmic detail and Spicy adds bounded, scale-safe pickups
  assert.ok(generateMelody(spicy,'melody-lead').every(hit=>hit.baseTick>=0&&hit.baseTick<4*4*960&&hit.synthNote.durationTicks>0));
 });
 
+test('bass and lead note counts stay proportional between two- and four-bar phrases',()=>{
+ for(const melodyPart of ['bassline','lead']){
+  const phrase=bars=>settings({genre:'liquiddnb',bars,melodyPart,complexity:.7,spicy:.4,seed:'bar-spacing'});
+  const two=generateMelody(phrase(2),`melody-${melodyPart}`);
+  const four=generateMelody(phrase(4),`melody-${melodyPart}`);
+  assert.ok(two.length<=Math.ceil(four.length/2)+1,`${melodyPart} two-bar phrase should not carry a four-bar note count`);
+  assert.ok(two.length>0&&four.length>two.length,`${melodyPart} grows with the phrase length`);
+ }
+});
+
 test('every genre produces a distinct phrase at matched tempo without a sustained ascending scale run',()=>{
  const genres=Object.keys(PROFILES);
  for(const part of ['bassline','lead']){

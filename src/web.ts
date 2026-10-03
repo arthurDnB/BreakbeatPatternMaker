@@ -32,6 +32,7 @@ import {Editor,emptySelection,locked,selectedIds,type EditorState,type TrackerCl
 import {defaultEffects,type Effects,EFFECT_PRESETS,type EffectPreset} from './audio/effects.js';
 import {ArrangementHistory} from './core/arrangement-history.js';
 import {createRotaryKnob} from './ui/rotary-knob.js';
+import {openSynthPatchEditor} from './ui/synth-patch-editor.js';
 
 
 const el=<T extends HTMLElement>(id:string)=>document.getElementById(id) as T;
@@ -243,6 +244,7 @@ function settings(){
   s.melodyKey=Number(input('melodyKey').value);
   s.melodyScale=input('melodyScale').value as MelodyScale;
   s.harmonyStyle=input('harmonyStyle').value as NonNullable<Settings['harmonyStyle']>;
+  s.pianoLushness=Number(input('pianoLushness').value);s.pianoTension=Number(input('pianoTension').value);s.pianoDensity=Number(input('pianoDensity').value);
   s.algorithm=input('algorithm').value as NonNullable<Pattern['settings']['algorithm']>;s.variation=Number(input('variation').value);
   if(['groove-v3','groove-v4','groove-v5'].includes(s.algorithm??'')&&Number(input('phraseLength').value)){s.phraseLength=Number(input('phraseLength').value) as 4|8|16;s.phraseOffset=Number(input('phraseOffset').value);}
   s.enabledRoles=ROLES.filter(r=>kitPanel.mix[r].include);
@@ -288,13 +290,25 @@ function synthInstrumentPanel(track:SynthTrack):HTMLDetailsElement{
     for(const choice of choices){const option=document.createElement('option');option.value=choice;option.textContent=choice[0]!.toUpperCase()+choice.slice(1);select.append(option);}
     select.value=value;select.onchange=()=>change(select.value);label.append(select);content.append(label);
   };
-  selectControl('Preset',track.instrument.preset,['bass','pluck','pad','piano'],value=>update({...SYNTH_PRESETS[value as keyof typeof SYNTH_PRESETS]}));
-  selectControl('Waveform',track.instrument.waveform,['sine','triangle','saw','square'],value=>update({waveform:value as SynthInstrument['waveform']}));
-  const synthKnobs=document.createElement('div');synthKnobs.className='rotary-knob-grid synth-knobs';
-  for(const [key,labelText,min,max,step] of [['attack','Attack',.001,2,.001],['decay','Decay',.001,3,.001],['sustain','Sustain',0,1,.01],['release','Release',.01,4,.01],['lowpassHz','Low-pass',100,20000,10]] as const){
-    const knob=createRotaryKnob({id:`synth-${track.id}-${key}`,label:labelText,ariaLabel:`${track.name} ${labelText}`,value:track.instrument[key],min,max,step,scale:key==='lowpassHz'?'log':'linear',format:value=>key==='lowpassHz'?Math.round(value)+' Hz':key==='sustain'?Math.round(value*100)+'%':Math.round(value*1000)/1000+' s',onInput:value=>update({[key]:value},false)});synthKnobs.append(knob.element);
+  const patchButton=document.createElement('button');patchButton.type='button';patchButton.className='synth-patch-open';patchButton.textContent=track.instrument.patch?'Open modular patch':'Open modular synth';
+  patchButton.onclick=()=>{
+    const current=editor.state.pattern.userTracks?.find(item=>item.id===track.id);if(!isSynthTrack(current))return;
+    const dialog=openSynthPatchEditor({trackName:current.name,instrument:current.instrument,
+      apply:patch=>{editor.setSynthInstrument(track.id,{...currentInstrument(),patch});scheduleSave();status(`${current.name} modular patch updated.`);},
+      preview:patch=>{const live=editor.state.pattern.userTracks?.find(item=>item.id===track.id);if(isSynthTrack(live))void auditionUserTrack({...live,instrument:{...live.instrument,patch}});}
+    });dialog.addEventListener('close',refresh,{once:true});
+  };content.append(patchButton);
+  if(track.instrument.patch){const note=document.createElement('small');note.textContent='Modular patch active. Edit its modules, cables and exact values in the patch editor.';content.append(note);
+    const simple=document.createElement('button');simple.type='button';simple.textContent='Return to simple synth';simple.onclick=()=>update({patch:undefined});content.append(simple);
+  }else{
+    selectControl('Preset',track.instrument.preset,['bass','pluck','pad','piano'],value=>update({...SYNTH_PRESETS[value as keyof typeof SYNTH_PRESETS]}));
+    selectControl('Waveform',track.instrument.waveform,['sine','triangle','saw','square'],value=>update({waveform:value as SynthInstrument['waveform']}));
+    const synthKnobs=document.createElement('div');synthKnobs.className='rotary-knob-grid synth-knobs';
+    for(const [key,labelText,min,max,step] of [['attack','Attack',.001,2,.001],['decay','Decay',.001,3,.001],['sustain','Sustain',0,1,.01],['release','Release',.01,4,.01],['lowpassHz','Low-pass',100,20000,10]] as const){
+      const knob=createRotaryKnob({id:`synth-${track.id}-${key}`,label:labelText,ariaLabel:`${track.name} ${labelText}`,value:track.instrument[key],min,max,step,scale:key==='lowpassHz'?'log':'linear',format:value=>key==='lowpassHz'?Math.round(value)+' Hz':key==='sustain'?Math.round(value*100)+'%':Math.round(value*1000)/1000+' s',onInput:value=>update({[key]:value},false)});synthKnobs.append(knob.element);
+    }
+    content.append(synthKnobs);
   }
-  content.append(synthKnobs);
   if(track.instrument.preset==='piano'){
     const sample=track.instrument.sample,asset=sample?assets.get(sample.assetId):undefined;
     const source=document.createElement('span');source.textContent=asset?`Piano source: ${asset.name}`:track.instrument.sampleBank==='upright-kw'?'Piano source: Upright Piano KW (CC0)':'Piano source: built-in tone';content.append(source);
@@ -627,6 +641,7 @@ function syncControls(){
   input('hit-target-number').value=String(s.hitTarget??32);
   input('hit-target-slider').value=String(s.hitTarget??32);
   input('generationMode').value=s.generationMode??'drums';input('melodyPart').value=s.melodyPart??'bassline';input('melodyKey').value=String(s.melodyKey??0);input('melodyScale').value=s.melodyScale??'natural-minor';input('harmonyStyle').value=s.harmonyStyle??'jazz';
+  input('pianoLushness').value=String(s.pianoLushness??.65);input('pianoTension').value=String(s.pianoTension??.35);input('pianoDensity').value=String(s.pianoDensity??.45);
   for(const role of ROLES)input(`${role}-density`).value=String(s.laneDensity?.[role]??1);
   input('patternStructure').value=s.patternStructure??'auto';
   input('breakLayer').value=s.breakLayer??'off';
@@ -959,6 +974,9 @@ function syncSliders(){
   input('bpm-slider').max=String(Math.max(300,Number.isFinite(bpm)?bpm:300));
   input('bpm-slider').value=String(bpm);
   el('complexity-value').textContent=Math.round(Number(input('complexity').value)*100)+'%';
+  for(const id of ['pianoLushness','pianoTension','pianoDensity']){
+    const display=Math.round(Number(input(id).value)*100)+'%';el(`${id}-value`).textContent=display;input(id).setAttribute('aria-valuetext',display);
+  }
   input('complexity').setAttribute('aria-valuetext',el('complexity-value').textContent!);
   const spokenValues:[string,string][]=[
     ['syncopation',Number(input('syncopation').value).toFixed(2)],
@@ -1156,6 +1174,7 @@ input('bpm-slider').addEventListener('input',()=>{input('bpm').value=input('bpm-
 input('complexity').addEventListener('input',syncSliders);
 input('spicy').addEventListener('input',syncSliders);
 for(const id of ['syncopation','swing','humanizeMs','ghostAmount','fillAmount'])input(id).addEventListener('input',syncSliders);
+for(const id of ['pianoLushness','pianoTension','pianoDensity'])input(id).addEventListener('input',syncSliders);
 for(const role of ROLES)input(`${role}-density`).addEventListener('input',syncSliders);
 input('algorithm').addEventListener('change',()=>{syncSliders();syncPhraseControls();});
 input('hit-target-mode').addEventListener('change',()=>{syncHitTargetControl();dirty();});
@@ -1173,7 +1192,7 @@ function restoreGenerationDefaults(resetComposition=false){
  input('phraseLength').value='0';syncPhraseControls(0);
  input('algorithm').querySelector<HTMLOptionElement>('[value="legacy-v1"]')!.disabled=Object.hasOwn(NEW_GENRES,genre);
  for(const [key,value] of Object.entries(genreDefaults(genre)))input(key).value=String(value);
- if(resetComposition){input('generationMode').value='drums';input('melodyPart').value='bassline';input('melodyKey').value='0';input('melodyScale').value='natural-minor';input('harmonyStyle').value='jazz';}
+ if(resetComposition){input('generationMode').value='drums';input('melodyPart').value='bassline';input('melodyKey').value='0';input('melodyScale').value='natural-minor';input('harmonyStyle').value='jazz';input('pianoLushness').value='0.65';input('pianoTension').value='0.35';input('pianoDensity').value='0.45';}
  for(const role of ROLES)input(`${role}-density`).value='1';
  input('hit-target-mode').value='auto';input('hit-target-number').value=String(Number(input('bars').value)*16);syncHitTargetControl();
  if(['groove-v3','groove-v4','groove-v5'].includes(keepEngine))input('algorithm').value=keepEngine;
@@ -1712,6 +1731,7 @@ async function applyProject(raw:unknown){
   input('phraseLength').value=String(p.draft.phraseLength??0);syncPhraseControls(p.draft.phraseOffset??0);
   input('algorithm').value=p.draft.algorithm??'legacy-v1';input('variation').value=String(p.draft.variation??0);
   input('generationMode').value=p.draft.generationMode??'drums';input('melodyPart').value=p.draft.melodyPart??'bassline';input('melodyKey').value=String(p.draft.melodyKey??0);input('melodyScale').value=p.draft.melodyScale??'natural-minor';input('harmonyStyle').value=p.draft.harmonyStyle??'jazz';
+  input('pianoLushness').value=String(p.draft.pianoLushness??.65);input('pianoTension').value=String(p.draft.pianoTension??.35);input('pianoDensity').value=String(p.draft.pianoDensity??.45);
   input('hit-target-mode').value=p.draft.hitTarget===undefined?'auto':'exact';input('hit-target-number').value=String(p.draft.hitTarget??32);syncHitTargetControl();
   for(const role of ROLES)input(`${role}-density`).value=String(p.draft.laneDensity?.[role]??1);
   for(const [key,value] of Object.entries(p.draft))if(key!=='enabledRoles'&&key!=='laneDensity'&&key!=='hitTarget')input(key).value=String(value);

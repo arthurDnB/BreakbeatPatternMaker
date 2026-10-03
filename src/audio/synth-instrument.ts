@@ -1,5 +1,6 @@
 import {bounded,type SynthInstrument,type SynthPreset,type SynthWaveform} from '../core/model.js';
 import type {AudioAsset} from './slices.js';
+import {renderModularSynthNote,validateSynthPatch} from './modular-synth.js';
 
 export const SYNTH_PRESETS:Record<SynthPreset,SynthInstrument>={
   bass:{preset:'bass',waveform:'saw',attack:.006,decay:.16,sustain:.55,release:.12,lowpassHz:1400},
@@ -14,6 +15,7 @@ export function validateSynthInstrument(value:SynthInstrument):void{
   bounded(value.release,.01,4,'synth release');bounded(value.lowpassHz,100,20000,'synth filter');
   if(value.sampleBank!==undefined&&(value.preset!=='piano'||value.sampleBank!=='upright-kw'))throw Error('Invalid piano sample bank.');
   if(value.sample){if(value.preset!=='piano'||typeof value.sample.assetId!=='string'||!/^[a-zA-Z0-9._-]{1,80}$/.test(value.sample.assetId))throw Error('Invalid piano sample.');bounded(value.sample.rootNote,0,119,'piano sample root',true);}
+  if(value.patch){validateSynthPatch(value.patch);if(value.patch.nodes.some(node=>node.type==='sample')&&!value.sample&&!value.sampleBank)throw Error('Choose a piano sample before using a Sample module.');}
 }
 
 /** Pitch a user piano note without BPM stretching; preview and export call this same renderer. */
@@ -44,6 +46,7 @@ const polyBlep=(phase:number,step:number)=>{
 export function renderSynthNote(note:number,durationSeconds:number,rate:number,instrument:SynthInstrument):Float32Array{
   validateSynthInstrument(instrument);
   bounded(note,0,119,'synth note',true);bounded(durationSeconds,.001,40,'synth note duration');
+  if(instrument.patch)return renderModularSynthNote(note,durationSeconds,rate,instrument.patch);
   if(instrument.preset==='piano')return renderPianoNote(note,durationSeconds,rate,instrument);
   const frequency=Math.min(440*2**((note-69)/12),rate*.45),step=frequency/rate;
   const total=Math.ceil((durationSeconds+instrument.release)*rate),data=new Float32Array(total);

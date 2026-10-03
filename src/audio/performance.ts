@@ -9,6 +9,7 @@ import {resolvePatternSlices} from '../core/slice-instrument.js';
 import {stretchAudio} from './time-stretch.js';
 import {protectMaster} from './audio-quality.js';
 import {renderSampledPianoNote,renderSynthNote} from './synth-instrument.js';
+import {modularTailSeconds,renderModularSynthNote} from './modular-synth.js';
 import {pianoBankSample} from './piano-bank.js';
 // @ts-expect-error Shared original synth.
 import {synthesize} from '../../public/synth.js';
@@ -45,13 +46,13 @@ export function renderSequence(patterns:Pattern[],assets:Map<string,AudioAsset>,
       const sampleId=synthTrack.instrument.sample?.assetId??bankChoice?.assetId;
       const sample=sampleId?assets.get(sampleId):undefined;
       if(synthTrack.instrument.sample&&!sample)throw Error('The piano sample is missing. Re-import it into this track.');
-      const key=`${hit.synthNote.note}:${noteSeconds.toFixed(9)}:${rate}:${sampleId??''}:${JSON.stringify(synthTrack.instrument)}`;
+      const key=`${hit.synthNote.note}:${noteSeconds.toFixed(9)}:${rate}:${sampleId??''}:${synthTrack.instrument.patch?hit.gain:''}:${JSON.stringify(synthTrack.instrument)}`;
       let channels=synthCache.get(key);
       if(!channels){
-        const bytes=Math.ceil((noteSeconds+synthTrack.instrument.release)*rate)*4*(sample?.channels.length??1);
+        const bytes=Math.ceil((noteSeconds+(synthTrack.instrument.patch?modularTailSeconds(synthTrack.instrument.patch):synthTrack.instrument.release))*rate)*4*(synthTrack.instrument.patch?2:sample?.channels.length??1);
         if(synthCacheBytes+bytes>128*1024*1024)throw Error('Synth render exceeds 128 MB. Shorten notes or render a smaller arrangement.');
         const instrument=bankChoice?{...synthTrack.instrument,sample:{assetId:bankChoice.assetId,rootNote:bankChoice.rootNote}}:synthTrack.instrument;
-        channels=sample?renderSampledPianoNote(hit.synthNote.note,noteSeconds,rate,instrument,sample):[renderSynthNote(hit.synthNote.note,noteSeconds,rate,synthTrack.instrument)];
+        channels=instrument.patch?[0,1].map(channel=>renderModularSynthNote(hit.synthNote!.note,noteSeconds,rate,instrument.patch!,sample,instrument.sample?.rootNote??bankChoice?.rootNote??60,channel,hit.gain)):sample?renderSampledPianoNote(hit.synthNote.note,noteSeconds,rate,instrument,sample):[renderSynthNote(hit.synthNote.note,noteSeconds,rate,instrument)];
         synthCache.set(key,channels);synthCacheBytes+=channels.reduce((sum,data)=>sum+data.byteLength,0);
       }
       return [{hit,channels,from:0,to:channels[0]!.length,start,step:1,length:channels[0]!.length,gated:false}];

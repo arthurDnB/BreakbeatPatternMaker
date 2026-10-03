@@ -21,7 +21,7 @@ const settings=(genre='lofihiphop',overrides={})=>({...defaults(genre),seed:'pia
 const events=(pattern,part)=>pattern.events.filter(hit=>hit.trackId===`melody-${part}`);
 
 test('piano chord generation is deterministic, polyphonic, and scale-safe',()=>{
- const s=settings(),first=generatePiano(s),second=generatePiano(s);
+ const s=settings('lofihiphop',{bars:4}),first=generatePiano(s),second=generatePiano(s);
  assert.deepEqual(first,second);assert.ok(first.length>=15);
  const group=first.filter(hit=>hit.baseTick===0),pitches=new Set(group.map(hit=>hit.synthNote.note));
  assert.ok(pitches.size>=3,'first chord contains multiple voices');
@@ -36,8 +36,8 @@ test('genre profiles shape chord rhythm while retaining seeded generation',()=>{
 });
 
 test('piano comping adds softer guide-tone answers without smearing chord boundaries',()=>{
- const low=generatePiano(settings('lofihiphop',{complexity:.2,spicy:0}));
- const highSettings=settings('lofihiphop',{complexity:.92,spicy:.9});
+ const low=generatePiano(settings('lofihiphop',{bars:4,complexity:.2,spicy:0}));
+ const highSettings=settings('lofihiphop',{bars:4,complexity:.92,spicy:.9});
  const high=generatePiano(highSettings),plan=harmonyPlan(highSettings);
  assert.ok(high.length>low.length,'complexity adds comping gestures');
  assert.ok(high.some(hit=>hit.reason.includes('answer')),'extra attacks are musical answers');
@@ -59,10 +59,10 @@ test('piano comping adds softer guide-tone answers without smearing chord bounda
  }
 });
 
-test('short patterns have a shared changing progression and piano voices move smoothly',()=>{
+test('two-bar harmony has fewer changes while piano voices move smoothly',()=>{
  const s=settings('liquiddnb',{complexity:.7}),plan=harmonyPlan(s),piano=generatePiano(s);
- assert.equal(plan.length,4,'two bars state a four-chord phrase');
- assert.ok(new Set(plan.map(change=>change.degree)).size>=3,'harmony changes rather than repeating one chord per bar');
+ assert.equal(plan.length,2,'two bars use two harmony changes');
+ assert.ok(new Set(plan.map(change=>change.degree)).size>=2,'harmony changes rather than repeating one chord');
  const groups=plan.map(change=>piano.filter(hit=>hit.baseTick>=change.startTick&&hit.baseTick<change.endTick));
  assert.ok(groups.every(group=>group.length>=3));
  assert.equal(new Set(groups.map(group=>group.map(hit=>hit.synthNote.note).join(','))).size,groups.length,'each chord has a distinct voicing');
@@ -73,8 +73,32 @@ test('short patterns have a shared changing progression and piano voices move sm
  assert.deepEqual(harmonyPlan(s),harmonyPlan(s));
 });
 
+test('piano chord density scales with phrase length and preserves the four-bar arrangement',()=>{
+ const make=bars=>settings('liquiddnb',{bars,complexity:.2,spicy:0,seed:'bar-density'});
+ const twoBarPlan=harmonyPlan(make(2)),fourBarPlan=harmonyPlan(make(4));
+ const twoBar=generatePiano(make(2)),fourBar=generatePiano(make(4));
+ assert.equal(twoBarPlan.length,2);
+ assert.equal(fourBarPlan.length,4);
+ assert.equal(new Set(twoBar.map(hit=>hit.baseTick)).size,2,'each two-bar chord gets room for one statement');
+ assert.equal(new Set(fourBar.map(hit=>hit.baseTick)).size,4,'the four-bar phrase retains four chord statements');
+ assert.equal(twoBar.length*2,fourBar.length,'two bars contain half the four-bar piano notes at matched settings');
+});
+
+test('piano Lushness, Tension and Density independently shape a seeded four-bar phrase',()=>{
+ const make=controls=>settings('liquiddnb',{bars:4,seed:'lush-test',harmonyStyle:'jazz',complexity:.7,spicy:.4,pianoLushness:.65,pianoTension:.35,pianoDensity:.45,...controls});
+ const narrow=generatePiano(make({pianoLushness:0})),open=generatePiano(make({pianoLushness:1}));
+ const width=notes=>[...new Set(notes.map(hit=>hit.baseTick))].reduce((sum,tick)=>{const pitches=notes.filter(hit=>hit.baseTick===tick).map(hit=>hit.synthNote.note);return sum+Math.max(...pitches)-Math.min(...pitches);},0);
+ assert.ok(width(open)>width(narrow),'Lushness opens the chord spacing');
+ assert.notDeepEqual(open.map(hit=>hit.synthNote.note),narrow.map(hit=>hit.synthNote.note));
+ const calm=generatePiano(make({pianoTension:0})),bright=generatePiano(make({pianoTension:1}));
+ assert.notDeepEqual(calm.map(hit=>hit.synthNote.note),bright.map(hit=>hit.synthNote.note),'Tension changes harmonic color');
+ const sparse=generatePiano(make({pianoDensity:0})),busy=generatePiano(make({pianoDensity:1}));
+ assert.ok(busy.length>sparse.length,'Density raises voices and comping activity');
+ assert.deepEqual(generatePiano(make({pianoDensity:1})),busy,'new controls remain deterministic');
+});
+
 test('Jazz harmony uses functional ii–V motion and richer chord extensions',()=>{
- const s=settings('liquiddnb',{harmonyStyle:'jazz',melodyScale:'natural-minor',complexity:.85}),plan=harmonyPlan(s),notes=generatePiano(s);
+ const s=settings('liquiddnb',{bars:4,harmonyStyle:'jazz',melodyScale:'natural-minor',complexity:.85}),plan=harmonyPlan(s),notes=generatePiano(s);
  assert.equal(plan.length,4);
  const dominant=plan.findIndex(change=>change.degree===4);
  assert.ok(dominant>=0&&plan[(dominant+1)%plan.length].degree===0,'the V chord resolves to tonic');
@@ -92,7 +116,7 @@ test('Neo-soul, modal and genre harmony styles are deterministic and distinct',(
  for(const harmonyStyle of ['jazz','neo-soul','modal','genre']){
   const s=settings('mellowbeats',{harmonyStyle,seed:'style-test'});
   assert.deepEqual(generatePiano(s),generatePiano(s));
-  assert.ok(generatePiano(s).length>=12);
+  assert.ok(generatePiano(s).length>=6);
  }
  const patterns=['jazz','neo-soul','modal','genre'].map(harmonyStyle=>generatePiano(settings('mellowbeats',{harmonyStyle})).map(hit=>hit.synthNote.note));
  assert.equal(new Set(patterns.map(JSON.stringify)).size,patterns.length);

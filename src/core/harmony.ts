@@ -33,8 +33,11 @@ export function harmonyPlan(settings:Settings):HarmonyChange[]{
   const progression=pool?.[Math.floor(pick*pool.length)]??undefined;
   const genreProgression=progressions[Math.floor(pick*progressions.length)]!;
   const total=settings.bars*4*PPQ;
-  // Short tracker patterns still have enough room to state a four-chord phrase.
-  const changes=settings.bars<=2?settings.bars*2:settings.bars;
+  // Keep chord movement proportional to phrase length. Two-bar patterns use
+  // half as many harmony changes as four-bar phrases, giving piano and bass
+  // enough room to let each voicing breathe instead of compressing a full
+  // four-chord progression into half the timeline.
+  const changes=settings.bars;
   return Array.from({length:changes},(_,index)=>({
     startTick:Math.round(index*total/changes),
     endTick:Math.round((index+1)*total/changes),

@@ -9,7 +9,7 @@ import {validateSettings} from '../core/generate.js';
 import type {AudioAsset} from './slices.js';
 import type {KitState} from './drum-kit.js';
 import {DEFAULT_VINYL_TEXTURE,isVinylTexture,validateVinylTexture,type VinylTexture} from './vinyl-texture.js';
-export interface Project {format:'breakbeat-project';version:2|3|4|5|6|7|8;bank?:Bank;editor:EditorState;draft:Settings;kit:KitState;vinylTexture?:VinylTexture;assets:{id:string;name:string;sampleRate:number;channels:string[]}[]}
+export interface Project {format:'breakbeat-project';version:2|3|4|5|6|7|8|9;bank?:Bank;editor:EditorState;draft:Settings;kit:KitState;vinylTexture?:VinylTexture;assets:{id:string;name:string;sampleRate:number;channels:string[]}[]}
 function base64(data:Float32Array){let s='';const bytes=new Uint8Array(data.buffer,data.byteOffset,data.byteLength);for(let i=0;i<bytes.length;i+=8192)s+=String.fromCharCode(...bytes.subarray(i,i+8192));return btoa(s);}
 const legacyId=(id:string)=>id==='synth-scratch'||isVinylTexture(id)||id.startsWith('library-')&&isVinylTexture(id.slice(8));
 const projectPatterns=(p:Project)=>[p.editor.pattern,...(p.bank?.slots.flatMap(s=>[...(s.editor?[s.editor.pattern]:[]),...(s.patternHistory?.map(h=>h.editor.pattern)??[])])??[])];
@@ -25,7 +25,8 @@ export function makeProject(editor:EditorState,draft:Settings,kit:KitState,asset
   if([...ids].some(legacyId)||Object.values(kit).some(s=>legacyId(s.choice)))throw Error('Old vinyl instrument must be migrated before saving.');
   const piano=patterns.some(p=>p.userTracks?.some(track=>isSynthTrack(track)&&track.instrument.preset==='piano'));
   const sampledPiano=patterns.some(p=>p.userTracks?.some(track=>isSynthTrack(track)&&(track.instrument.sample||track.instrument.sampleBank)));
-  return {format:'breakbeat-project',version:sampledPiano?8:piano?7:patterns.some(p=>p.userTracks?.some(isSynthTrack))?6:patterns.some(p=>p.userTracks?.length)?5:patterns.some(p=>p.sliceInstruments?.length)?4:v3?3:2,...(bank?{bank:structuredClone(bank)}:{}),editor:structuredClone(editor),draft:structuredClone(draft),kit:structuredClone(kit),vinylTexture:validateVinylTexture(vinylTexture),assets:[...ids].map(id=>{const a=assets.get(id);if(!a)throw Error('Missing project audio.');return {id,name:a.name,sampleRate:a.sampleRate,channels:a.channels.map(base64)};})};
+  const modular=patterns.some(p=>p.userTracks?.some(track=>isSynthTrack(track)&&!!track.instrument.patch));
+  return {format:'breakbeat-project',version:modular?9:sampledPiano?8:piano?7:patterns.some(p=>p.userTracks?.some(isSynthTrack))?6:patterns.some(p=>p.userTracks?.length)?5:patterns.some(p=>p.sliceInstruments?.length)?4:v3?3:2,...(bank?{bank:structuredClone(bank)}:{}),editor:structuredClone(editor),draft:structuredClone(draft),kit:structuredClone(kit),vinylTexture:validateVinylTexture(vinylTexture),assets:[...ids].map(id=>{const a=assets.get(id);if(!a)throw Error('Missing project audio.');return {id,name:a.name,sampleRate:a.sampleRate,channels:a.channels.map(base64)};})};
 }
 export function readProject(raw:unknown,replacement?:AudioAsset){
   // Migrate a copy: opening an old file must not mutate the caller's data.
@@ -35,7 +36,7 @@ export function readProject(raw:unknown,replacement?:AudioAsset){
     legacy.version=2;
   }
   const p=legacy as Project;
-  if(!p||p.format!=='breakbeat-project'||![2,3,4,5,6,7,8].includes(p.version)||!p.editor||!p.kit||!Array.isArray(p.assets)||p.assets.length>256)throw Error('Not a supported project.');
+  if(!p||p.format!=='breakbeat-project'||![2,3,4,5,6,7,8,9].includes(p.version)||!p.editor||!p.kit||!Array.isArray(p.assets)||p.assets.length>256)throw Error('Not a supported project.');
   let migrated=false;
   if(needsVinylMigration(p)){
     if(!replacement||replacement.id!=='library-lofi2-perc-02')throw Error('Load the replacement percussion sample before opening this older project.');
