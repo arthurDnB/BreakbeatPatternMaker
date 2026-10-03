@@ -29,7 +29,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.2.3`
-* **Test Status:** 275 unit tests passing (0 skipped, 0 failed); all deployment site smoke checks passing (`npm.cmd test` and `npm.cmd run test:site`).
+* **Test Status:** 279 unit tests passing (0 skipped, 0 failed); all deployment site smoke checks passing (`npm.cmd test` and `npm.cmd run test:site`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -59,7 +59,7 @@ This document maintains the running project state and change log so that multipl
   - Hi-hat choke groups closing open hats across tracker steps and arrangement loop boundaries.
   - Isolated deterministic random streams (`v3Chance`, `v3Pick`) and Strudel-inspired Euclidean rhythmic distribution.
 * [x] **Groove V4 (Complete):** Typed, profile-driven composition for all 38 genres with separate Complexity layers and Spicy gestures; V1–V3 remain selectable for existing projects. See `docs/GROOVE-V4.md` for tuning guidance.
-* [x] **Groove V5 Engine (Default) & 8 Pilot Genre Profiles:** New workspaces use V5. Eight genres have dedicated pilot profiles; other genres use the V5 baseline mapped from established V4 profiles. V2–V4 remain selectable, and saved patterns keep their recorded engine.
+* [x] **Groove V5 Engine (Default) & 8 Pilot Genre Profiles:** New workspaces use V5. Eight pilot genres plus a reference-informed Atmospheric Breakcore profile have dedicated overrides; other genres use the V5 baseline mapped from established V4 profiles. V2–V4 remain selectable, and saved patterns keep their recorded engine.
 * [x] **Arrangement editing history:** Undo/redo for sequence, slot, repeat and song-tempo changes with context-aware shortcuts.
 * [x] **Named song sections:** Optional per-step section labels are preserved in project data, shown in the arranger and transport, and included in history.
 * [x] **Visual song timeline:** Colored section blocks, playhead following, insertion gaps, drag reorder and pattern selection with arrangement undo/redo.
@@ -81,6 +81,12 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-10-03] - Atmospheric Breakcore V5 Opening Study and Profile (Codex)
+- Studied the user-supplied Blksmiith SR20DET MP3 locally at the user-reported 170 BPM and 7A. An exploratory low-band phase scan suggested an attack alignment near 0.13 s; the first unshifted four-bar window was substantially quieter than the next. These measurements do not verify the downbeat, classify individual drum hits, or prove that the 1:30 section is a louder drop. Original audio and analysis remain in ignored `test-results/atmospheric-breakcore-references/`.
+- Added a dedicated `atmosphericbreakcore` V5 profile with a two-bar kick/snare anchor, restrained opening layers, later fractured detail, and phrase-gated Spicy gestures. Extended the typed layer/profile contract with optional phrase-progress thresholds; all existing profiles retain their previous behavior. Added focused tests for determinism, anchor stability, phrase development, Complexity monotonicity, and eight-bar phrase offsets.
+- Added `scripts/atmospheric-breakcore-audition.mjs` to render local, same-seed A/B loops at 170 BPM with the previous compatibility profile and new opening/development. The generated listening page includes the original reference only via an ignored local file. At the study seed, the old profile made 97 tracker notes in four bars, while the new opening made 49 and the later development 68. These counts are structural, not a genre-fit score.
+- Verification: `npm.cmd test` passed 279/279; `npm.cmd run test:site` passed all site browser suites at root and subpath. Human listening and drum-role annotations remain before further tuning. The beat profile does not itself mute melodic tracks for a drum-only intro.
 
 ### [2026-10-03] - Dense Tracker Playback Responsiveness (Codex)
 - Virtualized tracker rows in `src/web.ts` and `public/workspace.css`, keeping a small mounted window around the viewport while preserving cell editing, selection, drag, keyboard navigation, stacked chord rows and follow-playhead behavior. Indexed notes, hits and sources for row rendering, and updated pattern/song playhead paths to avoid repeated full-pattern scans.

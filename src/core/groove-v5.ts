@@ -41,7 +41,7 @@ export function validateV5Profile(profile:V5Profile,genre:Settings['genre']):voi
   if(!notes.length||notes.length>64)throw Error('Invalid Groove V5 layer notes.');
   for(const note of notes){if(!step(note.step))throw Error('Invalid Groove V5 step.');bounded(note.gain,0,1,'Groove V5 gain');if(note.pan!==undefined)bounded(note.pan,-1,1,'Groove V5 pan');if(note.probability!==undefined)bounded(note.probability,0,1,'Groove V5 probability');}
  };
- for(const layer of profile.layers){identity(layer.id);if(!ROLES.includes(layer.role))throw Error('Invalid Groove V5 role.');bounded(layer.minimum,0,1,'Groove V5 layer minimum');if(layer.on?.some(value=>!['opening','continuation','response','turnaround'].includes(value)))throw Error('Invalid Groove V5 bar function.');checkNotes(layer.notes);}
+ for(const layer of profile.layers){identity(layer.id);if(!ROLES.includes(layer.role))throw Error('Invalid Groove V5 role.');bounded(layer.minimum,0,1,'Groove V5 layer minimum');if(layer.minimumPhraseProgress!==undefined)bounded(layer.minimumPhraseProgress,0,1,'Groove V5 phrase progress');if(layer.on?.some(value=>!['opening','continuation','response','turnaround'].includes(value)))throw Error('Invalid Groove V5 bar function.');checkNotes(layer.notes);}
  for(const cadence of profile.cadences){identity(cadence.id);if(!ROLES.includes(cadence.role))throw Error('Invalid Groove V5 cadence role.');bounded(cadence.minimum,0,1,'Groove V5 cadence minimum');checkNotes(cadence.notes);}
  for(const role of ROLES){const timing=profile.timing[role];if(!timing)throw Error('Missing Groove V5 timing.');bounded(timing.swing,0,1,'Groove V5 swing');bounded(timing.dragMs,-25,25,'Groove V5 drag');}
  const spice=profile.spice;
@@ -51,6 +51,7 @@ export function validateV5Profile(profile:V5Profile,genre:Settings['genre']):voi
  bounded(spice.minRepeatMs,10,100,'Groove V5 repeat gap');
  if(spice.pitchSteps.some(value=>!Number.isInteger(value)||value< -24||value>24))throw Error('Invalid Groove V5 pitch step.');
  bounded(profile.responseWeight,0,1,'Groove V5 response weight');
+ if(profile.spiceMinimumPhraseProgress!==undefined)bounded(profile.spiceMinimumPhraseProgress,0,1,'Groove V5 spice phrase progress');
 }
 
 function motifFor(s:Settings,profile:V5Profile):V5AnchorMotif {
@@ -122,10 +123,15 @@ function layerNote(c:State,bar:V5BarPlan,id:string,role:Role,note:V5LayerNote):v
 function layers(c:State):void {
  for(const bar of c.plan.bars)for(const layer of c.profile.layers){
   if(layer.on&&!layer.on.includes(bar.function))continue;
+  if(!phraseProgressReached(c,bar,layer.minimumPhraseProgress))continue;
   const d=density(c.s,layer.role),complexity=d>1?1-(1-c.s.complexity)/d:c.s.complexity;
   if(complexity<layer.minimum)continue;
   for(const note of layer.notes)layerNote(c,bar,layer.id,layer.role,note);
  }
+}
+function phraseProgressReached(c:State,bar:V5BarPlan,minimum=0):boolean {
+ const length=c.s.phraseLength??c.s.bars;
+ return length<4||bar.phrasePosition/Math.max(1,length-1)>=minimum;
 }
 function cadences(c:State,forced=false):void {
  const s=c.s;
@@ -172,6 +178,7 @@ function spice(c:State):void {
  const s=c.s,amount=s.spicy??0,policy=c.profile.spice;
  if(amount<=0)return;
  for(const bar of c.plan.bars){
+  if(!phraseProgressReached(c,bar,c.profile.spiceMinimumPhraseProgress))continue;
   const begin=bar.bar*BAR,end=begin+BAR;
   const candidates=[...c.events.values()].filter(hit=>!hit.anchor&&!hit.id.endsWith('-roll')&&policy.roles.includes(hit.role)&&onset(hit)>=begin&&onset(hit)<end);
   candidates.sort((a,b)=>{

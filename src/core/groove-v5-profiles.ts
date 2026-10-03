@@ -2,7 +2,7 @@ import type {Genre} from './model.js';
 import type {V5Profile} from './groove-v5-contract.js';
 
 /**
- * The eight authored Groove V5 pilot profiles. Automated structural checks
+ * Authored Groove V5 profiles. Automated structural checks
  * pass; listening review against genre references is still pending.
  *
  * Each entry is declarative profile data only: no callbacks, no random functions
@@ -28,6 +28,9 @@ import type {V5Profile} from './groove-v5-contract.js';
  *   five gestures, 8-repeat bursts and a short repeat gap.
  * - AmenScience: dense amen science spine with extra snares, the deepest ghost
  *   vocabulary, all five gestures and the highest response weight.
+ * - Atmospheric Breakcore: a recognizable two-bar drum opening that admits
+ *   fractured detail later in a four- or eight-bar phrase. This is a reference-
+ *   informed composition policy, not a transcription of SR20DET.
  */
 export const V5_PROFILE_OVERRIDES:Partial<Record<Genre,V5Profile>>={
  jungle:{
@@ -736,5 +739,59 @@ export const V5_PROFILE_OVERRIDES:Partial<Record<Genre,V5Profile>>={
    percussion:{swing:.5,dragMs:-2}},
   spice:{gestures:['roll','chop','reverse','pitch','push'],roles:['snare','hat','percussion','kick'],maxPerBar:5,maxRepeats:8,minRepeatMs:16,pitchSteps:[0,7,12,-12,-5]},
   responseWeight:1
+ },
+ atmosphericbreakcore:{
+  genre:'atmosphericbreakcore',
+  anchors:[
+   {id:'atmospheric-open-break',bars:2,notes:[
+    {bar:0,step:0,role:'kick',gain:.94},{bar:0,step:4,role:'snare',gain:.88},
+    {bar:0,step:10,role:'kick',gain:.78},{bar:0,step:12,role:'snare',gain:.9},
+    {bar:1,step:0,role:'kick',gain:.93},{bar:1,step:4,role:'snare',gain:.88},
+    {bar:1,step:7,role:'kick',gain:.73},{bar:1,step:12,role:'snare',gain:.9}]},
+   {id:'atmospheric-cross-break',bars:2,notes:[
+    {bar:0,step:0,role:'kick',gain:.94},{bar:0,step:4,role:'snare',gain:.88},
+    {bar:0,step:6,role:'kick',gain:.76},{bar:0,step:12,role:'snare',gain:.9},
+    {bar:1,step:0,role:'kick',gain:.93},{bar:1,step:4,role:'snare',gain:.88},
+    {bar:1,step:10,role:'kick',gain:.76},{bar:1,step:12,role:'snare',gain:.9}]}
+  ],
+  layers:[
+   {id:'atmospheric-hat-pulse',role:'hat',minimum:0,notes:[
+    {step:2,gain:.23,probability:.94},{step:6,gain:.26,probability:.94},
+    {step:10,gain:.23,probability:.94},{step:14,gain:.27,probability:.94}]},
+   {id:'atmospheric-quiet-ghosts',role:'snare',minimum:.3,notes:[
+    {step:3,gain:.24,ghost:true,probability:.78},
+    {step:11,gain:.24,ghost:true,probability:.78}]},
+   {id:'atmospheric-offbeat-hats',role:'hat',minimum:.45,notes:[
+    {step:1,gain:.18,probability:.65,syncopated:true},
+    {step:7,gain:.19,probability:.65,syncopated:true},
+    {step:11,gain:.18,probability:.65,syncopated:true},
+    {step:15,gain:.2,probability:.65,syncopated:true}]},
+   {id:'atmospheric-break-pickups',role:'kick',minimum:.52,minimumPhraseProgress:.43,notes:[
+    {step:3,gain:.51,probability:.7,syncopated:true},
+    {step:14,gain:.49,probability:.7,syncopated:true}]},
+   {id:'atmospheric-fractured-snare',role:'snare',minimum:.62,minimumPhraseProgress:.57,notes:[
+    {step:6.5,gain:.23,ghost:true,probability:.8},
+    {step:15.5,gain:.25,ghost:true,probability:.8}]},
+   {id:'atmospheric-high-chops',role:'hat',minimum:.78,minimumPhraseProgress:.57,notes:[
+    {step:3.5,gain:.16,probability:.7,syncopated:true},
+    {step:7.5,gain:.17,probability:.7,syncopated:true},
+    {step:11.5,gain:.16,probability:.7,syncopated:true},
+    {step:15.5,gain:.18,probability:.7,syncopated:true}]},
+   {id:'atmospheric-percussion-answer',role:'percussion',minimum:.5,
+    on:['response','turnaround'],notes:[
+    {step:5,gain:.25,probability:.72},{step:13,gain:.29,probability:.72}]}
+  ],
+  cadences:[
+   {id:'atmospheric-snare-lift',role:'snare',minimum:.35,notes:[
+    {step:11,gain:.27,ghost:true},{step:13,gain:.36,ghost:true},
+    {step:14.5,gain:.43},{step:15.5,gain:.54}]}
+  ],
+  timing:{
+   kick:{swing:0,dragMs:0},snare:{swing:.5,dragMs:1},
+   hat:{swing:.64,dragMs:0},percussion:{swing:.5,dragMs:-1}},
+  spice:{gestures:['roll','chop','push','pitch'],roles:['snare','hat','percussion'],
+   maxPerBar:3,maxRepeats:4,minRepeatMs:20,pitchSteps:[0,7,-5,12]},
+  spiceMinimumPhraseProgress:.43,
+  responseWeight:.72
  }
 };

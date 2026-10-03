@@ -22,6 +22,8 @@ export interface V5Layer {
   id:string;role:Role;
   /** First Complexity setting at which this musical layer is available. */
   minimum:number;
+  /** Optional entry point within a phrase of at least four bars (0–1). */
+  minimumPhraseProgress?:number;
   /** Limit the layer to particular places in a phrase. Omit for every bar. */
   on?:readonly V5BarFunction[];
   notes:readonly V5LayerNote[];
@@ -53,6 +55,8 @@ export interface V5Profile {
   cadences:readonly V5Cadence[];
   timing:Readonly<Record<Role,V5Timing>>;
   spice:V5Spice;
+  /** Hold expressive gestures until this point in phrases of at least four bars. */
+  spiceMinimumPhraseProgress?:number;
   /** How readily the closing bar receives an automatic cadence. */
   responseWeight:number;
 }
