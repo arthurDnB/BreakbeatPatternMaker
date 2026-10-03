@@ -74,6 +74,8 @@ let trackerClipboard:TrackerClipboard|undefined;
 let draggingTrackerCells:CellPosition[]|undefined;
 let trackerFieldDraft:{id:string;field:string;digits:string}|undefined;
 let trackerEffectDraft:{id:string;command?:EffectCommand['command'];digits:string;prefix:boolean}|undefined;
+let trackerViewport:{mount:(position?:number)=>void;ensure:(row:number)=>HTMLElement|null;row:(row:number)=>HTMLElement|null;reveal:(row:number)=>void}|undefined;
+let trackerWindowFrame=0;
 let syncDspControls: () => void = () => {};
 const drumLaneFields=new Map<Role,{name:HTMLInputElement;visible:HTMLInputElement;generation:HTMLSelectElement;count:HTMLElement}>();
 function visibleDrumRoles(){return ROLES.filter(role=>drumLane(pattern,role).visible);}
@@ -125,7 +127,7 @@ function readWorkspacePreferences():WorkspacePreferences{
 const workspacePreferences=readWorkspacePreferences();
 input('view').value=workspacePreferences.view;
 el<HTMLSelectElement>('tracker-step-select').value=String(workspacePreferences.stepAdvance);input('edit-step').value=String(workspacePreferences.stepAdvance);
-let workspaceRestoreTracks=true,workspaceSaveFrame=0,workspaceReady=false;
+let workspaceRestoreTracks=true,workspaceSaveFrame=0,workspaceReady=false,workspaceSavePending=false;
 function saveWorkspacePreferences(){
  try{
   workspacePreferences.view=validWorkspaceView(input('view').value)?input('view').value as WorkspaceView:'renoise';
@@ -136,7 +138,7 @@ function saveWorkspacePreferences(){
   localStorage.setItem(WORKSPACE_PREFS_KEY,JSON.stringify(workspacePreferences));
  }catch{}
 }
-function scheduleWorkspaceSave(){if(!workspaceReady||workspaceSaveFrame)return;workspaceSaveFrame=requestAnimationFrame(()=>{workspaceSaveFrame=0;saveWorkspacePreferences();});}
+function scheduleWorkspaceSave(){if(!workspaceReady)return;if(mode){workspaceSavePending=true;return;}if(workspaceSaveFrame)return;workspaceSaveFrame=requestAnimationFrame(()=>{workspaceSaveFrame=0;saveWorkspacePreferences();});}
 function restoreWorkspacePreferences(){
  const restored={...workspacePreferences,openPanels:{...workspacePreferences.openPanels},openTrackRoles:[...workspacePreferences.openTrackRoles]};
  rowAnchor=Math.min(restored.cursorRow,Math.max(0,transfer.timing.lines-1));cursorLane=restored.cursorLane;cursorTrackId=pattern.userTracks?.some(track=>track.id===restored.cursorTrackId)?restored.cursorTrackId:undefined;cursorField=restored.cursorField;el<HTMLSelectElement>('tracker-step-select').value=String(restored.stepAdvance);input('edit-step').value=String(restored.stepAdvance);
@@ -337,19 +339,19 @@ function synthInstrumentPanel(track:SynthTrack):HTMLDetailsElement{
   return panel;
 }
 el('grid').addEventListener('scroll',positionOpenInstrumentPanels,{passive:true});
+el('grid').addEventListener('scroll',()=>{if(trackerWindowFrame)return;trackerWindowFrame=requestAnimationFrame(()=>{trackerWindowFrame=0;trackerViewport?.mount();});},{passive:true});
 window.addEventListener('resize',positionOpenInstrumentPanels,{passive:true});
 window.addEventListener('scroll',positionOpenInstrumentPanels,{capture:true,passive:true});
 function flashTrackMeter(role: Role, level = 1){
   const bar=document.querySelector(`#track-meter-${role} .track-meter-bar`) as HTMLElement|null;
   if(!bar)return;
   const pct=Math.max(15,Math.min(100,Math.round(level*100)));
-  bar.classList.remove('decaying');
-  bar.style.width=pct+'%';
-  void bar.offsetWidth;
-  bar.classList.add('decaying');
+  bar.getAnimations().forEach(animation=>animation.cancel());
+  bar.animate([{width:pct+'%'},{width:'0%'}],{duration:350,easing:'cubic-bezier(0.1, 0.9, 0.2, 1)'});
 }
 function render(){
   const container=el('grid'),scrollTop=container.scrollTop,scrollLeft=container.scrollLeft;
+  trackerViewport=undefined;
   if(!cursorTrackId&&!drumLane(pattern,cursorLane).visible){
     const first=visibleDrumRoles()[0];if(first)cursorLane=first;
     else if(pattern.userTracks?.[0]){cursorTrackId=pattern.userTracks[0].id;cursorLane=pattern.userTracks[0].role;}
@@ -369,6 +371,11 @@ function render(){
   const selectedCells=new Set((editor.state.selection.cells??[]).map(c=>`${c.row}:${c.lane}`));
   container.replaceChildren();
   const table=document.createElement('table');
+  if(transfer.timing.lines>96){
+    const columnWidths=[56,64,...visibleDrumRoles().map(()=>207),...(pattern.userTracks??[]).map(()=>218)];
+    table.style.minWidth=`${columnWidths.reduce((sum,width)=>sum+width,0)}px`;
+    const columns=document.createElement('colgroup');for(const width of columnWidths){const col=document.createElement('col');col.style.width=`${width}px`;columns.append(col);}table.append(columns);
+  }
   const head=document.createElement('thead'),header=document.createElement('tr');
   const headerRoles=visibleDrumRoles();
   for(const [i,label] of ['Row','Beat',...headerRoles.map(role=>drumLane(pattern,role).name)].entries()){
@@ -468,7 +475,12 @@ function render(){
   head.append(header);table.append(head);
   const body=document.createElement('tbody');
   const view=input('view').value;
-  for(let row=0;row<transfer.timing.lines;row++){
+  const notesByCell=new Map<string,typeof transfer.notes>();
+  const hitsById=new Map(pattern.events.map(hit=>[hit.id,hit]));
+  const sourcesById=new Map(transfer.sources.map(source=>[source.id,source]));
+  for(const note of transfer.notes){const key=`${note.row}:${note.lane}`,notes=notesByCell.get(key)??[];notes.push(note);notesByCell.set(key,notes);}
+  const visibleLanes=[...visibleDrumRoles().map(id=>({id,name:drumLane(pattern,id).name,role:id as Role,track:undefined as UserTrack|undefined})),...(pattern.userTracks??[]).map(track=>({id:track.id,name:track.name,role:track.role,track}))];
+  const renderRow=(row:number)=>{
     const isBar=row%(transfer.timing.lpb*4)===0,isBeat=row%transfer.timing.lpb===0;
     const barNumber=Math.floor(row/(transfer.timing.lpb*4))+1;
     const tr=document.createElement('tr');tr.className=(isBar?'bar-start ':'')+(isBeat?'beat':'');tr.dataset.playRow=String(row);tr.dataset.bar=String(barNumber);
@@ -486,14 +498,13 @@ function render(){
       else td.textContent=value;
       tr.append(td);
     }
-    const visibleLanes=[...visibleDrumRoles().map(id=>({id,name:drumLane(pattern,id).name,role:id as Role,track:undefined as UserTrack|undefined})),...(pattern.userTracks??[]).map(track=>({id:track.id,name:track.name,role:track.role,track}))];
     for(const lane of visibleLanes){
       const td=document.createElement('td');td.classList.add('track-'+lane.role);td.classList.toggle('cursor-cell',row===rowAnchor&&lane.id===(cursorTrackId??cursorLane));td.classList.toggle('tracker-cell-selected',selectedCells.has(`${row}:${lane.id}`));
       td.dataset.dropRow=String(row);td.dataset.dropLane=lane.id;
       td.ondragover=e=>{if(!draggingTrackerCells)return;e.preventDefault();td.classList.add('tracker-drop-target');if(e.dataTransfer)e.dataTransfer.dropEffect='move';};
       td.ondragleave=()=>td.classList.remove('tracker-drop-target');
       td.ondrop=e=>{e.preventDefault();td.classList.remove('tracker-drop-target');if(!draggingTrackerCells)return;const source=draggingTrackerCells;draggingTrackerCells=undefined;edit(()=>editor.moveCells(source,row,lane.id),'Moved tracker cells. Undo restores their original positions.');focusTrackerCell(row,lane.id);};
-      const notes=transfer.notes.filter(n=>n.row===row&&n.lane===lane.id);
+      const notes=notesByCell.get(`${row}:${lane.id}`)??[];
       if(!notes.length){
         const empty=document.createElement('button');
         empty.className='empty-cell';
@@ -514,8 +525,8 @@ function render(){
         if(view!=='beginner'){const fields=document.createElement('div');fields.className='tracker-values is-empty';for(const field of trackerFields){const cell=document.createElement('button');cell.type='button';cell.className='tracker-value';cell.dataset.cellRow=String(row);cell.dataset.cellLane=lane.id;cell.dataset.field=field;cell.textContent=field==='note'?'---':field==='effect'?'----':'··';cell.title=`${field} at ${lane.name} row ${row}; enter a note first`;cell.onclick=e=>{e.stopPropagation();selectTrackerCell(row,lane.role,undefined,undefined,false,lane.track?.id);focusTrackerField(row,lane.id,field);};fields.append(cell);}td.append(fields);}
       }
       for(const n of notes){
-        const hit=pattern.events.find(e=>e.id===n.id)!;
-        const source=transfer.sources.find(s=>s.id===n.source)!;
+        const hit=hitsById.get(n.id)!;
+        const source=sourcesById.get(n.source)!;
         const button=document.createElement('button');button.className=`hit ${lane.id}${hit.ghost?' ghost':''}`;
         button.dataset.hit=hit.id;button.classList.toggle('selected-hit',selected.has(hit.id));
         button.dataset.cellRow=String(row);button.dataset.cellLane=lane.id;button.classList.toggle('cell-selected',selectedCells.has(`${row}:${lane.id}`));
@@ -543,10 +554,58 @@ function render(){
       }
       tr.append(td);
     }
-    body.append(tr);
-  }
+    return tr;
+  };
   table.append(body);container.append(table);
+  const lines=transfer.timing.lines;
+  if(lines<=96){for(let row=0;row<lines;row++)body.append(renderRow(row));}
+  else{
+    table.classList.add('tracker-virtualized');
+    table.style.setProperty('--tracker-columns',`56px 64px ${visibleDrumRoles().map(()=>`minmax(207px,1fr)`).join(' ')} ${(pattern.userTracks??[]).map(()=>`minmax(218px,1fr)`).join(' ')}`);
+    const heights=Array.from({length:lines},(_,row)=>{
+      let stack=0;for(const lane of visibleLanes)stack=Math.max(stack,notesByCell.get(`${row}:${lane.id}`)?.length??0);
+      return 37.1+(stack?1:0)+Math.max(0,stack-1)*35+(row%transfer.timing.lpb===0?1:0)+(row%(transfer.timing.lpb*4)===0?3:0);
+    });
+    const offsets=new Float64Array(lines+1);
+    const rebuildOffsets=()=>{for(let row=0;row<lines;row++)offsets[row+1]=offsets[row]!+heights[row]!;};rebuildOffsets();
+    const findRow=(offset:number)=>{let low=0,high=lines;while(low<high){const mid=(low+high)>>1;if(offsets[mid+1]!<=offset)low=mid+1;else high=mid;}return Math.min(lines-1,low);};
+    let first=-1,last=-1;
+    body.style.height=`${offsets[lines]}px`;
+    const mounted=new Map<number,HTMLElement>();
+    const rowElement=(row:number)=>mounted.get(row)??null;
+    const headerHeight=table.tHead?.offsetHeight??0;
+    const mount=(position=container.scrollTop)=>{
+      const start=Math.max(0,findRow(Math.max(0,position-headerHeight))-2);
+      const end=Math.min(lines,findRow(Math.max(0,position-headerHeight)+container.clientHeight)+3);
+      if(start===first&&end===last)return;
+      const add=(row:number,before?:Element)=>{const element=renderRow(row);element.style.transform=`translateY(${offsets[row]}px)`;body.insertBefore(element,before??null);mounted.set(row,element);};
+      const remove=(row:number)=>{mounted.get(row)?.remove();mounted.delete(row);};
+      if(first<0||end<=first||start>=last){for(const row of mounted.keys())remove(row);for(let row=start;row<end;row++)add(row);}
+      else{
+        for(let row=first;row<start;row++)remove(row);
+        for(let row=end;row<last;row++)remove(row);
+        for(let row=Math.min(first,last)-1;row>=start;row--)add(row,mounted.get(row+1));
+        for(let row=Math.max(last,start);row<end;row++)add(row);
+      }
+      first=start;last=end;
+    };
+    trackerViewport={mount,row:rowElement,reveal:(row:number)=>{
+      const rowTop=headerHeight+offsets[row]!,rowBottom=headerHeight+offsets[row+1]!;
+      const scroll=container.scrollTop;
+      if(rowBottom-scroll>container.clientHeight-24)container.scrollTop=rowBottom-container.clientHeight+24;
+      else if(rowTop-scroll<headerHeight+24)container.scrollTop=Math.max(0,offsets[row]!-24);
+      if(container.scrollTop!==scroll)mount();
+    },ensure:(row:number)=>{
+      let element=rowElement(row);if(element)return element;
+      const position=Math.max(0,offsets[row]!-20);
+      mount(position);container.scrollTop=position;
+      return rowElement(row);
+    }};
+    mount(scrollTop);
+  }
   container.scrollTop=scrollTop;container.scrollLeft=scrollLeft;
+  if(focusCellRow!==undefined&&focusCellLane)trackerViewport?.ensure(Number(focusCellRow));
+  else if(focusRow!==undefined)trackerViewport?.ensure(Number(focusRow));
   positionOpenInstrumentPanels();
   markTrackerCursor(container.querySelector<HTMLElement>(`[data-cell-row="${rowAnchor}"][data-cell-lane="${cursorTrackId??cursorLane}"][data-field="${cursorField}"]`));
   if(focusCellRow!==undefined&&focusCellLane)(container.querySelector<HTMLElement>(`[data-hit="${focusHit??''}"][data-cell-row="${focusCellRow}"][data-cell-lane="${focusCellLane}"]${focusField?`[data-field="${focusField}"]`:''}`)??container.querySelector<HTMLElement>(`[data-cell-row="${focusCellRow}"][data-cell-lane="${focusCellLane}"]${focusField?`[data-field="${focusField}"]`:''}`)??container.querySelector<HTMLElement>(`[data-cell-row="${focusCellRow}"][data-cell-lane="${focusCellLane}"]`))?.focus({preventScroll:true});
@@ -582,8 +641,8 @@ function render(){
   syncHud();
 }
 function markTrackerCursor(target:HTMLElement|null|undefined){el('grid').querySelectorAll<HTMLElement>('.tracker-value.is-cursor-field').forEach(value=>{value.classList.remove('is-cursor-field');value.removeAttribute('aria-current');});if(target?.matches('.tracker-value')){target.classList.add('is-cursor-field');target.setAttribute('aria-current','location');}}
-function focusTrackerCell(row:number,lane:string){cursorField='note';const selected=editor.state.selection.ids.length===1?editor.state.selection.ids[0]:'';const base=`[data-cell-row="${row}"][data-cell-lane="${lane}"]`;const target=el('grid').querySelector<HTMLElement>(base+`[data-hit="${selected}"]`)??el('grid').querySelector<HTMLElement>(base),field=el('grid').querySelector<HTMLElement>(base+`[data-hit="${selected}"][data-field="note"]`)??el('grid').querySelector<HTMLElement>(base+'[data-field="note"]');markTrackerCursor(field);target?.focus({preventScroll:true});scheduleWorkspaceSave();}
-function focusTrackerField(row:number,lane:string,field:string){cursorField=field as typeof trackerFields[number];const selected=editor.state.selection.ids.length===1?editor.state.selection.ids[0]:'';const base=`[data-cell-row="${row}"][data-cell-lane="${lane}"][data-field="${field}"]`;const target=el('grid').querySelector<HTMLElement>(base+`[data-hit="${selected}"]`)??el('grid').querySelector<HTMLElement>(base);markTrackerCursor(target);target?.focus({preventScroll:true});scheduleWorkspaceSave();}
+function focusTrackerCell(row:number,lane:string){cursorField='note';trackerViewport?.ensure(row);const selected=editor.state.selection.ids.length===1?editor.state.selection.ids[0]:'';const base=`[data-cell-row="${row}"][data-cell-lane="${lane}"]`;const target=el('grid').querySelector<HTMLElement>(base+`[data-hit="${selected}"]`)??el('grid').querySelector<HTMLElement>(base),field=el('grid').querySelector<HTMLElement>(base+`[data-hit="${selected}"][data-field="note"]`)??el('grid').querySelector<HTMLElement>(base+'[data-field="note"]');markTrackerCursor(field);target?.focus({preventScroll:true});scheduleWorkspaceSave();}
+function focusTrackerField(row:number,lane:string,field:string){cursorField=field as typeof trackerFields[number];trackerViewport?.ensure(row);const selected=editor.state.selection.ids.length===1?editor.state.selection.ids[0]:'';const base=`[data-cell-row="${row}"][data-cell-lane="${lane}"][data-field="${field}"]`;const target=el('grid').querySelector<HTMLElement>(base+`[data-hit="${selected}"]`)??el('grid').querySelector<HTMLElement>(base);markTrackerCursor(target);target?.focus({preventScroll:true});scheduleWorkspaceSave();}
 let soundBrowser:ReturnType<typeof setupSoundBrowser>;
 function openHitSoundPicker(id:string){
  const hit=pattern.events.find(h=>h.id===id);if(!hit)return;
@@ -662,6 +721,7 @@ function stop(){
   for(const source of playingSources){try{source.stop();}catch{}source.disconnect();}playingSources.clear();
   mode=undefined;comparisonPlaying=undefined;pendingSlot=undefined;el('transport-state').textContent='Stopped';el('play-arrangement').textContent='Play arrangement';el('bank-status').textContent='';document.querySelectorAll('.playing-step').forEach(e=>e.classList.remove('playing-step'));
   playToken++;setPlayButton(false);el('song-position').textContent='Song stopped';document.querySelector('.playing-row')?.classList.remove('playing-row');
+  if(workspaceSavePending){workspaceSavePending=false;scheduleWorkspaceSave();}
   resetHud();renderComparisonControls();
 }
 async function buildLayer(layer:'drums'|'bassline'|'lead'|'piano'){
@@ -768,10 +828,12 @@ async function play(){
  let source=startSource(buffer,start,true),prepared:{slot:number;buffer:AudioBuffer;mix:string}|undefined;
  let boundary:{at:number;slot:number;duration:number}|undefined;
  mode='pattern';el('transport-state').textContent='Pattern playing';setPlayButton(true);
- let lastMeterRow = -1;
+ let lastUiRow=-1,paintedRow:HTMLElement|null=null;
+ let notesByRow=new Map<number,typeof transfer.notes>(),hitsById=new Map<string,Hit>(),tracksById=new Map<string,UserTrack>();
+ const indexPlayback=()=>{notesByRow=new Map();for(const note of transfer.notes){const notes=notesByRow.get(note.row)??[];notes.push(note);notesByRow.set(note.row,notes);}hitsById=new Map(pattern.events.map(hit=>[hit.id,hit]));tracksById=new Map((pattern.userTracks??[]).map(track=>[track.id,track]));};indexPlayback();
  const schedule=()=>{
   let now=context!.currentTime;
-  if(boundary&&now>=boundary.at){const b=boundary;boundary=undefined;activateSlot(b.slot);start=b.at;duration=b.duration;el('bank-status').textContent='Playing '+bank!.slots[b.slot]!.name;}
+  if(boundary&&now>=boundary.at){const b=boundary;boundary=undefined;activateSlot(b.slot);indexPlayback();paintedRow=null;lastUiRow=-1;start=b.at;duration=b.duration;el('bank-status').textContent='Playing '+bank!.slots[b.slot]!.name;}
   // Render only a requested replacement; the current source loops on the audio clock.
   if(!boundary&&pendingSlot!==undefined){
    const mix=JSON.stringify(kitPanel.mix);
@@ -787,18 +849,18 @@ async function play(){
    }
   }
   const row=Math.floor((Math.max(0,now-start)%duration)/duration*transfer.timing.lines);
-  document.querySelector('.playing-row')?.classList.remove('playing-row');
-  const rowEl = document.querySelector('[data-play-row="'+row+'"]');
-  rowEl?.classList.add('playing-row');
-  updateHudPosition(row);
-  if(followPlayhead && rowEl){
-    revealPlaybackItem(el('grid'), rowEl, el('grid').querySelector('thead')?.getBoundingClientRect().height??0);
+  if(row!==lastUiRow||!paintedRow?.isConnected){
+    paintedRow?.classList.remove('playing-row');
+    if(followPlayhead)trackerViewport?.reveal(row);
+    paintedRow=trackerViewport?.row(row)??document.querySelector<HTMLElement>('[data-play-row="'+row+'"]');
+    paintedRow?.classList.add('playing-row');
+    if(followPlayhead&&paintedRow&&!trackerViewport)revealPlaybackItem(el('grid'),paintedRow,el('grid').querySelector('thead')?.getBoundingClientRect().height??0);
   }
-  if(row!==lastMeterRow){
-    lastMeterRow=row;
+  if(row!==lastUiRow){
+    lastUiRow=row;updateHudPosition(row);
     const hasSolo=ROLES.some(r=>kitPanel.mix[r].solo)||(pattern.userTracks??[]).some(track=>track.solo);
-    for(const n of transfer.notes.filter(note=>note.row===row)){
-      const hit=pattern.events.find(e=>e.id===n.id),track=hit?.trackId?pattern.userTracks?.find(item=>item.id===hit.trackId):undefined;
+    for(const n of notesByRow.get(row)??[]){
+      const hit=hitsById.get(n.id),track=hit?.trackId?tracksById.get(hit.trackId):undefined;
       const audible=track?(hasSolo?track.solo&&!track.mute:!track.mute):hasSolo?(kitPanel.mix[hit?.role??'percussion'].solo&&!kitPanel.mix[hit?.role??'percussion'].mute):!kitPanel.mix[hit?.role??'percussion'].mute;
       if(audible){
         flashTrackMeter(hit?.role??'percussion',(hit?.gain??1)*(track?.level??1)*kitPanel.mix[hit?.role??'percussion'].level);
@@ -907,27 +969,32 @@ async function playArrangement(){
  const audio=arrangementAudio(context.sampleRate),timeline=songTimeline(bank!),buffer=audioBuffer(audio),start=context.currentTime+.05;
  input('transport-target').value='song';syncHud();
  startSource(buffer,start);mode='arrangement';el('transport-state').textContent='Song playing';el('play-arrangement').textContent='Stop arrangement';setPlayButton(true);
- let lastPosition='';
+ let lastPosition='',lastStep=-1,paintedRow:HTMLElement|null=null;
+ let notesByRow=new Map<number,typeof transfer.notes>(),hitsById=new Map<string,Hit>(),tracksById=new Map<string,UserTrack>();
+ const indexPlayback=()=>{notesByRow=new Map();for(const note of transfer.notes){const notes=notesByRow.get(note.row)??[];notes.push(note);notesByRow.set(note.row,notes);}hitsById=new Map(pattern.events.map(hit=>[hit.id,hit]));tracksById=new Map((pattern.userTracks??[]).map(track=>[track.id,track]));};indexPlayback();
  timer=setInterval(()=>{
   const elapsed=context!.currentTime-start,position=songPosition(timeline,Math.max(0,elapsed));
   if(position){
-   if(bank!.active!==position.slot)activateSlot(position.slot);
-   document.querySelectorAll('.playing-step').forEach(e=>e.classList.remove('playing-step'));
-   document.querySelector('#sequence [data-step="'+position.step+'"]')?.classList.add('playing-step');
-   const timelineBlock=document.querySelector<HTMLElement>('#song-timeline [data-timeline-step="'+position.step+'"]');timelineBlock?.classList.add('playing-step');
-   document.querySelector('.playing-row')?.classList.remove('playing-row');
-   document.querySelector('[data-play-row="'+position.row+'"]')?.classList.add('playing-row');
+   if(bank!.active!==position.slot){activateSlot(position.slot);indexPlayback();paintedRow=null;lastPosition='';}
    const beat=Math.max(0,elapsed)*bank!.songBpm/60;
    el('hud-pos-val').textContent=String(Math.floor(beat/4)+1).padStart(2,'0')+'.'+(Math.floor(beat%4)+1);
    const key=position.step+':'+position.repeat+':'+position.row;
+   if(key!==lastPosition||!paintedRow?.isConnected){
+    paintedRow?.classList.remove('playing-row');
+    if(followPlayhead)trackerViewport?.reveal(position.row);
+    paintedRow=trackerViewport?.row(position.row)??document.querySelector<HTMLElement>('[data-play-row="'+position.row+'"]');
+    paintedRow?.classList.add('playing-row');
+    if(followPlayhead&&paintedRow&&!trackerViewport)revealPlaybackItem(el('grid'),paintedRow,el('grid').querySelector('thead')?.getBoundingClientRect().height??0);
+   }
    if(key!==lastPosition){
     lastPosition=key;
-    if(followPlayhead){revealPlaybackItem(el('grid'),document.querySelector('.playing-row'),el('grid').querySelector('thead')?.getBoundingClientRect().height??0);revealTimelineBlock(timelineBlock);}
-    const tray=document.querySelector<HTMLElement>('#tray-left .tray-body');if(followPlayhead&&tray)revealPlaybackItem(tray,document.querySelector('#sequence .playing-step'));
+    if(lastStep!==position.step){document.querySelectorAll('.playing-step').forEach(e=>e.classList.remove('playing-step'));document.querySelector('#sequence [data-step="'+position.step+'"]')?.classList.add('playing-step');document.querySelector('#song-timeline [data-timeline-step="'+position.step+'"]')?.classList.add('playing-step');lastStep=position.step;}
+    const timelineBlock=document.querySelector<HTMLElement>('#song-timeline [data-timeline-step="'+position.step+'"]');
+    if(followPlayhead){revealTimelineBlock(timelineBlock);const tray=document.querySelector<HTMLElement>('#tray-left .tray-body');if(tray)revealPlaybackItem(tray,document.querySelector('#sequence .playing-step'));}
     el('transport-state').textContent='Song · Step '+(position.step+1)+' / '+bank!.sequence.length;
     el('song-position').textContent='Step '+(position.step+1)+' / '+bank!.sequence.length+' · '+(position.section?position.section+' · ':'')+bank!.slots[position.slot]!.name+' · Repeat '+(position.repeat+1)+' / '+bank!.sequence[position.step]!.repeats;
      const solo=ROLES.some(r=>kitPanel.mix[r].solo)||(pattern.userTracks??[]).some(track=>track.solo);
-     for(const note of transfer.notes.filter(n=>n.row===position.row)){const hit=pattern.events.find(h=>h.id===note.id),track=hit?.trackId?pattern.userTracks?.find(item=>item.id===hit.trackId):undefined,role=hit?.role??'percussion';if(track?(!track.mute&&(!solo||track.solo)):(!kitPanel.mix[role].mute&&(!solo||kitPanel.mix[role].solo)))flashTrackMeter(role,kitPanel.mix[role].level*(track?.level??1)*(hit?.gain??1));}
+     for(const note of notesByRow.get(position.row)??[]){const hit=hitsById.get(note.id),track=hit?.trackId?tracksById.get(hit.trackId):undefined,role=hit?.role??'percussion';if(track?(!track.mute&&(!solo||track.solo)):(!kitPanel.mix[role].mute&&(!solo||kitPanel.mix[role].solo)))flashTrackMeter(role,kitPanel.mix[role].level*(track?.level??1)*(hit?.gain??1));}
    }
   }else{
    document.querySelectorAll('.playing-step,.playing-row').forEach(e=>e.classList.remove('playing-step','playing-row'));
@@ -2871,25 +2938,19 @@ function initReTrackOscilloscope() {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
+  const backdrop=document.createElement('canvas');backdrop.width=canvas.width;backdrop.height=canvas.height;
+  const background=backdrop.getContext('2d')!;
+  background.fillStyle='#04070b';background.fillRect(0,0,backdrop.width,backdrop.height);
+  background.strokeStyle='rgba(20, 31, 46, 0.7)';background.lineWidth=1;background.beginPath();
+  background.moveTo(0,backdrop.height/2);background.lineTo(backdrop.width,backdrop.height/2);
+  for(let x=0;x<backdrop.width;x+=32){background.moveTo(x,0);background.lineTo(x,backdrop.height);}background.stroke();
+
   let phase = 0;
   function renderOscilloscope() {
     if (!canvas || !ctx) return;
     const w = canvas.width;
     const h = canvas.height;
-    ctx.fillStyle = '#04070b';
-    ctx.fillRect(0, 0, w, h);
-
-    // Grid lines
-    ctx.strokeStyle = 'rgba(20, 31, 46, 0.7)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(0, h / 2);
-    ctx.lineTo(w, h / 2);
-    for (let x = 0; x < w; x += 32) {
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, h);
-    }
-    ctx.stroke();
+    ctx.drawImage(backdrop,0,0);
 
     const isPlaying = mode !== undefined;
     const amp = isPlaying ? 24 : 12;

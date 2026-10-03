@@ -8,7 +8,8 @@ try{
  await page.goto(origin);await page.locator('#grid .tracker-value').first().waitFor();
  const first=page.locator('[data-cell-row="0"][data-cell-lane="kick"][data-field="note"]').first();
  await first.click();assert.equal(await first.getAttribute('aria-current'),'location');assert.ok(await first.evaluate(element=>element.classList.contains('is-cursor-field')));
- const lastRow=await page.locator('#grid tbody tr').count()-1;
+ const rows=()=>page.locator('#summary').textContent().then(text=>Number(text.match(/(\d+) rows/)?.[1]));
+ const lastRow=await rows()-1;
  await page.keyboard.press('ArrowLeft');
  const last=page.locator(`[data-cell-row="${lastRow}"][data-cell-lane="percussion"][data-field="effect"]`).first();
  assert.equal(await last.getAttribute('aria-current'),'location');
@@ -24,11 +25,11 @@ try{
  const barRows=Number(await page.inputValue('#tracker-lpb'))*4;
  await page.keyboard.press('PageDown');assert.equal(await page.locator(`[data-cell-row="${barRows}"][data-cell-lane="kick"][data-field="note"]`).first().getAttribute('aria-current'),'location');
  await page.keyboard.press('PageUp');assert.equal(await first.getAttribute('aria-current'),'location');
- const startingRows=await page.locator('#grid tbody tr').count(),startingLpb=await page.inputValue('#tracker-lpb');
+ const startingRows=await rows(),startingLpb=await page.inputValue('#tracker-lpb');
  await page.selectOption('#tracker-lpb','2');await page.waitForFunction(()=>document.querySelector('#summary').textContent.includes('LPB 2'));
- assert.equal(await page.locator('#grid tbody tr').count(),startingRows/Number(startingLpb)*2);
+ assert.equal(await rows(),startingRows/Number(startingLpb)*2);
  await page.locator('#undo').click();await page.waitForFunction(value=>document.querySelector('#summary').textContent.includes('LPB '+value),startingLpb);
- assert.equal(await page.locator('#grid tbody tr').count(),startingRows);
+ assert.equal(await rows(),startingRows);
  await page.selectOption('#tracker-resolution','8');await page.waitForFunction(()=>document.querySelector('#summary').textContent.includes('LPB 2'));
  assert.equal(await page.inputValue('#tracker-lpb'),'2');
  assert.deepEqual(errors,[]);

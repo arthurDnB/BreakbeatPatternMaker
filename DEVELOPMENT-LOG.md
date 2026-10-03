@@ -82,6 +82,12 @@ This document maintains the running project state and change log so that multipl
 
 ## 📝 Change Log
 
+### [2026-10-03] - Dense Tracker Playback Responsiveness (Codex)
+- Virtualized tracker rows in `src/web.ts` and `public/workspace.css`, keeping a small mounted window around the viewport while preserving cell editing, selection, drag, keyboard navigation, stacked chord rows and follow-playhead behavior. Indexed notes, hits and sources for row rendering, and updated pattern/song playhead paths to avoid repeated full-pattern scans.
+- Deferred workspace preference writes during playback, removed meter layout forcing, and cached the oscilloscope backdrop. Audio rendering and visible tracker controls remain unchanged.
+- Added `scripts/tracker-performance-benchmark.mjs` and `scripts/tracker-virtualization-smoke.mjs`; adapted navigation smoke assertions for virtualized rows and added the new smoke to `package.json`. In the 512-row dense fixture, mounted rows fell from 512 to about 22 and grid elements from about 36,255 to 3,391; observed tracker render time fell from about 2.9–3.0 s to 0.14–0.37 s. Follow-playhead scrolling remains the main source of occasional UI long tasks, so this does not claim perfect frame pacing.
+- Verification: `npm.cmd test` passed 275/275; standalone virtualization smoke passed; `npm.cmd run test:site` passed all browser smoke checks at root and subpath.
+
 ### [2026-10-03] - Make Groove V5 the Default Engine (Codex)
 - Set the generator engine selector and `genreDefaults()` to Groove V5 so fresh workspaces and new projects use it automatically. V2, V3 and V4 remain selectable; opening an existing project preserves its stored engine.
 - Updated engine smoke checks and added coverage that all supported genre defaults choose V5. Updated the roadmap wording to distinguish eight dedicated V5 pilot profiles from genres using V5's V4-derived baseline profiles.
