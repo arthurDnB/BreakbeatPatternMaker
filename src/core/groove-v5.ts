@@ -41,7 +41,7 @@ export function validateV5Profile(profile:V5Profile,genre:Settings['genre']):voi
   if(!notes.length||notes.length>64)throw Error('Invalid Groove V5 layer notes.');
   for(const note of notes){if(!step(note.step))throw Error('Invalid Groove V5 step.');bounded(note.gain,0,1,'Groove V5 gain');if(note.pan!==undefined)bounded(note.pan,-1,1,'Groove V5 pan');if(note.probability!==undefined)bounded(note.probability,0,1,'Groove V5 probability');if(note.rollRepeats!==undefined&&![2,3,4].includes(note.rollRepeats))throw Error('Invalid Groove V5 authored roll.');}
  };
- for(const layer of profile.layers){identity(layer.id);if(!ROLES.includes(layer.role))throw Error('Invalid Groove V5 role.');bounded(layer.minimum,0,1,'Groove V5 layer minimum');if(layer.minimumPhraseProgress!==undefined)bounded(layer.minimumPhraseProgress,0,1,'Groove V5 phrase progress');if(layer.on?.some(value=>!['opening','continuation','response','turnaround'].includes(value)))throw Error('Invalid Groove V5 bar function.');checkNotes(layer.notes);}
+ for(const layer of profile.layers){identity(layer.id);if(!ROLES.includes(layer.role))throw Error('Invalid Groove V5 role.');bounded(layer.minimum,0,1,'Groove V5 layer minimum');if(layer.minimumPhraseProgress!==undefined)bounded(layer.minimumPhraseProgress,0,1,'Groove V5 phrase progress');if(layer.maximumPhraseProgress!==undefined)bounded(layer.maximumPhraseProgress,0,1,'Groove V5 phrase progress');if(layer.minimumPhraseProgress!==undefined&&layer.maximumPhraseProgress!==undefined&&layer.minimumPhraseProgress>layer.maximumPhraseProgress)throw Error('Invalid Groove V5 phrase range.');if(layer.on?.some(value=>!['opening','continuation','response','turnaround'].includes(value)))throw Error('Invalid Groove V5 bar function.');checkNotes(layer.notes);}
  for(const cadence of profile.cadences){identity(cadence.id);if(!ROLES.includes(cadence.role))throw Error('Invalid Groove V5 cadence role.');bounded(cadence.minimum,0,1,'Groove V5 cadence minimum');checkNotes(cadence.notes);}
  for(const role of ROLES){const timing=profile.timing[role];if(!timing)throw Error('Missing Groove V5 timing.');bounded(timing.swing,0,1,'Groove V5 swing');bounded(timing.dragMs,-25,25,'Groove V5 drag');}
  const spice=profile.spice;
@@ -124,6 +124,7 @@ function layers(c:State):void {
  for(const bar of c.plan.bars)for(const layer of c.profile.layers){
   if(layer.on&&!layer.on.includes(bar.function))continue;
   if(!phraseProgressReached(c,bar,layer.minimumPhraseProgress))continue;
+  if(!phraseProgressBefore(c,bar,layer.maximumPhraseProgress))continue;
   const d=density(c.s,layer.role),complexity=d>1?1-(1-c.s.complexity)/d:c.s.complexity;
   if(complexity<layer.minimum)continue;
   for(const note of layer.notes)layerNote(c,bar,layer.id,layer.role,note);
@@ -134,6 +135,11 @@ function phraseProgressReached(c:State,bar:V5BarPlan,minimum=0):boolean {
  // A two-bar pattern is still a phrase: admit later detail in its response
  // bar rather than filling both bars with the whole vocabulary at once.
  return length===1||bar.phrasePosition/(length-1)>=minimum;
+}
+function phraseProgressBefore(c:State,bar:V5BarPlan,maximum=1):boolean {
+ const length=c.s.phraseLength??c.s.bars;
+ // A two-bar loop is a compressed call/response; keep its response detail.
+ return length<=2||bar.phrasePosition/(length-1)<=maximum;
 }
 function cadences(c:State,forced=false):void {
  const s=c.s;

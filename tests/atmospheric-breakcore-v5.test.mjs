@@ -107,6 +107,21 @@ test('higher Complexity adds bounded authored rolls to the opening without chang
  assert.ok(short.events.some(hit=>barOf(hit)===1&&hit.role==='snare'&&hit.ratchets>1));
 });
 
+test('the two listener-approved phrase renders remain stable at the study settings',()=>{
+ const profile=v5ProfileFor(genre);
+ const settings=config({phraseLength:8,spicy:.35,fillAmount:.4,ghostAmount:.7,
+  syncopation:.7,patternStructure:'auto'});
+ const counts=offset=>{
+  const pattern=generateGrooveV5({...settings,phraseOffset:offset},profile);
+  return Array.from({length:4},(_,bar)=>pattern.events.filter(hit=>barOf(hit)===bar).length);
+ };
+ assert.deepEqual(counts(0),[14,16,13,13]);
+ assert.deepEqual(counts(4),[18,23,24,21]);
+ const invalid=structuredClone(profile);
+ invalid.layers.find(layer=>layer.id==='atmospheric-opening-snare-cuts').maximumPhraseProgress=1.1;
+ assert.throws(()=>validateV5Profile(invalid,genre),/phrase progress/);
+});
+
 test('the genre kit replaces the cowbell with layered break drums',()=>{
  assert.equal(genreDefaults(genre).bpm,170);
  const kit=KIT_PRESETS.find(item=>item.id===GENRE_KITS[genre]);

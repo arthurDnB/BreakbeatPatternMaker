@@ -29,7 +29,7 @@ This document maintains the running project state and change log so that multipl
 ## 📌 Current Project Status
 
 * **Version:** `0.2.3`
-* **Test Status:** 282 unit tests passing (0 skipped, 0 failed); all deployment site smoke checks passing (`npm.cmd test` and `npm.cmd run test:site`).
+* **Test Status:** 283 unit tests passing (0 skipped, 0 failed); all deployment site smoke checks passing (`npm.cmd test` and `npm.cmd run test:site`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   👉 [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -81,6 +81,12 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## 📝 Change Log
+
+### [2026-10-03] - Atmospheric Breakcore Cross-Reference A/B (Codex)
+- Arthur chose the 14/16/13/13-note opening and 18/23/24/21-note development. Added an optional upper phrase bound to V5 layers in `src/core/groove-v5-contract.ts` and `src/core/groove-v5.ts`, and used it for Atmospheric Breakcore's opening snare cuts and kick pickups. This keeps those details out of a long phrase's final turnaround while retaining the response of a two-bar loop. At the fixed study settings, both regenerated WAVs are byte-identical to the versions Arthur liked.
+- Compared existing local analyses of the supplied Cichy, Fatal Youth, and AgonyOST recordings. Their changing full-mix transient activity suggests testing rhythmic contrast, but cannot identify drum hits. `scripts/atmospheric-breakcore-audition.mjs` now offers those local references and a response-weighted **candidate** for bars 5–8. The candidate is for listening only; it does not change the app's approved profile or bundle any reference audio.
+- Added a fixed-seed regression check to `tests/atmospheric-breakcore-v5.test.mjs` for the approved eight-bar contour and invalid phrase bounds. Local source notes are in `test-results/atmospheric-breakcore-references/STUDY.md` (ignored, not deployed).
+- Verification: `npm.cmd test` passed 283/283; `npm.cmd run test:site` passed root/subpath and all remaining browser smoke suites.
 
 ### [2026-10-03] - Atmospheric Breakcore Opening Rolls (Codex)
 - Used Arthur's second listening export: the layered-kit four-bar opening was the best so far, but too close to a basic two-step. Preserved its kick/snare anchors and kit, and added a few Complexity-gated snare cuts, hat chops, and response kick pickups in `src/core/groove-v5-profiles.ts`.

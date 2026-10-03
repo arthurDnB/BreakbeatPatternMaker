@@ -26,6 +26,8 @@ export interface V5Layer {
   minimum:number;
   /** Optional entry point within a phrase (0–1); two bars have opening/response. */
   minimumPhraseProgress?:number;
+  /** Last point within a longer phrase (0–1); two-bar loops retain their response. */
+  maximumPhraseProgress?:number;
   /** Limit the layer to particular places in a phrase. Omit for every bar. */
   on?:readonly V5BarFunction[];
   notes:readonly V5LayerNote[];

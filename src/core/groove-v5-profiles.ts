@@ -761,7 +761,8 @@ export const V5_PROFILE_OVERRIDES:Partial<Record<Genre,V5Profile>>={
    {id:'atmospheric-quiet-ghosts',role:'snare',minimum:.3,notes:[
     {step:3,gain:.24,ghost:true,probability:.78},
     {step:11,gain:.24,ghost:true,probability:.78}]},
-   {id:'atmospheric-opening-snare-cuts',role:'snare',minimum:.58,on:['response','turnaround'],notes:[
+   {id:'atmospheric-opening-snare-cuts',role:'snare',minimum:.58,
+    maximumPhraseProgress:.8,on:['response','turnaround'],notes:[
     {step:7.5,gain:.29,ghost:true,probability:.9,rollRepeats:2},
     {step:15,gain:.34,ghost:true,probability:.82,rollRepeats:3}]},
    {id:'atmospheric-opening-hat-chops',role:'hat',minimum:.7,
@@ -769,7 +770,7 @@ export const V5_PROFILE_OVERRIDES:Partial<Record<Genre,V5Profile>>={
     {step:5.5,gain:.2,probability:.76,syncopated:true,rollRepeats:2},
     {step:13.5,gain:.21,probability:.76,syncopated:true,rollRepeats:2}]},
    {id:'atmospheric-opening-kick-pickup',role:'kick',minimum:.76,
-    on:['response','turnaround'],notes:[
+    maximumPhraseProgress:.8,on:['response','turnaround'],notes:[
     {step:15,gain:.54,probability:.7,syncopated:true}]},
    {id:'atmospheric-offbeat-hats',role:'hat',minimum:.45,notes:[
     {step:1,gain:.18,probability:.65,syncopated:true},
