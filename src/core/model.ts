@@ -24,6 +24,8 @@ export interface Settings {
   complexity: number; syncopation: number;
   swing: number; humanizeMs: number; ghostAmount: number; fillAmount: number;
   spicy?: number;
+  /** Chance that each newly generated sample hit will play in reverse. */
+  reverseProbability?: number;
   /** Optional exact number of drum/sample tracker notes after generation. */
   hitTarget?: number;
   /** Groove V4 per-lane optional-hit density. Missing roles behave as 1 (100%). */

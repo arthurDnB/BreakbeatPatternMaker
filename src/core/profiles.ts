@@ -34,7 +34,7 @@ export function defaults(genre: Genre = 'jungle'): Settings {
   if (!Object.hasOwn(PROFILES, genre)) throw new Error(`Unsupported genre. Choose ${Object.keys(PROFILES).join(', ')}.`);
   return {...(Object.hasOwn(NEW_GENRES,genre)?{algorithm:'groove-v2' as const}:{}),genre, breakStyle:'genre', seed: 'break-042', bpm: PROFILES[genre].bpm, bars: 2, resolution: 16,
     complexity: .45, syncopation: .4, swing: PROFILES[genre].swing, humanizeMs: 0,
-    ghostAmount: .35, fillAmount: .4, spicy: 0};
+    ghostAmount: .35, fillAmount: .4, spicy: 0, reverseProbability: 0};
 }
 
 // UI starting points; keep defaults() stable for existing seeds, CLI and projects.

@@ -19,6 +19,7 @@ export function validateSettings(s: Settings): void {
   if(s.lpb!==undefined&&!([1,2,3,4,6,8,12,16,24,32] as number[]).includes(s.lpb))throw Error('LPB must be 1, 2, 3, 4, 6, 8, 12, 16, 24 or 32.');
   for (const k of ['complexity','syncopation','ghostAmount','fillAmount'] as const) bounded(s[k],0,1,k);
   if(s.spicy!==undefined) bounded(s.spicy,0,1,'spicy');
+  if(s.reverseProbability!==undefined) bounded(s.reverseProbability,0,1,'reverseProbability');
   if(s.hitTarget!==undefined){
     if(!['groove-v4','groove-v5'].includes(s.algorithm??''))throw Error('Exact hits requires Groove v4 or v5.');
     bounded(s.hitTarget,0,s.bars*64,'hit target',true);

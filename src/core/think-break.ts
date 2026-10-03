@@ -1,5 +1,6 @@
 import {PPQ,isSynthTrack,type Hit,type Pattern,type Role,type SampleTrack,type SliceInstrument} from './model.js';
 import {random} from './random.js';
+import {applyReverseProbability} from './reverse-probability.js';
 
 export const THINK_BREAK_ASSET_ID='think-passage2-raw';
 export const THINK_BREAK_RATE=44100;
@@ -76,5 +77,6 @@ export function addThinkBreakLayer(pattern:Pattern,guide:Pattern,old?:Pattern):P
     baseTick:vocalBar*barTicks+2*PPQ,offsetTick:0,gain:.7,pan:0,anchor:false,ghost:false,
     mapped:{instrumentId:THINK_VOCAL_INSTRUMENT_ID,note:mapped[1]!.slices[0]!.note},articulation:{durationTicks:2*PPQ,mode:'gate'},
     reason:'The intact Think “uh” phrase answers the final backbeat.'});
+  applyReverseProbability(events,settings);
   return {...pattern,userTracks:[...(pattern.userTracks??[]),track],sliceInstruments:[...(pattern.sliceInstruments??[]),...mapped],events:[...pattern.events,...events]};
 }

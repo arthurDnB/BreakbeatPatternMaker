@@ -87,6 +87,12 @@ This document maintains the running project state and change log so that multipl
 - **Regression coverage (`tests/melody-generation.test.mjs`, `tests/piano-generation.test.mjs`):** Updated project roundtrip expectations and checked the Lead defaults to piano while retaining a user-selected pluck across regeneration.
 - **Verification:** `npm.cmd test` passed (283 tests); `npm.cmd run test:site` passed, including root and subpath smoke coverage.
 
+### [2026-10-04] - Reverse Note Probability Control (Codex)
+- **Generator setting and UI (`src/core/model.ts`, `src/core/settings.ts`, `src/core/profiles.ts`, `src/web.ts`, `public/index.html`):** Added a 0–100% Reverse notes slider with a 0% default. It follows the generated pattern/project settings and gives older projects a safe off default.
+- **Deterministic sample reversal (`src/core/reverse-probability.ts`, `src/core/generate.ts`, `src/core/think-break.ts`):** Added a seeded per-note probability stage for newly generated sample hits across engines, including the optional Think break slices and vocal phrase. Synth notes are excluded; the renderer's existing reverse path handles playback and exports. Existing Spicy reversals, manual hits, and exact hit counts remain intact.
+- **Regression coverage (`tests/reverse-probability.test.mjs`):** Added tests for validation, default compatibility, deterministic seed/variation behavior, synth exclusion, Think slices, manual notes, exact counts, and project/older-project roundtrips.
+- **Verification:** `npm.cmd test` passed (293 tests); `npm.cmd run test:site` passed across root and subpath browser smoke suites.
+
 ### [2026-10-04] - Vertical Song Map & Section Grouping in Left Tray (Antigravity)
 - Redesigned the left tray as a vertical song-structure map inspired by the visual arrangement design (`src/ui/vertical-song-map.ts`, `public/index.html`, `public/workspace.css`, `src/web.ts`, `src/core/bank.ts`):
   - Made Vertical Song Map the primary left tray view with a segmented tab switcher (`🗺 Song Map`, `🎹 Patterns`, `🕒 History`).

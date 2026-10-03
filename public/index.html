@@ -685,6 +685,14 @@
                 </div>
                 <input id="spicy" aria-label="Generation spice" type="range" min="0" max="1" step=".01" value="0" class="gen-range-slider slider-amber">
               </div>
+
+              <div class="gen-slider-block">
+                <div class="gen-slider-header">
+                  <label for="reverseProbability">Reverse notes <small>(Generated samples)</small></label>
+                  <output id="reverseProbability-value" for="reverseProbability" class="gen-val-badge badge-purple">0%</output>
+                </div>
+                <input id="reverseProbability" aria-label="Reverse note probability" title="Chance each generated sample hit plays backwards. Synth notes and manual hits are unaffected." type="range" min="0" max="1" step=".01" value="0" class="gen-range-slider">
+              </div>
             </div>
           </div>
         </div>

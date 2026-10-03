@@ -261,6 +261,7 @@ function settings(){
   s.resolution=Number(input('resolution').value) as typeof s.resolution;
   if(pattern?.settings.lpb!==undefined)s.lpb=pattern.settings.lpb;
   s.spicy=Number(input('spicy').value);
+  s.reverseProbability=Number(input('reverseProbability').value);
   if(['groove-v4','groove-v5'].includes(s.algorithm??'')&&input('hit-target-mode').value==='exact')s.hitTarget=Number(input('hit-target-number').value);
   if(['groove-v4','groove-v5'].includes(s.algorithm??''))s.laneDensity=Object.fromEntries(ROLES.map(role=>[role,Number(input(`${role}-density`).value)])) as NonNullable<Settings['laneDensity']>;
   const ps=input('patternStructure').value; if(['groove','auto','fill','roll','build'].includes(ps)) s.patternStructure = ps as any;
@@ -714,7 +715,7 @@ function syncControls(){
   input('patternStructure').value=s.patternStructure??'auto';
   input('breakLayer').value=s.breakLayer??'off';
   input('phraseLength').value=String(s.phraseLength??0);syncPhraseControls(s.phraseOffset??0);
-  input('algorithm').value=s.algorithm??'legacy-v1';input('variation').value=String(s.variation??0);
+  input('algorithm').value=s.algorithm??'legacy-v1';input('variation').value=String(s.variation??0);input('reverseProbability').value=String(s.reverseProbability??0);
   for(const [key,value] of Object.entries(s))if(key!=='enabledRoles'&&key!=='laneDensity'&&key!=='lpb'&&key!=='hitTarget')input(key).value=String(value);
   input('tracker-bars').value=String(s.bars);input('tracker-resolution').value=String(s.resolution);input('tracker-lpb').value=String(s.lpb??s.resolution/4);
   for(const r of ROLES)kitPanel.mix[r].include=!s.enabledRoles||s.enabledRoles.includes(r);kitPanel.restore(kitPanel.snapshot());
@@ -1177,6 +1178,9 @@ function syncSliders(){
     spicyEl.textContent=pct+'%'+tag;
     input('spicy').setAttribute('aria-valuetext',spicyEl.textContent);
   }
+  const reverseProbability=Math.round(Number(input('reverseProbability').value)*100)+'%';
+  el('reverseProbability-value').textContent=reverseProbability;
+  input('reverseProbability').setAttribute('aria-valuetext',reverseProbability+' chance for generated sample hits to play backwards');
   syncHud();
 }
 let v5ExactCapacityCache:{key:string;value:number}|undefined;
@@ -1351,6 +1355,7 @@ input('bpm').addEventListener('input',()=>{syncSliders();});
 input('bpm-slider').addEventListener('input',()=>{input('bpm').value=input('bpm-slider').value;syncSliders();});
 input('complexity').addEventListener('input',syncSliders);
 input('spicy').addEventListener('input',syncSliders);
+input('reverseProbability').addEventListener('input',syncSliders);
 for(const id of ['syncopation','swing','humanizeMs','ghostAmount','fillAmount'])input(id).addEventListener('input',syncSliders);
 for(const id of ['pianoLushness','pianoTension','pianoDensity'])input(id).addEventListener('input',syncSliders);
 for(const role of ROLES)input(`${role}-density`).addEventListener('input',syncSliders);
@@ -1937,6 +1942,7 @@ async function applyProject(raw:unknown){
   bank=p.bank?structuredClone(p.bank):newBank(p.editor.pattern);arrangementHistory=new ArrangementHistory(bank);bank=arrangementHistory.bank;selectedArrangementStep=undefined;slotEditors.clear();
   editor=new Editor(p.editor.pattern);editor.state=structuredClone(p.editor);rowAnchor=0;
   input('phraseLength').value=String(p.draft.phraseLength??0);syncPhraseControls(p.draft.phraseOffset??0);
+  input('reverseProbability').value=String(p.draft.reverseProbability??0);
   input('algorithm').value=p.draft.algorithm??'legacy-v1';input('variation').value=String(p.draft.variation??0);
   input('generationMode').value=p.draft.generationMode??'drums';input('melodyPart').value=p.draft.melodyPart??'bassline';input('melodyKey').value=String(p.draft.melodyKey??0);input('melodyScale').value=p.draft.melodyScale??'natural-minor';input('harmonyStyle').value=p.draft.harmonyStyle??'jazz';
   input('pianoLushness').value=String(p.draft.pianoLushness??.65);input('pianoTension').value=String(p.draft.pianoTension??.35);input('pianoDensity').value=String(p.draft.pianoDensity??.45);
