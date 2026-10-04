@@ -14,6 +14,9 @@ export interface PatternSlot {
   name: string;
   editor: EditorState | null;
   patternHistory?: PatternHistoryEntry[];
+  /** Original slot and occurrence for an editable song-melody variant. */
+  songMelodySource?:number;
+  songMelodyKey?:string;
 }
 
 export interface PatternHistoryEntry {label: string; capturedAt: number; editor: EditorState}
@@ -77,6 +80,10 @@ export function deletePatternSlot(bank: Bank, indexToDelete: number): void {
   if (indexToDelete < 0 || indexToDelete >= bank.slots.length) throw Error('Invalid slot index.');
 
   bank.slots.splice(indexToDelete, 1);
+  for(const slot of bank.slots){
+    if(slot.songMelodySource===indexToDelete){delete slot.songMelodySource;delete slot.songMelodyKey;}
+    else if(slot.songMelodySource!==undefined&&slot.songMelodySource>indexToDelete){slot.songMelodySource--;delete slot.songMelodyKey;}
+  }
 
   if (bank.active === indexToDelete) {
     bank.active = Math.max(0, indexToDelete - 1);
@@ -99,6 +106,8 @@ export function validateBank(bank: Bank) {
   if (!Number.isFinite(bank.songBpm) || bank.songBpm < 32 || bank.songBpm > 999) throw Error('Song BPM must be between 32 and 999.');
   for (const s of bank.slots) {
     if (!s || typeof s.name !== 'string' || !s.name.trim() || s.name.length > 40) throw Error('Invalid slot name.');
+    if(s.songMelodySource!==undefined&&(!Number.isInteger(s.songMelodySource)||s.songMelodySource<0||s.songMelodySource>=bank.slots.length||!bank.slots[s.songMelodySource]?.editor))throw Error('Invalid song melody source.');
+    if(s.songMelodyKey!==undefined&&(typeof s.songMelodyKey!=='string'||!/^[0-9]+:[0-9]+$/.test(s.songMelodyKey)))throw Error('Invalid song melody variant key.');
     if (s.editor) validateEditor(s.editor);
     if (s.patternHistory !== undefined) {
       if (!Array.isArray(s.patternHistory) || s.patternHistory.length > PATTERN_HISTORY_LIMIT || !s.editor) throw Error('Invalid pattern history.');

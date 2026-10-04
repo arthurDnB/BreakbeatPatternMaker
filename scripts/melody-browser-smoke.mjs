@@ -18,6 +18,7 @@ const browser=await chromium.launch({headless:true,channel:process.env.BROWSER_C
 try{
  const context=await browser.newContext({viewport:{width:1440,height:950},acceptDownloads:true});
  const page=await context.newPage(),errors=[],pianoLoads=[];page.on('pageerror',error=>errors.push(error.message));page.on('response',response=>{if(response.url().includes('/public/piano/')&&response.url().endsWith('.flac'))pianoLoads.push(response.status());});
+ await page.addInitScript(()=>localStorage.setItem('bpm_tutorial_dismissed','1'));
  await page.goto(`http://127.0.0.1:${server.address().port}/`);await page.locator('#grid .hit').first().waitFor();
  await page.click('#bar-tray-bottom .bar-expand-btn');
  const save=async()=>{const download=page.waitForEvent('download');await page.click('#project-save');return JSON.parse((await readFile(await(await download).path())).toString());};
@@ -59,6 +60,12 @@ try{
  await page.waitForFunction(()=>document.querySelector('#status')?.textContent?.includes('Project opened'));
  assert.equal(await page.inputValue('#generationMode'),'melody');assert.equal(await page.inputValue('#melodyScale'),'blues');
  assert.equal(await page.locator(`.synth-track-col[data-track-id="${lead.id}"]`).count(),1);
+ await page.click('#show-arrangement');await page.click('#generate-song-melody');
+ await page.waitForFunction(()=>document.querySelector('#status')?.textContent?.includes('Generated an editable lead hook'));
+ const arranged=await save();assert.ok(arranged.bank.sequence.length>=2);
+ assert.ok(arranged.bank.sequence.every(step=>arranged.bank.slots[step.slot].editor.pattern.userTracks.some(track=>track.generatedPart==='lead')));
+ await page.click('#arr-undo');const undone=await save();assert.notDeepEqual(undone.bank.sequence,arranged.bank.sequence);
+ await page.click('#arr-redo');assert.deepEqual((await save()).bank.sequence,arranged.bank.sequence);
  assert.deepEqual(errors,[]);
  console.log('Layer generators browser: Beat, Bass, Melody, Piano chords, sampled piano, preservation, Undo/Redo, project roundtrip and WAV passed.');
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}

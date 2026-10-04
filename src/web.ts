@@ -34,6 +34,7 @@ import {SYNTH_PRESETS,SYNTH_PRESET_CATALOG} from './audio/synth-instrument.js';
 import {Editor,emptySelection,locked,selectedIds,type EditorState,type TrackerClipboard,type CellPosition} from './core/editor.js';
 import {defaultEffects,type Effects,EFFECT_PRESETS,type EffectPreset} from './audio/effects.js';
 import {ArrangementHistory} from './core/arrangement-history.js';
+import {generateSongMelody,songHarmonyConflicts} from './core/song-melody.js';
 import {createRotaryKnob} from './ui/rotary-knob.js';
 import {mountGeneratorKnobs,syncGeneratorKnobs} from './ui/generator-knobs.js';
 import {openSynthPatchEditor} from './ui/synth-patch-editor.js';
@@ -1128,7 +1129,7 @@ function renderBank(){if(!bank)return;const host=el('bank-slots');host.replaceCh
   if (durTotalEl) durTotalEl.textContent = durTotal.toFixed(1) + 's';
  const select=el<HTMLSelectElement>('append-slot'),value=select.value;select.replaceChildren();bank.slots.forEach((s,i)=>{if(s.editor){const o=document.createElement('option');o.value=String(i);o.textContent=s.name;select.append(o);}});if(Array.from(select.options).some(o=>o.value===value))select.value=value;
  renderSongTimeline();
- const bars=bank.sequence.reduce((n,s)=>n+bank!.slots[s.slot]!.editor!.pattern.settings.bars*s.repeats,0);el('arrangement-info').textContent=bars?bars+' bars - '+bank.sequence.reduce((sum,step)=>sum+patternSeconds(bank!.slots[step.slot]!.editor!.pattern.settings,bank!.songBpm)*step.repeats,0).toFixed(1)+' seconds - '+bank.songBpm+' BPM · max 170s':'No song arranged yet. Add a pattern to enable playback and export.';input('play-arrangement').disabled=!bars;input('export-arrangement').disabled=!bars;input('append-step').disabled=bank.sequence.length>=64;const undo=input('arr-undo'),redo=input('arr-redo');if(arrangementHistory&&undo&&redo){undo.disabled=!arrangementHistory.undoLabel;redo.disabled=!arrangementHistory.redoLabel;undo.title=arrangementHistory.undoLabel?`Undo ${arrangementHistory.undoLabel}`:'Nothing to undo';redo.title=arrangementHistory.redoLabel?`Redo ${arrangementHistory.redoLabel}`:'Nothing to redo';undo.setAttribute('aria-label',arrangementHistory.undoLabel?`Undo ${arrangementHistory.undoLabel}`:'Nothing to undo');redo.setAttribute('aria-label',arrangementHistory.redoLabel?`Redo ${arrangementHistory.redoLabel}`:'Nothing to redo');}
+ const bars=bank.sequence.reduce((n,s)=>n+bank!.slots[s.slot]!.editor!.pattern.settings.bars*s.repeats,0);el('arrangement-info').textContent=bars?bars+' bars - '+bank.sequence.reduce((sum,step)=>sum+patternSeconds(bank!.slots[step.slot]!.editor!.pattern.settings,bank!.songBpm)*step.repeats,0).toFixed(1)+' seconds - '+bank.songBpm+' BPM · max 170s':'No song arranged yet. Add a pattern to enable playback and export.';input('play-arrangement').disabled=!bars;input('generate-song-melody').disabled=!bars;input('export-arrangement').disabled=!bars;input('append-step').disabled=bank.sequence.length>=64;const undo=input('arr-undo'),redo=input('arr-redo');if(arrangementHistory&&undo&&redo){undo.disabled=!arrangementHistory.undoLabel;redo.disabled=!arrangementHistory.redoLabel;undo.title=arrangementHistory.undoLabel?`Undo ${arrangementHistory.undoLabel}`:'Nothing to undo';redo.title=arrangementHistory.redoLabel?`Redo ${arrangementHistory.redoLabel}`:'Nothing to redo';undo.setAttribute('aria-label',arrangementHistory.undoLabel?`Undo ${arrangementHistory.undoLabel}`:'Nothing to undo');redo.setAttribute('aria-label',arrangementHistory.redoLabel?`Redo ${arrangementHistory.redoLabel}`:'Nothing to redo');}
 }
 function arrangementAudio(rate:number){stashSlot();return renderSequence(arrange(bank!).map(p=>withDrumKit(p,drumKit,kitPanel.mix)),assets,rate,effectMap(),readyVinylOptions());}
 el('append-step').onclick=()=>{stop();if(bank!.sequence.length>=64)return;if(arrangementMutation('Append to arrangement',b=>insertSequenceStep(b,b.sequence.length,Number(input('append-slot').value)))){selectedArrangementStep=bank!.sequence.length-1;renderBank();scheduleSave();}};
@@ -1199,6 +1200,16 @@ async function exportArrangement(){
 }
 function masterTrimNote(attenuation:number){return attenuation<.999?` Master peak protection trimmed ${(20*Math.log10(1/attenuation)).toFixed(1)} dB.`:'';}
 el('play-arrangement').onclick=()=>{playArrangement().catch(e=>{stop();status(String(e),true);});};
+el('generate-song-melody').onclick=()=>{
+ if(pendingCount()){status('Apply or Revert pending hit edits before generating a song melody.',true);return;}
+ stop();stashSlot();
+ try{
+  const requested=settings(),conflicts=songHarmonyConflicts(bank!,requested),result=generateSongMelody(bank!,requested);
+  if(arrangementMutation('Generate song melody',next=>Object.assign(next,result))){
+   arrangementHistorySync(`Generated an editable lead hook across ${result.sequence.length} song steps.${conflicts.length?` ${conflicts.length} existing bass/piano pattern${conflicts.length===1?' has':'s have'} different harmony settings; review those parts.`:''} Undo in Arrangement restores the previous song.`);
+  }else status('The song melody already matches these settings.');
+ }catch(error){status((error as Error).message,true);}
+};
 el('export-arrangement').onclick=()=>{exportArrangement().catch(e=>{fileFeedback('WAV export failed: '+String(e),true);status(String(e),true);});};
 el('transport-target').onchange=()=>{stop();syncHud();};
 el('export-target').onchange=()=>{input('export-mode').disabled=input('export-target').value==='song';};

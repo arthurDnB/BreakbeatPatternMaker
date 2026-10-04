@@ -6341,7 +6341,8 @@ main.daw-chassis {
 .song-tempo-inline input { width:56px; padding:3px 5px; text-align:right; background:#060b0a; border:1px solid #283e39; border-radius:4px; color:#00f5d4; font-weight:700; font-size:11px; }
 .song-tempo-inline small { font-size:10px; color:#7f9f97; }
 
-.song-map-transport-row { display:flex; gap:6px; }
+.song-map-transport-row { display:flex; flex-wrap:wrap; gap:6px; }
+#generate-song-melody { flex:1 1 100%; text-align:center; }
 .song-map-btn-play { flex:1; padding:6px 10px; font-size:11px; font-weight:750; background:#072a24; border:1px solid #00f5d4; color:#00f5d4; border-radius:4px; cursor:pointer; transition:background .15s; }
 .song-map-btn-play:hover { background:#0a3c34; }
 .song-map-btn-export { flex:1; padding:6px 10px; font-size:11px; font-weight:600; background:#101c1a; border:1px solid #2b423c; color:#bcdcd4; border-radius:4px; cursor:pointer; transition:background .15s; }

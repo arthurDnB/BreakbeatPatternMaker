@@ -4,6 +4,7 @@ import {melodyProfile} from './melody-profiles.js';
 import {random} from './random.js';
 import {validateSettings} from './settings.js';
 import {harmonyAt,harmonyPlan} from './harmony.js';
+import {generateLeadArc,type MelodyArcContext} from './melody-arc.js';
 
 export const MELODY_SCALES:Record<MelodyScale,{label:string;intervals:readonly number[]}>= {
   major:{label:'Major',intervals:[0,2,4,5,7,9,11]},
@@ -76,8 +77,8 @@ function breakScaleRun(note:number,recent:readonly number[],key:number,scale:rea
   }
   return choices.sort((x,y)=>Math.abs(x-c)-Math.abs(y-c))[0]??c;
 }
-/** Seeded phrase composition, independent of whichever drum engine is selected. */
-export function generateMelody(settings:Settings,trackId:string):Hit[]{
+/** Previous note recipe, retained for reproducible A/B studies and bassline compatibility. */
+export function generateLegacyMelody(settings:Settings,trackId:string):Hit[]{
   validateSettings(settings);
   const BAR=barTicks(settings),STEP=BAR/16;
   const part=settings.melodyPart==='piano'?'bassline':settings.melodyPart??'bassline',profile=melodyProfile(settings.genre,part);
@@ -129,4 +130,10 @@ export function generateMelody(settings:Settings,trackId:string):Hit[]{
     }
   }
   return output;
+}
+
+/** Seeded phrase composition, independent of the selected drum engine. */
+export function generateMelody(settings:Settings,trackId:string,context?:MelodyArcContext):Hit[]{
+  validateSettings(settings);
+  return settings.melodyPart==='lead'?generateLeadArc(settings,trackId,context):generateLegacyMelody(settings,trackId);
 }

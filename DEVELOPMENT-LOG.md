@@ -82,6 +82,12 @@ This document maintains the running project state and change log so that multipl
 
 ## Ã°Å¸â€œÂ Change Log
 
+### [2026-10-04] - Memorable Lead Arc and Editable Song Melody (Codex)
+- Added a deterministic hook/response/variation/cadence lead planner in `src/core/melody-arc.ts`. It uses the existing genre rhythm profiles, key, scale, and progression, with deliberate rests, scale-safe chord-tone arrivals, phrase high point, and shaped note gain and length. Bassline and saved notes retain their previous sound; regenerating a lead now uses the new planner.
+- Added `src/core/song-melody.ts` and a **Generate Song Melody** button in the arrangement. The planner carries one hook across song bars and section labels, makes editable pattern variants for differing repeats, preserves original slots, drums, bass, piano, manual/locked notes, and uses one arrangement Undo step. It warns when existing accompaniment has different harmony settings and rejects songs exceeding editable slot/step limits without partial changes.
+- Marked edited synth notes as manual, added optional variant metadata to bank slots, and updated the melody guide. Added a previous/new four-genre A/B audition script under `scripts/melody-arc-audition.mjs`; its generated WAVs stay in ignored `test-results/` for listener review.
+- Added focused song-melody unit tests and browser checks for generation, Undo/Redo, and project persistence. Verification: `npm.cmd test` passed 325 tests; `npm.cmd run test:site` passed all site suites; the dedicated melody browser smoke passed. The A/B files were generated, but subjective producer ratings remain pending.
+
 ### [2026-10-04] - Opt-in FM Rhodes and Multistage Synth Envelope (Codex)
 - Added `fm-operator` and `multi-envelope` node types in `src/core/model.ts` and `src/audio/modular-synth.ts`. The operator has phase, linear-frequency, and exponential-frequency modulation modes; the envelope has delay, attack, hold, fall, break, second decay, sustain, and release. Both use the existing typed cable validator and shared deterministic note renderer without changing legacy module math.
 - Added the separate `rhodes-model-v2` experimental factory patch in `src/audio/modular-synth.ts` and `src/ui/synth-patch-editor.ts`. The existing `rhodes` patch remains available and unchanged. New module parameters show units and support fine time/ratio edits in the editor.
