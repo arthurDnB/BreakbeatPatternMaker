@@ -62,6 +62,11 @@ try{
  await page.locator(`.synth-track-col[data-track-id="${id}"] .track-instrument-panel`).evaluate(element=>element.open=true);
  await page.locator(`.synth-track-col[data-track-id="${id}"] .synth-patch-open`).click();
  assert.equal(await page.locator('#synth-patch-dialog .synth-patch-toolbar select[aria-label="Saved patch"] option').count(),2,'saved presets survive reload');
+ await page.locator('#synth-patch-dialog select[aria-label="Factory patch"]').selectOption('rhodes-model-v2');
+ assert.equal(await page.locator('#synth-patch-dialog [data-node-id="carrier"] [data-port="mod"]').count(),1,'FM Rhodes has an audio-rate modulation port');
+ assert.equal(await page.locator('#synth-patch-dialog [data-node-id="tine-env"]').count(),1,'FM Rhodes has a multistage envelope');
+ await page.locator('#synth-patch-dialog').getByRole('button',{name:'Preview'}).click();
+ await page.waitForFunction(()=>document.querySelector('#status')?.textContent?.includes('Previewing synth track'));
  assert.deepEqual(errors,[]);
  console.log('Modular synth canvas, cables, exact parameters, preset save, preview and project v9 passed.');
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}

@@ -13,7 +13,7 @@ import {encodeWav} from '../dist/audio/wav.js';
 test('factory modular patches validate and render deterministic finite audio',()=>{
  const allPresets=[
   'bass','pluck','pad','piano',
-  'nylon-guitar','rhodes','overdrive-guitar','upright-piano','strings',
+  'nylon-guitar','rhodes','rhodes-model-v2','overdrive-guitar','upright-piano','strings',
   'flute','brass','slap-bass','vibraphone',
   'reese','acid303','sub808','supersaw','warm-pad','bell-pluck'
  ];

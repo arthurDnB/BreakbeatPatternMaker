@@ -32,6 +32,7 @@ export function openSynthPatchEditor(options:Options):HTMLDialogElement{
 <optgroup label="Real & Acoustic Instruments">
   <option value="nylon-guitar">Nylon String Guitar</option>
   <option value="rhodes">Rhodes Electric Piano</option>
+  <option value="rhodes-model-v2">Rhodes Model v2 (FM audition)</option>
   <option value="overdrive-guitar">Overdrive Lead Guitar</option>
   <option value="upright-piano">Acoustic Upright Piano</option>
   <option value="strings">Bowed Cello / Strings</option>
@@ -133,9 +134,11 @@ export function openSynthPatchEditor(options:Options):HTMLDialogElement{
     }
     const parameters=document.createElement('div');parameters.className='synth-module-parameters';
     for(const [name,definition] of Object.entries(spec.params)){
-      const label=document.createElement('label');label.textContent=name;
+      const label=document.createElement('label');
+      const unit=node.type==='fm-operator'?({fineCents:'cents',index:'radians',deviationHz:'Hz',expSemitones:'semitones'} as Record<string,string>)[name]:node.type==='multi-envelope'?(['delay','attack','hold','fall','decay2','release'].includes(name)?'s':undefined):undefined;
+      label.textContent=unit?`${name} (${unit})`:name;
       if('choices' in definition){const select=document.createElement('select');for(const choice of definition.choices){const opt=document.createElement('option');opt.value=choice;opt.textContent=choice;select.append(opt);}select.value=String(node.params[name]);select.onchange=()=>{const candidate=structuredClone(patch);candidate.nodes.find(item=>item.id===node.id)!.params[name]=select.value;update(candidate);};label.append(select);}
-      else {const field=document.createElement('input');field.type='number';field.min=String(definition.min);field.max=String(definition.max);field.step=String(definition.max<=2?.01:definition.max<=24?.1:1);field.value=String(node.params[name]);field.onchange=()=>{const candidate=structuredClone(patch);candidate.nodes.find(item=>item.id===node.id)!.params[name]=Number(field.value);update(candidate);};label.append(field);}
+      else {const field=document.createElement('input');field.type='number';field.min=String(definition.min);field.max=String(definition.max);field.step=node.type==='multi-envelope'&&unit==='s'?'0.001':node.type==='fm-operator'&&['ratio','index'].includes(name)?'0.01':String(definition.max<=2?.01:definition.max<=24?.1:1);field.value=String(node.params[name]);field.onchange=()=>{const candidate=structuredClone(patch);candidate.nodes.find(item=>item.id===node.id)!.params[name]=Number(field.value);update(candidate);};label.append(field);}
       parameters.append(label);
     }
     card.append(heading,ports,parameters);return card;

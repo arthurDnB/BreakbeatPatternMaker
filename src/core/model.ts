@@ -79,7 +79,7 @@ export interface SynthPresetDefinition {
   release:number;
   lowpassHz:number;
 }
-export type SynthModuleType='oscillator'|'sample'|'mixer'|'filter'|'amplifier'|'envelope'|'lfo'|'velocity'|'attenuverter'|'chorus'|'delay'|'reverb'|'output'|'distortion'|'noise';
+export type SynthModuleType='oscillator'|'fm-operator'|'sample'|'mixer'|'filter'|'amplifier'|'envelope'|'multi-envelope'|'lfo'|'velocity'|'attenuverter'|'chorus'|'delay'|'reverb'|'output'|'distortion'|'noise';
 export interface SynthModule {id:string;type:SynthModuleType;x:number;y:number;params:Record<string,number|string>}
 export interface SynthCable {from:string;out:string;to:string;input:string;depth:number}
 export interface SynthPatch {version:1;nodes:SynthModule[];cables:SynthCable[]}

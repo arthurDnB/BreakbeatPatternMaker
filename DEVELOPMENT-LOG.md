@@ -82,6 +82,13 @@ This document maintains the running project state and change log so that multipl
 
 ## Ã°Å¸â€œÂ Change Log
 
+### [2026-10-04] - Opt-in FM Rhodes and Multistage Synth Envelope (Codex)
+- Added `fm-operator` and `multi-envelope` node types in `src/core/model.ts` and `src/audio/modular-synth.ts`. The operator has phase, linear-frequency, and exponential-frequency modulation modes; the envelope has delay, attack, hold, fall, break, second decay, sustain, and release. Both use the existing typed cable validator and shared deterministic note renderer without changing legacy module math.
+- Added the separate `rhodes-model-v2` experimental factory patch in `src/audio/modular-synth.ts` and `src/ui/synth-patch-editor.ts`. The existing `rhodes` patch remains available and unchanged. New module parameters show units and support fine time/ratio edits in the editor.
+- Added `scripts/modular-rhodes-audition.mjs` to create five locally generated, level-matched old/new Rhodes A/B pairs in ignored `test-results/modular-rhodes-audition/`. These are for listener review; acoustic realism and high-register aliasing are not yet signed off.
+- Added `tests/modular-synth-realism.test.mjs` for FM modes, envelope articulation, C1–C5/rate/velocity bounds, old-patch PCM fingerprints, project roundtrip, and shared Preview/WAV output. Extended the modular factory and browser smoke tests for the new patch and canvas controls.
+- Verification: `npm.cmd test` passed all 320 tests; `npm.cmd run test:site` passed all site browser suites at root and subpath. The A/B render script completed successfully.
+
 ### [2026-10-04] - Modular Synth Realism Research and Implementation Plan (Codex)
 - Added `modular_synth_realism_plan.md` after auditing the current modular DSP, editor, project v9 compatibility path, and render cache. It identifies what is already implemented and designs opt-in FM/phase modulation, tuned string resonance, formant and modal filtering, ring modulation, and multistage articulation.
 - Documented twelve instrument-family prototype node graphs and parameter matrices, original technical sources, a staged implementation sequence, listening gates, compatibility constraints, and unit/browser/performance verification. This is a review artifact only; no DSP or factory sound was changed.

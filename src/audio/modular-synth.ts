@@ -10,11 +10,13 @@ const n=(min:number,max:number,initial:number):NumberParam=>({min,max,initial});
 const c=(choices:readonly string[],initial:string):ChoiceParam=>({choices,initial});
 export const SYNTH_MODULES:Record<SynthModuleType,ModuleDefinition>={
   oscillator:{label:'Oscillator',inputs:{pitch:'control',gain:'control'},outputs:{out:'audio'},params:{wave:c(['sine','triangle','saw','square'],'saw'),tune:n(-24,24,0),level:n(0,1,.55),pulse:n(.05,.95,.5),warmth:n(0,1,0)}},
+  'fm-operator':{label:'FM / phase operator',inputs:{mod:'audio',indexCv:'control',pitch:'control',gain:'control'},outputs:{out:'audio'},params:{ratio:n(.25,24,1),fineCents:n(-100,100,0),mode:c(['phase','linear','exponential'],'phase'),index:n(0,12,0),deviationHz:n(0,8000,0),expSemitones:n(0,48,0),level:n(0,1,.5)}},
   sample:{label:'Piano sample',inputs:{gain:'control'},outputs:{out:'audio'},params:{level:n(0,1,.8)}},
   mixer:{label:'Mixer',inputs:{a:'audio',b:'audio',c:'audio',d:'audio'},outputs:{out:'audio'},params:{level:n(0,1,.8)}},
   filter:{label:'Multimode filter',inputs:{in:'audio',cutoff:'control',resonance:'control'},outputs:{out:'audio'},params:{mode:c(['lowpass','bandpass','highpass'],'lowpass'),cutoff:n(80,18000,3200),resonance:n(0,.95,.2)}},
   amplifier:{label:'Amplifier',inputs:{in:'audio',gain:'control'},outputs:{out:'audio'},params:{level:n(0,2,1)}},
   envelope:{label:'ADSR envelope',inputs:{},outputs:{out:'control'},params:{attack:n(.001,2,.01),decay:n(.001,4,.25),sustain:n(0,1,.65),release:n(.01,5,.3)}},
+  'multi-envelope':{label:'Multistage envelope',inputs:{velocity:'control'},outputs:{out:'control'},params:{delay:n(0,2,0),attack:n(.001,2,.01),hold:n(0,2,0),fall:n(.001,3,.12),breakLevel:n(0,1,.5),decay2:n(.001,4,.25),slope:n(-1,1,0),sustain:n(0,1,.5),release:n(.01,8,.3)}},
   lfo:{label:'LFO',inputs:{},outputs:{out:'control'},params:{wave:c(['sine','triangle','square'],'sine'),rate:n(.05,20,2),depth:n(0,1,.5)}},
   velocity:{label:'Note velocity',inputs:{},outputs:{out:'control'},params:{amount:n(0,1,1)}},
   attenuverter:{label:'CV attenuverter',inputs:{in:'control'},outputs:{out:'control'},params:{amount:n(-1,1,1),offset:n(-1,1,0)}},
@@ -64,6 +66,38 @@ export function starterPatch(preset:string,source:'oscillator'|'sample'='oscilla
       cable('source-a','out','mix','a'),cable('source-b','out','mix','b'),cable('noise','out','mix','c'),
       cable('noise-env','out','noise','gain'),cable('mix','out','filter','in'),cable('filter','out','amp','in'),
       cable('env','out','amp','gain'),cable('env','out','filter','cutoff',0.45),cable('amp','out','chorus','in'),cable('chorus','out','out','in')
+    ];
+    return {version:1,nodes,cables};
+  }
+  if(preset==='rhodes-model-v2'){
+    const nodes=[
+      synthModule('fm-operator','modulator',40,70),
+      synthModule('multi-envelope','tine-env',40,310),
+      synthModule('fm-operator','carrier',300,70),
+      synthModule('oscillator','body',300,330),
+      synthModule('velocity','velocity',40,550),
+      synthModule('mixer','mix',560,70),
+      synthModule('multi-envelope','amp-env',560,310),
+      synthModule('amplifier','amp',820,70),
+      synthModule('chorus','chorus',1060,70),
+      synthModule('output','out',1300,70)
+    ];
+    const get=(id:string)=>nodes.find(node=>node.id===id)!.params;
+    Object.assign(get('modulator'),{ratio:7,index:0,level:.65});
+    Object.assign(get('tine-env'),{attack:.001,fall:.22,breakLevel:0,decay2:.03,sustain:0,release:.08});
+    Object.assign(get('carrier'),{ratio:1,index:1.5,level:.58});
+    Object.assign(get('body'),{wave:'sine',level:.35,warmth:.08});
+    Object.assign(get('mix'),{level:.7});
+    Object.assign(get('amp-env'),{attack:.002,fall:1.8,breakLevel:.27,decay2:.7,sustain:.17,release:.42});
+    Object.assign(get('amp'),{level:.8});
+    Object.assign(get('chorus'),{rate:.75,depth:.002,wet:.12});
+    const cables=[
+      cable('tine-env','out','modulator','gain'),
+      cable('modulator','out','carrier','mod',.7),
+      cable('velocity','out','carrier','indexCv',.04),
+      cable('carrier','out','mix','a'),cable('body','out','mix','b'),
+      cable('mix','out','amp','in'),cable('amp-env','out','amp','gain'),
+      cable('amp','out','chorus','in'),cable('chorus','out','out','in')
     ];
     return {version:1,nodes,cables};
   }
@@ -504,7 +538,8 @@ export function validateSynthPatch(patch:SynthPatch):SynthModule[]{
     }
     nodes.set(node.id,node);
   }
-  if(patch.nodes.filter(node=>node.type==='output').length!==1||!patch.nodes.some(node=>['oscillator','sample','noise'].includes(node.type)))throw Error('A synth patch needs one output and an audio source.');
+  const isSource=(node:SynthModule)=>['oscillator','fm-operator','sample','noise'].includes(node.type);
+  if(patch.nodes.filter(node=>node.type==='output').length!==1||!patch.nodes.some(isSource))throw Error('A synth patch needs one output and an audio source.');
   const incoming=new Map<string,number>(patch.nodes.map(node=>[node.id,0])),next=new Map<string,string[]>(patch.nodes.map(node=>[node.id,[]])),seen=new Set<string>();
   for(const edge of patch.cables){
     const from=nodes.get(edge?.from),to=nodes.get(edge?.to),kind=from&&SYNTH_MODULES[from.type].outputs[edge.out];
@@ -520,18 +555,18 @@ export function validateSynthPatch(patch:SynthPatch):SynthModule[]{
   }
   if(order.length!==patch.nodes.length)throw Error('Synth patch feedback loops are not supported.');
   const output=patch.nodes.find(node=>node.type==='output')!;
-  const reaches=new Set(patch.nodes.filter(node=>['oscillator','sample','noise'].includes(node.type)).map(node=>node.id));
+  const reaches=new Set(patch.nodes.filter(isSource).map(node=>node.id));
   for(const node of order)if(patch.cables.some(edge=>edge.to===node.id&&SYNTH_MODULES[nodes.get(edge.from)!.type].outputs[edge.out]==='audio'&&reaches.has(edge.from)))reaches.add(node.id);
   if(!reaches.has(output.id))throw Error('Connect an audio source to the synth output.');
   return order;
 }
 
 export function modularTailSeconds(patch:SynthPatch):number{
-  const envelopes=patch.nodes.filter(node=>node.type==='envelope');
+  const envelopes=patch.nodes.filter(node=>node.type==='envelope'||node.type==='multi-envelope');
   const release=Math.max(.05,...envelopes.map(node=>Number(node.params.release)));
   const delay=patch.nodes.some(node=>node.type==='delay')?1.8:0;
   const reverb=patch.nodes.some(node=>node.type==='reverb')?2.2:0;
-  return Math.min(4,release+Math.max(delay,reverb));
+  return Math.min(patch.nodes.some(node=>node.type==='multi-envelope')?8:4,release+Math.max(delay,reverb));
 }
 
 const clamp=(value:number,low:number,high:number)=>Math.max(low,Math.min(high,value));
@@ -545,6 +580,24 @@ function oscillator(wave:string,phase:number,step:number,pulse:number){
 function envelope(time:number,held:number,attack:number,decay:number,sustain:number,release:number){
   const level=(t:number)=>t<attack?t/attack:sustain+(1-sustain)*Math.exp(-(t-attack)/decay);
   return time<held?level(time):level(held)*Math.exp(-8*(time-held)/release);
+}
+function multiEnvelope(time:number,held:number,p:Record<string,number|string>){
+  const delay=Number(p.delay),attack=Number(p.attack),hold=Number(p.hold),fall=Number(p.fall);
+  const decay2=Number(p.decay2),breakLevel=Number(p.breakLevel),sustain=Number(p.sustain);
+  const curve=2**Number(p.slope);
+  const levelAt=(t:number)=>{
+    let u=t-delay;
+    if(u<=0)return 0;
+    if(u<attack)return (u/attack)**curve;
+    u-=attack;
+    if(u<hold)return 1;
+    u-=hold;
+    if(u<fall)return 1-(1-breakLevel)*(u/fall)**curve;
+    u-=fall;
+    if(u<decay2)return breakLevel+(sustain-breakLevel)*(u/decay2)**curve;
+    return sustain;
+  };
+  return time<held?levelAt(time):levelAt(held)*Math.exp(-8*(time-held)/Number(p.release));
 }
 
 /** Sample-accurate, deterministic per-note graph renderer shared by preview, song and exports. */
@@ -586,6 +639,19 @@ export function renderModularSynthNote(note:number,durationSeconds:number,rate:n
           value=oscVal*Number(p.level)*(connected(node,'gain')?clamp(input(node,'gain'),0,2):1);
           st.phase=(st.phase+step)%1;break;
         }
+        case 'fm-operator':{
+          const base=baseFrequency*Number(p.ratio)*2**((Number(p.fineCents)/100+input(node,'pitch')*12)/12);
+          const mod=clamp(input(node,'mod'),-1,1),cv=connected(node,'indexCv')?input(node,'indexCv'):0;
+          const mode=String(p.mode);
+          let frequency=base;
+          if(mode==='linear')frequency+=Number(p.deviationHz)*clamp(1+cv,0,2)*mod;
+          else if(mode==='exponential')frequency*=2**(Number(p.expSemitones)*clamp(1+cv,0,2)*mod/12);
+          frequency=clamp(frequency,0,rate*.44);
+          const index=mode==='phase'?clamp(Number(p.index)+cv*12,0,12):0;
+          const signal=Math.sin(st.phase*2*Math.PI+index*mod);
+          value=signal*Number(p.level)*(connected(node,'gain')?clamp(input(node,'gain'),0,2):1);
+          st.phase=(st.phase+frequency/rate)%1;break;
+        }
         case 'sample':{
           if(!sample)throw Error('The modular piano sample is missing.');
           const source=frame*sampleStep,index=Math.floor(source),fraction=source-index;
@@ -594,6 +660,7 @@ export function renderModularSynthNote(note:number,durationSeconds:number,rate:n
         }
         case 'mixer':value=(input(node,'a')+input(node,'b')+input(node,'c')+input(node,'d'))*Number(p.level);break;
         case 'envelope':value=envelope(time,durationSeconds,Number(p.attack),Number(p.decay),Number(p.sustain),Number(p.release));break;
+        case 'multi-envelope':value=multiEnvelope(time,durationSeconds,p)*(connected(node,'velocity')?clamp(input(node,'velocity'),0,1):1);break;
         case 'lfo':{
           const phase=(time*Number(p.rate))%1,wave=String(p.wave);
           value=(wave==='square'?(phase<.5?1:-1):wave==='triangle'?1-4*Math.abs(phase-.5):Math.sin(phase*2*Math.PI))*Number(p.depth);break;
