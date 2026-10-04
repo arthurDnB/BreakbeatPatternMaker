@@ -82,6 +82,11 @@ This document maintains the running project state and change log so that multipl
 
 ## Ã°Å¸â€œÂ Change Log
 
+### [2026-10-04] - Modular Synth Realism Research and Implementation Plan (Codex)
+- Added `modular_synth_realism_plan.md` after auditing the current modular DSP, editor, project v9 compatibility path, and render cache. It identifies what is already implemented and designs opt-in FM/phase modulation, tuned string resonance, formant and modal filtering, ring modulation, and multistage articulation.
+- Documented twelve instrument-family prototype node graphs and parameter matrices, original technical sources, a staged implementation sequence, listening gates, compatibility constraints, and unit/browser/performance verification. This is a review artifact only; no DSP or factory sound was changed.
+- Verification: `npm.cmd test` passed all 315 tests; `npm.cmd run test:site` passed its full root/subpath and browser smoke sequence.
+
 ### [2026-10-04] - Real Instrument Modular Synth Patches, Distortion & Noise Modules, and Audition Pitch Selector (Antigravity)
 - **Diagnosed and resolved sine wave audibility & audition pitch:**
   - Diagnosed that pure sub-bass sine waves generated in MIDI 24–36 (32–65 Hz) lack upper harmonic overtones and are filtered out or rendered near 0 dB SPL by consumer speakers, laptops, and mobile earphones.
