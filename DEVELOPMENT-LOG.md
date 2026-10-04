@@ -29,7 +29,7 @@ This document maintains the running project state and change log so that multipl
 ## Ã°Å¸â€œÅ’ Current Project Status
 
 * **Version:** `0.2.3`
-* **Test Status:** 308 unit tests passing (0 skipped, 0 failed); all deployment site smoke checks passing (`npm.cmd test` and `npm.cmd run test:site`).
+* **Test Status:** 315 unit tests passing (0 skipped, 0 failed); all deployment site smoke checks passing (`npm.cmd test` and `npm.cmd run test:site`).
 * **Live Deployment:** Hosted on GitHub Pages at:
   Ã°Å¸â€˜â€° [https://arthurdnb.github.io/BreakbeatPatternMaker/](https://arthurdnb.github.io/BreakbeatPatternMaker/)
 * **Automated CI/CD:** `.github/workflows/deploy.yml` runs tests, packages static assets into `site/`, and deploys via GitHub Actions on every push to `main`.
@@ -81,6 +81,27 @@ This document maintains the running project state and change log so that multipl
 ---
 
 ## Ã°Å¸â€œÂ Change Log
+
+### [2026-10-04] - Real Instrument Modular Synth Patches, Distortion & Noise Modules, and Audition Pitch Selector (Antigravity)
+- **Diagnosed and resolved sine wave audibility & audition pitch:**
+  - Diagnosed that pure sub-bass sine waves generated in MIDI 24–36 (32–65 Hz) lack upper harmonic overtones and are filtered out or rendered near 0 dB SPL by consumer speakers, laptops, and mobile earphones.
+  - Added an Audition Pitch selector dropdown (`C1 (33 Hz Sub)`, `C2 (65 Hz Bass)`, `C3 (131 Hz Low-Mid)`, `C4 (261 Hz Mid C)`, `C5 (523 Hz Treble)`) in the Modular Synth Editor dialog (`src/ui/synth-patch-editor.ts`), automatically defaulting to C2 for bass presets and C4 for instruments/leads.
+  - Connected the audition pitch selector through `src/web.ts` (`auditionUserTrack(track, previewNote)`) so users can test any waveform or patch at audible registers.
+  - Added an optional `warmth` parameter to `oscillator` module (`src/audio/modular-synth.ts`) injecting subtle 2nd/3rd harmonics through soft tanh saturation, ensuring low sub sines translate clearly across smaller monitor/laptop speakers without clipping.
+- **Added state-of-the-art real instrument & electronic starting patches (`src/audio/modular-synth.ts`, `src/ui/synth-patch-editor.ts`):**
+  - Added 15 research-backed factory starting patches categorized in the modular synth editor:
+    - *Real & Acoustic Instruments:* Nylon String Guitar (dual triangle detune + pink noise pluck + LP filter + subtle chorus), Rhodes Electric Piano (bell sine overtone + mid body + tremolo chorus), Overdrive Lead Guitar (dual saw + tube distortion + tone filter), Acoustic Upright Piano (rich multi-harmonic strike + cabinet reverb), Bowed Cello / Strings (slow attack envelope + chorus + hall reverb), Acoustic Flute (triangle fundamental + breath pink noise + gentle vibrato LFO), Brass Section (detuned saws + punchy filter envelope bite), Electric Slap Bass (sharp pluck click + resonant low-pass filter), Vibraphone Mallet (pure sine with long decay + gentle vibrato + spatial delay).
+    - *Electronic & Synth Classics:* Reese Bass (detuned phasing saws), Acid 303 Bass (resonant 18dB diode simulation), Sub 808 Bass (punchy pitch drop + warm sub), Supersaw Anthem (wide chorus saws), Warm Analog Pad (drifting LFO filter + lush reverb), Bell Pluck (high overtone envelope transient).
+  - Maintained full backwards compatibility for legacy presets (`bass`, `pluck`, `pad`, `piano`).
+- **New Modular Synth Modules (`src/core/model.ts`, `src/audio/modular-synth.ts`):**
+  - Added `distortion` module: tube/tape soft clipping (`tanh`) with adjustable `drive` (0–10), post-drive `tone` filter (200–18000 Hz), and dry/wet mix.
+  - Added `noise` module: sample-accurate, deterministic pseudo-random white and pink noise generator with `color`, `level`, and CV gain modulation input.
+- **Tests & Verification:**
+  - Expanded `tests/modular-synth.test.mjs` to validate all 19 factory starting patches render deterministically, without NaN/Infinity, and produce audible sound.
+  - Added tests for sine wave oscillator across C1–C5 octaves and verified warmth harmonic injection.
+  - Added tests for distortion and noise modules verifying signal modification and deterministic DSP.
+  - All 315 unit tests pass (`npm.cmd test`).
+  - All 14 site browser smoke test suites pass (`npm.cmd run test:site`).
 
 ### [2026-10-04] - Categorized Synth Preset Library, Non-Overlapping Knobs, and WAV Sample Upload for Bass & Synth Tracks (Antigravity)
 - **General synth WAV sample upload (`src/audio/synth-instrument.ts`, `src/web.ts`, `src/audio/performance.ts`):**

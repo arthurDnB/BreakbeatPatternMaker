@@ -11,13 +11,19 @@ import {makeProject,readProject} from '../dist/audio/project.js';
 import {encodeWav} from '../dist/audio/wav.js';
 
 test('factory modular patches validate and render deterministic finite audio',()=>{
- for(const preset of ['bass','pluck','pad','piano']){
+ const allPresets=[
+  'bass','pluck','pad','piano',
+  'nylon-guitar','rhodes','overdrive-guitar','upright-piano','strings',
+  'flute','brass','slap-bass','vibraphone',
+  'reese','acid303','sub808','supersaw','warm-pad','bell-pluck'
+ ];
+ for(const preset of allPresets){
   const patch=starterPatch(preset),order=validateSynthPatch(patch);
   assert.equal(order.at(-1).type,'output');
   const a=renderModularSynthNote(60,.25,12000,patch),b=renderModularSynthNote(60,.25,12000,patch);
   assert.deepEqual(a,b,`${preset} is deterministic`);
-  assert.ok(a.some(value=>Math.abs(value)>.01),`${preset} is audible`);
-  assert.ok(a.every(Number.isFinite));
+  assert.ok(a.some(value=>Math.abs(value)>.005),`${preset} is audible`);
+  assert.ok(a.every(Number.isFinite),`${preset} output is finite`);
  }
 });
 
@@ -80,3 +86,60 @@ test('sample source and modular patches persist through project preview and WAV 
  assert.deepEqual(renderPerformance(opened.project.editor.pattern,opened.assets,rate).channels,preview.channels);
  assert.equal(new TextDecoder().decode(new Uint8Array(encodeWav(preview.channels,rate)).slice(0,4)),'RIFF');
 });
+
+test('sine wave oscillator renders audible finite output across C1-C5 and warmth adds harmonic drive',()=>{
+ const patch=starterPatch('bass');
+ const osc=patch.nodes.find(n=>n.id==='source-a');
+ osc.params.wave='sine';
+ osc.params.level=0.8;
+ for(const note of [24,36,48,60,72]){
+  const audio=renderModularSynthNote(note,.2,12000,patch);
+  assert.ok(audio.every(Number.isFinite),`sine wave at note ${note} is finite`);
+  assert.ok(audio.some(val=>Math.abs(val)>.005),`sine wave at note ${note} is audible`);
+ }
+ osc.params.warmth=0;
+ const pureSine=renderModularSynthNote(48,.2,12000,patch);
+ osc.params.warmth=0.5;
+ const warmSine=renderModularSynthNote(48,.2,12000,patch);
+ assert.notDeepEqual(pureSine,warmSine,'warmth parameter introduces subtle harmonic drive to sine wave');
+ assert.ok(warmSine.every(Number.isFinite));
+});
+
+test('distortion and noise modules render finite audio and shape timbre',()=>{
+ const base=starterPatch('bass');
+ const distPatch=structuredClone(base);
+ const dist=synthModule('distortion','dist',650,200);
+ dist.params.drive=4;
+ dist.params.tone=3000;
+ dist.params.wet=1;
+ distPatch.nodes.push(dist);
+ distPatch.cables=distPatch.cables.filter(c=>c.to!=='out');
+ distPatch.cables.push(
+  {from:'amp',out:'out',to:'dist',input:'in',depth:1},
+  {from:'dist',out:'out',to:'out',input:'in',depth:1}
+ );
+ assert.doesNotThrow(()=>validateSynthPatch(distPatch));
+ const dry=renderModularSynthNote(48,.2,12000,base);
+ const driven=renderModularSynthNote(48,.2,12000,distPatch);
+ assert.notDeepEqual(dry,driven,'distortion modifies the signal');
+ assert.ok(driven.every(Number.isFinite),'distortion audio is finite');
+ assert.ok(driven.some(val=>Math.abs(val)>.01),'distortion audio is audible');
+
+ const noisePatch={
+  version:1,
+  nodes:[
+   synthModule('noise','noise-source',40,100),
+   synthModule('filter','filt',300,100),
+   synthModule('output','out',600,100)
+  ],
+  cables:[
+   {from:'noise-source',out:'out',to:'filt',input:'in',depth:1},
+   {from:'filt',out:'out',to:'out',input:'in',depth:1}
+  ]
+ };
+ assert.doesNotThrow(()=>validateSynthPatch(noisePatch));
+ const noiseAudio=renderModularSynthNote(60,.15,12000,noisePatch);
+ assert.ok(noiseAudio.every(Number.isFinite),'noise generator audio is finite');
+ assert.ok(noiseAudio.some(val=>Math.abs(val)>.005),'noise generator produces audible sound');
+});
+

@@ -331,7 +331,7 @@ function synthInstrumentPanel(track:SynthTrack):HTMLDetailsElement{
     const current=editor.state.pattern.userTracks?.find(item=>item.id===track.id);if(!isSynthTrack(current))return;
     const dialog=openSynthPatchEditor({trackName:current.name,instrument:current.instrument,
       apply:patch=>{editor.setSynthInstrument(track.id,{...currentInstrument(),patch});scheduleSave();status(`${current.name} modular patch updated.`);},
-      preview:patch=>{const live=editor.state.pattern.userTracks?.find(item=>item.id===track.id);if(isSynthTrack(live))void auditionUserTrack({...live,instrument:{...live.instrument,patch}});}
+      preview:(patch,previewNote)=>{const live=editor.state.pattern.userTracks?.find(item=>item.id===track.id);if(isSynthTrack(live))void auditionUserTrack({...live,instrument:{...live.instrument,patch}},previewNote);}
     });dialog.addEventListener('close',refresh,{once:true});
   };content.append(patchButton);
   if(track.instrument.patch){const note=document.createElement('small');note.textContent='Modular patch active. Edit its modules, cables and exact values in the patch editor.';content.append(note);
@@ -882,9 +882,11 @@ async function auditionCursor(role:Role){
  const hit=editor.state.pattern.events.find(h=>editor.state.selection.ids.includes(h.id))??editor.state.pattern.events.find(h=>h.role===role&&h.trackId===cursorTrackId);
  if(hit)return auditionHit(hit);const track=cursorTrackId?pattern.userTracks?.find(item=>item.id===cursorTrackId):undefined;if(track)return auditionUserTrack(track);return auditionRole(role);
 }
-async function auditionUserTrack(track:UserTrack){
+async function auditionUserTrack(track:UserTrack,previewNote?:number){
  context??=new AudioContext();const token=playToken;await context.resume();if(token!==playToken)return;
- const note:Hit={id:'track-preview',role:track.role,trackId:track.id,sourceId:'kit.'+track.role,baseTick:0,offsetTick:0,gain:1,pan:0,anchor:false,ghost:false,...(isSynthTrack(track)?{synthNote:{note:track.instrument.sample?.rootNote??(track.instrument.preset==='piano'?60:track.instrument.preset==='bass'||SYNTH_PRESET_CATALOG[track.instrument.preset]?.category==='Bass'?36:48),durationTicks:960}}:{slice:{...track.sample}}),reason:'User track preview.'};
+ const defaultNote=isSynthTrack(track)?(track.instrument.sample?.rootNote??(track.instrument.preset==='piano'?60:track.instrument.preset==='bass'||SYNTH_PRESET_CATALOG[track.instrument.preset]?.category==='Bass'?36:48)):60;
+ const targetNote=previewNote??defaultNote;
+ const note:Hit={id:'track-preview',role:track.role,trackId:track.id,sourceId:'kit.'+track.role,baseTick:0,offsetTick:0,gain:1,pan:0,anchor:false,ghost:false,...(isSynthTrack(track)?{synthNote:{note:targetNote,durationTicks:960}}:{slice:{...track.sample}}),reason:'User track preview.'};
  const one={...structuredClone(pattern),events:[note],userTracks:[{...track,mute:false,solo:true}]},mix=kitPanel.snapshot();mix[track.role].mute=false;for(const role of ROLES)mix[role].solo=false;
  await preparePianoAudio([one]);if(token!==playToken)return;
  const audio=renderPerformance(withDrumKit(one,drumKit,mix),assets,context.sampleRate,effectMap());startSource(audioBuffer(audio),context.currentTime);status(`Previewing ${isSynthTrack(track)?'synth':'sample'} track “${track.name}”.`);

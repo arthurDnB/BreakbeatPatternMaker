@@ -2,7 +2,7 @@ import type {SynthInstrument,SynthModuleType,SynthPatch} from '../core/model.js'
 import {patchFromInstrument,starterPatch,synthModule,SYNTH_MODULES,validateSynthPatch} from '../audio/modular-synth.js';
 import {validateSynthInstrument} from '../audio/synth-instrument.js';
 
-type Options={trackName:string;instrument:SynthInstrument;apply:(patch:SynthPatch)=>void;preview:(patch:SynthPatch)=>void};
+type Options={trackName:string;instrument:SynthInstrument;apply:(patch:SynthPatch)=>void;preview:(patch:SynthPatch,note?:number)=>void};
 type SavedPatch={name:string;patch:SynthPatch};
 const STORAGE='breakbeat-modular-patches-v1';
 const savedPatches=():SavedPatch[]=>{try{const value=JSON.parse(localStorage.getItem(STORAGE)??'[]');return Array.isArray(value)?value.filter(item=>item&&typeof item.name==='string'&&item.patch).slice(0,24):[];}catch{return [];}};
@@ -18,13 +18,42 @@ export function openSynthPatchEditor(options:Options):HTMLDialogElement{
   const header=document.createElement('header');header.className='synth-patch-header';
   const title=document.createElement('div');title.innerHTML='<strong>Modular Synth</strong><small></small>';title.querySelector('small')!.textContent=options.trackName;
   const actions=document.createElement('div');actions.className='synth-patch-actions';
-  const preview=document.createElement('button');preview.type='button';preview.textContent='▶ Preview';preview.onclick=()=>{try{check(patch);options.preview(patch);}catch(error){showError(error);}};
+  const pitchSelect=document.createElement('select');pitchSelect.className='synth-preview-pitch';pitchSelect.setAttribute('aria-label','Preview pitch');
+  pitchSelect.innerHTML='<option value="24">C1 (33 Hz Sub)</option><option value="36">C2 (65 Hz Bass)</option><option value="48">C3 (131 Hz Low-Mid)</option><option value="60" selected>C4 (261 Hz Mid C)</option><option value="72">C5 (523 Hz Treble)</option>';
+  const isInitialBass=options.instrument.preset==='bass'||options.instrument.preset==='sub808'||options.trackName.toLowerCase().includes('bass');
+  if(isInitialBass)pitchSelect.value='36';
+  const preview=document.createElement('button');preview.type='button';preview.textContent='▶ Preview';preview.onclick=()=>{try{check(patch);options.preview(patch,Number(pitchSelect.value));}catch(error){showError(error);}};
   const enable=document.createElement('button');enable.type='button';enable.className='accent';enable.textContent=active?'Patch active':'Use this patch';
   const close=document.createElement('button');close.type='button';close.textContent='Close';close.onclick=()=>dialog.close();
-  actions.append(preview,enable,close);header.append(title,actions);
+  actions.append(pitchSelect,preview,enable,close);header.append(title,actions);
   const toolbar=document.createElement('div');toolbar.className='synth-patch-toolbar';
   const factory=document.createElement('select');factory.setAttribute('aria-label','Factory patch');
-  factory.innerHTML='<option value="">Factory starting patch…</option><option value="bass">Bass</option><option value="pluck">Pluck</option><option value="pad">Pad</option><option value="piano">Piano</option>';
+  factory.innerHTML=`<option value="">Factory starting patch…</option>
+<optgroup label="Real & Acoustic Instruments">
+  <option value="nylon-guitar">Nylon String Guitar</option>
+  <option value="rhodes">Rhodes Electric Piano</option>
+  <option value="overdrive-guitar">Overdrive Lead Guitar</option>
+  <option value="upright-piano">Acoustic Upright Piano</option>
+  <option value="strings">Bowed Cello / Strings</option>
+  <option value="flute">Acoustic Flute</option>
+  <option value="brass">Brass Section</option>
+  <option value="slap-bass">Electric Slap Bass</option>
+  <option value="vibraphone">Vibraphone Mallet</option>
+</optgroup>
+<optgroup label="Electronic & Synth Classics">
+  <option value="reese">Reese Bass (DnB)</option>
+  <option value="acid303">Acid 303 Bass</option>
+  <option value="sub808">Sub 808 Bass</option>
+  <option value="supersaw">Supersaw Anthem</option>
+  <option value="warm-pad">Warm Analog Pad</option>
+  <option value="bell-pluck">Bell Pluck</option>
+</optgroup>
+<optgroup label="Basic Starting Points">
+  <option value="bass">Bass</option>
+  <option value="pluck">Pluck</option>
+  <option value="pad">Pad</option>
+  <option value="piano">Piano (Legacy)</option>
+</optgroup>`;
   const addType=document.createElement('select');addType.setAttribute('aria-label','Module to add');
   for(const [type,spec] of Object.entries(SYNTH_MODULES)){const opt=document.createElement('option');opt.value=type;opt.textContent=spec.label;opt.disabled=type==='sample'&&!options.instrument.sample&&!options.instrument.sampleBank;addType.append(opt);}
   const add=document.createElement('button');add.type='button';add.textContent='+ Add module';
@@ -48,7 +77,13 @@ export function openSynthPatchEditor(options:Options):HTMLDialogElement{
   const clearError=()=>{message.textContent=active?'Patch changes are saved with this track and project.':'Preview the draft, then choose Use this patch to activate it.';message.classList.remove('error');};
   const update=(candidate:SynthPatch)=>{try{check(candidate);if(active)options.apply(candidate);patch=candidate;render();clearError();}catch(error){showError(error);}};
   enable.onclick=()=>{try{check(patch);options.apply(patch);active=true;enable.textContent='Patch active';clearError();}catch(error){showError(error);}};
-  factory.onchange=()=>{if(!factory.value)return;const sampled=factory.value==='piano'&&!!(options.instrument.sample||options.instrument.sampleBank);update(starterPatch(factory.value as SynthInstrument['preset'],sampled?'sample':'oscillator'));};
+  factory.onchange=()=>{
+    if(!factory.value)return;
+    const isBass=['bass','sub808','reese','acid303','slap-bass'].includes(factory.value);
+    pitchSelect.value=isBass?'36':'60';
+    const sampled=(factory.value==='piano'||factory.value==='upright-piano')&&!!(options.instrument.sample||options.instrument.sampleBank);
+    update(starterPatch(factory.value,sampled?'sample':'oscillator'));
+  };
   add.onclick=()=>{const candidate=structuredClone(patch),type=addType.value as SynthModuleType,id=`module-${Date.now().toString(36)}-${candidate.nodes.length}`;candidate.nodes.push(synthModule(type,id,400+(candidate.nodes.length%4)*240,550+Math.floor(candidate.nodes.length/4)*210));update(candidate);};
   const refreshSaved=()=>{recall.replaceChildren();const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent='Saved presets…';recall.append(placeholder);for(const item of savedPatches()){const opt=document.createElement('option');opt.value=item.name;opt.textContent=item.name;recall.append(opt);}};
   save.onclick=()=>{try{check(patch);const name=patchName.value.trim();if(!name)throw Error('Enter a patch name first.');const items=savedPatches().filter(item=>item.name!==name);items.unshift({name,patch:structuredClone(patch)});savePatches(items);refreshSaved();recall.value=name;clearError();}catch(error){showError(error);}};
