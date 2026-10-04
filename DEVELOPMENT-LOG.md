@@ -82,6 +82,14 @@ This document maintains the running project state and change log so that multipl
 
 ## Ã°Å¸â€œÂ Change Log
 
+### [2026-10-04] - Restore Pattern Bank Toolbar (+ New / ⧉ Dup) and Add Card (Antigravity)
+- **Restored missing Pattern Bank controls (`public/index.html`, `public/workspace.css`, `src/web.ts`):**
+  - Restored `#bank-toolbar` with `+ New` (add blank pattern slot) and `⧉ Dup` (duplicate active pattern) inside `.pattern-bank-header`. During the earlier left panel drawer restructuring, the previous `.grid-heading` selector was omitted from the template, preventing the buttons from mounting.
+  - Added a prominent `+ New Pattern` dashed action card (`.bank-add-slot-card`) at the bottom of the slot list so users can easily expand beyond the default 4 patterns (up to the engine limit of 64 slots).
+  - Added a live pattern slot count badge (`#pattern-bank-count`) displaying total active slots.
+  - Bound `#bank-add-slot`, `#bank-dup-slot`, and the bottom card with 64-slot ceiling safety guards, instant refresh, and local autosave.
+- **Verification:** `npm.cmd test` passed all 308 tests; `npm.cmd run test:site` passed all 14 browser smoke test suites on both root and GitHub Pages subpath mounts.
+
 ### [2026-10-04] - Groove V5.1 Custom Meters and DnB Family Profiles (Codex)
 - **Opt-in engine:** Added Groove V5.1 without changing the Groove V5 default or its authored profiles. A captured SHA-256 regression checks identical pre-change V5 output across all genres at 1, 2 and 4 bars.
 - **Shared timing (`src/core/meter.ts`, model/settings/compile, editor, harmony/melody/piano, bank and audio):** Optional per-pattern N/D meter, numerator 1-32 and denominators 1/2/4/8/16/32. Quarter-note BPM/LPB remains consistent. Per-bar fractional grids fail clearly; 512 rows and existing render limits remain enforced. Pattern/song playback, WAV duration, mixed-meter arrangements, break import and projects use the same measure length.

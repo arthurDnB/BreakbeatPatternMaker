@@ -1709,6 +1709,63 @@ input[type=range]::-webkit-slider-thumb:hover {
   margin: 0;
 }
 
+.pattern-bank-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 2px 6px 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  margin-bottom: 6px;
+}
+
+.pattern-bank-title-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pattern-bank-label {
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.pattern-bank-count {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 10px;
+  background: #14221f;
+  color: var(--accent-cyan);
+  border: 1px solid rgba(0, 245, 212, 0.2);
+}
+
+.bank-add-slot-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 12px;
+  background: rgba(14, 25, 22, 0.5);
+  border: 1px dashed #22423b;
+  border-radius: 6px;
+  color: #7cead3;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 6px;
+  transition: all 0.15s ease;
+}
+
+.bank-add-slot-card:hover {
+  background: #12302a;
+  border-color: #00f5d4;
+  color: #fff;
+  box-shadow: 0 0 10px rgba(0, 245, 212, 0.15);
+}
+
 .bank-toolbar {
   display: flex;
   align-items: center;

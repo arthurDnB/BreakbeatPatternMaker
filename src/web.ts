@@ -954,15 +954,16 @@ function renderPatternHistory(){if(!bank)return;const slot=bank.slots[bank.activ
 for(const side of ['A','B'] as const){el(`compare-preview-${side.toLowerCase()}`).onclick=()=>{void previewComparison(side).catch(e=>status(String(e),true));};el(`compare-keep-${side.toLowerCase()}`).onclick=()=>keepComparison(side);}
 el('compare-clear').onclick=()=>{stop();comparison=undefined;renderPatternHistory();status('A/B comparison cleared.');};
 function renderBank(){if(!bank)return;const host=el('bank-slots');host.replaceChildren();
- const heading = document.querySelector('.pattern-bank .grid-heading');
- if(heading && !document.getElementById('bank-toolbar')){
-  const tb=document.createElement('div');tb.id='bank-toolbar';tb.className='bank-toolbar';
-  const addBtn=document.createElement('button');addBtn.id='bank-add-slot';addBtn.className='bank-tool-btn';addBtn.textContent='+ New';addBtn.title='Add blank pattern slot';
-  addBtn.onclick=()=>{stop();if(arrangementMutation('Add pattern',b=>addPatternSlot(b))){renderBank();scheduleSave();status('Added new pattern slot.');}};
-  const dupBtn=document.createElement('button');dupBtn.id='bank-dup-slot';dupBtn.className='bank-tool-btn';dupBtn.textContent='⧉ Dup';dupBtn.title='Duplicate active pattern';
-  dupBtn.onclick=()=>{stop();const source=bank!.active;if(arrangementMutation('Duplicate pattern',b=>duplicatePatternSlot(b,source))){bank=arrangementHistory!.bank;activateSlot(bank.slots.length-1);renderBank();scheduleSave();status('Duplicated active pattern.');}};
-  tb.append(addBtn,dupBtn);heading.append(tb);
+ const addBtn = document.getElementById('bank-add-slot');
+ if(addBtn){
+  addBtn.onclick=()=>{stop();if(bank!.slots.length>=64){status('Maximum 64 pattern slots reached.',true);return;}if(arrangementMutation('Add pattern',b=>addPatternSlot(b))){renderBank();scheduleSave();status('Added new pattern slot.');}};
  }
+ const dupBtn = document.getElementById('bank-dup-slot');
+ if(dupBtn){
+  dupBtn.onclick=()=>{stop();if(bank!.slots.length>=64){status('Maximum 64 pattern slots reached.',true);return;}const source=bank!.active;if(arrangementMutation('Duplicate pattern',b=>duplicatePatternSlot(b,source))){bank=arrangementHistory!.bank;activateSlot(bank.slots.length-1);renderBank();scheduleSave();status('Duplicated active pattern.');}};
+ }
+ const countEl = document.getElementById('pattern-bank-count');
+ if(countEl) countEl.textContent = `${bank.slots.length}`;
  bank.slots.forEach((slot,i)=>{const card=document.createElement('div');card.className='bank-slot'+(bank!.active===i?' active':'');
   const label=slotLabel(i);
   const title=document.createElement('strong');title.textContent=label+(bank!.active===i?' - Editing':'');card.append(title);
@@ -973,6 +974,11 @@ function renderBank(){if(!bank)return;const host=el('bank-slots');host.replaceCh
   if(slot.editor){const preview=document.createElement('button');preview.id='slot-preview-'+i;preview.textContent='▶';preview.setAttribute('aria-label','Preview '+slot.name);preview.onclick=()=>{if(mode==='pattern'&&i!==bank!.active){chooseSlot(i);return;}stop();input('transport-target').value='pattern';syncHud();activateSlot(i);void play().catch(e=>status(String(e),true));};card.append(preview);}
   if(bank!.slots.length>1){const del=document.createElement('button');del.className='slot-del-btn';del.textContent='✕';del.title='Delete '+slot.name;del.setAttribute('aria-label','Delete '+slot.name);del.onclick=(e)=>{e.stopPropagation();stop();if(arrangementMutation('Delete pattern',b=>deletePatternSlot(b,i))){comparison=undefined;bank=arrangementHistory!.bank;selectedArrangementStep=undefined;activateSlot(bank.active);renderBank();scheduleSave();status('Deleted pattern.');}};card.append(del);}
   host.append(card);});
+ if(bank.slots.length<64){
+  const addCard=document.createElement('button');addCard.type='button';addCard.className='bank-add-slot-card';addCard.textContent='+ New Pattern';addCard.title='Add blank pattern slot';
+  addCard.onclick=()=>{stop();if(bank!.slots.length>=64){status('Maximum 64 pattern slots reached.',true);return;}if(arrangementMutation('Add pattern',b=>addPatternSlot(b))){renderBank();scheduleSave();status('Added new pattern slot.');}};
+  host.append(addCard);
+ }
  renderPatternHistory();input('song-bpm').value=String(bank.songBpm);syncHud();
  const seq = el('sequence');
   renderVerticalSongMap(seq, bank, selectedArrangementStep, {
