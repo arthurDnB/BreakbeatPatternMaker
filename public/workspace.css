@@ -3288,7 +3288,7 @@ tr.playing-row td { background:#0b1c18; }
 .track-col-header.track-hat .track-instrument-panel[open] summary { background:#00f5d4 !important; border-color:#00f5d4 !important; box-shadow:0 0 12px rgba(0,245,212,0.6); }
 .track-col-header.track-percussion .track-instrument-panel[open] summary { background:#7c9aff !important; border-color:#7c9aff !important; box-shadow:0 0 12px rgba(124,154,255,0.6); }
 #grid th:has(.track-instrument-panel[open]) { z-index:70; }
-.track-instrument-panel .drum-slot { position:fixed !important; top:var(--instrument-panel-top,12vh) !important; left:var(--instrument-panel-left,5vw) !important; right:auto !important; width:min(350px,calc(100vw - 16px)) !important; max-height:var(--instrument-panel-max-height,min(70vh,560px)) !important; overflow:auto !important; overscroll-behavior:contain; z-index:1000; padding:12px; background:#0b1110 !important; border:1px solid #428c7a; box-shadow:0 20px 45px #000d; }
+.track-instrument-panel .drum-slot { position:fixed !important; top:var(--instrument-panel-top,12vh) !important; left:var(--instrument-panel-left,5vw) !important; right:auto !important; width:min(385px,calc(100vw - 16px)) !important; max-height:var(--instrument-panel-max-height,min(70vh,560px)) !important; overflow:auto !important; overscroll-behavior:contain; z-index:1000; padding:12px; background:#0b1110 !important; border:1px solid #428c7a; box-shadow:0 20px 45px #000d; }
 .synth-track-col .track-instrument-panel .drum-slot { border-color:#8e70d2; }
 .track-col-header.track-hat .track-instrument-panel .drum-slot,.track-col-header.track-percussion .track-instrument-panel .drum-slot { left:var(--instrument-panel-left,5vw) !important; right:auto !important; }
 .tracker-hit-card { border:1px solid #293431; border-radius:5px; background:#08100e; min-width:158px; padding:2px; margin:1px 0; }
@@ -3484,7 +3484,7 @@ tr.playing-row td { background:#0b1c18; }
 .master-dsp-rack .quick-fx-panel { display:block; margin:0; border:0; }
 .master-dsp-rack[open] .quick-fx-panel { resize:vertical; overflow:auto; min-height:140px; }
 @media(max-width:1100px){#tray-bottom #transport { flex-wrap:wrap; justify-content:center; gap:6px; }#tray-bottom #transport .transport-center { order:1; }#tray-bottom #transport .nav-shortcuts { order:2; }#tray-bottom #transport .tray-session-hud { order:3; }}
-@media(max-width:800px){.studio-layout { display:flex !important; flex-direction:column; }.panel-splitter { display:none; }#tray-left,#stage-center { width:100%; }#tray-bottom #transport { display:flex; flex-wrap:wrap; justify-content:center; }#tray-bottom #transport .toolbar-group { flex-wrap:wrap; justify-content:center; }.track-instrument-panel .drum-slot { width:min(350px,90vw) !important; }}
+@media(max-width:800px){.studio-layout { display:flex !important; flex-direction:column; }.panel-splitter { display:none; }#tray-left,#stage-center { width:100%; }#tray-bottom #transport { display:flex; flex-wrap:wrap; justify-content:center; }#tray-bottom #transport .toolbar-group { flex-wrap:wrap; justify-content:center; }.track-instrument-panel .drum-slot { width:min(385px,90vw) !important; }}
 @media(min-height:650px) and (min-width:801px){
   html,body { height:100vh !important; height:100dvh !important; overflow-y:hidden !important; overflow-x:hidden !important; max-width:100vw; }
   main.daw-chassis { height:100vh !important; height:100dvh !important; max-height:100dvh !important; display:flex !important; flex-direction:column !important; overflow:hidden !important; max-width:100vw; box-sizing:border-box; }
@@ -3579,7 +3579,7 @@ tr.playing-row td { background:#0b1c18; }
   #master-dsp-rack { order:5 !important; width:100%; margin:0 0 8px; }
   .daw-footer { order:6 !important; }
   .track-instrument-panel:not([open]) .drum-slot { display:none !important; }
-  .track-instrument-panel[open] .drum-slot { position:fixed !important; left:var(--instrument-panel-left,5vw) !important; right:auto !important; top:var(--instrument-panel-top,10vh) !important; width:min(350px,90vw) !important; max-height:var(--instrument-panel-max-height,80vh) !important; overflow-y:auto !important; }
+  .track-instrument-panel[open] .drum-slot { position:fixed !important; left:var(--instrument-panel-left,5vw) !important; right:auto !important; top:var(--instrument-panel-top,10vh) !important; width:min(385px,90vw) !important; max-height:var(--instrument-panel-max-height,80vh) !important; overflow-y:auto !important; }
   #kit-preset-host { flex-wrap:wrap; min-width:0; }
   #kit-preset-host .kit-presets-strip { flex-wrap:wrap; flex-shrink:1; width:100%; min-width:0; }
   #kit-preset-host .kit-presets-strip label { min-width:0; }
@@ -6085,27 +6085,44 @@ main.daw-chassis {
 .instrument-panel-content { display:flex; flex:1 1 auto; flex-direction:column; gap:9px; min-height:0; overflow:auto; overscroll-behavior:contain; padding:0 2px 8px 0; }
 .instrument-preview-footer { position:sticky; bottom:0; z-index:2; flex:0 0 auto; padding:9px 0 0; border-top:1px solid #243a37; background:#0b1110; }
 .instrument-preview-footer button { width:100%; min-height:34px; }
-.rotary-knob-control { min-width:0; display:flex; flex-direction:column; gap:3px; padding:3px 4px; border:1px solid #1c302e; border-radius:6px; background:#080d0d; }
-.rotary-knob-caption { display:flex; align-items:center; justify-content:space-between; gap:5px; color:#9db3b0; font:600 9px var(--font-mono,monospace); }
-.rotary-knob-value { color:#55e7d0; font:700 9px var(--font-mono,monospace); white-space:nowrap; }
-.rotary-knob-row { display:flex; align-items:center; justify-content:center; gap:8px; min-height:34px; }
-.rotary-knob-dial { width:30px; height:30px; display:grid; place-items:center; flex:0 0 auto; border-radius:50%; cursor:ns-resize; touch-action:none; outline:none; }
+.rotary-knob-control { min-width:0; display:flex; flex-direction:column; gap:2px; padding:3px 4px; border:1px solid #1c302e; border-radius:6px; background:#080d0d; box-sizing:border-box; overflow:hidden; }
+.rotary-knob-caption { display:flex; align-items:center; justify-content:space-between; gap:4px; min-width:0; overflow:hidden; color:#9db3b0; font:600 9px var(--font-mono,monospace); line-height:1.2; }
+.rotary-knob-caption > span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
+.rotary-knob-value { color:#55e7d0; font:700 9px var(--font-mono,monospace); white-space:nowrap; flex-shrink:0; }
+.rotary-knob-row { display:flex; align-items:center; justify-content:center; gap:4px; min-height:28px; }
+.rotary-knob-dial { width:26px; height:26px; display:grid; place-items:center; flex:0 0 auto; border-radius:50%; cursor:ns-resize; touch-action:none; outline:none; }
 .rotary-knob-dial:focus-visible { box-shadow:0 0 0 2px #00e5c2; }
 .rotary-knob-dial[aria-disabled="true"] { opacity:.4; cursor:not-allowed; }
-.rotary-knob-ring { width:26px; height:26px; position:relative; display:block; border:2px solid #28413e; border-top-color:#00d9bb; border-right-color:#00d9bb; border-radius:50%; background:radial-gradient(circle at 35% 30%,#304643,#101918 65%); transform:rotate(var(--knob-angle,-135deg)); box-shadow:0 0 5px #00d9bb35; }
-.rotary-knob-indicator { position:absolute; left:50%; top:2px; width:2px; height:7px; border-radius:2px; background:#8fffee; transform:translateX(-50%); box-shadow:0 0 4px #00ffe1; }
-.rotary-knob-entry { width:68px !important; min-width:48px; height:24px !important; box-sizing:border-box; padding:2px 4px !important; text-align:center; font:600 10px var(--font-mono,monospace) !important; }
+.rotary-knob-ring { width:22px; height:22px; position:relative; display:block; border:2px solid #28413e; border-top-color:#00d9bb; border-right-color:#00d9bb; border-radius:50%; background:radial-gradient(circle at 35% 30%,#304643,#101918 65%); transform:rotate(var(--knob-angle,-135deg)); box-shadow:0 0 5px #00d9bb35; }
+.rotary-knob-indicator { position:absolute; left:50%; top:1px; width:2px; height:6px; border-radius:2px; background:#8fffee; transform:translateX(-50%); box-shadow:0 0 4px #00ffe1; }
+.rotary-knob-entry { width:46px !important; min-width:36px; max-width:52px; height:22px !important; box-sizing:border-box; padding:1px 3px !important; text-align:center; font:600 9.5px var(--font-mono,monospace) !important; }
 .effects-panel { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:5px; }
 .effects-panel>summary { grid-column:1/-1; }
 .effects-panel>.loop-label { grid-column:1/-1; }
-.rotary-knob-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:5px; }
-.layer-knobs { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.effects-panel>.fx-knobs { grid-column:1/-1 !important; width:100%; }
+.rotary-knob-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:5px; width:100%; }
+.synth-knobs { grid-column:1/-1 !important; width:100%; }
+.layer-knobs { grid-template-columns:repeat(2,minmax(0,1fr)); width:100%; }
 .sample-tempo-controls { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; gap:5px; }
 .sample-tempo-controls>label { min-width:0; display:flex; flex-direction:column; gap:3px; }
 .sample-tempo-controls>.loop-label,.sample-tempo-controls>.sample-tempo-info { grid-column:1/-1; }
 .sample-tempo-controls>.sample-tempo-info { margin:0; }
-.synth-instrument-card .instrument-panel-content { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); align-content:start; }
-.synth-instrument-card .instrument-panel-content>strong,.synth-instrument-card .instrument-panel-content>span { grid-column:1/-1; }
+.synth-instrument-card .instrument-panel-content { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-content:start; gap:7px; }
+.synth-instrument-card .instrument-panel-content>* { min-width:0; }
+.synth-instrument-card .instrument-panel-content>strong,
+.synth-instrument-card .instrument-panel-content>span,
+.synth-instrument-card .instrument-panel-content>button,
+.synth-instrument-card .instrument-panel-content>.synth-patch-open,
+.synth-instrument-card .instrument-panel-content>.synth-knobs,
+.synth-instrument-card .instrument-panel-content>small,
+.synth-instrument-card .instrument-panel-content>.synth-sample-section,
+.synth-instrument-card .instrument-panel-content>.synth-sample-row { grid-column:1/-1 !important; }
+.synth-sample-section { display:flex; flex-direction:column; gap:6px; padding:6px 8px; border:1px solid #1f3632; border-radius:6px; background:#071210; margin-top:2px; }
+.synth-sample-section .sample-source-info { font-size:10px; color:#6ee7b7; font-weight:600; }
+.synth-sample-section .synth-sample-actions { display:flex; flex-wrap:wrap; gap:5px; align-items:center; }
+.synth-sample-section .synth-sample-actions button { min-height:26px; padding:2px 8px; font-size:10px; }
+.synth-sample-section .synth-root-label { display:inline-flex; align-items:center; gap:6px; font-size:10px; color:#a2d5c6; }
+.synth-sample-section .synth-root-label input { width:52px !important; min-width:40px; height:24px !important; padding:1px 4px !important; font-size:10px !important; }
 @media(max-width:520px) { .rotary-knob-grid,.effects-panel,.synth-instrument-card .instrument-panel-content { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 
 /* ==========================================================================

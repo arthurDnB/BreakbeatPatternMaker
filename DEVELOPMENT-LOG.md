@@ -82,6 +82,28 @@ This document maintains the running project state and change log so that multipl
 
 ## Ã°Å¸â€œÂ Change Log
 
+### [2026-10-04] - Categorized Synth Preset Library, Non-Overlapping Knobs, and WAV Sample Upload for Bass & Synth Tracks (Antigravity)
+- **General synth WAV sample upload (`src/audio/synth-instrument.ts`, `src/web.ts`, `src/audio/performance.ts`):**
+  - Resolved root cause where WAV uploads were restricted only to the piano preset (`if (track.instrument.preset === 'piano')`).
+  - Generalized `validateSynthInstrument` to allow `sample: { assetId, rootNote }` on any synth preset (Bass, Lead, custom synths).
+  - Built universal sample management section in `synthInstrumentPanel` supporting WAV file auditioning/upload (<20MB, <20s), MIDI root note configuration (defaulting to C-2 / 36 for Bass and C-5 / 72 for Piano), and sample removal back to oscillator mode.
+  - Category-aware audition pitch previews bass synth tracks at C-2 (36) instead of high octave C-4.
+- **Fixed overlapping rotary knobs across all instrument windows (`public/workspace.css`):**
+  - Resolved grid column squishing in `.synth-instrument-card`: `.synth-knobs` now properly spans full card width (`grid-column: 1 / -1; width: 100%`) instead of collapsing into a single 80px cell.
+  - Resolved FX knob grid squishing in `.effects-panel`: `.fx-knobs` now properly spans full width (`grid-column: 1 / -1; width: 100%`).
+  - Re-proportioned `.rotary-knob-control`: reduced entry input width to 46px with `min-width: 36px`, dial to 26px, and row gap to 4px, ensuring individual controls fit comfortably within 76–82px (well under the 105px column threshold).
+  - Added text truncation protection to `.rotary-knob-caption` (`overflow: hidden; text-overflow: ellipsis; white-space: nowrap`) to eliminate dial/value label wrapping.
+  - Increased instrument popover width to `min(385px, calc(100vw - 16px))` on desktop and `min(385px, 90vw)` on mobile for comfortable column spacing.
+- **Rich categorized synthesizer preset library (`src/core/model.ts`, `src/audio/synth-instrument.ts`, `src/audio/modular-synth.ts`):**
+  - Implemented 24 curated synth patch recipes across 5 categories (`Bass`, `Lead`, `Pad`, `Keys & Pluck`, `FX`) based on classic electronic music and hardware sound design (Casio CZ Reese, Roland TB-303 Acid squelch, 808 Sub, UK Garage Donk, Neuro Wobble, Dub Sub, Supersaw Anthem, Chiptune 8-Bit, Sync Scream, Vocal Formant, Lush Ambient Pad, Dark Drone, Warm Strings, Ethereal Shimmer, FM Bells, Rhodes Tines, 90s House Organ, Laser Zap, Noise Sweep, Sci-Fi Resonant).
+  - Maintained 100% backward compatibility for existing presets (`bass`, `pluck`, `pad`, `piano`) and project serialization versions 7, 8, and 9.
+  - Grouped preset dropdown by category `<optgroup>` in instrument panel UI.
+  - Updated modular synth `starterPatch` with custom multi-oscillator detuning, custom waveshapes, and tailored filter/envelope curves for all new presets.
+- **Tests & Verification:**
+  - Added dedicated unit test suite `tests/synth-presets-and-samples.test.mjs` verifying validation of all catalog presets, PCM rendering, WAV sample transposition, modular starter patch generation, and project roundtrip.
+  - All 313 unit tests pass (`npm.cmd test`).
+  - All 14 browser smoke test suites pass (`npm.cmd run test:site`).
+
 ### [2026-10-04] - Restore Pattern Bank Toolbar (+ New / ⧉ Dup) and Add Card (Antigravity)
 - **Restored missing Pattern Bank controls (`public/index.html`, `public/workspace.css`, `src/web.ts`):**
   - Restored `#bank-toolbar` with `+ New` (add blank pattern slot) and `⧉ Dup` (duplicate active pattern) inside `.pattern-bank-header`. During the earlier left panel drawer restructuring, the previous `.grid-heading` selector was omitted from the template, preventing the buttons from mounting.

@@ -59,7 +59,26 @@ export interface SampleTrack extends TrackBase {
   generationProbability?:number;
 }
 export type SynthWaveform='sine'|'triangle'|'saw'|'square';
-export type SynthPreset='bass'|'pluck'|'pad'|'piano';
+export type SynthPreset=
+  |'bass'|'pluck'|'pad'|'piano'
+  |'reese'|'acid303'|'sub808'|'donk'|'neuro-wobble'|'dub-sub'
+  |'supersaw'|'chiptune'|'sync-lead'|'vocal-lead'|'sine-whistle'
+  |'lush-pad'|'dark-drone'|'warm-strings'|'ethereal-pad'
+  |'bell-pluck'|'rhodes-keys'|'house-organ'
+  |'laser-zap'|'noise-sweep'|'scifi-sweep';
+export type SynthCategory='Bass'|'Lead'|'Pad'|'Keys & Pluck'|'FX';
+export interface SynthPresetDefinition {
+  id:SynthPreset;
+  name:string;
+  category:SynthCategory;
+  description?:string;
+  waveform:SynthWaveform;
+  attack:number;
+  decay:number;
+  sustain:number;
+  release:number;
+  lowpassHz:number;
+}
 export type SynthModuleType='oscillator'|'sample'|'mixer'|'filter'|'amplifier'|'envelope'|'lfo'|'velocity'|'attenuverter'|'chorus'|'delay'|'reverb'|'output';
 export interface SynthModule {id:string;type:SynthModuleType;x:number;y:number;params:Record<string,number|string>}
 export interface SynthCable {from:string;out:string;to:string;input:string;depth:number}

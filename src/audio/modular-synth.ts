@@ -34,10 +34,24 @@ export function synthModule(type:SynthModuleType,id:string,x=100,y=100):SynthMod
 export function starterPatch(preset:SynthPreset,source:'oscillator'|'sample'='oscillator'):SynthPatch{
   const sampled=source==='sample';
   const nodes=[synthModule(sampled?'sample':'oscillator','source-a',40,70),...(!sampled?[synthModule('oscillator','source-b',40,320)]:[]),synthModule('mixer','mix',300,80),synthModule('filter','filter',540,80),synthModule('amplifier','amp',790,80),synthModule('envelope','env',540,310),synthModule('lfo','lfo',300,350),synthModule('output','out',1040,80)];
-  if(!sampled){nodes[0]!.params.wave=preset==='pluck'?'triangle':preset==='piano'?'sine':'saw';nodes[1]!.params.wave=preset==='bass'?'sine':'triangle';nodes[1]!.params.tune=preset==='bass'?-12:0;nodes[1]!.params.level=preset==='bass'?.18:.3;}
+  if(!sampled){
+    const isPluck=preset==='pluck'||preset==='bell-pluck'||preset==='rhodes-keys';
+    const isSine=preset==='piano'||preset==='sub808'||preset==='sine-whistle';
+    const isSquare=preset==='chiptune'||preset==='house-organ'||preset==='neuro-wobble'||preset==='dub-sub';
+    nodes[0]!.params.wave=isPluck?'triangle':isSine?'sine':isSquare?'square':'saw';
+    const isSubBass=preset==='bass'||preset==='sub808'||preset==='dub-sub'||preset==='donk'||preset==='acid303'||preset==='neuro-wobble';
+    nodes[1]!.params.wave=isSubBass?'sine':preset==='supersaw'||preset==='reese'?'saw':'triangle';
+    nodes[1]!.params.tune=isSubBass?-12:preset==='reese'?.15:preset==='supersaw'?.2:0;
+    nodes[1]!.params.level=isSubBass?.18:.3;
+  }
   const filter=nodes.find(node=>node.id==='filter')!,env=nodes.find(node=>node.id==='env')!;
-  filter.params.cutoff=preset==='bass'?1400:preset==='pad'?2300:6000;
-  env.params.attack=preset==='pad'?.14:.006;env.params.decay=preset==='piano'?1.4:preset==='pad'?.45:.22;env.params.sustain=preset==='piano'?.12:preset==='pluck'?.12:.55;env.params.release=preset==='pad'?.75:preset==='piano'?.8:.14;
+  const isLowCutoff=preset==='sub808'?240:preset==='dub-sub'?380:preset==='reese'?920:preset==='dark-drone'?1100:preset==='bass'?1400:preset==='acid303'?1850:preset==='pad'?2300:6000;
+  filter.params.cutoff=isLowCutoff;
+  const isSlowEnv=preset==='pad'||preset==='lush-pad'||preset==='dark-drone'||preset==='warm-strings'||preset==='ethereal-pad';
+  env.params.attack=isSlowEnv?.14:.006;
+  env.params.decay=preset==='piano'?1.4:isSlowEnv?.45:.22;
+  env.params.sustain=preset==='piano'?.12:preset==='pluck'?.12:preset==='bell-pluck'?.08:isSlowEnv?.65:.55;
+  env.params.release=preset==='piano'?.8:isSlowEnv?.75:.14;
   const cable=(from:string,out:string,to:string,input:string,depth=1):SynthCable=>({from,out,to,input,depth});
   const cables=[cable('source-a','out','mix','a'),...(!sampled?[cable('source-b','out','mix','b')]:[]),cable('mix','out','filter','in'),cable('filter','out','amp','in'),cable('env','out','amp','gain'),cable('amp','out','out','in')];
   return {version:1,nodes,cables};
