@@ -49,7 +49,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
   {
     id: 'export',
     title: 'Export Audio',
-    description: 'Render your active pattern or full song arrangement to studio-grade WAV or MP3 audio whenever you are ready.',
+    description: 'Render your active pattern or full song arrangement to WAV or MP3 audio whenever you are ready.',
     targetSelector: '.output-group'
   }
 ];

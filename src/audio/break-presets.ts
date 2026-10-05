@@ -8,7 +8,7 @@ export interface BreakPreset {
   id: string;
   name: string;
   shortName: string;
-  category: 'authentic-sample' | 'acoustic-recreation';
+  category: 'author-reperformance' | 'acoustic-recreation';
   description: string;
   bars: number;
   bpm: number;
@@ -20,13 +20,13 @@ export interface BreakPreset {
   knownHashes?: string[];
 }
 
-// 1. Think Break: 1 bar, 1.42x repitched authentic recording (44.1 kHz, 69,255 frames)
+// 1. Think Break: 1 bar, author-performed Think-style re-performance repitched 1.42x (44.1 kHz, 69,255 frames)
 const THINK_PRESET: BreakPreset = {
   id: 'think-142x',
   name: 'Think Break (1.42x Classic)',
   shortName: 'Think Break',
-  category: 'authentic-sample',
-  description: 'Authentic Lyn Collins funk break (1972). Crisp tambourine, syncopated kick pickups and the iconic high snare.',
+  category: 'author-reperformance',
+  description: 'Author-performed Think-style break repitched 1.42x (+6.1 semitones). Crisp tambourine, syncopated kick pickups and a high snare. The 1972 Lyn Collins recording is not bundled.',
   bars: 1,
   bpm: 152.8,
   sampleRate: THINK_BREAK_RATE,

@@ -22,7 +22,7 @@ export const SYNTH_PRESET_CATALOG:Record<SynthPreset,SynthPresetDefinition>={
   pad:{id:'pad',name:'Basic Pad',category:'Pad',description:'Gentle sustained chord pad',waveform:'saw',attack:.14,decay:.45,sustain:.62,release:.75,lowpassHz:2300},
   'lush-pad':{id:'lush-pad',name:'Lush Ambient',category:'Pad',description:'Slow-evolving warm atmospheric bed',waveform:'saw',attack:.45,decay:.8,sustain:.78,release:1.6,lowpassHz:2600},
   'dark-drone':{id:'dark-drone',name:'Dark Drone',category:'Pad',description:'Ominous cinematic drone for tension and intros',waveform:'triangle',attack:.6,decay:1.2,sustain:.85,release:1.8,lowpassHz:1100},
-  'warm-strings':{id:'warm-strings',name:'Warm Strings',category:'Pad',description:'Vintage analog string ensemble emulation',waveform:'saw',attack:.22,decay:.65,sustain:.72,release:1.1,lowpassHz:4200},
+  'warm-strings':{id:'warm-strings',name:'Warm Strings',category:'Pad',description:'Subtractive string-ensemble starting point',waveform:'saw',attack:.22,decay:.65,sustain:.72,release:1.1,lowpassHz:4200},
   'ethereal-pad':{id:'ethereal-pad',name:'Ethereal Shimmer',category:'Pad',description:'Airy, sparkling high-frequency atmosphere',waveform:'triangle',attack:.35,decay:.9,sustain:.68,release:1.4,lowpassHz:6800},
 
   pluck:{id:'pluck',name:'Basic Pluck',category:'Keys & Pluck',description:'Sharp percussive melodic transient',waveform:'triangle',attack:.003,decay:.22,sustain:.12,release:.14,lowpassHz:5200},

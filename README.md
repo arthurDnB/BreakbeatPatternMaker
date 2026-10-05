@@ -24,7 +24,7 @@ Instrument controls are separate from note Undo/Redo. Library playback trims lea
 
 ## Bundled library and provenance
 
-12 CC0 WAVs: acoustic bass drum, two acoustic snare dynamics, acoustic closed hat, bongo, tambourine, two TR-808 kicks, TR-808 snare, closed/open hats and clap.
+32 CC0 WAV one-shots (20 added later; see [Expanded sound library](#expanded-sound-library)). The original 12 were: acoustic bass drum, two acoustic snare dynamics, acoustic closed hat, bongo, tambourine, two TR-808 kicks, TR-808 snare, closed/open hats and clap.
 
 - Versilian Community Sample Library: https://github.com/sgossner/VCSL
 - Michael Fischer TR-808 set: https://github.com/tidalcycles/sounds-tr808-fischer
@@ -122,11 +122,11 @@ Changing genre now loads its complete generation preset, overriding prior manual
 
 ## Static deployment build (GitHub Pages ready)
 
-Run `npm ci`, then `npm run build:site`. Publish the **contents of `site/`** as the website root. The generated folder includes root `index.html`, only browser-reachable JavaScript modules, CSS, the shared synth, help, 32 verified CC0 WAVs, sample provenance and licenses, and `.nojekyll`. Development servers, CLI modules, tests, node_modules, TypeScript declarations and source maps are excluded. `site/` is ignored by Git and replaced on each deployment build; do not store hand-written files there.
+Run `npm ci`, then `npm run build:site`. Publish the **contents of `site/`** as the website root. The generated folder includes root `index.html`, only browser-reachable JavaScript modules, CSS, the shared synth, help, 345 licensed WAVs (344 CC0-1.0 and 1 CC-BY-4.0), sample provenance and licenses, and `.nojekyll`. Development servers, CLI modules, tests, node_modules, TypeScript declarations and source maps are excluded. `site/` is ignored by Git and replaced on each deployment build; do not store hand-written files there.
 
 The same artifact works at `/` or `/repository-name/` without a hard-coded repository name or hostname. HTML links are relative to the site entry point; sample fetches resolve relative to the browser module. Use an HTTP(S) static host; opening index.html with a file:// URL is not supported. The deployment entry point is site/index.html, not public/index.html. The local server still serves the app at `/` and redirects its legacy public/index.html entry to `/`.
 
-Run `npm run test:site` to rebuild and test the artifact at both root and `/breakbeat-pattern-maker/`. The test checks module/CSS loading, all 32 samples, playback, WAV download, project import/export, autosave and help/license links, and rejects failed resource requests. Node.js is needed only to build/test, not by visitors. Existing localhost autosaves do not transfer automatically to a different website origin; download a project backup and open it on the hosted app.
+Run `npm run test:site` to rebuild and test the artifact at both root and `/breakbeat-pattern-maker/`. The test checks module/CSS loading, all 345 samples, playback, WAV download, project import/export, autosave and help/license links, and rejects failed resource requests. Node.js is needed only to build/test, not by visitors. Existing localhost autosaves do not transfer automatically to a different website origin; download a project backup and open it on the hosted app.
 
 This prepares the files only. A GitHub Pages deployment workflow and repository Pages configuration are separate steps.
 
@@ -144,9 +144,9 @@ Saved projects use schema version 2 or 3 depending on the audio engine. Version 
 Regression check: run `npm.cmd test`, start the local server, then run `node scripts/song-browser-smoke.mjs`. The song test checks timeline selection, insertion, drag reorder, undo/redo, playback following, exact rendered WAV data, persistence and mobile layout.
 
 
-## Groove v4 generation
+## Groove generation: V5 and V4
 
-New UI patterns use **Groove v4**. Each of the 38 genres has an editable call/answer profile in `src/core/groove-v4-profiles.ts`. Complexity adds coordinated rhythmic layers; Spicy adds bounded rolls, pitch accents, reverse hits, chops, and microtiming where that genre permits them. Protected kick/snare anchors stay fixed through slider changes and variations. Preview and WAV use the same renderer. See [the V4 tuning guide](docs/GROOVE-V4.md) for where to change genre behavior and how to verify it.
+Changing genre loads that genre's starting point, which uses **Groove V5** (`genreDefaults()` in `src/core/profiles.ts`); **Groove v4** remains selectable in **Engine**. The V4 call/answer profiles live in `src/core/groove-v4-profiles.ts`. Complexity adds coordinated rhythmic layers; Spicy adds bounded rolls, pitch accents, reverse hits, chops, and microtiming where that genre permits them. Protected kick/snare anchors stay fixed through slider changes and variations. Preview and WAV use the same renderer. See [the V4 tuning guide](docs/GROOVE-V4.md) for where to change genre behavior and how to verify it.
 
 ## Groove v3 musical phrasing
 

@@ -1,6 +1,6 @@
 # Groove V5 system design and agent contract
 
-Groove V5 is an opt-in drum/break generator. Groove V4 remains the default; saved V1–V4 patterns keep their engine and notes. The first profile pass covers Jungle, Liquid DnB, Boom Bap, Trap, Two Step Garage, Dubstep, Breakcore and AmenScience. The core can accept any of the current 38 genres, but inherited baseline profiles are engineering fixtures until their music is reviewed. V5 makes no claim of industry-standard authenticity without listening comparisons.
+Groove V5 is the default drum/break generator for UI genre starting points (`genreDefaults()` in `src/core/profiles.ts`); Groove V4 remains selectable, and saved V1–V4 patterns keep their engine and notes. The first profile pass covers Jungle, Liquid DnB, Boom Bap, Trap, Two Step Garage, Dubstep, Breakcore and AmenScience. The core can accept any of the current 38 genres, but inherited baseline profiles are engineering fixtures until their music is reviewed. V5 makes no claim of industry-standard authenticity without listening comparisons.
 
 ## Typed boundary
 

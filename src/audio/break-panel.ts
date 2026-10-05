@@ -9,12 +9,12 @@ import {getBreakPreset, getBreakPresetAsset} from './break-presets.js';
 interface Cut {frame:number;id:string;note:number;manual:boolean}
 export function setupBreakPanel(options:{settings:()=>Settings;assets:Map<string,AudioAsset>;stop:()=>void;create:(pattern:Pattern)=>void;update:(instrument:SliceInstrument)=>void}){
   const dialog=document.createElement('dialog');dialog.id='break-browser';dialog.setAttribute('aria-labelledby','break-title');
-  dialog.innerHTML=`<header><div><h2 id="break-title">Import break</h2><small>Slice transcription · Curated presets &amp; WAV import · Audio stays on this device</small></div><button id="break-close" aria-label="Close break editor">Close</button></header>
+  dialog.innerHTML=`<header><div><h2 id="break-title">Import break</h2><small>Slice transcription (preview) · Curated presets &amp; WAV import · Audio stays on this device</small></div><button id="break-close" aria-label="Close break editor">Close</button></header>
   <p>Select a classic break preset or choose a custom WAV. Review the detected or verified slices, audition dry playback, and create a tracker instrument.</p>
   <div class="break-preset-bar">
     <label id="break-preset-label">Break preset
       <select id="break-preset-select">
-        <optgroup label="Authentic Classic Break">
+        <optgroup label="Classic Break (author re-performance)">
           <option value="think-142x" selected>Think Break (1.42x Classic) · 1 Bar · 153 BPM</option>
         </optgroup>
         <optgroup label="Acoustic Break Recreations">
