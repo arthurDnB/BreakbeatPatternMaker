@@ -9,6 +9,7 @@ import {LIBRARY,KIT_PRESETS,GENRE_KITS} from '../dist/audio/library.js';
 import {withDrumKit,defaultKitState} from '../dist/audio/drum-kit.js';
 import {defaultEffects} from '../dist/audio/effects.js';
 import {encodeWav} from '../dist/audio/wav.js';
+import {F_DET_CASES,F_DET_ENGINES,fdetSettings,firstDivergence} from './engine-determinism-fixture.mjs';
 const dir=process.env.AUDIT_DIR??'test-results/loop-audit-current';fs.mkdirSync(dir,{recursive:true});
 const roles=['kick','snare','hat','percussion'],modes=['groove','auto','fill','roll','build'];
 const fast=['amenscience','breakcore','atmosphericbreakcore','jungle','drumfunk','liquiddnb','hardcore'];
@@ -18,7 +19,7 @@ const base=genreDefaults('amenscience'),results=[],issues=[];
 // `reason` provenance. The compatibility fixtures keep reason inside the hash. The
 // generate-twice determinism check below still compares the whole pattern text, reason included.
 const signature=p=>JSON.stringify(p.events.map(({reason,...h})=>h));
-function check(s,label){let p;try{p=generate(s);compile(p);const again=generate(s);if(JSON.stringify(p)!==JSON.stringify(again))throw Error('Nondeterministic');}catch(e){issues.push({label,s,error:String(e)});return;}
+function check(s,label){let p;try{p=generate(s);compile(p);const again=generate(s);if(JSON.stringify(p)!==JSON.stringify(again))throw Error('Nondeterministic: '+JSON.stringify(firstDivergence(p,again)));}catch(e){issues.push({label,s,error:String(e)});return;}
  const attacks=p.events.flatMap(h=>Array.from({length:h.ratchets??1},(_,i)=>({role:h.role,t:h.baseTick+h.offsetTick+(h.fineOffset??0)+i*(h.articulation?.durationTicks??3840/s.resolution)/(h.ratchets??1)})));
  const excluded=p.events.filter(h=>s.enabledRoles&&!s.enabledRoles.includes(h.role)).length;
  const beyond=attacks.filter(h=>h.t<0||h.t>=s.bars*3840).length;
@@ -56,7 +57,13 @@ for(const mode of modes)for(const spicy of [.0,.95]){
 const p=withDrumKit(generate({...base,patternStructure:'auto'}),kit,mix);
 for(const fx of [{...defaultEffects(),mix:.35,feedback:.5,drive:.3},{...defaultEffects(),highpass:100,lowpass:6000,punch:.5,resonance:.4}]){const effects=Object.fromEntries(roles.map(r=>[r,fx]));const loop=renderPerformance(p,assets,44100,effects,{loop:true}),seq=renderSequence(Array(4).fill(p),assets,44100,effects);audio.push({name:'effects-'+audio.length,fx,sequenceDelta:delta(loop,seq,Math.round(2*loop.duration*44100))});wav('effects-'+audio.length,loop,4);}
 const standardDifference=[];for(const genre of fast)for(let i=0;i<20;i++){const s={...genreDefaults(genre),seed:'audit-'+i,patternStructure:'groove'};const a=generate({...s,fillAmount:0}),b=generate({...s,fillAmount:1});if(signature(a)!==signature(b))standardDifference.push({genre,seed:s.seed,a:a.events.length,b:b.events.length,removed:a.events.filter(h=>!b.events.some(x=>x.id===h.id)).map(h=>({id:h.id,role:h.role,baseTick:h.baseTick,anchor:h.anchor}))});}
-const report={count:results.length,base,preset,issues,locks,effectsByControl,audio,standardDifference,results};fs.writeFileSync(`${dir}/results.json`,JSON.stringify(report,null,2));
-console.log(JSON.stringify({count:results.length,issueCases:issues.length,compileErrors:issues.filter(i=>i.error).length,exclusionCases:issues.filter(i=>i.excluded).length,duplicates:issues.filter(i=>i.duplicate).length,standardDifference:standardDifference.length,locks,audio:audio.map(({name,renderMs,sequenceDelta,shortVoices})=>({name,renderMs,sequenceDelta,short:shortVoices?.length}))},null,2));
+// F-DET matrix (M0 audit section 3.8, adopted in docs/M1-RENDER-PLAN-CONTRACT.md): every engine and
+// every required knob, generated twice, compiled and cross-checked against its literal version stamp,
+// so a drift surfaces with the first divergent hit index and field instead of one anonymous digest
+// change. This extends the generate-twice check in check(); it does not replace it.
+const determinism=[],engineVersions=new Map(F_DET_ENGINES);
+for(const item of F_DET_CASES){const s=fdetSettings(item);try{const a=generate(s),again=generate(s);compile(a);if(a.engineVersion!==engineVersions.get(item.algorithm))determinism.push({id:item.id,error:`${item.algorithm} stamps ${a.engineVersion}, expected ${engineVersions.get(item.algorithm)}`});else if(JSON.stringify(a)!==JSON.stringify(again))determinism.push({id:item.id,divergence:firstDivergence(a,again)});}catch(error){determinism.push({id:item.id,error:String(error)});}}
+const report={count:results.length,base,preset,issues,locks,effectsByControl,audio,standardDifference,determinism,results};fs.writeFileSync(`${dir}/results.json`,JSON.stringify(report,null,2));
+console.log(JSON.stringify({count:results.length,issueCases:issues.length,compileErrors:issues.filter(i=>i.error).length,exclusionCases:issues.filter(i=>i.excluded).length,duplicates:issues.filter(i=>i.duplicate).length,standardDifference:standardDifference.length,determinism:determinism.length,locks,audio:audio.map(({name,renderMs,sequenceDelta,shortVoices})=>({name,renderMs,sequenceDelta,short:shortVoices?.length}))},null,2));
 
-if(issues.length||standardDifference.length||locks.some(x=>!x.ok||!x.undo||!x.redo))process.exitCode=1;
+if(issues.length||standardDifference.length||determinism.length||locks.some(x=>!x.ok||!x.undo||!x.redo))process.exitCode=1;

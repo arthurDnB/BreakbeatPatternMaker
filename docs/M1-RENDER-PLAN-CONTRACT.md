@@ -1,8 +1,9 @@
 # M1 render plan contract
 
 The contract between the JavaScript engine and the future native renderer, plus the two
-fixture-hashing decisions settled in precondition 4 and the fixture comparison policy adopted in
-precondition 5 (the §3.6 tolerance table and the §3.7 two master-bus paths).
+fixture-hashing decisions settled in precondition 4 and the fixture comparison policy and
+determinism matrix adopted in precondition 5 (the §3.6 tolerance table, the §3.7 two master-bus
+paths, and the §3.8 F-DET fixtures).
 
 ## What is frozen
 
@@ -63,9 +64,9 @@ binds them to the real hash used by the compatibility fixtures.
    Consequence, and the price of this choice: **number formatting is part of the contract**.
    A native renderer must emit JavaScript's shortest round-trip form byte for byte —
    `1` and not `1.0`, `0.5` and not `0.50`, `0.3333333333333333`, `1e+21` in exponent form,
-   and `-0` collapsing to `0`. If that is not acceptable, narrow the hash to a canonical
-   projection (sorted keys, fixed decimal format) *before* any F-DET hash is frozen — after
-   freezing, changing it invalidates every recorded fixture.
+   and `-0` collapsing to `0`. The choice was taken as written: the F-DET matrix in
+   `tests/fixtures/determinism-matrix.json` freezes 44 whole-pattern digests of that exact text,
+   so narrowing the hash to a canonical projection now would invalidate every recorded fixture.
 2. **`reason` is inside the hash.** It is user-visible provenance: a build that places the same
    hits for different stated reasons is a different fixture, not a numerically equal one.
    The deliberate exception is `scripts/loop-generation-audit.mjs`'s `signature`, which strips
@@ -138,7 +139,7 @@ the caller explicitly passes `expectSilence: true`.
 
 Two explicit policies accompany the table: **gain errors must never be normalized away** before
 comparison, and **non-silence is not evidence of parity**. The repo's only existing PCM comparator,
-`delta(a,b,offset)` in `scripts/loop-generation-audit.mjs:40`, returns whole-render `{rms,peak}` and
+`delta(a,b,offset)` in `scripts/loop-generation-audit.mjs:45`, returns whole-render `{rms,peak}` and
 is insufficient on its own.
 
 ## The master bus is two code paths (M0 §3.7)
@@ -173,12 +174,21 @@ the two master paths, not an isolation of them.
 
 ## Carried forward to precondition 5
 
-- **Still open: F-DET fixtures.** They should extend, never replace, the generate-twice equality
-  check in `scripts/loop-generation-audit.mjs`: all six engines with their literal `engineVersion`;
-  seeds including `'pre-v3-compatibility'`, `'a'`, `'break-042'`, `'sééd-ünicode'`; and the settings
-  `variation`, `phraseLength`/`phraseOffset`, `breakStyle`, `enabledRoles`, `laneDensity`,
-  `hitTarget`, `breakLayer` (`'off'` or `'think-passage2'`, the only two the engine accepts),
-  and `lpb`. Per-hit digests should report the first divergent hit index and field name.
+- **Done: F-DET fixtures.** `scripts/engine-determinism-fixture.mjs` declares `F_DET_ENGINES` (the
+  six engines against their literal `engineVersion` strings), `F_DET_SEEDS` (`'pre-v3-compatibility'`,
+  `'a'`, `'break-042'`, `'sééd-ünicode'`), the nine `F_DET_KNOBS` axes, `fdetSettings(item)`,
+  `fdetFieldDigests`/`locateDrift` (drift against a captured case: the moved fields, the event count,
+  and the first hit whose own digest no longer matches) and `firstDivergence(a,b)` (the same report
+  for two patterns generated in one process). `tests/fixtures/determinism-matrix.json` (144 273
+  bytes) captures 44 cases — 6 engines × 4 seeds plus two-or-more cases per knob — each with its
+  `sha256`, per-hit digests (`hitDigests`, 16 hex chars, a locator only) and one digest per event
+  field (`fieldDigests`). `tests/determinism-matrix.test.mjs` (7 tests) pins the coverage, the
+  literal stamps, bit-exact regeneration, `reason` inside the digest, member order inside the digest,
+  and `layerOf` absent before and after a render attempt.
+- The generate-twice check in `scripts/loop-generation-audit.mjs` was **extended, never replaced**:
+  its failure now names the first divergence (`:22`), and the same matrix runs as an added sweep
+  (`:60-65`) reported as `determinism` and included in the non-zero exit (`:69`).
+  Verify with `node --test tests/determinism-matrix.test.mjs` (7 tests) and `npm run test:loop-audit`.
 - **Done:** the two artefacts that had to leave the gitignored report — the §3.6 tolerance table and
   the §3.7 master-bus requirement — were adopted during precondition 5 as mandatory fixtures:
   `scripts/fixture-tolerance.mjs` with `tests/fixture-tolerance.test.mjs` (12 tests), and
