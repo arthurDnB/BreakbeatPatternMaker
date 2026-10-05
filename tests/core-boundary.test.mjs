@@ -40,17 +40,19 @@ const BROWSER_GLOBALS = [
   'DragEvent', 'ClipboardEvent', 'NodeFilter',
 ];
 
-// The only sideways imports allowed anywhere in src/core, src/audio and src/ui.
-// Adding an edge is a deliberate act that must be recorded here; every layer may
-// always depend on src/core, and a file may always depend on its own layer.
+// Layer direction, which is the real architectural invariant:
 //
-// The drum-kit entry is the last remaining inversion (audio reaching into ui).
-// It is the second half of M0 precondition 1 and should disappear with it.
-const REVIEWED_LAYER_EDGES = [
-  'src/audio/drum-kit.ts -> ../ui/rotary-knob.js',
-  'src/ui/synth-patch-editor.ts -> ../audio/modular-synth.js',
-  'src/ui/synth-patch-editor.ts -> ../audio/synth-instrument.js',
-];
+//     src/core (0)  <-  src/audio (1)  <-  src/ui (2)
+//
+// A module may import its own layer or any lower one. Importing a HIGHER layer
+// is an inversion: src/core stops being headless and src/audio stops being
+// independent of the DOM. Three such edges existed when this test was written —
+// core -> audio from compile.ts and editor.ts, and audio -> ui from drum-kit.ts.
+// The first two were removed by the synth data/render split; the third by moving
+// the kit's panel builder to src/ui/drum-kit-panel.ts. This list must stay empty:
+// an entry here is a deliberate, reviewed exception, not a place to park new code.
+const LAYER_RANK = { core: 0, audio: 1, ui: 2 };
+const REVIEWED_UPWARD_EXCEPTIONS = [];
 
 const SPECIFIER_PATTERNS = [
   /\bfrom\s*['"]([^'"]+)['"]/g,
@@ -167,15 +169,23 @@ test('src/core declares no browser, DOM or Web Audio globals', () => {
   assert.deepEqual(violations, [], `src/core must not touch the browser:\n${violations.join('\n')}`);
 });
 
-test('cross-layer imports match the reviewed allowlist exactly', () => {
+test('no module imports a layer above its own', () => {
   const edges = [];
+  let downward = 0;
   for (const file of [...layerFiles('core'), ...layerFiles('audio'), ...layerFiles('ui')]) {
+    const from = LAYER_RANK[file.split('/')[1]];
     for (const specifier of specifiersOf(sources.get(file))) {
       const target = /^\.\.\/([a-z]+)\//.exec(specifier)?.[1];
-      if (!target || target === file.split('/')[1]) continue;
-      if (target === 'core') continue;
+      if (!target || !(target in LAYER_RANK)) continue;
+      const to = LAYER_RANK[target];
+      if (to === from) continue;
+      if (to < from) { downward++; continue; }
       edges.push(`${file} -> ${specifier}`);
     }
   }
-  assert.deepEqual([...edges].sort(), REVIEWED_LAYER_EDGES);
+  // Measured before this assertion was written: 45 downward imports
+  // (ui -> audio 10, audio -> core 32, ui -> core 3) and zero upward ones.
+  assert.ok(downward >= 30, `saw only ${downward} downward cross-layer imports, so the specifier scan is probably broken`);
+  assert.deepEqual([...edges].sort(), REVIEWED_UPWARD_EXCEPTIONS,
+    `these imports reach into a higher layer:\n${edges.join('\n')}`);
 });
