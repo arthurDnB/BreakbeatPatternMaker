@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { rm } from 'node:fs/promises';
+import { readFile, rm, writeFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
 import { startBreakReviewServer } from './break-review-server.mjs';
 
@@ -43,10 +43,14 @@ try {
   });
   await page.locator('#play-full').click();
   await page.getByText('Full passage played').waitFor({ timeout: 10000 });
+  // The first Amen label sits at 0.00001 s, exactly on the region start, where hit only and hit + context both
+  // clamp to offset 0. Move to the next label so the lead-in comparison is meaningful.
+  await page.locator('#marker-list .marker-item').nth(1).click();
   await page.locator('#play-hit').click();
   await page.locator('#play-context').click();
   const windows = await page.evaluate(() => window.__playWindows.slice(-2));
   assert.equal(windows.length, 2);
+  assert.ok(windows[0][1] > 0, 'an interior label must audition from inside the region');
   assert.ok(windows[0][1] > windows[1][1], 'hit only should omit the context lead-in');
   assert.ok(windows[0][2] < windows[1][2], 'hit only should have a shorter audition window');
   await page.locator('#accept-rest').click();
@@ -81,7 +85,9 @@ try {
   blindBrowser = await chromium.launch({ headless: true, channel: process.env.BROWSER_CHANNEL ?? 'msedge' });
   const page = await blindBrowser.newPage();
   await page.goto(blindServer.url);
-  assert.match(await page.locator('#review-guidance').textContent(), /first-review labels are hidden/);
+  // The app bootstraps through a top-level await, so the page can finish loading before the
+  // state fetch resolves and the blind guidance is written. Wait for it instead of racing it.
+  await page.waitForFunction(() => document.querySelector('#review-guidance').textContent.startsWith('Independent second review'), null, { timeout: 15000 });
   assert.equal(await page.locator('#marker-list .marker-item').count(), 0);
   await page.locator('#play-full').click();
   await page.getByText('Full passage played').waitFor({ timeout: 10000 });
@@ -97,4 +103,61 @@ try {
   await new Promise(resolve => blindServer.server.close(resolve));
   await rm(blindDraft, { force: true });
   await rm(blindExport, { force: true });
+}
+
+// Full-loop session: loop playback, the visible position readout and the required checklist that gates review.
+const loopDraft = `test-results/break-transcription/loop-smoke-${randomUUID()}.json`;
+// Every session keeps its own draft next to the primary one, so this run gets its own manifest with per-run draft
+// names. Otherwise a previous run's reviewed passage would be loaded here and the "1 / 4 reviewed" step would drift.
+const loopSessions = `test-results/break-transcription/loop-smoke-sessions-${randomUUID()}.json`;
+const loopRun = randomUUID();
+const loopManifest = JSON.parse(await readFile('benchmarks/break-review-sessions.json', 'utf8'));
+for (const session of loopManifest.sessions) {
+  session.draftName = `loop-smoke-${loopRun}-${session.id}-draft.json`;
+  session.blindDraftName = `loop-smoke-${loopRun}-${session.id}-second-review-draft.json`;
+}
+await writeFile(loopSessions, `${JSON.stringify(loopManifest, null, 2)}\n`);
+const loopDrafts = loopManifest.sessions.map(session => `test-results/break-transcription/${session.draftName}`);
+const loopServer = await startBreakReviewServer({ port: 0, draftFile: loopDraft, sessionsFile: loopSessions });
+let loopBrowser;
+try {
+  loopBrowser = await chromium.launch({ headless: true, channel: process.env.BROWSER_CHANNEL ?? 'msedge' });
+  const page = await loopBrowser.newPage({ viewport: { width: 1280, height: 800 } });
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto(loopServer.url);
+  await page.locator('#case-list button').first().waitFor();
+  assert.equal(await page.locator('#session-select').inputValue(), 'baseline');
+  assert.equal(await page.locator('#case-list button').count(), 8);
+  await page.locator('#session-select').selectOption('full-loops');
+  // Switching sessions is an async round trip (POST /api/session then GET /api/state), so wait for the new list.
+  await page.waitForFunction(() => document.querySelectorAll('#case-list button').length === 4);
+  assert.equal(await page.locator('#session-select').inputValue(), 'full-loops');
+  assert.equal(await page.locator('#loop-toggle').isChecked(), false);
+  await page.locator('#loop-toggle').check();
+  assert.match(await page.locator('#loop-state').textContent(), /Loop on/);
+  await page.locator('#play-full').click();
+  // Arming playback fetches and decodes the passage first, so the readout appears shortly after the click.
+  await page.waitForFunction(() => /Position \d/.test(document.querySelector('#play-position').textContent), null, { timeout: 15000 });
+  await page.waitForFunction(() => document.querySelector('#checklist-listenedFull')?.checked === true, null, { timeout: 20000 });
+  assert.match(await page.locator('#loop-state').textContent(), /Looping · pass/);
+  assert.match(await page.locator('#checklist-state').textContent(), /required before review/);
+  assert.equal(await page.locator('#finish-clip').isDisabled(), true);
+  assert.equal(await page.locator('#finish-clip').textContent(), 'Finish the checklist first');
+  await page.locator('#stop').click();
+  await page.locator('#checklist-firstHitChecked').check();
+  await page.locator('#checklist-lastHitChecked').check();
+  assert.match(await page.locator('#checklist-state').textContent(), /^3 \/ 3/);
+  await page.locator('#accept-rest').click();
+  assert.equal(await page.locator('#finish-clip').isDisabled(), false);
+  await page.locator('#finish-clip').click();
+  await page.getByText('1 / 4 reviewed').waitFor();
+  assert.deepEqual(errors, []);
+  console.log('Full-loop session: session switching, loop toggle, position readout and the required checklist passed.');
+} finally {
+  await loopBrowser?.close();
+  await new Promise(resolve => loopServer.server.close(resolve));
+  await rm(loopDraft, { force: true });
+  await rm(loopSessions, { force: true });
+  for (const draft of loopDrafts) await rm(draft, { force: true });
 }

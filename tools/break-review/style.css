@@ -4,3 +4,18 @@
 @media(max-width:520px){.topbar{flex-wrap:wrap}.progress{text-align:left}.clip-heading{flex-wrap:wrap}.markers-heading{flex-wrap:wrap}}
 .wave-tools{display:flex;align-items:center;gap:7px;margin:14px 0 7px;color:#9fb1b7;font-size:12px}.wave-tools strong{margin-right:4px;color:#d8e4e5}.wave-tools button{padding:5px 10px}.wave-tools #zoom-level{min-width:34px;text-align:center;color:#8cf3e8;font-variant-numeric:tabular-nums}.wave-tools input{flex:1;min-width:80px;accent-color:#39cbbb}.wave-tools input:disabled{opacity:.4}.legend span:last-child{margin-left:auto;color:#789099}@media(max-width:520px){.wave-tools{flex-wrap:wrap}.wave-tools strong{width:100%}.wave-tools input{flex-basis:100%;order:2}.legend span:last-child{margin-left:0}}
 .review-guidance{margin:5px 0 0;color:#9aadb5;font-size:12px;max-width:760px;line-height:1.4}
+.session-picker{display:grid;gap:5px;margin:0 0 10px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#73cfc8}
+.session-picker select{font:inherit;font-size:12px;font-weight:600;letter-spacing:0;text-transform:none;color:#e8ecee;background:#11181d;border:1px solid #33414b;border-radius:8px;padding:8px 9px;width:100%}
+.session-detail{margin:0 0 12px;font-size:11px;line-height:1.45;color:#8fa3ab}
+.loop-toggle{display:inline-flex;align-items:center;gap:6px;color:#9fb1b7;font-size:12px;cursor:pointer;user-select:none}
+.loop-toggle input{accent-color:#39cbbb;cursor:pointer}
+.loop-state,.play-position{font-size:12px;color:#789099;font-variant-numeric:tabular-nums}
+.loop-state.active{color:#8cf3e8;font-weight:700}
+.checklist-panel{border:1px solid #243139;background:#0b1013;border-radius:10px;padding:12px 14px;margin:14px 0}
+.checklist-panel .markers-heading{margin:0 0 9px}
+.checklist{display:grid;gap:7px;margin:0 0 8px}
+.checklist-item{display:flex;align-items:center;gap:8px;font-size:12px;color:#c3d1d5;cursor:pointer;user-select:none}
+.checklist-item input{accent-color:#39cbbb;cursor:pointer}
+.checklist-item.checked{color:#8be6a4}
+.checklist-panel .hint{margin:0}
+@media(max-width:900px){.checklist-panel{margin:12px 0 0}}

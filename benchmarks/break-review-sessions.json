@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "kind": "break-review-sessions",
+  "description": "Review sessions for the Break Transcription Production Gate. The baseline session is the existing eight listener-verified two-second passages and must not change. Longer and loop sessions add longer excerpts and whole-loop playback over the same recordings; they reuse the reviewed labels of the baseline reference file and score only the labels that fall inside each stated region.",
+  "sessions": [
+    {
+      "id": "baseline",
+      "label": "Fixed two-second beats",
+      "mode": "fixed",
+      "description": "The eight two-second passages behind the verified benchmark. Checklist answers are recorded but do not block completion, so the documented review flow is unchanged.",
+      "draftName": "review-draft.json",
+      "exportName": "verified-real-breaks.json",
+      "blindDraftName": "second-review-draft.json",
+      "blindExportName": "second-review-labels.json",
+      "checklist": ["listenedFull", "firstHitChecked", "lastHitChecked"],
+      "passages": [
+        { "id": "amen-su700", "recordingId": "amen-su700", "family": "amen", "sha256": "d1ce72b0ede05781f4921edda0c8cb1c0f429fbc4dd30d136991fdc99e042f29", "startSeconds": 0, "endSeconds": 2, "bars": 1, "referenceState": "verified", "reference": "benchmarks/verified-real-breaks.json" },
+        { "id": "apache-mono", "recordingId": "apache-mono", "family": "apache", "sha256": "0a007b619ae3cc97916759119d5d79cb690b2ee703db152b2c8a5c408aa030cc", "startSeconds": 0, "endSeconds": 2, "bars": 1, "referenceState": "verified", "reference": "benchmarks/verified-real-breaks.json" },
+        { "id": "funky-mono", "recordingId": "funky-mono", "family": "funky-drummer", "sha256": "388c9b3b3abb37b2fb271c333914fefcf9cfb3779c02d3e208df3616692f747f", "startSeconds": 0, "endSeconds": 2, "bars": 1, "referenceState": "verified", "reference": "benchmarks/verified-real-breaks.json" },
+        { "id": "think-all5", "recordingId": "think-all5", "family": "think", "sha256": "c920719b0bd350fbd30f1f7bea985399e849cccaf4245c189b30b8b54f0407c3", "startSeconds": 0, "endSeconds": 2, "bars": 1, "referenceState": "verified", "reference": "benchmarks/verified-real-breaks.json" },
+        { "id": "funky-ver1", "recordingId": "funky-ver1", "family": "funky-drummer", "sha256": "a45f122ec59f9a0476fe5a67dd413c9121240b152a07c741a4e169344296decb", "startSeconds": 0, "endSeconds": 2, "bars": 1, "referenceState": "verified", "reference": "benchmarks/verified-real-breaks.json" },
+        { "id": "funky-ver2", "recordingId": "funky-ver2", "family": "funky-drummer", "sha256": "4e6ac6261744dca55d809dccc75b01030b1873a44e8d7e10338fa21c15aa291c", "startSeconds": 0, "endSeconds": 2, "bars": 1, "referenceState": "verified", "reference": "benchmarks/verified-real-breaks.json" },
+        { "id": "apache-part2", "recordingId": "apache-part2", "family": "apache", "sha256": "8cd89d4a4dfa269a76d9c4d162f65ec1f43012c09a017334a7106d3b47b48aef", "startSeconds": 0, "endSeconds": 2, "bars": 1, "referenceState": "verified", "reference": "benchmarks/verified-real-breaks.json" },
+        { "id": "apache-part1", "recordingId": "apache-part1", "family": "apache", "sha256": "6620355a086e618ab480e09ccd1fd644e8a6270e8f2ac78f438bd5affd0ed155", "startSeconds": 0, "endSeconds": 2, "bars": 1, "referenceState": "verified", "reference": "benchmarks/verified-real-breaks.json" }
+      ]
+    },
+    {
+      "id": "long-excerpts",
+      "label": "Longer excerpts (four and eight seconds)",
+      "mode": "long",
+      "description": "Longer excerpts from the same recordings so a listener can hear onset labels past the first two seconds. The existing reviewed labels all sit inside the first two seconds, so a longer excerpt is reviewed from scratch: every checklist answer is required before a passage can be marked reviewed, and the excerpt is scored against the labels that fall inside it.",
+      "draftName": "long-review-draft.json",
+      "exportName": "verified-long-breaks.json",
+      "blindExportName": "second-review-long-labels.json",
+      "checklist": ["listenedFull", "firstHitChecked", "lastHitChecked"],
+      "passages": [
+        { "id": "amen-su700-long8", "recordingId": "amen-su700", "family": "amen", "sha256": "d1ce72b0ede05781f4921edda0c8cb1c0f429fbc4dd30d136991fdc99e042f29", "startSeconds": 0, "endSeconds": 6.9, "bars": 4, "referenceState": "verified", "reference": "benchmarks/verified-real-breaks.json" },
+        { "id": "apache-mono-long8", "recordingId": "apache-mono", "family": "apache", "sha256": "0a007b619ae3cc97916759119d5d79cb690b2ee703db152b2c8a5c408aa030cc", "startSeconds": 0, "endSeconds": 8.4, "bars": 4, "referenceState": "verified", "reference": "benchmarks/verified-real-breaks.json" },
+        { "id": "apache-part2-long8", "recordingId": "apache-part2", "family": "apache", "sha256": "8cd89d4a4dfa269a76d9c4d162f65ec1f43012c09a017334a7106d3b47b48aef", "startSeconds": 0, "endSeconds": 8.3, "bars": 4, "referenceState": "verified", "reference": "benchmarks/verified-real-breaks.json" },
+        { "id": "apache-part1-long8", "recordingId": "apache-part1", "family": "apache", "sha256": "6620355a086e618ab480e09ccd1fd644e8a6270e8f2ac78f438bd5affd0ed155", "startSeconds": 0, "endSeconds": 8.3, "bars": 4, "referenceState": "verified", "reference": "benchmarks/verified-real-breaks.json" },
+        { "id": "think-all5-long8", "recordingId": "think-all5", "family": "think", "sha256": "c920719b0bd350fbd30f1f7bea985399e849cccaf4245c189b30b8b54f0407c3", "startSeconds": 0, "endSeconds": 8, "bars": 4, "referenceState": "verified", "reference": "benchmarks/verified-real-breaks.json" },
+        { "id": "funky-ver1-long8", "recordingId": "funky-ver1", "family": "funky-drummer", "sha256": "a45f122ec59f9a0476fe5a67dd413c9121240b152a07c741a4e169344296decb", "startSeconds": 0, "endSeconds": 8, "bars": 4, "referenceState": "verified", "reference": "benchmarks/verified-real-breaks.json" },
+        { "id": "funky-ver2-long8", "recordingId": "funky-ver2", "family": "funky-drummer", "sha256": "4e6ac6261744dca55d809dccc75b01030b1873a44e8d7e10338fa21c15aa291c", "startSeconds": 0, "endSeconds": 8, "bars": 4, "referenceState": "verified", "reference": "benchmarks/verified-real-breaks.json" }
+      ]
+    },
+    {
+      "id": "full-loops",
+      "label": "Full loops (repeat until stopped)",
+      "mode": "loop",
+      "description": "Whole two-bar loops played on repeat. End is measured in seconds from the recording start and the loop length is stated per passage; a reviewer listens to at least one complete pass and answers every checklist item before a passage can be marked reviewed. The four shortest recordings are used so the whole loop fits in the local WAV.",
+      "draftName": "loop-review-draft.json",
+      "exportName": "verified-loop-breaks.json",
+      "blindExportName": "second-review-loop-labels.json",
+      "checklist": ["listenedFull", "firstHitChecked", "lastHitChecked"],
+      "passages": [
+        { "id": "amen-su700-loop", "recordingId": "amen-su700", "family": "amen", "sha256": "d1ce72b0ede05781f4921edda0c8cb1c0f429fbc4dd30d136991fdc99e042f29", "startSeconds": 0, "endSeconds": 2.695, "bars": 2, "loopSeconds": 2.695, "referenceState": "verified", "reference": "benchmarks/verified-real-breaks.json" },
+        { "id": "apache-mono-loop", "recordingId": "apache-mono", "family": "apache", "sha256": "0a007b619ae3cc97916759119d5d79cb690b2ee703db152b2c8a5c408aa030cc", "startSeconds": 0, "endSeconds": 2.8, "bars": 2, "loopSeconds": 2.8, "referenceState": "verified", "reference": "benchmarks/verified-real-breaks.json" },
+        { "id": "funky-mono-loop", "recordingId": "funky-mono", "family": "funky-drummer", "sha256": "388c9b3b3abb37b2fb271c333914fefcf9cfb3779c02d3e208df3616692f747f", "startSeconds": 0, "endSeconds": 2.3, "bars": 2, "loopSeconds": 2.3, "referenceState": "verified", "reference": "benchmarks/verified-real-breaks.json" },
+        { "id": "funky-ver1-loop", "recordingId": "funky-ver1", "family": "funky-drummer", "sha256": "a45f122ec59f9a0476fe5a67dd413c9121240b152a07c741a4e169344296decb", "startSeconds": 0, "endSeconds": 2.8, "bars": 2, "loopSeconds": 2.8, "referenceState": "verified", "reference": "benchmarks/verified-real-breaks.json" }
+      ]
+    }
+  ]
+}
