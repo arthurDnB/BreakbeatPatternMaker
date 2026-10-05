@@ -1,7 +1,7 @@
 import {trackerTiming,patternTicks} from './meter.js';
 import {DEFAULT_SOURCES, PPQ, ROLES, bounded, identifier, isSynthTrack, text, type Pattern, type Source, type Transfer} from './model.js';
 import {validateArticulation} from './articulation.js';
-import {validateSynthInstrument} from '../audio/synth-instrument.js';
+import {validateSynthInstrument} from './synth-presets.js';
 import {validateSettings} from './generate.js';
 import {validateSliceInstruments,resolveSlice} from './slice-instrument.js';
 import {drumLane} from './drum-lanes.js';

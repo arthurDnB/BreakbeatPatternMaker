@@ -16,7 +16,7 @@ import {generateMelody} from './melody.js';
 import type {MelodyArcContext} from './melody-arc.js';
 import {generatePiano} from './piano.js';
 import {validateSettings} from './settings.js';
-import {SYNTH_PRESETS} from '../audio/synth-instrument.js';
+import {SYNTH_PRESETS} from './synth-presets.js';
 import {drumLane,routeGeneratedDrums} from './drum-lanes.js';
 import {addThinkBreakLayer,THINK_BREAK_INSTRUMENT_ID,THINK_VOCAL_INSTRUMENT_ID} from './think-break.js';
 import {balanceExactHits} from './exact-hits.js';
