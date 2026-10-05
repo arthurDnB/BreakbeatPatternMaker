@@ -2,6 +2,8 @@
 
 > **Document Purpose:** This document serves as the comprehensive architectural handover from **Antigravity** to **OpenAI Codex** (and developers). It details the complete transformation of the application from its original form to Version 0.1.0, and outlines the complete technical blueprint, wireframes, and implementation roadmap for **Version 0.2.0 (The Renoise Workstation Overhaul)**.
 
+> **Status note (added after the fact; not part of the v0.2.0 record):** this file is a frozen snapshot of the v0.2.0 handover and is no longer maintained. Some claims below are that release's own copy and have since been superseded: the "High-Fidelity" drum-library and master-bus "glue"/punch wording is not perceptually benchmarked (`docs/AUDIO-QUALITY.md`), the "authentic"/"High-Quality" startup-preset wording has no quality review, the "All 52 unit tests pass" count is stale (see `DEVELOPMENT-LOG.md` for the current count), and the Renoise-integration positioning is retired (`README.md`).
+
 ---
 
 ## 🏷️ Brand Identity: Breakbeat Pattern Maker
