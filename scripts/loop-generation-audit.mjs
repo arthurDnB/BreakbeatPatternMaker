@@ -13,6 +13,10 @@ const dir=process.env.AUDIT_DIR??'test-results/loop-audit-current';fs.mkdirSync(
 const roles=['kick','snare','hat','percussion'],modes=['groove','auto','fill','roll','build'];
 const fast=['amenscience','breakcore','atmosphericbreakcore','jungle','drumfunk','liquiddnb','hardcore'];
 const base=genreDefaults('amenscience'),results=[],issues=[];
+// Deliberate exception to the pinned-hash rule in docs/M1-RENDER-PLAN-CONTRACT.md: this audit
+// compares generated *designs* across settings, so it projects events without their user-visible
+// `reason` provenance. The compatibility fixtures keep reason inside the hash. The
+// generate-twice determinism check below still compares the whole pattern text, reason included.
 const signature=p=>JSON.stringify(p.events.map(({reason,...h})=>h));
 function check(s,label){let p;try{p=generate(s);compile(p);const again=generate(s);if(JSON.stringify(p)!==JSON.stringify(again))throw Error('Nondeterministic');}catch(e){issues.push({label,s,error:String(e)});return;}
  const attacks=p.events.flatMap(h=>Array.from({length:h.ratchets??1},(_,i)=>({role:h.role,t:h.baseTick+h.offsetTick+(h.fineOffset??0)+i*(h.articulation?.durationTicks??3840/s.resolution)/(h.ratchets??1)})));

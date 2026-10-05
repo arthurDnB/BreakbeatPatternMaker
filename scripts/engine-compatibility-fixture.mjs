@@ -39,6 +39,10 @@ export function captureCompatibility() {
   for(const algorithm of ['legacy-v1','groove-v2'])for(const genre of Object.keys(PROFILES)){
     if(algorithm==='legacy-v1'&&Object.hasOwn(NEW_GENRES,genre))continue;
     const settings=compatibilitySettings(genre,algorithm),pattern=generate(settings);
+    // The hash is over this exact JSON text, so it pins member order and JavaScript's number
+    // formatting as well as the values, and it covers `reason` provenance. Do not hash the
+    // object itself or reorder the pattern. See docs/M1-RENDER-PLAN-CONTRACT.md and
+    // tests/fixture-hash-contract.test.mjs.
     patterns.push({settings,eventCount:pattern.events.length,sha256:hash(JSON.stringify(pattern))});
   }
   const audio=[];

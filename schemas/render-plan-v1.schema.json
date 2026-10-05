@@ -1,0 +1,97 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://breakbeat-pattern-maker.local/schemas/render-plan-v1.schema.json",
+  "title": "RenderPlanV1",
+  "description": "Frozen M1 contract, recorded by M1 precondition 4. This tracked file is the copy of record: the schema was authored in the M0 audit report (section 2.4), which lives in the gitignored test-results/ directory. Freezing means the file is validated by tests/render-plan-v1.test.mjs, which also pins a content digest, so any edit here must be deliberate. Three rules the schema cannot express (asset boundaries not audio, the prepared-cache key, cumulative timeline arithmetic) are recorded in docs/M1-RENDER-PLAN-CONTRACT.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["planVersion", "projectRevision", "planRevision",
+               "engineVersion", "timeline", "tracks", "events", "loopPolicy"],
+  "properties": {
+    "planVersion":      { "const": "RenderPlanV1" },
+    "projectRevision":  { "type": "integer", "minimum": 0 },
+    "planRevision":     { "type": "integer", "minimum": 0 },
+    "engineVersion":    { "type": "string" },
+    "profileVersion":   { "type": "string" },
+    "dspVersion":       { "type": "string" },
+    "timeline": {
+      "type": "object", "additionalProperties": false,
+      "required": ["ppq", "sampleRate", "tempoEvents", "meterEvents"],
+      "properties": {
+        "ppq":        { "const": 960 },
+        "sampleRate": { "type": "integer", "minimum": 8000, "maximum": 384000 },
+        "tempoEvents": { "type": "array", "items": {
+          "type": "object", "additionalProperties": false,
+          "required": ["tick", "bpm"],
+          "properties": { "tick": { "type": "integer", "minimum": 0 },
+                          "bpm":  { "type": "number", "minimum": 32, "maximum": 999 } } } },
+        "meterEvents": { "type": "array", "items": {
+          "type": "object", "additionalProperties": false,
+          "required": ["tick", "numerator", "denominator"],
+          "properties": {
+            "tick":        { "type": "integer", "minimum": 0 },
+            "numerator":   { "type": "integer", "minimum": 1, "maximum": 32 },
+            "denominator": { "type": "integer", "enum": [1, 2, 4, 8, 16, 32] } } } },
+        "totalTicks": { "type": "integer", "minimum": 0 },
+        "totalFrames":{ "type": "integer", "minimum": 0 }
+      }
+    },
+    "tracks": { "type": "array", "items": {
+      "type": "object", "additionalProperties": false,
+      "required": ["trackId", "kind", "gain", "pan"],
+      "properties": {
+        "trackId": { "type": "string" }, "name": { "type": "string", "maxLength": 120 },
+        "kind":    { "type": "string", "enum": ["sample", "synth"] },
+        "gain":    { "type": "number", "minimum": 0, "maximum": 2 },
+        "pan":     { "type": "number", "minimum": -1, "maximum": 1 },
+        "mute":    { "type": "boolean" }, "solo": { "type": "boolean" },
+        "generationRole": { "type": ["string", "null"] },
+        "instrumentId":   { "type": ["string", "null"] },
+        "modularGraph":   { "type": ["object", "null"] }
+      } } },
+    "events": { "type": "array", "items": {
+      "type": "object", "additionalProperties": false,
+      "required": ["eventId", "trackId", "tick", "source"],
+      "properties": {
+        "eventId": { "type": "string" },
+        "trackId": { "type": "string" },
+        "instrumentId": { "type": ["string", "null"] },
+        "tick":        { "type": "integer", "minimum": 0 },
+        "tickFraction":{ "type": "number", "minimum": 0, "exclusiveMaximum": 1 },
+        "source": {
+          "oneOf": [
+            { "type": "object", "additionalProperties": false, "required": ["kind", "assetKey"],
+              "properties": { "kind": { "const": "sample" }, "assetKey": { "type": "string" },
+                "sliceId": { "type": ["string", "null"] },
+                "startFrame": { "type": ["integer", "null"] },
+                "endFrame":   { "type": ["integer", "null"] },
+                "velocityLayer": { "type": ["string", "null"], "description": "e.g. piano-kw-060-H" } } },
+            { "type": "object", "additionalProperties": false, "required": ["kind", "note"],
+              "properties": { "kind": { "const": "synth" }, "note": { "type": "integer", "minimum": 0, "maximum": 119 },
+                "durationTicks": { "type": "integer", "minimum": 1 } } }
+          ]
+        },
+        "gain": { "type": "number", "minimum": 0, "maximum": 4 },
+        "pan":  { "type": "number", "minimum": -1, "maximum": 1 },
+        "pitch": { "type": "number" },
+        "gate":  { "type": ["number", "null"] },
+        "decay": { "type": ["number", "null"], "minimum": 0.02, "maximum": 1.0 },
+        "playbackRate": { "type": ["number", "null"], "minimum": 0.5, "maximum": 2.0 },
+        "articulation": { "type": ["object", "null"] },
+        "ratchetIndex": { "type": ["integer", "null"], "minimum": 0 },
+        "occurrenceId": { "type": ["string", "null"], "description": "arrangement occurrence, expanded once" }
+      } } },
+    "loopPolicy": {
+      "type": "object", "additionalProperties": false,
+      "required": ["mode", "tailSeconds"],
+      "properties": {
+        "mode": { "type": "string", "enum": ["pattern", "song", "oneShot"] },
+        "loopStartTick": { "type": ["integer", "null"] },
+        "loopEndTick":   { "type": ["integer", "null"] },
+        "tailSeconds":   { "type": "number", "minimum": 0, "maximum": 30 }
+      }
+    },
+    "vinylState": { "type": ["object", "null"], "description": "seeded; see report section 1.6" },
+    "busEffects": { "type": "array", "items": { "type": "object" } }
+  }
+}
