@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {generate} from '../dist/core/generate.js';
 import {defaults} from '../dist/core/profiles.js';
 import {renderPerformance,renderSequence} from '../dist/audio/performance.js';
-import {mixVinylTexture,VINYL_TEXTURES,DEFAULT_VINYL_TEXTURE,getRandomVinylTextureId} from '../dist/audio/vinyl-texture.js';
+import {mixVinylTexture,VINYL_TEXTURES,DEFAULT_VINYL_TEXTURE} from '../dist/audio/vinyl-texture.js';
 import {makeProject,readProject} from '../dist/audio/project.js';
 import {defaultKitState} from '../dist/audio/drum-kit.js';
 import {Editor} from '../dist/core/editor.js';
@@ -12,12 +12,11 @@ import {newBank} from '../dist/core/bank.js';
 const rate=8000;
 const recording={id:'lofi2-vinyl-01',name:'Texture',sampleRate:rate,channels:[Float32Array.from({length:1600},(_,i)=>Math.sin(i*.07)*.5)]};
 const silent=()=>{const p=generate({...defaults(),bpm:120,bars:1});p.events=[];return p;};
-test('all vinyl recordings are ambience choices, default is off at -10 dB, and random pick chooses valid texture',()=>{
+test('all vinyl recordings are ambience choices, default is off at -10 dB, and the catalog order is fixed',()=>{
  assert.equal(VINYL_TEXTURES.length,9);
  assert.deepEqual(VINYL_TEXTURES.map(s=>s.id),Array.from({length:9},(_,i)=>`lofi2-vinyl-0${i+1}`));
  assert.deepEqual(DEFAULT_VINYL_TEXTURE,{enabled:false,catalogId:'lofi2-vinyl-01',levelDb:-10});
- const picked=getRandomVinylTextureId('lofi2-vinyl-01');
- assert.ok(picked.startsWith('lofi2-vinyl-')&&picked!=='lofi2-vinyl-01');
+ assert.equal(VINYL_TEXTURES[0].id,DEFAULT_VINYL_TEXTURE.catalogId,'the default recording stays first so baked fixtures do not move');
 });
 test('texture rendering is deterministic, quiet, independent of tempo and smooth at recording and pattern joins',()=>{
  const p=silent(),options={loop:true,vinylTexture:{asset:recording,levelDb:-30}};
