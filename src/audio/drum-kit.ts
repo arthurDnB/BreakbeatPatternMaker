@@ -1,4 +1,4 @@
-﻿import {ROLES,isSynthTrack,type Pattern,type Role,type SliceRef} from '../core/model.js';
+import {ROLES,isSynthTrack,type Pattern,type Role,type SliceRef} from '../core/model.js';
 import {defaultEffects,type Effects} from './effects.js';
 import {resolvePatternSlices} from '../core/slice-instrument.js';
 
@@ -31,7 +31,7 @@ export function effectiveSampleSpeed(shape:SampleShape,bpm:number):{rate:number;
   if(!shape.followBpm)return {rate:manual,following:false};
   if(!shape.sourceBpm||!Number.isFinite(shape.sourceBpm))return {rate:manual,following:false,warning:'Enter the original break BPM to follow tempo.'};
   const ratio=bpm/shape.sourceBpm;
-  if(!Number.isFinite(ratio)||ratio<.5||ratio>2)return {rate:manual,following:false,warning:'BPM follow needs 0.5Ã—â€“2Ã— speed. Manual speed is playing.'};
+  if(!Number.isFinite(ratio)||ratio<.5||ratio>2)return {rate:manual,following:false,warning:'BPM follow needs 0.5×–2× speed. Manual speed is playing.'};
   return {rate:ratio,following:true};
 }
 export function defaultKitState():KitState{return Object.fromEntries(ROLES.map(r=>[r,{choice:'synth',include:true,mute:false,solo:false,level:1,tune:0,reverse:false,effects:defaultEffects()}])) as KitState;}

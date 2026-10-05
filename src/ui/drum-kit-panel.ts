@@ -1,4 +1,4 @@
-﻿import {ROLES,type Role} from '../core/model.js';
+import {ROLES,type Role} from '../core/model.js';
 import type {AudioAsset} from '../audio/slices.js';
 import {validateWav} from '../audio/wav.js';
 import {defaultEffects,validateEffects,type Effects} from '../audio/effects.js';
@@ -46,8 +46,8 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:(refreshTrack
     soundGroups.push(['Your Sample', [['upload','My upload']]]);
     for(const [label,entries] of soundGroups){if(!entries.length)continue;const group=document.createElement('optgroup');group.label=label;for(const [value,text] of entries){const o=document.createElement('option');o.value=value;o.textContent=text;group.append(o);}choice.append(group);}
     const navRow=document.createElement('div');navRow.className='sound-nav-row';
-    const prevBtn=document.createElement('button');prevBtn.type='button';prevBtn.className='sound-nav-btn sound-prev-btn';prevBtn.textContent='â—€';prevBtn.title='Previous sound ('+title.textContent+')';prevBtn.setAttribute('aria-label','Previous sound for '+title.textContent);
-    const nextBtn=document.createElement('button');nextBtn.type='button';nextBtn.className='sound-nav-btn sound-next-btn';nextBtn.textContent='â–¶';nextBtn.title='Next sound ('+title.textContent+')';nextBtn.setAttribute('aria-label','Next sound for '+title.textContent);
+    const prevBtn=document.createElement('button');prevBtn.type='button';prevBtn.className='sound-nav-btn sound-prev-btn';prevBtn.textContent='◀';prevBtn.title='Previous sound ('+title.textContent+')';prevBtn.setAttribute('aria-label','Previous sound for '+title.textContent);
+    const nextBtn=document.createElement('button');nextBtn.type='button';nextBtn.className='sound-nav-btn sound-next-btn';nextBtn.textContent='▶';nextBtn.title='Next sound ('+title.textContent+')';nextBtn.setAttribute('aria-label','Next sound for '+title.textContent);
     let selectChoice:(soundId:string)=>Promise<boolean>=async()=>false;
     const stepChoice=async(delta:number)=>{const options=Array.from(choice.querySelectorAll('option')).filter(o=>!o.disabled&&o.value!=='upload');if(!options.length)return;const curIdx=options.findIndex(o=>o.value===choice.value);let nextIdx=(curIdx+delta)%options.length;if(nextIdx<0)nextIdx+=options.length;const soundId=options[nextIdx]!.value;choice.value=soundId;if(await selectChoice(soundId))await audition(role).catch(error=>{info.textContent=String(error);});};
     prevBtn.onclick=e=>{e.preventDefault();void stepChoice(-1);};nextBtn.onclick=e=>{e.preventDefault();void stepChoice(1);};
@@ -74,13 +74,13 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:(refreshTrack
       const control=createRotaryKnob({id:'kit-'+key+'-'+role,label,ariaLabel:label+' for '+title.textContent,value:initial,min,max,step,format,scale,onInput});
       control.output.id=control.field.id+'-value';return {field:control.field,output:control.output,wrapper:control.element,setValue:control.setValue,dial:control.dial,setDisabled:control.setDisabled};
     };
-    const speed=sampleControl('speed','Speed',.5,2,.01,1,value=>value.toFixed(2)+'Ã—','linear',value=>{mix[role].playbackRate=value;mix[role].followBpm=false;rememberShape(mix[role]);update();changed(false);});
+    const speed=sampleControl('speed','Speed',.5,2,.01,1,value=>value.toFixed(2)+'×','linear',value=>{mix[role].playbackRate=value;mix[role].followBpm=false;rememberShape(mix[role]);update();changed(false);});
     const speedMode=document.createElement('select');speedMode.id='kit-speed-mode-'+role;
     speedMode.append(new Option('Repitch (changes pitch)','repitch'),new Option('Preserve pitch (stretch)','stretch'));
     const lowpass=sampleControl('lowpass','Low-pass tone',200,20000,100,20000,value=>value>=20000?'Open':Math.round(value)+' Hz','log',value=>{mix[role].lowpassHz=value;rememberShape(mix[role]);update();changed(false);});
     const attack=sampleControl('attack','Attack',0,50,1,0,value=>Math.round(value)+' ms','linear',value=>{mix[role].attackMs=value;rememberShape(mix[role]);update();changed(false);});
     const sourceBpm=document.createElement('input');sourceBpm.type='number';sourceBpm.id='kit-source-bpm-'+role;sourceBpm.min='40';sourceBpm.max='300';sourceBpm.step='.1';sourceBpm.placeholder='Original BPM';
-    const matchBpm=document.createElement('button');matchBpm.type='button';matchBpm.id='kit-match-bpm-'+role;matchBpm.textContent='Match BPM once';matchBpm.title='Set manual speed to current BPM Ã· original BPM once.';
+    const matchBpm=document.createElement('button');matchBpm.type='button';matchBpm.id='kit-match-bpm-'+role;matchBpm.textContent='Match BPM once';matchBpm.title='Set manual speed to current BPM ÷ original BPM once.';
     const followBpm=checkbox('kit-follow-bpm-'+role,'Follow BPM as tempo changes');
     const tempoInfo=document.createElement('p');tempoInfo.id='kit-tempo-info-'+role;tempoInfo.className='sample-tempo-info';tempoInfo.setAttribute('role','status');
     const shapingKnobs=document.createElement('div');shapingKnobs.className='rotary-knob-grid sample-shaping-knobs';shapingKnobs.append(levelKnob.element,tuneKnob.element,speed.wrapper,lowpass.wrapper,attack.wrapper,decayLabel);
@@ -104,7 +104,7 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:(refreshTrack
     const bypass=checkbox('fx-bypass-'+role,'Bypass effects');fx.append(bypass.l);
     const effectGrid=document.createElement('div');effectGrid.className='rotary-knob-grid fx-knobs';fx.append(effectGrid);
     const effectKnobs=new Map<Exclude<keyof Effects,'bypass'>,ReturnType<typeof createRotaryKnob>>();
-    for(const [key,name,min,max,step] of [['highpass','High-pass (Hz)',0,2000,10],['lowpass','Low-pass (Hz)',200,20000,100],['resonance','Resonance / Q (0â€“1)',0,1,.05],['punch','Punch attack (0â€“1)',0,1,.05],['drive','Drive (0â€“1)',0,1,.05],['delayMs','Delay time (ms)',30,1000,10],['feedback','Feedback (0â€“0.75)',0,.75,.05],['mix','Delay mix (0â€“0.6)',0,.6,.05],['wet','FX Wet / Dry (0â€“1)',0,1,.05]] as const){
+    for(const [key,name,min,max,step] of [['highpass','High-pass (Hz)',0,2000,10],['lowpass','Low-pass (Hz)',200,20000,100],['resonance','Resonance / Q (0–1)',0,1,.05],['punch','Punch attack (0–1)',0,1,.05],['drive','Drive (0–1)',0,1,.05],['delayMs','Delay time (ms)',30,1000,10],['feedback','Feedback (0–0.75)',0,.75,.05],['mix','Delay mix (0–0.6)',0,.6,.05],['wet','FX Wet / Dry (0–1)',0,1,.05]] as const){
         const scale=key==='highpass'||key==='lowpass'?'log':'linear';
         const format=(value:number)=>key==='highpass'&&value===0?'Off':key==='lowpass'&&value>=20000?'Open':key==='highpass'||key==='lowpass'?Math.round(value)+' Hz':key==='wet'||key==='mix'?Math.round(value*100)+'%':key==='delayMs'?Math.round(value)+' ms':value.toFixed(2);
         const knob=createRotaryKnob({id:'fx-'+key+'-'+role,label:name.replace(/ \([^)]*\)$/,''),ariaLabel:name+' for '+title.textContent,value:key==='wet'?1:0,min,max,step,scale,format,onInput:value=>{const next={...(mix[role].effects??defaultEffects()),[key]:value};try{validateEffects(next);mix[role].effects=next;update();changed(false);}catch(e){info.textContent=String(e);}}});
@@ -116,7 +116,7 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:(refreshTrack
     layerChoice.onchange=async()=>{
       const selection=layerChoice.value,request=++layerRequest;
       if(selection==='none'){delete mix[role].layer;update();changed(false);return;}
-      layerStatus.textContent='Loading layerâ€¦';
+      layerStatus.textContent='Loading layer…';
       try{
         let asset:AudioAsset;
         if(selection==='upload'){
@@ -130,10 +130,10 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:(refreshTrack
       }catch(error){if(request===layerRequest){update();layerStatus.textContent=String(error)+' Previous layer kept.';}}
     };
     layerInvert.i.onchange=()=>{if(!mix[role].layer)return;mix[role].layer!.phaseInvert=layerInvert.i.checked;update();changed(false);};
-    sourceBpm.onchange=()=>{const bpm=Number(sourceBpm.value);if(sourceBpm.value!==''&&(!Number.isFinite(bpm)||bpm<40||bpm>300)){update();tempoInfo.textContent='Original break BPM must be 40â€“300.';return;}const next=sourceBpm.value===''?undefined:bpm;if(mix[role].sourceBpm===next)return;mix[role].sourceBpm=next;if(next===undefined)mix[role].followBpm=false;rememberShape(mix[role]);update();changed(false);};
-    followBpm.i.onchange=()=>{const source=Number(sourceBpm.value);if(followBpm.i.checked&&(!sourceBpm.value||!Number.isFinite(source)||source<40||source>300)){followBpm.i.checked=false;tempoInfo.textContent='Enter the original break BPM (40â€“300) first.';return;}mix[role].sourceBpm=sourceBpm.value?source:undefined;mix[role].followBpm=followBpm.i.checked;rememberShape(mix[role]);update();changed(false);};
+    sourceBpm.onchange=()=>{const bpm=Number(sourceBpm.value);if(sourceBpm.value!==''&&(!Number.isFinite(bpm)||bpm<40||bpm>300)){update();tempoInfo.textContent='Original break BPM must be 40–300.';return;}const next=sourceBpm.value===''?undefined:bpm;if(mix[role].sourceBpm===next)return;mix[role].sourceBpm=next;if(next===undefined)mix[role].followBpm=false;rememberShape(mix[role]);update();changed(false);};
+    followBpm.i.onchange=()=>{const source=Number(sourceBpm.value);if(followBpm.i.checked&&(!sourceBpm.value||!Number.isFinite(source)||source<40||source>300)){followBpm.i.checked=false;tempoInfo.textContent='Enter the original break BPM (40–300) first.';return;}mix[role].sourceBpm=sourceBpm.value?source:undefined;mix[role].followBpm=followBpm.i.checked;rememberShape(mix[role]);update();changed(false);};
     matchBpm.onclick=()=>{const source=Number(sourceBpm.value),target=getBpm(),ratio=target/source;
-      if(!Number.isFinite(source)||source<40||source>300||!Number.isFinite(target)||ratio<.5||ratio>2){info.textContent='Enter the original break BPM. Matching must result in 0.5Ã—â€“2Ã— speed.';return;}
+      if(!Number.isFinite(source)||source<40||source>300||!Number.isFinite(target)||ratio<.5||ratio>2){info.textContent='Enter the original break BPM. Matching must result in 0.5×–2× speed.';return;}
       mix[role].sourceBpm=source;mix[role].playbackRate=Math.round(ratio*100)/100;mix[role].followBpm=false;rememberShape(mix[role]);update();changed(false);
     };
     bypass.i.onchange=()=>{mix[role].effects={...(mix[role].effects??defaultEffects()),bypass:bypass.i.checked};update();changed(false);};
@@ -155,18 +155,18 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:(refreshTrack
       speed.setValue(slot.playbackRate??1);
       speedMode.value=slot.speedMode??'repitch';
       followBpm.i.checked=!!slot.followBpm;
-      tempoInfo.textContent=effective.warning??(effective.following?`Following ${tempo.toFixed(1)} BPM Â· ${effective.rate.toFixed(2)}Ã— ${slot.speedMode==='stretch'?'stretch':'repitch'}`:'Manual speed');
+      tempoInfo.textContent=effective.warning??(effective.following?`Following ${tempo.toFixed(1)} BPM · ${effective.rate.toFixed(2)}× ${slot.speedMode==='stretch'?'stretch':'repitch'}`:'Manual speed');
       tempoInfo.classList.toggle('warning',!!effective.warning);
       lowpass.setValue(slot.lowpassHz??20000);attack.setValue(slot.attackMs??0);sourceBpm.value=slot.sourceBpm===undefined?'':String(slot.sourceBpm);
       (choice.querySelector('option[value="upload"]') as HTMLOptionElement).disabled=!slot.uploadId;
       clear.disabled=!slot.uploadId;clear.hidden=!slot.uploadId;upload.textContent=slot.uploadId?'Replace WAV':'Upload WAV';
       (choice.querySelector('option[value="upload"]') as HTMLOptionElement).textContent=slot.uploadId?(assets.get(slot.uploadId)?.name??'My upload'):'Upload a WAV to use here';
       const hasFx=effects.highpass>0||effects.lowpass<20000||(effects.resonance??0)>0||(effects.punch??0)>0||effects.drive>0||effects.mix>0;const active=[effects.highpass>0?'High-pass':'',effects.lowpass<20000?'Low-pass':'',(effects.resonance??0)>0?'Resonance':'',(effects.punch??0)>0?'Punch':'',effects.drive>0?'Drive':'',effects.mix>0?'Delay':'',(hasFx&&(effects.wet??1)<1)?Math.round((effects.wet??1)*100)+'% Wet':''].filter(Boolean);
-      summary.textContent=effects.bypass?'Effects Â· bypassed':active.length?'Effects Â· '+active.join(' + '):'Effects Â· off';
+      summary.textContent=effects.bypass?'Effects · bypassed':active.length?'Effects · '+active.join(' + '):'Effects · off';
       badge.textContent=slot.mute?'Muted':slot.solo?'Solo':effects.bypass?'FX bypassed':active.length?'FX on':'Dry';badge.classList.toggle('active',!slot.mute&&!effects.bypass&&active.length>0);badge.title=slot.mute?'Muted in playback and export':summary.textContent;
-      shapeSummary.textContent='Pitch & sample shape'+(slot.tune?' Â· '+(slot.tune>0?'+':'')+slot.tune+' st':'')+(slot.followBpm?' Â· BPM follow':(slot.playbackRate??1)!==1?' Â· '+(slot.playbackRate??1).toFixed(2)+'Ã—':'')+(slot.speedMode==='stretch'?' Â· Pitch preserved':'')+((slot.decay??1)<1?' Â· Decay '+Math.round((slot.decay??1)*100)+'%':'')+(slot.reverse?' Â· Reverse':'');
+      shapeSummary.textContent='Pitch & sample shape'+(slot.tune?' · '+(slot.tune>0?'+':'')+slot.tune+' st':'')+(slot.followBpm?' · BPM follow':(slot.playbackRate??1)!==1?' · '+(slot.playbackRate??1).toFixed(2)+'×':'')+(slot.speedMode==='stretch'?' · Pitch preserved':'')+((slot.decay??1)<1?' · Decay '+Math.round((slot.decay??1)*100)+'%':'')+(slot.reverse?' · Reverse':'');
       card.classList.toggle('audio-muted',slot.mute);card.classList.toggle('audio-soloed',!!slot.solo);card.classList.toggle('generation-off',!slot.include);
-      info.textContent=(asset?asset.name:'Synthesized '+role)+(slot.velocityLayers?' Â· 3 velocity layers':'')+' Â· '+Math.round(slot.level*100)+'%'+((slot.decay??1)<1?' Â· Decay '+Math.round((slot.decay??1)*100)+'%':'')+(slot.reverse?' Â· Reverse':'')+(slot.solo?' Â· Solo':'')+(slot.mute?' Â· Muted':'');
+      info.textContent=(asset?asset.name:'Synthesized '+role)+(slot.velocityLayers?' · 3 velocity layers':'')+' · '+Math.round(slot.level*100)+'%'+((slot.decay??1)<1?' · Decay '+Math.round((slot.decay??1)*100)+'%':'')+(slot.reverse?' · Reverse':'')+(slot.solo?' · Solo':'')+(slot.mute?' · Muted':'');
     };
     refreshers.push(update);cancellers.push(()=>{token++;loading=false;});update();
     include.i.onchange=()=>{mix[role].include=include.i.checked;update();changed(false);};
@@ -181,7 +181,7 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:(refreshTrack
       return {id,name,sampleRate:decoded.sampleRate,channels};
     }
     selectChoice=async(value:string)=>{
-      const request=++token;pending++;loading=true;update();info.textContent='Loading soundâ€¦';
+      const request=++token;pending++;loading=true;update();info.textContent='Loading sound…';
       try{
         let id:string|undefined;
         if(value==='upload'){id=mix[role].uploadId;if(!id||!assets.has(id))throw Error('Upload a WAV first.');}
@@ -193,7 +193,7 @@ export function setupDrumKit(assets:Map<string,AudioAsset>,changed:(refreshTrack
     };
     choice.onchange=()=>{void selectChoice(choice.value);};
     file.onchange=async()=>{
-      const next=file.files?.[0];file.value='';if(!next)return;const request=++token;pending++;loading=true;update();info.textContent='Loading locallyâ€¦';
+      const next=file.files?.[0];file.value='';if(!next)return;const request=++token;pending++;loading=true;update();info.textContent='Loading locally…';
       try{
         if(next.size>20*1024*1024)throw Error('Choose a hit under 20 MB.');
         const a=await decode(await next.arrayBuffer(),next.name,crypto.randomUUID());if(request!==token)return;assets.set(a.id,a);
