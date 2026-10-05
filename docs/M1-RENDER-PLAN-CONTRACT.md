@@ -6,8 +6,8 @@ fixture-hashing decisions settled in precondition 4.
 ## What is frozen
 
 `schemas/render-plan-v1.schema.json` — JSON Schema draft-07, `$id`
-`https://breakbeat-pattern-maker.local/schemas/render-plan-v1.schema.json`, revision **r1**,
-LF-normalised SHA-256 `7fe3c8c47c5790bfc0f9084ba0cb09485e3f947ce4ce47095746603768d30950`.
+`https://breakbeat-pattern-maker.local/schemas/render-plan-v1.schema.json`, revision **r2**,
+LF-normalised SHA-256 `e1ddcea1de60e77697e35251eeaed9a25edc9064c78d169c61bb4fa1314cd243`.
 
 The schema was authored during M0 (§2.4 of the audit report). That report lives in the
 gitignored `test-results/m0/`, so this tracked file — not the report — is the record of the
@@ -18,9 +18,10 @@ node --test tests/render-plan-v1.test.mjs
 ```
 
 That test pins the digest and then derives every other assertion from the schema document
-itself: a 33-entry rejection matrix, boundary acceptance, agreement with
+itself: a 37-entry rejection matrix, boundary acceptance, agreement with
 `schemas/bbpattern-v1.schema.json` and with the engine (`PPQ`, tempo bounds,
-`parseTimeSignature`'s meter domain), and the open questions below.
+`parseTimeSignature`'s meter domain, the 192 kHz rate ceiling, the role vocabulary), and the open
+questions below.
 
 ## How to change the contract
 
@@ -34,6 +35,20 @@ Never regenerate the file from the M0 report, and never reorder members — see 
 ### Revision history
 
 - **r1** (precondition 4) — frozen from the M0 §2.4 draft without edits.
+- **r2** (precondition 4, post-review) — requested by Arthur (m01319), settling two of the three
+  r1 disagreements by narrowing the schema to what the engine already enforces:
+  - `timeline.sampleRate` maximum 384 000 → **192 000**, for strict parity with the reference
+    renderer (`src/audio/performance.ts:29` rejects anything above 192 000) and with the transfer
+    schema's own sample-rate bound (`src/core/compile.ts:38`), and to avoid Web Audio/CoreAudio
+    buffer and rate incompatibilities on M1 hardware.
+  - `generationRole` `["string","null"]` → `enum ["kick","snare","hat","percussion",null]`,
+    because `src/core/compile.ts:25`, `src/core/compile.ts:38` and `src/core/editor.ts:79` already
+    reject any other string at runtime.
+  Breaks: an r1 plan carrying a sample rate above 192 000, or a `generationRole` outside the role
+  vocabulary, now fails validation. No such plan can exist today — the engine never emits one — so
+  the narrowing is compatible with every recorded fixture. `FROZEN_DIGEST` updated in the same
+  change, and both narrowings are now asserted against the live engine rather than merely
+  documented.
 
 ## Hashing decisions (precondition 4)
 
@@ -78,24 +93,57 @@ report that holds them is gitignored.
 
 ## Open contract questions
 
-Each is pinned by the test `open contract questions are recorded here, not silently resolved`,
-so resolving one is a deliberate, visible change rather than a quiet drift.
+Each is pinned by the test `the two r1 disagreements are settled at r2 and the last one stays
+recorded`, so resolving one is a deliberate, visible change rather than a quiet drift. r1's items
+1 (sample rate) and 2 (`generationRole`) were settled by the r2 narrowing above; four remain.
 
-1. **Sample rate.** The plan admits 8 000–384 000 Hz; `renderPerformance` rejects anything above
-   192 000 with `Render sample rate must be 8–192 kHz.` Decide whether `timeline.sampleRate` is a
-   device rate M1 will support, or whether the schema narrows to 192 000.
-2. **`generationRole` is an open string** (`["string","null"]`) while the engine only ever writes
-   the four `ROLES` from `src/core/model.ts` and `src/core/compile.ts:38` validates membership.
-   Narrow it to the role enum, or state why it stays open.
-3. **Tick fraction granularity.** The plan excludes only exactly `1`; the engine caps the same
+1. **Tick fraction granularity.** The plan excludes only exactly `1`; the engine caps the same
    concept, `fineOffset`, at `0.9999999999` (`src/core/compile.ts:81`). Pick one and align, or
    record the difference as intentional.
-4. **Frame-conversion rounding.** JavaScript `Math.round` is half-up; C++ `std::round` is
+2. **Frame-conversion rounding.** JavaScript `Math.round` is half-up; C++ `std::round` is
    half-away-from-zero. They disagree at `.5` ties. Specify the native behaviour.
-5. **Float association.** FMA contraction and fast-math must be forbidden in the native mixer so
+3. **Float association.** FMA contraction and fast-math must be forbidden in the native mixer so
    that sums associate exactly as the JS renderer does.
-6. **Seed arithmetic.** `Math.imul` / `>>>0` 32-bit wraparound must be reproduced exactly in the
+4. **Seed arithmetic.** `Math.imul` / `>>>0` 32-bit wraparound must be reproduced exactly in the
    native generator.
+
+## Fixture tolerance policy (M0 §3.6)
+
+Copied verbatim from `test-results/m0/M0-AUDIT-REPORT.md:594-614`, because it is the comparison
+contract every F-DET and F-DSP fixture depends on and that report is gitignored. This is step 1 of
+precondition 5: the tolerance table is now tracked, so it survives the report directory.
+
+| Quantity | Tolerance | Rationale / source |
+| --- | --- | --- |
+| Max normalized sample error (float/linear fixtures) | **1e-5** | Byte-identical PCM16 preferred wherever the TS path is bit-reproducible |
+| PCM16 golden | byte-identical, else float sidecar | PCM16 LSB = `Math.round(s*(s<0?32768:32767))` (`src/audio/wav.ts:13`) = **3.0518e-5**, which *cannot express* 1e-5 — hence `.f32le` sidecars |
+| Onset position | ±1 frame (≥44.1 kHz), ±2 frames (8 kHz) | Frame-quantisation limit |
+| Peak | 1e-4 | Reuses `samplePeak`/`estimatedTruePeak` (`src/audio/audio-quality.ts:3-11`) |
+| RMS | relative 1e-3 **with** 1e-4 absolute floor | Guard against "both near zero" passing |
+| Per-100 ms window | 2e-3 | Catches localised divergence hidden by whole-render RMS |
+| DC offset | 1e-5 | `dcOffset` metric, `src/audio/audio-quality.ts:18-39` |
+| Stereo correlation | 1e-3 | `stereoCorrelation` metric |
+| Spectral (4096-pt Hann) | 1e-2 per bin, 0.25 dB aggregate | `monoRms`/`clippedSamples` metrics supplement |
+| True peak | 1e-3 | — |
+| Clipped sample count | identical | `clippedSamples` metric |
+
+Two explicit policies accompany the table: **gain errors must never be normalized away** before
+comparison, and **non-silence is not evidence of parity**. The repo's only existing PCM comparator,
+`delta(a,b,offset)` in `scripts/loop-generation-audit.mjs:40`, returns whole-render `{rms,peak}` and
+is insufficient on its own.
+
+## The master bus is two code paths (M0 §3.7)
+
+Copied verbatim from `test-results/m0/M0-AUDIT-REPORT.md:616-625` — the highest-value finding in
+that section, and the second thing precondition 5 must not lose.
+
+**The master bus is two different code paths, not one.** Legacy/v1–v3
+(`src/audio/performance.ts:203-215`) applies a tanh soft-clip above 0.7 that is **skipped
+entirely** when every event is `mapped` (`:206`, `transparent`), then applies attenuation only
+above peak 1.0 (`:212`), returning `quality:undefined`. v4/v5/v5.1 (`:216-217`) instead calls
+`protectMaster` (ceiling 0.96) and returns a quality object. Any port fixture set **must cover
+`transparent=true` and `false`** for the legacy algorithms; without that, the port can pass every
+existing golden and still change already-published v1–v3 PCM.
 
 ## Carried forward to precondition 5
 
@@ -105,7 +153,6 @@ so resolving one is a deliberate, visible change rather than a quiet drift.
   `variation`, `phraseLength`/`phraseOffset`, `breakStyle`, `enabledRoles`, `laneDensity`,
   `hitTarget`, `breakLayer` (`'off'` or `'think-passage2'`, the only two the engine accepts),
   and `lpb`. Per-hit digests should report the first divergent hit index and field name.
-- **Before precondition 5 starts, copy two things out of the gitignored M0 report into tracked
-  docs**: the §3.6 tolerance table (`test-results/m0/M0-AUDIT-REPORT.md:594`) and the §3.7
-  master-bus requirement that both `transparent` paths are mandatory legacy fixtures
-  (`:616`, `:627`). The schema is now safe from that directory's deletion; those two are not.
+- The two artefacts that had to leave the gitignored report — the §3.6 tolerance table and the §3.7
+  master-bus requirement — are now in this file, above. Adopting them as mandatory fixtures
+  (including both `transparent` paths) is the remainder of precondition 5.

@@ -19,7 +19,8 @@
       "required": ["ppq", "sampleRate", "tempoEvents", "meterEvents"],
       "properties": {
         "ppq":        { "const": 960 },
-        "sampleRate": { "type": "integer", "minimum": 8000, "maximum": 384000 },
+        "sampleRate": { "type": "integer", "minimum": 8000, "maximum": 192000,
+                        "description": "Capped at 192 kHz (r2) for strict parity with the reference renderer, which rejects anything above it (src/audio/performance.ts:29) and with the transfer schema's own sample-rate bound (src/core/compile.ts:38). Higher device rates are out of scope for M1." },
         "tempoEvents": { "type": "array", "items": {
           "type": "object", "additionalProperties": false,
           "required": ["tick", "bpm"],
@@ -45,7 +46,8 @@
         "gain":    { "type": "number", "minimum": 0, "maximum": 2 },
         "pan":     { "type": "number", "minimum": -1, "maximum": 1 },
         "mute":    { "type": "boolean" }, "solo": { "type": "boolean" },
-        "generationRole": { "type": ["string", "null"] },
+        "generationRole": { "enum": ["kick", "snare", "hat", "percussion", null],
+                            "description": "The four drum roles or null (r2). The engine rejects any other string at runtime: src/core/compile.ts:25, src/core/compile.ts:38 and src/core/editor.ts:79, against the ROLES list in src/core/model.ts." },
         "instrumentId":   { "type": ["string", "null"] },
         "modularGraph":   { "type": ["object", "null"] }
       } } },

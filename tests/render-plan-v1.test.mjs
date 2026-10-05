@@ -15,6 +15,7 @@ import {PPQ,ROLES} from '../dist/core/model.js';
 import {defaults} from '../dist/core/profiles.js';
 import {generate} from '../dist/core/generate.js';
 import {compile} from '../dist/core/compile.js';
+import {Editor} from '../dist/core/editor.js';
 import {parseTimeSignature} from '../dist/core/meter.js';
 import {validateSettings} from '../dist/core/settings.js';
 import {renderPerformance} from '../dist/audio/performance.js';
@@ -22,8 +23,9 @@ import {renderPerformance} from '../dist/audio/performance.js';
 const PLAN_SCHEMA='schemas/render-plan-v1.schema.json';
 const TRANSFER_SCHEMA='schemas/bbpattern-v1.schema.json';
 // SHA-256 of the frozen schema with line endings normalised to LF, so a CRLF checkout of the
-// same revision still verifies.
-const FROZEN_DIGEST='7fe3c8c47c5790bfc0f9084ba0cb09485e3f947ce4ce47095746603768d30950';
+// same revision still verifies. r2 narrows sampleRate to 192 kHz and generationRole to the role
+// vocabulary; the revision history lives in docs/M1-RENDER-PLAN-CONTRACT.md.
+const FROZEN_DIGEST='e1ddcea1de60e77697e35251eeaed9a25edc9064c78d169c61bb4fa1314cd243';
 
 const source=readFileSync(PLAN_SCHEMA,'utf8');
 const schema=JSON.parse(source);
@@ -85,7 +87,11 @@ test('the frozen plan contract rejects malformed plans',()=>{
     'a plan version other than RenderPlanV1':p=>{p.planVersion='RenderPlanV2';},
     'a PPQ other than 960':p=>{p.timeline.ppq=480;},
     'a sample rate above the ceiling':p=>{p.timeline.sampleRate=400000;},
+    'a sample rate one hertz above the engine ceiling':p=>{p.timeline.sampleRate=192001;},
+    'a device sample rate the reference renderer rejects':p=>{p.timeline.sampleRate=384000;},
     'a sample rate below the floor':p=>{p.timeline.sampleRate=4000;},
+    'a generation role outside the role set':p=>{p.tracks[0].generationRole='banjo';},
+    'a generation role that is an empty string':p=>{p.tracks[0].generationRole='';},
     'a negative tick':p=>{p.events[0].tick=-1;},
     'a negative total tick count':p=>{p.timeline.totalTicks=-1;},
     'a meter numerator above 32':p=>{p.timeline.meterEvents[0].numerator=33;},
@@ -133,7 +139,7 @@ test('the frozen plan contract accepts the boundary values the engine allows',()
     p.loopPolicy.tailSeconds=0;
   })),true,JSON.stringify(check.errors));
   assert.equal(check(mutate(p=>{
-    p.timeline.sampleRate=384000;
+    p.timeline.sampleRate=192000;
     p.timeline.meterEvents=[{tick:0,numerator:1,denominator:32}];
     p.events[1].source.note=119;
     p.loopPolicy.tailSeconds=30;
@@ -150,6 +156,24 @@ test('the frozen plan contract agrees with the shipped transfer schema and the e
     transfer.properties.sources.items.properties.note.maximum);
   // PPQ is not a tunable: the plan pins the engine's own constant.
   assert.equal(schema.properties.timeline.properties.ppq.const,PPQ);
+  // The sample-rate ceiling and the role vocabulary were narrowed in r2 to the engine's own
+  // limits, so the plan can no longer describe a render the reference engine refuses.
+  assert.equal(schema.properties.timeline.properties.sampleRate.maximum,192000);
+  for(const rate of [192000,192001]){
+    assert.equal(check(mutate(p=>{p.timeline.sampleRate=rate;})),rate<=192000,`schema sample-rate bound disagrees at ${rate} Hz`);
+    const render=()=>renderPerformance(generate(defaults('jungle')),new Map(),rate,{},{loop:false});
+    if(rate<=192000){
+      // The engine accepts its own ceiling. Any failure here is a missing-asset error rather than
+      // a rate error, so only a rate error counts as a disagreement.
+      try{render();}catch(error){assert.doesNotMatch(String(error?.message??error),/Render sample rate must be 8–192 kHz\./,`the engine rejects ${rate} Hz`);}
+    }else assert.throws(render,/Render sample rate must be 8–192 kHz\./);
+  }
+  // src/core/compile.ts:25 validates drum lanes and :38 sample tracks against ROLES, so no string
+  // outside the role vocabulary can reach a render. Editor.setDrumLane routes through compile().
+  assert.deepEqual(schema.properties.tracks.items.properties.generationRole.enum,[...ROLES,null]);
+  const editor=new Editor(generate(defaults('jungle')));
+  assert.throws(()=>editor.setDrumLane('kick',{generationRole:'banjo'}),
+    /Invalid drum lane visibility or generation role\./);
   // Every tempo and meter bound in the schema is a bound the engine already enforces, so a
   // plan the schema accepts is never a plan the generator would refuse.
   for(const bpm of [31,32,999,1000]){
@@ -169,19 +193,19 @@ test('the frozen plan contract agrees with the shipped transfer schema and the e
   }
 });
 
-test('open contract questions are recorded here, not silently resolved',()=>{
-  // Both remaining §3.3 items and every schema/engine disagreement are listed in
-  // docs/M1-RENDER-PLAN-CONTRACT.md. These assertions pin the CURRENT behaviour so that
-  // resolving them is a deliberate, visible change rather than a quiet drift.
+test('the two r1 disagreements are settled at r2 and the last one stays recorded',()=>{
+  // r1 shipped with three schema/engine disagreements. Arthur approved the first two as r2
+  // narrowings (revision history in docs/M1-RENDER-PLAN-CONTRACT.md); they are pinned here so
+  // that widening the contract again is a deliberate, visible change rather than a quiet drift.
   //
-  // 1. The plan admits 384 kHz; today's renderer is capped at 192 kHz.
-  assert.equal(check(mutate(p=>{p.timeline.sampleRate=384000;})),true,'the frozen contract admits a 384 kHz timeline');
-  assert.throws(()=>renderPerformance(generate(defaults('jungle')),new Map(),384000,{},{loop:false}),/Render sample rate must be 8–192 kHz\./);
-  // 2. The plan leaves generationRole an open string; the engine only ever writes the four roles.
-  assert.deepEqual(schema.properties.tracks.items.properties.generationRole.type,['string','null']);
+  // 1. Settled (r2): the plan no longer admits a timeline rate the renderer refuses.
+  assert.equal(schema.properties.timeline.properties.sampleRate.maximum,192000);
+  assert.equal(check(mutate(p=>{p.timeline.sampleRate=384000;})),false,'the frozen contract must not admit a 384 kHz timeline');
+  // 2. Settled (r2): generationRole is the engine's role vocabulary or null, nothing else.
+  assert.deepEqual(schema.properties.tracks.items.properties.generationRole.enum,[...ROLES,null]);
   assert.equal(ROLES.length,4);
-  // 3. The plan excludes only a tick fraction of exactly 1; the engine caps the same concept at
-  //    0.9999999999, so the two differ in the last ten decimal places.
+  // 3. Still open: the plan excludes only a tick fraction of exactly 1; the engine caps the same
+  //    concept at 0.9999999999, so the two differ in the last ten decimal places.
   assert.equal(check(mutate(p=>{p.events[0].tickFraction=.99999999999;})),true);
   const pattern=generate(defaults('jungle'));
   pattern.events[0].fineOffset=.99999999999;
