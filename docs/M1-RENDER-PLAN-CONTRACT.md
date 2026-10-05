@@ -1,7 +1,8 @@
 # M1 render plan contract
 
 The contract between the JavaScript engine and the future native renderer, plus the two
-fixture-hashing decisions settled in precondition 4.
+fixture-hashing decisions settled in precondition 4 and the fixture comparison policy adopted in
+precondition 5 (the §3.6 tolerance table and the §3.7 two master-bus paths).
 
 ## What is frozen
 
@@ -113,6 +114,14 @@ Copied verbatim from `test-results/m0/M0-AUDIT-REPORT.md:594-614`, because it is
 contract every F-DET and F-DSP fixture depends on and that report is gitignored. This is step 1 of
 precondition 5: the tolerance table is now tracked, so it survives the report directory.
 
+**Adopted.** The table is executable as `scripts/fixture-tolerance.mjs` — `TOLERANCES`,
+`onsetTolerance(rate)`, `maximumSampleError`, `maximumWindowRmsError`, `onsetFrames`,
+`spectralDifference` and the entry point
+`compareRender(reference,candidate,{rate,expectSilence})` — and exercised by the 12 tests in
+`tests/fixture-tolerance.test.mjs`. The two policies above are enforced rather than described: the
+module exports no gain-normalising helper at all, and two silent renders fail the comparison unless
+the caller explicitly passes `expectSilence: true`.
+
 | Quantity | Tolerance | Rationale / source |
 | --- | --- | --- |
 | Max normalized sample error (float/linear fixtures) | **1e-5** | Byte-identical PCM16 preferred wherever the TS path is bit-reproducible |
@@ -145,14 +154,34 @@ above peak 1.0 (`:212`), returning `quality:undefined`. v4/v5/v5.1 (`:216-217`) 
 `transparent=true` and `false`** for the legacy algorithms; without that, the port can pass every
 existing golden and still change already-published v1–v3 PCM.
 
+**Adopted.** This requirement is now a mandatory fixture pair rather than a warning.
+`scripts/master-bus-fixture.mjs` builds, for each legacy algorithm (`legacy-v1`, `groove-v2`,
+`groove-v3`), a `transparent` pattern (every event carries `mapped`) and a `clipped` pattern (the
+same hits with only `slice`), at 8 kHz and 44.1 kHz, with and without looping, and captures
+`tests/fixtures/master-bus-paths.json` — 24 bit-exact PCM16 goldens — which
+`tests/master-bus-paths.test.mjs` asserts.
+
+The signature that proves the two branches really were exercised: on the `transparent` path the
+master stage measures a raw peak above 1.0 and reports `attenuation` below 1 (0.62–0.90) while the
+exported peak is trimmed to exactly 0.98 — only possible when the tanh clip at `:207-210` was
+skipped. On the `clipped` path the clip caps the peak at 0.948–0.979 and `attenuation` stays
+exactly 1, because the clip runs *before* the peak measurement (`:211-213`), so a post-clip peak
+above 1.0 cannot occur. Both paths return `quality: undefined`. Caveat recorded in the test:
+`mapped` also selects different voice planning (`src/audio/performance.ts:135-145`) and skips the
+drum-kit velocity layers (`src/audio/drum-kit.ts:83`, `:90`), so the pair is coverage evidence for
+the two master paths, not an isolation of them.
+
 ## Carried forward to precondition 5
 
-- F-DET fixtures should extend, never replace, the generate-twice equality check in
-  `scripts/loop-generation-audit.mjs`: all six engines with their literal `engineVersion`; seeds
-  including `'pre-v3-compatibility'`, `'a'`, `'break-042'`, `'sééd-ünicode'`; and the settings
+- **Still open: F-DET fixtures.** They should extend, never replace, the generate-twice equality
+  check in `scripts/loop-generation-audit.mjs`: all six engines with their literal `engineVersion`;
+  seeds including `'pre-v3-compatibility'`, `'a'`, `'break-042'`, `'sééd-ünicode'`; and the settings
   `variation`, `phraseLength`/`phraseOffset`, `breakStyle`, `enabledRoles`, `laneDensity`,
   `hitTarget`, `breakLayer` (`'off'` or `'think-passage2'`, the only two the engine accepts),
   and `lpb`. Per-hit digests should report the first divergent hit index and field name.
-- The two artefacts that had to leave the gitignored report — the §3.6 tolerance table and the §3.7
-  master-bus requirement — are now in this file, above. Adopting them as mandatory fixtures
-  (including both `transparent` paths) is the remainder of precondition 5.
+- **Done:** the two artefacts that had to leave the gitignored report — the §3.6 tolerance table and
+  the §3.7 master-bus requirement — were adopted during precondition 5 as mandatory fixtures:
+  `scripts/fixture-tolerance.mjs` with `tests/fixture-tolerance.test.mjs` (12 tests), and
+  `scripts/master-bus-fixture.mjs` with `tests/master-bus-paths.test.mjs` plus
+  `tests/fixtures/master-bus-paths.json` (24 entries). Verify both with
+  `node --test tests/fixture-tolerance.test.mjs tests/master-bus-paths.test.mjs` (19 tests).
