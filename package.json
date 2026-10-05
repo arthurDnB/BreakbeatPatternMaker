@@ -27,6 +27,8 @@
     "test:loop-audit": "npm run build && node scripts/loop-generation-audit.mjs",
     "audit:samples": "node scripts/audit-samples.mjs",
     "audit:breaks": "npm run build && node scripts/break-benchmark.mjs",
+    "audit:aliasing": "npm run build && node scripts/modular-synth-aliasing-audit.mjs --verify-twice",
+    "test:aliasing": "npm run build && node --test tests/modular-synth-aliasing.test.mjs",
     "sync:chat": "node scripts/sync-chat-to-codex.mjs"
   },
   "devDependencies": {
