@@ -7,6 +7,10 @@ test-results/
 # Generated static deployment artifact
 site/
 
+# Native (C++/JUCE) build tree and local toolchain downloads
+native/build/
+native/tools/
+
 # Local sample packs & scratch files
 /LoFi Drum Kit Vol. 2/
 *.py

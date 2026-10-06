@@ -29,6 +29,9 @@
     "audit:breaks": "npm run build && node scripts/break-benchmark.mjs",
     "audit:aliasing": "npm run build && node scripts/modular-synth-aliasing-audit.mjs --verify-twice",
     "test:aliasing": "npm run build && node --test tests/modular-synth-aliasing.test.mjs",
+    "native:build": "cmd /c native\\build.cmd",
+    "native:selftest": "cmd /c native\\build\\bbpm_selftest.exe",
+    "native:verify": "node native\\tests\\verify-n0-render.mjs",
     "sync:chat": "node scripts/sync-chat-to-codex.mjs"
   },
   "devDependencies": {
