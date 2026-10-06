@@ -4,8 +4,19 @@ const CHECKLIST_LABELS = { listenedFull: 'Listened to the full loop', firstHitCh
 // The checklist is recorded for every passage but only gates the review step on longer and full-loop passages,
 // so the fixed two-second session keeps the flow documented in docs/VERIFIED-BREAK-BENCHMARK.md.
 const CHECKLIST_REQUIRED_MODES = ['long', 'loop'];
+// Onset markers get a forgiving click target: a press within a few pixels either side of a marker selects it
+// instead of seeking, and the same slop decides whether a paused click resumes rather than scrubs.
+const MARKER_HIT_SLOP_PX = 18;
+const STATUS_LABELS = { pending: 'Unchecked', accepted: 'Keep', rejected: 'Reject', uncertain: 'Unsure' };
+// Only genuine typing fields swallow the keyboard map. Checkboxes, ranges, selects and buttons keep the keys
+// that belong to them (see the keydown handler).
+const TEXT_ENTRY_TYPES = ['text', 'search', 'email', 'url', 'tel', 'password', 'number', 'date', 'datetime-local', 'month', 'week', 'time'];
+const KEYBOARD_OWNED_TYPES = ['checkbox', 'radio', 'button', 'submit', 'reset'];
 let catalogue, review, sessions, sessionId, exportName, activeId, selectedId, cursorTime = 1, zoomFactor = 1, viewCenter = 1;
 let audioContext, playback, saving = Promise.resolve(), saveFailed = false, pointerDrag, loopEnabled = false;
+// pausedAt remembers where the playhead stopped so the next click near it resumes instead of scrubbing.
+// selectionEpoch counts the owner's own passage picks so a pending auto-advance can never override one.
+let pausedAt, hoveredMarkerId, autoAdvance = true, selectionEpoch = 0, progressDone = 0, progressTotal = 0;
 const buffers = new Map();
 const canvas = element('waveform');
 const painter = canvas.getContext('2d');
@@ -24,6 +35,30 @@ function checklistItems() {
 function checklistComplete() { return checklistItems().every(item => item.checked); }
 function selected() { return activeReview()?.markers.find(marker => marker.id === selectedId); }
 function markersInTimeOrder() { return [...activeReview().markers].sort((a, b) => a.time - b.time); }
+function statusLabel(status) { return STATUS_LABELS[status] ?? status; }
+function nearestMarkerTo(time) {
+  return markersInTimeOrder().reduce((best, marker) => !best || Math.abs(marker.time - time) < Math.abs(best.time - time) ? marker : best, null);
+}
+function nearestVisibleMarker(time) {
+  const [start, end] = viewRange();
+  return markersInTimeOrder()
+    .filter(marker => marker.time >= start && marker.time <= end)
+    .reduce((best, marker) => !best || Math.abs(marker.time - time) < Math.abs(best.time - time) ? marker : best, null);
+}
+// A/R act on the selected marker, or on the one nearest the cursor when nothing is selected yet.
+function targetMarker() { return selected() ?? nearestMarkerTo(cursorTime); }
+function markerSlopSeconds() {
+  const [start, end] = viewRange();
+  return (end - start) * MARKER_HIT_SLOP_PX / Math.max(1, canvas.getBoundingClientRect().width);
+}
+function setStatusText(id, text) {
+  const target = element(id);
+  if (target && target.textContent !== text) target.textContent = text;
+}
+function renderPlaybackState() {
+  setStatusText('playback-state', playback ? 'Playing' : pausedAt !== undefined ? 'Paused' : 'Stopped');
+  element('playback-state')?.classList.toggle('active', Boolean(playback));
+}
 function setSaveMessage(message, isError = false) {
   const target = element('save-state');
   target.textContent = message;
@@ -77,12 +112,16 @@ function renderCases() {
     const title = document.createElement('span'); title.className = 'case-name'; title.textContent = item.filename;
     const badge = document.createElement('small'); badge.textContent = state.reviewed ? 'Reviewed' : `${state.markers.filter(marker => marker.status === 'pending' || marker.status === 'uncertain').length} open`;
     button.append(title, badge);
-    button.onclick = () => { void switchCase(item.id); };
+    button.onclick = () => { void selectCase(item.id); };
     container.append(button);
   }
+  progressDone = completed; progressTotal = scoped.length;
   element('progress-count').textContent = `${completed} / ${scoped.length} reviewed`;
   element('export').disabled = completed !== scoped.length;
 }
+// Any passage the owner picks himself bumps the epoch, so an auto-advance that is still waiting its turn
+// yields instead of dragging him off the passage he just chose.
+async function selectCase(id) { selectionEpoch += 1; await switchCase(id); }
 function renderChecklist() {
   const container = element('checklist');
   const state = activeReview();
@@ -109,10 +148,10 @@ function renderChecklist() {
   element('checklist-state').textContent = `${done} / ${items.length}${checklistNeeded() ? ' · required before review' : ' · optional for fixed passages'}`;
 }
 function renderMarkers() {
-  const state = activeReview(), current = selected();
+  const state = activeReview(), current = selected(), ordered = markersInTimeOrder();
   const list = element('marker-list');
   list.replaceChildren();
-  for (const marker of markersInTimeOrder()) {
+  for (const marker of ordered) {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = `marker-item ${marker.status} ${marker.id === selectedId ? 'selected' : ''}`;
@@ -126,7 +165,12 @@ function renderMarkers() {
   const open = state.markers.filter(marker => marker.status === 'pending' || marker.status === 'uncertain').length;
   element('marker-count').textContent = `· ${state.markers.length} total · ${open} open`;
   element('selected-time').textContent = current ? `${current.time.toFixed(5)} s` : `${cursorTime.toFixed(5)} s cursor`;
-  element('selected-status').textContent = current ? current.status : 'Click a marker or add a hit';
+  element('selected-status').textContent = current ? statusLabel(current.status) : 'Click a marker or add a hit';
+  // One always-visible line that answers "where am I, what is selected, what did I decide, how far along am I".
+  const position = ordered.findIndex(marker => marker.id === selectedId);
+  setStatusText('selection-status', current
+    ? `Marker ${position + 1} of ${ordered.length} · ${current.time.toFixed(5)} s · ${statusLabel(current.status)}`
+    : `No marker selected · cursor ${cursorTime.toFixed(5)} s`);
   for (const id of ['accept', 'reject', 'uncertain', 'nudge-left', 'nudge-right', 'play-hit', 'play-context']) element(id).disabled = !current;
   element('accept-rest').disabled = !state.markers.some(marker => marker.status === 'pending');
   const checklistBlocked = checklistNeeded() && !checklistComplete();
@@ -141,7 +185,7 @@ function render() {
   element('clip-detail').textContent = `${item.regionSeconds[0].toFixed(2)}–${item.regionSeconds[1].toFixed(2)} seconds · ${state.mode} passage · ${state.listenedFull ? 'Full passage played' : 'Play full passage to unlock review'}`;
   element('review-badge').textContent = state.reviewed ? 'Reviewed by ear' : 'Needs review';
   element('review-badge').classList.toggle('done', state.reviewed);
-  renderSessions(); renderCases(); renderMarkers(); renderChecklist(); updateZoomControls(); drawWaveform();
+  renderSessions(); renderCases(); renderMarkers(); renderChecklist(); updateZoomControls(); renderPlaybackState(); drawWaveform();
 }
 
 function viewRange() {
@@ -188,6 +232,8 @@ async function switchCase(id) {
   // review case, and a session switch has already replaced `review` with a case list that may not hold the
   // previous passage.
   activeId = id;
+  pausedAt = undefined;
+  hoveredMarkerId = undefined;
   stopPlayback();
   const state = activeReview();
   zoomFactor = 1;
@@ -207,7 +253,7 @@ async function loadSession(id) {
   if (!stateResponse.ok) throw Error('Could not reload the review state.');
   applyState(await stateResponse.json());
   const next = review.cases.find(item => !item.reviewed)?.id ?? review.cases[0]?.id ?? catalogue[0]?.id;
-  if (next) await switchCase(next);
+  if (next) await selectCase(next);
 }
 function stopPlayback() {
   if (playback) {
@@ -215,7 +261,7 @@ function stopPlayback() {
     playback = undefined;
     try { previous.source.stop(); } catch {}
   }
-  updateLoopStatus(); updatePosition(); drawWaveform();
+  updateLoopStatus(); updatePosition(); renderPlaybackState(); drawWaveform();
 }
 function playbackTime() {
   if (!playback) return undefined;
@@ -229,7 +275,12 @@ function updateLoopStatus() {
 function updatePosition() {
   const target = element('play-position');
   const current = playbackTime(), item = activeCase();
-  if (current === undefined || !item) { target.textContent = 'Position —'; return; }
+  if (!item) { target.textContent = 'Position —'; return; }
+  if (current === undefined) {
+    // A paused playhead still has a position worth showing: it is what a click near it will resume.
+    target.textContent = pausedAt !== undefined ? `Paused at ${pausedAt.toFixed(3)} / ${item.regionSeconds[1].toFixed(3)} s` : 'Position —';
+    return;
+  }
   const absolute = playback.windowStart + Math.min(current, playback.duration);
   target.textContent = `Position ${absolute.toFixed(3)} / ${item.regionSeconds[1].toFixed(3)} s`;
 }
@@ -263,8 +314,8 @@ function finishSource(entry) {
     return;
   }
   playback = undefined;
-  if (entry.full && activeId === entry.id) { markListenedFull(); change(false); }
-  else { updateLoopStatus(); updatePosition(); drawWaveform(); }
+  if (entry.full && activeId === entry.id) { markListenedFull(); change(false); renderPlaybackState(); }
+  else { updateLoopStatus(); updatePosition(); renderPlaybackState(); drawWaveform(); }
 }
 let playQueue = Promise.resolve();
 function playWindow(start, end, full = false) {
@@ -282,11 +333,12 @@ async function armWindow(start, end, full = false) {
     if (id !== activeId) return;
     await audioContext.resume();
     stopPlayback();
+    pausedAt = undefined;
     const speed = Number(element('speed').value);
     const entry = { id, buffer, speed, begun: audioContext.currentTime, offset: 0, duration: end - start, windowStart: start, full, loop: Boolean(full && loopEnabled), pass: 1 };
     playback = entry;
     armSource(entry);
-    updateLoopStatus(); updatePosition();
+    updateLoopStatus(); updatePosition(); renderPlaybackState();
     requestAnimationFrame(drawPlayhead);
   } catch (error) { setSaveMessage(error.message, true); }
 }
@@ -306,6 +358,53 @@ function playSelected(context = false) {
   void playWindow(hitStart, Math.max(hitStart + .01, hitEnd));
 }
 function drawPlayhead() { if (playback) { updatePosition(); drawWaveform(); requestAnimationFrame(drawPlayhead); } }
+// ---- Fast listening transport -------------------------------------------------------------------------------
+// The whole point of the review page is listening, so one gesture has to start audio. These helpers keep the
+// pointer and the keyboard reaching the same two verbs: play from a point, and stop. `pausedAt` is the bridge —
+// it survives a pause so the next Space (or a click near the playhead) resumes instead of scrubbing.
+function auditionFrom(time) {
+  const [regionStart, regionEnd] = activeCase().regionSeconds;
+  cursorTime = clampTime(time);
+  // Keep a short audible tail when the pointer lands on the last pixel of the passage.
+  void playWindow(Math.max(regionStart, Math.min(cursorTime, regionEnd - .05)), regionEnd, false);
+}
+function startAudition(time) { pausedAt = undefined; auditionFrom(time); }
+function pausePlayback() {
+  const current = playbackTime();
+  if (current !== undefined && playback) pausedAt = clampTime(playback.windowStart + Math.min(current, playback.duration));
+  stopPlayback();
+  if (pausedAt !== undefined) cursorTime = pausedAt;
+  render();
+}
+function togglePlayback() {
+  if (!activeId) return;
+  if (playback) { pausePlayback(); return; }
+  startAudition(pausedAt ?? cursorTime);
+}
+function togglePlaybackAt(time) {
+  if (!activeId) return;
+  if (playback) { pausePlayback(); return; }
+  // A click on the remembered playhead resumes it; a click anywhere else scrubs there and plays.
+  const resumes = pausedAt !== undefined && Math.abs(time - pausedAt) <= markerSlopSeconds();
+  startAudition(resumes ? pausedAt : time);
+}
+function seekPlayhead(time) {
+  pausedAt = undefined;
+  cursorTime = clampTime(time);
+  if (playback) auditionFrom(cursorTime);
+}
+function moveSelection(step) {
+  const ordered = markersInTimeOrder();
+  if (!ordered.length) return;
+  const index = ordered.findIndex(marker => marker.id === selectedId);
+  const next = index === -1
+    ? ordered[step > 0 ? 0 : ordered.length - 1]
+    : ordered[Math.max(0, Math.min(ordered.length - 1, index + step))];
+  selectedId = next.id;
+  revealMarker(next);
+  seekPlayhead(next.time);
+  render();
+}
 
 function canvasTime(event) {
   const rect = canvas.getBoundingClientRect();
@@ -355,6 +454,14 @@ function drawWaveform() {
   } else {
     painter.fillStyle = '#9caeb6'; painter.font = '14px Segoe UI, sans-serif'; painter.fillText('Loading waveform…', 18, height / 2);
   }
+  // Show the forgiving hit target of the marker under the pointer, so the slop is visible rather than a surprise.
+  const hovered = hoveredMarkerId !== undefined ? activeReview().markers.find(marker => marker.id === hoveredMarkerId) : undefined;
+  if (hovered && hovered.time >= start && hovered.time <= end) {
+    const x = (hovered.time - start) / span * width;
+    const half = Math.max(6, MARKER_HIT_SLOP_PX);
+    painter.fillStyle = 'rgba(140, 243, 232, .12)';
+    painter.fillRect(x - half, 0, half * 2, height);
+  }
   for (const marker of markersInTimeOrder()) {
     if (marker.time < start || marker.time > end) continue;
     const x = (marker.time - start) / span * width;
@@ -374,7 +481,13 @@ function drawWaveform() {
   }
 }
 
-function editStatus(status) { const marker = selected(); if (!marker) return; marker.status = status; change(); }
+// A/R act on the selected marker, falling back to the one nearest the cursor so a keypress after a click near a
+// marker still decides something instead of silently doing nothing.
+function editStatus(status) {
+  const marker = targetMarker(); if (!marker) return;
+  selectedId = marker.id; cursorTime = marker.time;
+  marker.status = status; revealMarker(marker); change();
+}
 function canPlaceMarker(marker, time) {
   return !activeReview().markers.some(other => other.id !== marker.id && other.status === 'accepted' && Math.abs(other.time - time) < .005);
 }
@@ -391,29 +504,64 @@ function addMarker() {
   const marker = { id: `new-${crypto.randomUUID()}`, time, status: 'accepted' };
   activeReview().markers.push(marker); selectedId = marker.id; change();
 }
+function nextUnreviewedId() {
+  const scoped = sessionCases();
+  const index = scoped.findIndex(item => item.id === activeId);
+  for (let step = 1; step <= scoped.length; step++) {
+    const candidate = scoped[(index + step + scoped.length) % scoped.length];
+    if (candidate && !review.cases.find(entry => entry.id === candidate.id)?.reviewed) return candidate.id;
+  }
+  return undefined;
+}
+// Auto-advance waits a beat so the passage visibly flips to Reviewed, and the epoch guard means a passage the
+// owner explicitly clicks during that beat always wins over the automatic jump.
+async function advanceToNextPassage(nextId, epoch) {
+  await new Promise(resolve => setTimeout(resolve, 450));
+  if (epoch !== selectionEpoch || activeId === nextId) return;
+  if (review.cases.find(entry => entry.id === nextId)?.reviewed) return;
+  try { await switchCase(nextId); } catch (error) { setSaveMessage(error.message, true); }
+}
 function finishClip() {
   const state = activeReview();
   if (!state.listenedFull || state.markers.some(marker => marker.status === 'pending' || marker.status === 'uncertain') || !state.markers.some(marker => marker.status === 'accepted')) return;
   if (checklistNeeded() && !checklistComplete()) return;
   state.reviewed = true; change(false);
+  if (!autoAdvance) return;
+  const next = nextUnreviewedId();
+  if (next) void advanceToNextPassage(next, selectionEpoch);
 }
 
+function updateHover(event) {
+  const time = canvasTime(event);
+  const nearest = nearestVisibleMarker(time);
+  const id = nearest && Math.abs(nearest.time - time) <= markerSlopSeconds() ? nearest.id : undefined;
+  if (id === hoveredMarkerId) return;
+  hoveredMarkerId = id;
+  canvas.style.cursor = id ? 'pointer' : 'crosshair';
+  drawWaveform();
+}
 canvas.addEventListener('pointerdown', event => {
   if (!activeId) return;
-  const time = canvasTime(event), width = canvas.getBoundingClientRect().width;
-  const [viewStart, viewEnd] = viewRange();
-  const nearest = markersInTimeOrder().filter(marker => marker.time >= viewStart && marker.time <= viewEnd)
-    .reduce((best, marker) => !best || Math.abs(marker.time - time) < Math.abs(best.time - time) ? marker : best, null);
-  const threshold = (viewEnd - viewStart) * 12 / width;
-  if (nearest && Math.abs(nearest.time - time) <= threshold) {
+  const time = canvasTime(event);
+  const nearest = nearestVisibleMarker(time);
+  if (nearest && Math.abs(nearest.time - time) <= markerSlopSeconds()) {
+    // Inside a marker's forgiving target: select it and arm a drag. Whether this turns out to be a plain click
+    // (listen from the marker) or a drag (move the onset) is decided on pointerup.
     selectedId = nearest.id; cursorTime = nearest.time;
-    pointerDrag = { id: nearest.id, startX: event.clientX, changed: false };
-    canvas.setPointerCapture(event.pointerId);
-  } else { selectedId = undefined; cursorTime = clampTime(time); }
+    pointerDrag = { id: nearest.id, startX: event.clientX, time: nearest.time, changed: false, moved: false };
+  } else {
+    selectedId = undefined; cursorTime = clampTime(time);
+    pointerDrag = { id: undefined, startX: event.clientX, time: cursorTime, changed: false, moved: false };
+  }
+  canvas.setPointerCapture(event.pointerId);
   render();
 });
 canvas.addEventListener('pointermove', event => {
-  if (!pointerDrag || !activeId || Math.abs(event.clientX - pointerDrag.startX) < 3 && !pointerDrag.changed) return;
+  if (!activeId) return;
+  if (!pointerDrag) { updateHover(event); return; }
+  if (!pointerDrag.moved && !pointerDrag.changed && Math.abs(event.clientX - pointerDrag.startX) < 3) return;
+  pointerDrag.moved = true;
+  if (!pointerDrag.id) return;
   const marker = activeReview().markers.find(item => item.id === pointerDrag.id);
   if (!marker) return;
   const time = clampTime(canvasTime(event));
@@ -421,8 +569,21 @@ canvas.addEventListener('pointermove', event => {
   marker.time = time; marker.status = 'accepted'; cursorTime = time;
   activeReview().reviewed = false; pointerDrag.changed = true; renderMarkers(); drawWaveform();
 });
-canvas.addEventListener('pointerup', () => { if (pointerDrag?.changed) void save(); pointerDrag = undefined; });
-canvas.addEventListener('pointercancel', () => { if (pointerDrag?.changed) void save(); pointerDrag = undefined; });
+function releasePointer() {
+  const drag = pointerDrag;
+  pointerDrag = undefined;
+  if (!drag) return;
+  if (drag.changed) { void save(); return; }
+  if (drag.moved) return;                       // a drag that moved nothing is not a click
+  if (drag.id) { selectedId = drag.id; cursorTime = drag.time; }
+  togglePlaybackAt(drag.time);                  // plain click: listen from here (or pause if already playing)
+}
+canvas.addEventListener('pointerup', releasePointer);
+canvas.addEventListener('pointercancel', releasePointer);
+canvas.addEventListener('pointerleave', () => {
+  if (pointerDrag || hoveredMarkerId === undefined) return;
+  hoveredMarkerId = undefined; canvas.style.cursor = 'crosshair'; drawWaveform();
+});
 new ResizeObserver(drawWaveform).observe(canvas);
 canvas.addEventListener('wheel', event => {
   event.preventDefault();
@@ -449,13 +610,16 @@ element('wave-pan').oninput = event => {
 element('play-full').onclick = playFull;
 element('play-hit').onclick = () => { void playSelected(); };
 element('play-context').onclick = () => { void playSelected(true); };
-element('stop').onclick = stopPlayback;
+element('stop').onclick = () => { pausedAt = undefined; stopPlayback(); };
+element('auto-advance').onchange = event => { autoAdvance = event.target.checked; };
 element('loop-toggle').onchange = event => {
   loopEnabled = event.target.checked;
   if (playback?.full) playback.loop = loopEnabled;
   updateLoopStatus();
 };
 element('session-select').onchange = async event => {
+  selectionEpoch += 1;
+  pausedAt = undefined;
   stopPlayback();
   try { await loadSession(event.target.value); }
   catch (error) { setSaveMessage(error.message, true); }
@@ -482,19 +646,23 @@ element('export').onclick = async () => {
   } catch (error) { setSaveMessage(error.message, true); }
 };
 document.addEventListener('keydown', event => {
-  if (!activeId || ['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
-  if (event.key === 'Escape') { stopPlayback(); return; }
-  if (event.key === ' ' && !['BUTTON'].includes(document.activeElement?.tagName)) { event.preventDefault(); void playSelected(); return; }
-  if (['ArrowLeft', 'ArrowRight'].includes(event.key) && !['BUTTON'].includes(document.activeElement?.tagName)) {
-    event.preventDefault(); const ordered = markersInTimeOrder(), index = ordered.findIndex(marker => marker.id === selectedId);
-    const next = ordered[Math.max(0, Math.min(ordered.length - 1, index + (event.key === 'ArrowRight' ? 1 : -1)))];
-    if (next) { selectedId = next.id; cursorTime = next.time; revealMarker(next); render(); }
+  if (!activeId || event.ctrlKey || event.metaKey || event.altKey) return;
+  const focus = document.activeElement, tag = focus?.tagName, type = tag === 'INPUT' ? focus.type : '';
+  // Never hijack typing, the session picker, or a key that belongs to the focused control. Tab/Shift+Tab and Enter
+  // are untouched, so checkboxes and buttons keep working; Space and the arrows stay with a focused range/checkbox.
+  if (tag === 'TEXTAREA' || tag === 'SELECT' || (tag === 'INPUT' && TEXT_ENTRY_TYPES.includes(type))) return;
+  if (event.key === ' ' && tag === 'INPUT' && KEYBOARD_OWNED_TYPES.includes(type)) return;
+  if (event.key === 'Escape') { pausedAt = undefined; stopPlayback(); return; }
+  if (event.key === ' ') { event.preventDefault(); togglePlayback(); return; }
+  if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+    if (tag === 'INPUT' && type === 'range') return;
+    event.preventDefault(); moveSelection(event.key === 'ArrowRight' ? 1 : -1); return;
   }
-  if (event.key.toLowerCase() === 'f') { event.preventDefault(); playFull(); }
-  if (event.key.toLowerCase() === 'a') { event.preventDefault(); editStatus('accepted'); }
-  if (event.key.toLowerCase() === 'r') { event.preventDefault(); editStatus('rejected'); }
-  if (event.key.toLowerCase() === 'u') { event.preventDefault(); editStatus('uncertain'); }
-  if (event.key === ',' || event.key === '.') { event.preventDefault(); nudge((event.key === ',' ? -1 : 1) * (event.shiftKey ? .01 : .001)); }
+  if (event.key.toLowerCase() === 'f') { event.preventDefault(); playFull(); return; }
+  if (event.key.toLowerCase() === 'a') { event.preventDefault(); editStatus('accepted'); return; }
+  if (event.key.toLowerCase() === 'r') { event.preventDefault(); editStatus('rejected'); return; }
+  if (event.key.toLowerCase() === 'u') { event.preventDefault(); editStatus('uncertain'); return; }
+  if (event.key === ',' || event.key === '.') { event.preventDefault(); nudge((event.key === ',' ? -1 : 1) * (event.shiftKey ? .01 : .001)); return; }
 });
 
 function applyState(data) {
