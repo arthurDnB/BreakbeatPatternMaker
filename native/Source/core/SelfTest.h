@@ -1,12 +1,23 @@
 #pragma once
 
-// Golden-vector self test for the JUCE-free core (Random + Model).
+// Golden-vector self test for the JUCE-free core (Random + Model + the wave-3
+// whole-pattern fixture checks).
 //
 // It reads the plain-text reference vectors that native/tests/generate-vectors.mjs
-// produces from the COMPILED browser engine (dist/core/*.js) and re-runs every
-// recorded case against the C++ port, counting one check per compared value.
-// There is no main() here: a CLI (or a JUCE unit test) calls the entry point
-// below. Standard library only, no JUCE, no third-party headers.
+// and native/tests/generate-pattern-vectors.mjs produce from the COMPILED browser
+// engine (dist/core/*.js) and re-runs every recorded case against the C++ port,
+// counting one check per compared value. There is no main() here: a CLI (or a
+// JUCE unit test) calls the entry point below. Standard library only, no JUCE, no
+// third-party headers.
+//
+// Two files are replayed today:
+//   native/tests/vectors/random-model.txt   987 checks (Random + Model values)
+//   native/tests/vectors/patterns.txt      1568 checks (whole-pattern records:
+//     contract / tolerance / policy prose pins, jsnum formatting, and case ->
+//     settings -> setting -> pattern groups re-serialized byte for byte)
+// The `case`/`settings`/`setting`/`pattern` kinds only prove the recorded
+// evidence is canonical and internally consistent; no generator is ported yet,
+// so nothing here compares a GENERATED pattern with these records.
 //
 // Vector file format (see native/tests/vectors/random-model.txt)
 //   * '#' lines are section headers; blank lines are ignored.

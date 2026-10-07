@@ -234,6 +234,15 @@ Determinism is a hard requirement of the port, not a quality goal.
   `tests/fixtures/determinism-matrix.json` freezes **44 whole-pattern digests** of that exact text.
   `reason` is inside the hash on purpose; `src/core/model.ts:116` marks `layerOf` render-only, so
   fixtures assert it is `undefined` after rendering rather than serializing it.
+  - **How the shortest form is produced (measured, not assumed).** `bbpm::core::jsNumberToString`
+    (`native/Source/core/Model.cpp:208`) uses `std::to_chars(..., std::chars_format::scientific)`
+    with no precision, then applies the ECMAScript formatting rules to its digits and exponent.
+    The obvious alternative — searching `snprintf("%.*g", precision)` for the first precision that
+    `strtod`s back to the same double — is **wrong on MSVC**: probed over 376 868 values it agreed
+    with `String(x)` 376 866 times and fell back to 17 digits for `5.960464477539063e-8` (2^-24)
+    and `5.684341886080802e-14`, both of which JS prints with 16. Any single such value inside a
+    pattern would change its `JSON.stringify` text and break the frozen digests. With `to_chars`
+    the same probe reports `mismatches 0`.
 - **Tolerance rules for audio comparison** (`docs/M1-RENDER-PLAN-CONTRACT.md:126-138`, executable
   as `scripts/fixture-tolerance.mjs`, enforced by `tests/fixture-tolerance.test.mjs`):
 

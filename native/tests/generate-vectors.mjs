@@ -342,10 +342,18 @@ for (const seed of SEEDS) {
 blank();
 
 header("section: jsnum - ECMAScript String(number), the formatter used in error messages");
+// The last six literals are regression cases, not examples. A 376 868-value
+// differential probe against V8 (see docs/NATIVE-PORT-PLAN.md, "How the
+// shortest form is produced") found that the first two - 2^-24 and 2^-44 -
+// round-trip at 16 digits in JS while an snprintf("%.*g")/strtod search on
+// MSVC needs 17, which would change a pattern's JSON.stringify text and break
+// the frozen digests. The rest are neighbouring shortest-form edges.
 for (const literal of [
   "0", "-0", "0.1", "0.5", "0.67", "2.5", "1e-7", "1e-6", "0.000099", "1e16", "1e20", "1e21",
   "4294967295", "123456789012345678901234567890", "1.7976931348623157e308", "5e-324",
   "0.3333333333333333", "100", "999", "120", "1000000", "-16.5",
+  "5.960464477539063e-8", "5.684341886080802e-14", "1.1102230246251565e-16",
+  "2.220446049250313e-16", "4.440892098500626e-16", "8.881784197001252e-16",
 ]) {
   entry("jsnum", { in: literal }, String(Number(literal)));
 }

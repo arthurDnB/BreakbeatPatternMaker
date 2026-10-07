@@ -3,11 +3,13 @@
 
 #include "Model.h"
 
+#include <charconv>
 #include <cmath>
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <system_error>
 
 namespace bbpm::core {
 
@@ -215,14 +217,27 @@ std::string jsNumberToString(double value) {
 
     // Shortest decimal that parses back to the same double: exactly the digit
     // set ECMAScript uses before it applies its formatting rules.
+    //
+    // This deliberately uses std::to_chars rather than a `%.*g` / strtod
+    // round-trip search. MSVC's snprintf does not always emit the correctly
+    // rounded n-digit form, so that search agreed with String(x) on 376866 of
+    // 376868 probed values and fell back to 17 digits on the two it missed
+    // (2^-24 printed as "5.9604644775390625e-8" where JS prints
+    // "5.960464477539063e-8"), which would break the pinned JSON digests.
+    // To_chars with chars_format::scientific and no precision is specified to
+    // produce the shortest round-tripping digit string.
     char buffer[64];
-    int precision = 1;
-    for (; precision <= 17; ++precision) {
-        std::snprintf(buffer, sizeof(buffer), "%.*g", precision, magnitude);
-        if (std::strtod(buffer, nullptr) == magnitude) break;
+    const std::to_chars_result converted =
+        std::to_chars(buffer, buffer + sizeof(buffer), magnitude, std::chars_format::scientific);
+    if (converted.ec != std::errc()) {
+        // Unreachable for a finite double in 64 bytes, but never print garbage.
+        std::snprintf(buffer, sizeof(buffer), "%.17e", magnitude);
+    } else {
+        *converted.ptr = '\0';
     }
 
-    // Split the %g form into a digit stream plus the exponent of its first digit.
+    // Split the scientific form into a digit stream plus the exponent of its
+    // first digit.
     std::string stream;
     int integerDigits = 0;
     int exponent = 0;
