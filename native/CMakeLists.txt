@@ -93,22 +93,39 @@ target_link_libraries(BreakbeatNative PRIVATE
     PUBLIC
     juce::juce_recommended_config_flags)
 
-# --- JUCE-free core and its self test ----------------------------------------
+# --- JUCE-free core and its self tests ---------------------------------------
 # Source/core/ is the C++ port of the browser engine's pure modules (Random,
-# Model, ...). It is plain C++17 with no JUCE dependency, so it builds as its own
-# console target and can be verified WITHOUT running the app:
+# Model, Meter, Articulation, ...). It is plain C++17 with no JUCE dependency, so
+# it builds as its own console targets and can be verified WITHOUT running the
+# app:
 #
-#   native\build\bbpm_selftest.exe                       (finds the vectors itself)
-#   native\build\bbpm_selftest.exe <vectorsPath>         (explicit file)
+#   native\build\bbpm_selftest.exe          (finds the vectors itself)
+#   native\build\bbpm_selftest.exe <path>   (explicit file)
 #
-# It replays every value in native/tests/vectors/random-model.txt, which
-# native/tests/generate-vectors.mjs records from the COMPILED browser engine
-# (dist/core/*.js). That file is the cross-engine contract: a mismatch means the
-# port diverged from the shipped generator, and it exits 1.
+#   native\build\bbpm_wave2_selftest.exe
+#   native\build\bbpm_wave2_selftest.exe <path>
+#
+# bbpm_selftest replays native/tests/vectors/random-model.txt and patterns.txt
+# (number formatting, model tables and whole patterns), and
+# bbpm_wave2_selftest replays native/tests/vectors/wave2.txt (meter,
+# articulation, drum lanes, slice instruments, reverse probability). Every value
+# in those files is recorded from the COMPILED browser engine (dist/core/*.js) by
+# native/tests/generate-vectors.mjs and generate-pattern-vectors.mjs and
+# generate-wave2-vectors.mjs. Those files are the cross-engine contract: a
+# mismatch means the port diverged from the shipped generator, and it exits 1.
 include(${CMAKE_CURRENT_SOURCE_DIR}/Source/core/sources.cmake)
 
 add_executable(bbpm_selftest
     ${BBPM_CORE_SOURCES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/Source/core/SelfTest.cpp
     Source/SelfTestCli.cpp)
 
 target_include_directories(bbpm_selftest PRIVATE Source)
+
+add_executable(bbpm_wave2_selftest
+    ${BBPM_CORE_SOURCES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/Source/core/Wave2SelfTest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Source/core/Wave2Support.cpp
+    Source/Wave2SelfTestCli.cpp)
+
+target_include_directories(bbpm_wave2_selftest PRIVATE Source)
